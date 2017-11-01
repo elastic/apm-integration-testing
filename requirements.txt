@@ -1,0 +1,6 @@
+pytest>=3.0
+pytest-random-order
+requests
+docker
+timeout-decorator
+elasticsearch>=5.0.0
