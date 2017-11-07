@@ -1,0 +1,2 @@
+django
+git+https://github.com/elastic/apm-agent-python.git@master
