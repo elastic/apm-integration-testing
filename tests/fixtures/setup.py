@@ -2,6 +2,7 @@ import pytest
 from utils import docker_helper
 from io import BytesIO
 from elasticsearch import Elasticsearch
+from utils.apm_server import APMServer
 
 
 @pytest.fixture(scope="module")
@@ -30,7 +31,7 @@ def apm_server():
 
     docker_helper.build_image(name, f)
     container = docker_helper.run_container(name, ports=ports, url=url)
-    return container
+    return APMServer("http://apm-server:8200")
 
 
 @pytest.fixture(scope="module")
