@@ -1,8 +1,8 @@
 import pytest
 from utils import docker_helper
 from io import BytesIO
-from elasticsearch import Elasticsearch
 from utils.apm_server import APMServer
+from utils.elasticsearch import Elasticsearch
 
 
 @pytest.fixture(scope="module")
@@ -54,7 +54,7 @@ def elasticsearch():
                                 name=container_name,
                                 url=internal_url,
                                 env=env)
-    return Elasticsearch([internal_url])
+    return Elasticsearch(internal_url)
 
 
 @pytest.fixture(scope="module")
