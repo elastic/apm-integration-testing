@@ -12,3 +12,15 @@ pip install -r requirements.txt
 ```
 pytest
 ```
+
+## Development
+Adding more tests you should keep some guidelines in mind:
+- Tests should be runnable also on cloud. 
+  The setup should be seperated from the test logic.
+  Right now fixtures are used for defining setup per testcase.
+  When running tests on cloud dependencies will be started ahead and probably passed in by a URL.
+- Writing agent code: Reuse as much logic as possible to also point out differences in agents.
+- Possible structure of tests:
+  - smoke tests (very high level, runnable on different platforms, could be used for unified build)
+  - version tests (high level tests between agents-server-es-kibana) to be run with different snapshots or release candidates
+  - extensive end-to-end-tests (test different config, types of requests, etc.)
