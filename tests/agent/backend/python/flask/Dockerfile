@@ -6,4 +6,4 @@ ADD . /app
 
 #TODO: move this to CMD/runtime
 RUN pip install -Ur requirements.txt
-CMD ["python", "app.py"]
+CMD ["/bin/bash", "-c", "python app.py"]

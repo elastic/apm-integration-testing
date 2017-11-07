@@ -21,7 +21,9 @@ def apm_server():
         cd apm-server &&\
         make update &&\
         make &&\
-        ./apm-server -E apm-server.host=0.0.0.0:8200 -E output.elasticsearch.hosts=[elasticsearch:9200]"]
+        ./apm-server \
+            -E apm-server.host=0.0.0.0:8200 \
+            -E output.elasticsearch.hosts=[elasticsearch:9200]"]
     '''
     f = BytesIO(d.encode('utf-8'))
     url = "http://localhost:8200/healthcheck"
