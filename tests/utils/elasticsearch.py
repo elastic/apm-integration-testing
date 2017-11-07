@@ -1,14 +1,16 @@
+import elasticsearch
 import time
 import timeout_decorator
 
 
-class ESHelper:
-    def __init__(self, elasticsearch):
-        self.elasticsearch = elasticsearch
+class Elasticsearch:
+    def __init__(self, url):
+        self.es = elasticsearch.Elasticsearch([url])
         self.index = "apm-*"
 
     def clean(self):
-        self.elasticsearch.indices.delete(self.index)
+        self.es.indices.delete(self.index)
+        self.es.indices.refresh()
 
     def verify_transaction_data(self, name=None):
         try:
@@ -23,7 +25,7 @@ class ESHelper:
         s = {}
         while ct == 0:
             time.sleep(1)
-            s = self.elasticsearch.search(index=self.index,
-                                          body={"query": {"match_all": {}}})
+            s = self.es.search(index=self.index,
+                               body={"query": {"match_all": {}}})
             ct = s['hits']['total']
         return s

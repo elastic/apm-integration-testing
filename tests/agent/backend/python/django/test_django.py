@@ -1,5 +1,3 @@
-from utils import framework
-from utils.es_helper import ESHelper
 from utils.framework import Framework
 from utils import agent
 
@@ -14,8 +12,7 @@ def test_http_request(apm_server, elasticsearch):
     path = "tests/agent/backend/python/django"
     Framework(APP_NAME).start(ports=ports, path=path)
 
-    es = ESHelper(elasticsearch)
-    es.clean()
+    elasticsearch.clean()
     url = "{}/{}".format(APP_URL, FOO)
     agent.send_and_verify_request(url, text=FOO)
-    es.verify_transaction_data(APP_NAME)
+    elasticsearch.verify_transaction_data(APP_NAME)
