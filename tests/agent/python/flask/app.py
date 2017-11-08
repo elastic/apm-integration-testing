@@ -9,10 +9,12 @@ import logging
 app = Flask(__name__)
 app.debug = False
 
+# TODO: use ENV_VARIABLE for URLs and ports
+
 app.config['ELASTIC_APM'] = {
     'DEBUG': True,
     'TRACES_SEND_FREQ': 1,
-    'SERVER': 'http://apm_server:8200',
+    'SERVER': 'http://apm-server:8200',
     'APP_NAME': 'flask_app',
     'SECRET_TOKEN': '1234'
 }
@@ -41,7 +43,12 @@ def bar_route():
 
 @elasticapm.trace()
 def bar():
-    return "OK"
+    return extra()
+
+
+@elasticapm.trace()
+def extra():
+    return "bar"
 
 
 if __name__ == '__main__':
