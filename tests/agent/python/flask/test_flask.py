@@ -17,18 +17,14 @@ def test_http_request(apm_server, elasticsearch):
     # __check_transaction(apm_server_secured.url, elasticsearch)
 
 
-def test_with_threads(apm_server, elasticsearch):
-    events_no = 1000
-    iterations = 3
-
-
+def __init():
+    ports = {"{}/tcp".format(APP_PORT): APP_PORT}
+    path = "tests/agent/python/flask"
+    Framework(APP_NAME).start(ports=ports, path=path)
 
 
 def __check_transaction(elasticsearch):
-    ports = {"{}/tcp".format(APP_PORT): APP_PORT}
-    path = "tests/agent/backend/python/flask"
-    Framework(APP_NAME).start(ports=ports, path=path)
-
+    __init()
     elasticsearch.clean()
     url = "{}/{}".format(APP_URL, FOO)
     agent.send_and_verify_request(url, text=FOO)

@@ -9,7 +9,7 @@ FOO = 'foo'
 
 def test_http_request(apm_server, elasticsearch):
     ports = {"{}/tcp".format(APP_PORT): APP_PORT}
-    path = "tests/agent/backend/python/django"
+    path = "tests/agent/python/django"
     Framework(APP_NAME).start(ports=ports, path=path)
 
     elasticsearch.clean()
