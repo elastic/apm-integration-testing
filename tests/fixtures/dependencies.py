@@ -1,5 +1,5 @@
 import pytest
-from utils.elasticsearch import Elasticsearch
+from utils.es import Elasticsearch
 from fixtures.setup import docker_helper
 
 # TODO: use ENV_VARIABLE for elasticsearch,kibana endpoint
