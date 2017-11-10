@@ -4,3 +4,4 @@ requests
 docker
 timeout-decorator
 elasticsearch>=5.0.0
+tornado

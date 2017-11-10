@@ -13,8 +13,18 @@ pip install -r requirements.txt
 pytest
 ```
 
-## Development
-Adding more tests you should keep some guidelines in mind:
+### TODOs:
+- make all URLs configurable via ENV_VARIABLES
+- improve docker setup
+  - install requirements at runtime
+  - use ENTRYPOPINT over CMD
+  - ensure volumes are removed
+  - check docker user permissions
+- fix bug in concurrent requests when different number of events given for two endpoints.
+- add concurrent tests for nodejs
+
+
+## Development Info
 - Tests should be runnable also on cloud. 
   The setup should be seperated from the test logic.
   Right now fixtures are used for defining setup per testcase.

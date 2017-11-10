@@ -1,38 +1,8 @@
 import pytest
-from utils import docker_helper
-from io import BytesIO
-from utils.apm_server import APMServer
 from utils.elasticsearch import Elasticsearch
+from fixtures.setup import docker_helper
 
-
-@pytest.fixture(scope="module")
-def apm_server():
-    name = "apm_server"
-    ports = {'8200/tcp': 8200}
-    d = '''
-    FROM golang:latest
-    RUN set -x && \
-        apt-get update && \
-        apt-get install -y --no-install-recommends \
-          python-pip virtualenv build-essential && \
-        apt-get clean
-    WORKDIR ${GOPATH}/src/github.com/elastic/
-    CMD ["/bin/bash", "-c", "rm -rf apm-server && \
-        git clone http://github.com/elastic/apm-server.git &&\
-        cd apm-server &&\
-        make update &&\
-        make &&\
-        ./apm-server \
-            -E apm-server.host=0.0.0.0:8200 \
-            -E output.elasticsearch.hosts=[elasticsearch:9200]"]
-    '''
-    f = BytesIO(d.encode('utf-8'))
-    url = "http://localhost:8200/healthcheck"
-
-    docker_helper.build_image(name, f)
-    container = docker_helper.run_container(name, ports=ports, url=url)
-    return APMServer("http://apm-server:8200")
-
+# TODO: use ENV_VARIABLE for elasticsearch,kibana endpoint
 
 @pytest.fixture(scope="module")
 def elasticsearch():
