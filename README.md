@@ -8,6 +8,8 @@ Use the python environment of your choice and run:
 pip install -r requirements.txt
 ```
 
+Make sure you have `docker` installed.
+
 ## Running Testsuite
 ```
 pytest
