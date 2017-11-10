@@ -43,12 +43,13 @@ def bar_route():
 
 @elasticapm.trace()
 def bar():
-    return extra()
+    extra()
+    return "bar"
 
 
 @elasticapm.trace()
 def extra():
-    return "bar"
+    return "extra"
 
 
 if __name__ == '__main__':

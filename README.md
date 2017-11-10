@@ -22,7 +22,6 @@ pytest
   - use ENTRYPOPINT over CMD
   - ensure volumes are removed
   - check docker user permissions
-- fix bug in concurrent requests when different number of events given for two endpoints.
 - add concurrent tests for nodejs
 
 

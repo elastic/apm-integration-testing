@@ -35,5 +35,4 @@ def apm_server():
 
     docker_helper.build_image(name, f)
     container = docker_helper.run_container(name, ports=ports, url=url)
-    container = None
     return APMServer("http://apm-server:8200", container)
