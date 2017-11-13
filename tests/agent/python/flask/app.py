@@ -5,6 +5,7 @@ from flask import Flask
 from elasticapm.contrib.flask import ElasticAPM
 from elasticapm.handlers.logging import LoggingHandler
 import logging
+import os
 
 app = Flask(__name__)
 app.debug = False
@@ -14,8 +15,8 @@ app.debug = False
 app.config['ELASTIC_APM'] = {
     'DEBUG': True,
     'TRACES_SEND_FREQ': 1,
-    'SERVER': 'http://apm-server:8200',
-    'APP_NAME': 'flask_app',
+    'SERVER': os.environ['APM_SERVER_URL'],
+    'APP_NAME': os.environ['FLASK_APP_NAME'],
     'SECRET_TOKEN': '1234'
 }
 apm = ElasticAPM(app, logging=True)
@@ -53,7 +54,7 @@ def extra():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8001)
+    app.run(host='0.0.0.0', port=os.environ['FLASK_PORT'])
 
     # Create a logging handler and attach it.
     handler = LoggingHandler(client=apm.client)

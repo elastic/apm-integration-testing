@@ -3,8 +3,8 @@ from timeout_decorator import TimeoutError
 from agent.concurrent_requests import Concurrent
 
 
-def test_request_express(elasticsearch, apm_server, express):
-    check_transaction(express, elasticsearch)
+def test_request_express(express):
+    check_transaction(express, express.apm_server.elasticsearch)
 
 
 def test_conc_req_express(elasticsearch, apm_server, express):
