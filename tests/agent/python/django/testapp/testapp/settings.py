@@ -40,11 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 
-# TODO: use ENV_VARIABLE for URLs and ports
-
 ELASTIC_APM = {
-    'APP_NAME': 'django_app',
-    'SERVER': 'http://apm-server:8200',
+    'APP_NAME': os.environ['DJANGO_APP_NAME'],
+    'SERVER': os.environ['APM_SERVER_URL'],
     'SECRET_TOKEN': '1234_test',
     'TRACES_SEND_FREQ': 1
 }

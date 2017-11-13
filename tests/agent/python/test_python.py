@@ -3,44 +3,44 @@ from timeout_decorator import TimeoutError
 from agent.concurrent_requests import Concurrent
 
 
-def test_req_flask(elasticsearch, apm_server, flask):
-    check_transaction(flask, elasticsearch)
+def test_req_flask(flask):
+    check_transaction(flask, flask.apm_server.elasticsearch)
 
 
-def test_conc_req_flask(elasticsearch, apm_server, flask):
-    foo = Concurrent.Endpoint(flask.foo.url,
-                              flask.app_name,
+def test_conc_req_flask(flask_gunicorn):
+    foo = Concurrent.Endpoint(flask_gunicorn.foo.url,
+                              flask_gunicorn.app_name,
                               [".*.foo"],
                               "GET /foo")
-    Concurrent(elasticsearch, [foo], iters=2).run()
+    Concurrent(flask_gunicorn.apm_server.elasticsearch, [foo], iters=2).run()
 
 
-def test_conc_req_flask_foobar(elasticsearch, apm_server, flask):
-    foo = Concurrent.Endpoint(flask.foo.url,
-                              flask.app_name,
+def test_conc_req_flask_foobar(flask_gunicorn):
+    foo = Concurrent.Endpoint(flask_gunicorn.foo.url,
+                              flask_gunicorn.app_name,
                               [".*.foo"],
                               "GET /foo",
                               events_no=375)
-    bar = Concurrent.Endpoint(flask.bar.url,
-                              flask.app_name,
+    bar = Concurrent.Endpoint(flask_gunicorn.bar.url,
+                              flask_gunicorn.app_name,
                               [".*.bar", ".*.extra"],
                               "GET /bar")
-    Concurrent(elasticsearch, [foo, bar], iters=1).run()
+    Concurrent(flask_gunicorn.apm_server.elasticsearch, [foo, bar], iters=1).run()
 
 
-def test_req_django(elasticsearch, apm_server, django):
-    check_transaction(django, elasticsearch)
+def test_req_django(django):
+    check_transaction(django, django.apm_server.elasticsearch)
 
 
-def test_conc_req_django(elasticsearch, apm_server, django):
+def test_conc_req_django(django):
     foo = Concurrent.Endpoint(django.foo.url,
                               django.app_name,
                               [".*.foo"],
                               "GET foo.views.show")
-    Concurrent(elasticsearch, [foo], iters=2).run()
+    Concurrent(django.apm_server.elasticsearch, [foo], iters=2).run()
 
 
-def test_conc_req_django_foobar(elasticsearch, apm_server, django):
+def test_conc_req_django_foobar(django):
     foo = Concurrent.Endpoint(django.foo.url,
                               django.app_name,
                               [".*.foo"],
@@ -50,7 +50,7 @@ def test_conc_req_django_foobar(elasticsearch, apm_server, django):
                               [".*.bar", ".*.extra"],
                               "GET bar.views.show",
                               events_no=820)
-    Concurrent(elasticsearch, [foo, bar], iters=1).run()
+    Concurrent(django.apm_server.elasticsearch, [foo, bar], iters=1).run()
 
 
 def check_transaction(agent, elasticsearch):

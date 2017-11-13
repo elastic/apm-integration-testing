@@ -3,12 +3,11 @@
 //TODO: use ENV_VARIABLE for URLs and ports
 
 var apm = require('elastic-apm').start({
-  appName: 'express_app', 
+  appName: process.env.EXPRESS_APP_NAME, 
   flushInterval: 1,
   secretToken: '1234',
-  serverUrl: 'http://apm-server:8200'
+  serverUrl: process.env.APM_SERVER_URL
 })
-
 
 var app = require("express")();
 
@@ -47,7 +46,7 @@ function extra_route () {
 
 app.use(apm.middleware.express())
 
-var server = app.listen(8010, '0.0.0.0', function () {
+var server = app.listen(process.env.EXPRESS_PORT, '0.0.0.0', function () {
     console.log("Listening on %s...", server.address().port);
 });
 

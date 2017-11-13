@@ -1,68 +1,77 @@
 import pytest
-from fixtures.setup import docker_helper
+from fixtures.setup import utils
+import subprocess
+import os
+from urllib.parse import urlparse
+import timeout_decorator
 
 
-# TODO: use ENV_VARIABLE for agent configs
-
-@pytest.fixture(scope="module")
-def flask():
-    class Flask:
-        def __init__(self):
-            self.app_name = 'flask_app'
-            self.port = '8001'
-            self.url = 'http://localhost:8001'
-            self.foo = Endpoint(self.url, "foo")
-            self.bar = Endpoint(self.url, "bar")
-            ports = {"{}/tcp".format(self.port): self.port}
-            path = "tests/agent/python/flask"
-            container = start_container(self.app_name, ports, path)
-
-    return Flask()
+@timeout_decorator.timeout(250)
+@pytest.fixture(scope="session")
+def flask(apm_server):
+    os.environ['FLASK_APP_NAME'] = "flask_app"
+    os.environ['FLASK_PORT'] = "8001"
+    script = "tests/fixtures/setup/python/flask/start.sh"
+    subprocess.call([script])
+    url = "http://localhost:{}".format(os.environ['FLASK_PORT'])
+    wait_until_setup(url, apm_server)
+    return Agent(os.environ['FLASK_APP_NAME'], url, apm_server)
 
 
-@pytest.fixture(scope="module")
-def django():
-    class Django:
-        def __init__(self):
-            self.app_name = 'django_app'
-            self.port = '8002'
-            self.url = 'http://localhost:8002'
-            self.foo = Endpoint(self.url, "foo")
-            self.bar = Endpoint(self.url, "bar")
-            ports = {"{}/tcp".format(self.port): self.port}
-            path = "tests/agent/python/django"
-            container = start_container(self.app_name, ports, path)
-    return Django()
+@timeout_decorator.timeout(250)
+@pytest.fixture(scope="session")
+def flask_gunicorn(apm_server):
+    os.environ['PY_SERVER'] = 'GUNICORN'
+    os.environ['FLASK_APP_NAME'] = "flask_gunicorn_app"
+    os.environ['FLASK_PORT'] = "8002"
+    script = "tests/fixtures/setup/python/flask/start.sh"
+    subprocess.call([script])
+    url = "http://localhost:{}".format(os.environ['FLASK_PORT'])
+    wait_until_setup(url, apm_server)
+    return Agent(os.environ['FLASK_APP_NAME'], url, apm_server)
 
 
-@pytest.fixture(scope="module")
-def express():
-    class Express:
-        def __init__(self):
-            self.app_name = 'express_app'
-            self.port = '8010'
-            self.url = 'http://localhost:8010'
-            self.foo = Endpoint(self.url, "foo")
-            self.bar = Endpoint(self.url, "bar")
-            ports = {"{}/tcp".format(self.port): self.port}
-            path = "tests/agent/nodejs/express"
-            container = start_container(self.app_name, ports, path)
-    return Express()
+@timeout_decorator.timeout(250)
+@pytest.fixture(scope="session")
+def django(apm_server):
+    os.environ['DJANGO_APP_NAME'] = "django_app"
+    os.environ['DJANGO_PORT'] = "8003"
+    script = "tests/fixtures/setup/python/django/start.sh"
+    subprocess.call([script])
+    url = "http://localhost:{}".format(os.environ['DJANGO_PORT'])
+    wait_until_setup("{}/foo".format(url), apm_server)
+    return Agent(os.environ['DJANGO_APP_NAME'], url, apm_server)
 
 
-def url(base_url, u, qs=None):
-    url = "{}/{}".format(base_url, u)
-    if qs is not None:
-        url = "{}?{}".format(url, qs)
-    return url
+@timeout_decorator.timeout(250)
+@pytest.fixture(scope="session")
+def express(apm_server):
+    os.environ['EXPRESS_APP_NAME'] = "express_app"
+    os.environ['EXPRESS_PORT'] = "8010"
+    script = "tests/fixtures/setup/nodejs/express/start.sh"
+    subprocess.call([script])
+    url = "http://localhost:{}".format(os.environ['EXPRESS_PORT'])
+    wait_until_setup(url, apm_server)
+    return Agent(os.environ['EXPRESS_APP_NAME'], url, apm_server)
 
 
-def start_container(name, ports, path):
-    docker_helper.build_image(name, path)
-    return docker_helper.run_container(name, ports=ports)
+def wait_until_setup(url, apm_server):
+    utils.wait_until_service_responding(url)
+    apm_server.elasticsearch.clean()
+    apm_server.elasticsearch.fetch({'query': {'match_all': {}}})
+
 
 class Endpoint:
     def __init__(self, base_url, endpoint, text=None, status_code=200):
-        self.url = url(base_url, endpoint, "q")
+        self.url = "{}/{}?{}".format(base_url, endpoint, "q")
         self.text = text if text is not None else endpoint
         self.status_code = status_code
+
+class Agent:
+    def __init__(self, app_name, url, apm_server):
+        self.app_name = app_name
+        self.url = url
+        self.port = urlparse(url).port
+        self.foo = Endpoint(self.url, "foo")
+        self.bar = Endpoint(self.url, "bar")
+        self.apm_server = apm_server

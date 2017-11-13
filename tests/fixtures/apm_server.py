@@ -1,38 +1,30 @@
 import pytest
-from fixtures.setup import docker_helper
-from io import BytesIO
+from fixtures.setup import utils
+import os
+import subprocess
+from urllib.parse import urlparse
+import timeout_decorator
 
-# TODO: use ENV_VARIABLE for apm_server, elasticsearch endpoint
 
-@pytest.fixture(scope="module")
-def apm_server():
+@timeout_decorator.timeout(90)
+@pytest.fixture(scope="session")
+def apm_server(elasticsearch):
     class APMServer:
-        def __init__(self, url, container):
+        def __init__(self, url):
             self.url = url
-            self.container = container
+            self.elasticsearch = elasticsearch
 
-    name = "apm-server"
-    ports = {'8200/tcp': 8200}
-    d = '''
-    FROM golang:latest
-    RUN set -x && \
-        apt-get update && \
-        apt-get install -y --no-install-recommends \
-          python-pip virtualenv build-essential && \
-        apt-get clean
-    WORKDIR ${GOPATH}/src/github.com/elastic/
-    CMD ["/bin/bash", "-c", "rm -rf apm-server && \
-        git clone http://github.com/elastic/apm-server.git &&\
-        cd apm-server &&\
-        make update &&\
-        make &&\
-        ./apm-server \
-            -E apm-server.host=0.0.0.0:8200 \
-            -E output.elasticsearch.hosts=[elasticsearch:9200]"]
-    '''
-    f = BytesIO(d.encode('utf-8'))
-    url = "http://localhost:8200/healthcheck"
+    url = os.environ.get('APM_SERVER_URL')
+    if url is None:
+        name = os.environ['APM_SERVER_NAME'] = 'apm-server'
+        port = os.environ['APM_SERVER_PORT'] = "8200"
+        os.environ['APM_SERVER_URL'] = "http://{}:{}".format(name, port)
+        if os.environ.get('APM_SERVER_VERSION') is None:
+            os.environ['APM_SERVER_VERSION'] = 'master'
+        script = "tests/fixtures/setup/apm_server/start.sh"
+        subprocess.call([script])
+        url = "http://localhost:8200"
+        healthcheck_url = "{}/healthcheck".format(url)
+        utils.wait_until_service_responding(healthcheck_url)
 
-    docker_helper.build_image(name, f)
-    container = docker_helper.run_container(name, ports=ports, url=url)
-    return APMServer("http://apm-server:8200", container)
+    return APMServer(url)
