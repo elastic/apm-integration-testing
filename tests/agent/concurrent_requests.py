@@ -127,7 +127,16 @@ class Concurrent:
 
             count = ep.count("transaction") * it
             transactions_sum += count
-            assert_count("transaction.name.keyword", ep.transaction_name, count)
+            transaction_q = {'query': { 'bool': { 'must': [
+                { 'term': {
+                    'context.app.name': ep.app_name
+                }},
+                { 'term': {
+                    'transaction.name.keyword': ep.transaction_name
+                }}
+            ]}}}
+            transaction_count = self.es.count(index=self.index, body = transaction_q)['count']
+            assert transaction_count == count, err.format("transactions per endpoint", count, transaction_count)
 
         assert transactions_count == transactions_sum, err.format("transactions all endpoints", transactions_count, transactions_sum)
         assert traces_count == traces_sum, err.format("traces all endpoints", traces_count, traces_sum)
