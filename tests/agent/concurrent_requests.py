@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 import logging
 import copy
 import os
-import pdb
 
 
 FOO = "foo"

@@ -1,6 +1,6 @@
 import requests
 from timeout_decorator import TimeoutError
-from agent.concurrent_requests import Concurrent
+from tests.agent.concurrent_requests import Concurrent
 
 
 def test_conc_req_flask_foobar(elasticsearch, apm_server, flask, django, express):

@@ -1,0 +1,4 @@
+NODEJS_AGENT:
+  - 'release:latest'
+  - 'github:master'
+  - 'github:v0.6.0'

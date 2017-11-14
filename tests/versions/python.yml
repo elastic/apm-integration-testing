@@ -1,0 +1,4 @@
+PYTHON_AGENT:
+  - 'release:1.0.0.dev3'
+  - 'github:master'
+
