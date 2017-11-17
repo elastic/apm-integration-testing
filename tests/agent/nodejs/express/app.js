@@ -2,7 +2,7 @@
 
 //TODO: use ENV_VARIABLE for URLs and ports
 
-var apm = require('elastic-apm').start({
+var apm = require('elastic-apm-node').start({
   appName: process.env.EXPRESS_APP_NAME, 
   flushInterval: 1,
   secretToken: '1234',
