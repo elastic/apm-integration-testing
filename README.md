@@ -2,33 +2,26 @@
 
 __WIP__
 
-## Installation
-Use the python environment of your choice and run:
-```
-pip install -r requirements.txt
-```
-
-Make sure you have `docker` installed.
+## Installation Requirements
+- docker
+This repo is tested with python 3. 
 
 ## Running Testsuite
-```
-pytest
-```
+Start any script from `scripts/ci`.
+
+Tests should always be run within a docker container, as services are connected via a shared network. 
+The setup of the services needed is done by the script `scripts/start_services.py`, which is triggered from all test scripts within `scripts/ci`.
 
 ### TODOs:
-- make all URLs configurable via ENV_VARIABLES
+- add tests
 - improve docker setup
-  - install requirements at runtime
   - use ENTRYPOPINT over CMD
-  - ensure volumes are removed
   - check docker user permissions
-- add concurrent tests for nodejs
 
 
 ## Development Info
 - Tests should be runnable also on cloud. 
   The setup should be seperated from the test logic.
-  Right now fixtures are used for defining setup per testcase.
   When running tests on cloud dependencies will be started ahead and probably passed in by a URL.
 - Writing agent code: Reuse as much logic as possible to also point out differences in agents.
 - Possible structure of tests:
