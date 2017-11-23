@@ -1,5 +1,1 @@
 exclude:
-  - NODEJS_AGENT: 'release:0.3.1'
-    APM_SERVER: 'github:6.1'
-  - NODEJS_AGENT: 'github:master'
-    APM_SERVER: 'github:6.1'

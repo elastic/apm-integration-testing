@@ -13,6 +13,7 @@ app.debug = False
 app.config['ELASTIC_APM'] = {
     'DEBUG': True,
     'TRACES_SEND_FREQ': 1,
+    'ELASTIC_APM_MAX_EVENT_QUEUE_LENGTH': 1,
     'SERVER': os.environ['APM_SERVER_URL'],
     'APP_NAME': os.environ['FLASK_APP_NAME'],
     'SECRET_TOKEN': '1234',
