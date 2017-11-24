@@ -21,8 +21,8 @@ docker run \
   -e DJANGO_APP_NAME=${DJANGO_APP_NAME} \
   -e DJANGO_URL=${DJANGO_URL} \
   -e PYTHONDONTWRITEBYTECODE=1 \
+  -e URLS=${URLS} \
+  -e TEST_CMD=${TEST_CMD} \
   --rm "${name}" \
   /bin/bash \
-  -c "python docker/wait_until_services_running.py ${URLS}
-      #TODO: add handling when exception occured
-      ${TEST_CMD}"
+  -c "./scripts/run_tests.sh"
