@@ -1,1 +1,3 @@
 exclude:
+  - PYTHON_AGENT: 'release:1.0.0.dev3'
+    APM_SERVER: 'github:6.x'
