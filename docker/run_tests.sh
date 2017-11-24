@@ -6,7 +6,7 @@ name='apm-testing'
 
 docker build --pull -t ${name} .
 
-docker run -it \
+docker run \
   --name=${name} \
   --network=${NETWORK} \
   -e ES_URL=${ES_URL} \
