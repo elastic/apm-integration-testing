@@ -19,6 +19,7 @@ if [[ -z ${NETWORK} ]]; then
 fi
 
 
+echo "PYTHON_AGENT_VERSION: ${PYTHON_AGENT_VERSION}, ${PYTHONAGENT_VERSION_STATE}"
 
 docker build --pull -t ${DJANGO_APP_NAME} -f ./docker/python/django/Dockerfile .
 

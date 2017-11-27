@@ -19,6 +19,8 @@ if [[ -z ${NETWORK} ]]; then
 fi
 
 
+echo "NODEJS_AGENT_VERSION: ${NODEJS_AGENT_VERSION}, ${NODEJSAGENT_VERSION_STATE}"
+
 if [[ ${NODEJS_AGENT_VERSION_STATE} == "release" ]]; then
   install_elastic_apm="npm install elastic-apm-node@${NODEJS_AGENT_VERSION}"
 else
