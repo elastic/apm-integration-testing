@@ -2,3 +2,4 @@ apm-server
 *.pyc
 .cache
 __pycache__
+/.idea
