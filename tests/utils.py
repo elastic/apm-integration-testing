@@ -1,5 +1,6 @@
 import requests
 from timeout_decorator import TimeoutError
+import time
 
 
 def check_agent_transaction(endpoint, elasticsearch, ct=2):
@@ -24,14 +25,19 @@ def check_request_response(req, endpoint):
     assert req.status_code == endpoint.status_code
 
 
-def check_elasticsearch_transaction(elasticsearch, ct=2):
+def check_elasticsearch_transaction(elasticsearch, expected_count):
     q = {'query': {'term': {'processor.name': 'transaction'}}}
-    es_ct = ct-1
+    actual_count = -1
     retries = 0
-    while es_ct != ct and retries < 2:
+    while actual_count != expected_count and retries < 2:
         try:
-            es_ct = elasticsearch.fetch(q)['hits']['total']
+            time.sleep(1)
+            actual_count = elasticsearch.fetch(q)['hits']['total']
             retries += 1
         except TimeoutError:
-            es_ct = 0
-    assert es_ct == ct, "Expected {}, queried {}".format(ct, es_ct)
+            pass
+        finally:
+            retries +=1
+            time.sleep(1)
+
+    assert actual_count == expected_count, "Expected {}, queried {}".format(expected_count, actual_count)
