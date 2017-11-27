@@ -1,4 +1,4 @@
-APM_SERVER_VERSION:
+APM_SERVER:
   - 'release:6.0.0'
   - 'github:master'
   - 'github:6.x'
