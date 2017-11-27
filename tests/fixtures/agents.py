@@ -1,6 +1,10 @@
 import pytest
 import os
-from urllib.parse import urlparse
+from tests.endpoint import Endpoint
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse
 
 
 @pytest.fixture(scope="session")
@@ -29,13 +33,6 @@ def express(apm_server):
     return Agent(os.environ['EXPRESS_APP_NAME'],
                  os.environ['EXPRESS_URL'],
                  apm_server)
-
-
-class Endpoint:
-    def __init__(self, base_url, endpoint, text=None, status_code=200):
-        self.url = "{}/{}?{}".format(base_url, endpoint, "q")
-        self.text = text if text is not None else endpoint
-        self.status_code = status_code
 
 
 class Agent:

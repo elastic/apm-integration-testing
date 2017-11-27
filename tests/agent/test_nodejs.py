@@ -1,11 +1,11 @@
 import pytest
 from tests.agent.concurrent_requests import Concurrent
-from tests.agent import utils
+from tests import utils
 
 
 @pytest.mark.version
 def test_request_express(express):
-    utils.check_transaction(express, express.apm_server.elasticsearch)
+    utils.check_agent_transaction(express.foo, express.apm_server.elasticsearch)
 
 
 def test_conc_req_express(elasticsearch, apm_server, express):

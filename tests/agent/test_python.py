@@ -1,12 +1,12 @@
 import pytest
-from tests.agent import utils
+from tests import utils
 from tests.agent.concurrent_requests import Concurrent
 
 
 @pytest.mark.version
 @pytest.mark.flask
 def test_req_flask(flask):
-    utils.check_transaction(flask, flask.apm_server.elasticsearch, ct=2)
+    utils.check_agent_transaction(flask.foo, flask.apm_server.elasticsearch, ct=2)
 
 
 @pytest.mark.flask
@@ -35,7 +35,7 @@ def test_conc_req_flask_foobar(flask_gunicorn):
 @pytest.mark.version
 @pytest.mark.django
 def test_req_django(django):
-    utils.check_transaction(django, django.apm_server.elasticsearch)
+    utils.check_agent_transaction(django.foo, django.apm_server.elasticsearch)
 
 
 @pytest.mark.django

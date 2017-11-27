@@ -102,7 +102,6 @@ def prepare():
 
 def start(script):
     subprocess.check_call([script])
-    print("starting..")
 
 def set_version(env_var, default='master', state="github"):
     v = os.environ.get(env_var)
