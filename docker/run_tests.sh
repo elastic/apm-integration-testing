@@ -22,7 +22,7 @@ docker run \
   -e DJANGO_URL=${DJANGO_URL} \
   -e PYTHONDONTWRITEBYTECODE=1 \
   -e URLS=${URLS} \
-  -e TEST_CMD=${TEST_CMD} \
+  -e TEST_CMD="${TEST_CMD}" \
   --rm "${name}" \
   /bin/bash \
   -c "./scripts/run_tests.sh"
