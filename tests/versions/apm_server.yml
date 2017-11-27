@@ -1,6 +1,6 @@
 APM_SERVER:
-  - 'release:6.0.0'
-  - 'github:master'
-  - 'github:6.x'
-  - 'github:6.1'
-  - 'github:6.0'
+  - 'release;6.0.0'
+  - 'github;master'
+  - 'github;6.x'
+  - 'github;6.1'
+  - 'github;6.0'
