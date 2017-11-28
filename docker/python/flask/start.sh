@@ -17,7 +17,7 @@ if [[ -z ${NETWORK} ]]; then
   exit 2
 fi
 
-echo "PYTHON_AGENT_VERSION: ${PYTHON_AGENT_VERSION}, ${PYTHONAGENT_VERSION_STATE}"
+echo "PYTHON_AGENT_VERSION: ${PYTHON_AGENT_VERSION}, ${PYTHON_AGENT_VERSION_STATE}"
 
 if [[ ${PYTHON_AGENT_VERSION_STATE} == "release" ]]; then
   install_cmd="elastic-apm==${PYTHON_AGENT_VERSION}"

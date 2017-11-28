@@ -18,6 +18,7 @@ if [[ -z ${NETWORK} ]]; then
   exit 2
 fi
 
+echo "APM_SERVER_VERSION: ${APM_SERVER_VERSION}, ${APM_SERVER_VERSION_STATE}"
 
 if [[ ${APM_SERVER_VERSION_STATE} != "release" ]];then
   docker build -f 'docker/apm_server/Dockerfile' -t ${APM_SERVER_NAME} .
