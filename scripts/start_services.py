@@ -102,7 +102,6 @@ def prepare():
 
 def start(script):
     subprocess.check_call([script])
-    print("starting..")
 
 def set_version(env_var, default='master', state="github"):
     v = os.environ.get(env_var)
@@ -111,7 +110,7 @@ def set_version(env_var, default='master', state="github"):
         os.environ[env_var_state] = state
         os.environ[env_var] = default
     else:
-        parts = v.split(":")
+        parts = v.split(";")
         if len(parts) == 1:
             os.environ[env_var_state] = state
             os.environ[env_var] = parts[0]

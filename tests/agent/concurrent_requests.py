@@ -49,7 +49,6 @@ class Concurrent:
             else:
                 raise Exception("Missing agent for app {}".format(self.app_name))
 
-
     def __init__(self, elasticsearch, endpoints, iters=1, index="apm-*"):
         self.num_reqs = 0
         self.index = index
@@ -104,6 +103,7 @@ class Concurrent:
 
     def check_counts(self, it):
         err = "queried for {}, expected {}, got {}"
+
         def assert_count(field, value, count):
             rs = self.es.count(index=self.index,
                                body=self.elasticsearch.regexp_q(field, value))
@@ -126,11 +126,11 @@ class Concurrent:
 
             count = ep.count("transaction") * it
             transactions_sum += count
-            transaction_q = {'query': { 'bool': { 'must': [
-                { 'term': {
+            transaction_q = {'query': {'bool': {'must': [
+                {'term': {
                     'context.app.name': ep.app_name
                 }},
-                { 'term': {
+                {'term': {
                     'transaction.name.keyword': ep.transaction_name
                 }}
             ]}}}
@@ -195,13 +195,12 @@ class Concurrent:
                 else:
                     raise Exception("Undefined agent {}".format(agent))
 
-
                 traces_query = self.elasticsearch.term_q("processor.event", "trace")
-                traces_query = {'query': { 'bool': { 'must': [
-                    { 'term': {
+                traces_query = {'query': {'bool': {'must': [
+                    {'term': {
                         'processor.event': 'trace'
                     }},
-                    { 'term': {
+                    {'term': {
                         'trace.transaction_id': transaction['id']
                     }}
                 ]}}}
@@ -246,7 +245,7 @@ class Concurrent:
         for it in range(1, self.iters + 1):
             self.logger.info("Sending batch {} / {}".format(it, self.iters))
             self.load_test()
-            time.sleep(3)
+            time.sleep(5)
             self.check_counts(it)
             self.check_content(it)
             self.logger.info("So far so good...")
