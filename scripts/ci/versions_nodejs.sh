@@ -13,4 +13,4 @@ export APM_SERVER_VERSION=$2
 export AGENTS="nodejs"
 export TEST_CMD="pytest tests/agent/test_nodejs.py -v -m version"
 
-python ./scripts/start_services.py
+make dockerized_tests

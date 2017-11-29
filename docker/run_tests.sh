@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -ex 
+set -e
 
 name='apm-testing'
 
@@ -25,4 +25,4 @@ docker run \
   -e TEST_CMD="${TEST_CMD}" \
   --rm "${name}" \
   /bin/bash \
-  -c "./scripts/run_tests.sh"
+  -c "make tests"
