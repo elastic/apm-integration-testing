@@ -140,4 +140,4 @@ if __name__ == '__main__':
                 raise Exception("Agent {} not supported".format(agent))
 
     os.environ['URLS'] = ",".join(urls)
-    subprocess.call(["docker/run_tests.sh"])
+    subprocess.check_call(["docker/run_tests.sh"])
