@@ -22,7 +22,7 @@ def elasticsearch():
         def regexp_q(self, field, r):
             return {"query": {"regexp": {field: r}}}
 
-        @timeout_decorator.timeout(5)
+        @timeout_decorator.timeout(10)
         def fetch(self, q):
             ct = 0
             s = {}

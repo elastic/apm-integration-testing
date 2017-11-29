@@ -29,11 +29,13 @@ def check_elasticsearch_transaction(elasticsearch, expected_count):
     q = {'query': {'term': {'processor.name': 'transaction'}}}
     actual_count = 0
     retries = 0
-    while actual_count != expected_count and retries < 2:
+    max_retries = 3
+    while actual_count != expected_count and retries < max_retries:
         try:
             actual_count = elasticsearch.fetch(q)['hits']['total']
-            retries +=1
+            retries += 1
         except TimeoutError:
-            retries = 2
+            retries = max_retries
+            actual_count = -1
 
     assert actual_count == expected_count, "Expected {}, queried {}".format(expected_count, actual_count)
