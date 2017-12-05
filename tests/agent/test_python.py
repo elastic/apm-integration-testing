@@ -9,8 +9,9 @@ def test_req_flask(flask):
     utils.check_agent_transaction(flask.foo, flask.apm_server.elasticsearch, ct=2)
 
 
+@pytest.mark.version
 @pytest.mark.flask
-def test_conc_req_flask(flask):
+def test_concurrent_req_flask(flask):
     foo = Concurrent.Endpoint(flask.foo.url,
                               flask.app_name,
                               [".*.foo"],
@@ -18,8 +19,9 @@ def test_conc_req_flask(flask):
     Concurrent(flask.apm_server.elasticsearch, [foo], iters=2).run()
 
 
+@pytest.mark.version
 @pytest.mark.flask
-def test_conc_req_flask_foobar(flask):
+def test_concurrent_req_flask_foobar(flask):
     foo = Concurrent.Endpoint(flask.foo.url,
                               flask.app_name,
                               [".*.foo"],
@@ -38,8 +40,9 @@ def test_req_django(django):
     utils.check_agent_transaction(django.foo, django.apm_server.elasticsearch)
 
 
+@pytest.mark.version
 @pytest.mark.django
-def test_conc_req_django(django):
+def test_concurrent_req_django(django):
     foo = Concurrent.Endpoint(django.foo.url,
                               django.app_name,
                               [".*.foo"],
@@ -47,8 +50,9 @@ def test_conc_req_django(django):
     Concurrent(django.apm_server.elasticsearch, [foo], iters=2).run()
 
 
+@pytest.mark.version
 @pytest.mark.django
-def test_conc_req_django_foobar(django):
+def test_concurrent_req_django_foobar(django):
     foo = Concurrent.Endpoint(django.foo.url,
                               django.app_name,
                               [".*.foo"],
