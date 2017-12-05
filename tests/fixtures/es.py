@@ -1,15 +1,15 @@
 import pytest
 import os
-import elasticsearch as es_wrapper
+import elasticsearch
 import timeout_decorator
 import time
 
 
 @pytest.fixture(scope="session")
-def elasticsearch():
+def es():
     class Elasticsearch(object):
         def __init__(self, url):
-            self.es = es_wrapper.Elasticsearch([url])
+            self.es = elasticsearch.Elasticsearch([url])
             self.index = "apm-*"
 
         def clean(self):
@@ -27,7 +27,7 @@ def elasticsearch():
             ct = 0
             s = {}
             while ct == 0:
-                time.sleep(1)
+                time.sleep(3)
                 s = self.es.search(index=self.index, body=q)
                 ct = s['hits']['total']
             return s
