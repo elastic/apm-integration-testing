@@ -51,17 +51,6 @@ def flask():
     return "{}/healthcheck".format(os.environ['FLASK_URL'])
 
 
-def flask_gunicorn():
-    os.environ['PY_SERVER'] = 'gunicorn'
-    set_version('PYTHON_AGENT_VERSION')
-    os.environ['GUNICORN_APP_NAME'] = "gunicornapp"
-    os.environ['GUNICORN_PORT'] = "8002"
-    os.environ['GUNICORN_URL'] = "http://{}:{}".format(os.environ['GUNICORN_APP_NAME'],
-                                                       os.environ['GUNICORN_PORT'])
-    start("docker/python/flask/start.sh")
-    return "{}/healthcheck".format(os.environ['GUNICORN_URL'])
-
-
 def django():
     set_version('PYTHON_AGENT_VERSION')
     os.environ['DJANGO_APP_NAME'] = "djangoapp"
@@ -83,11 +72,7 @@ def express():
 
 
 def python_agents():
-    urls = []
-    urls.append(flask())
-    urls.append(flask_gunicorn())
-    urls.append(django())
-    return urls
+    return [flask(), django()]
 
 
 def nodejs_agents():
@@ -127,11 +112,7 @@ def set_version(env_var, default='master', state="github"):
 
 if __name__ == '__main__':
     prepare()
-
-    urls = []
-    urls.append(elasticsearch())
-    # urls.append(kibana())
-    urls.append(apm_server())
+    urls = [elasticsearch(), apm_server()]
 
     agents = os.environ.get("AGENTS")
     if agents is not None:

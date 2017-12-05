@@ -10,26 +10,26 @@ def test_req_flask(flask):
 
 
 @pytest.mark.flask
-def test_conc_req_flask(flask_gunicorn):
-    foo = Concurrent.Endpoint(flask_gunicorn.foo.url,
-                              flask_gunicorn.app_name,
+def test_conc_req_flask(flask):
+    foo = Concurrent.Endpoint(flask.foo.url,
+                              flask.app_name,
                               [".*.foo"],
                               "GET /foo")
-    Concurrent(flask_gunicorn.apm_server.elasticsearch, [foo], iters=2).run()
+    Concurrent(flask.apm_server.elasticsearch, [foo], iters=2).run()
 
 
 @pytest.mark.flask
-def test_conc_req_flask_foobar(flask_gunicorn):
-    foo = Concurrent.Endpoint(flask_gunicorn.foo.url,
-                              flask_gunicorn.app_name,
+def test_conc_req_flask_foobar(flask):
+    foo = Concurrent.Endpoint(flask.foo.url,
+                              flask.app_name,
                               [".*.foo"],
                               "GET /foo",
                               events_no=375)
-    bar = Concurrent.Endpoint(flask_gunicorn.bar.url,
-                              flask_gunicorn.app_name,
+    bar = Concurrent.Endpoint(flask.bar.url,
+                              flask.app_name,
                               [".*.bar", ".*.extra"],
                               "GET /bar")
-    Concurrent(flask_gunicorn.apm_server.elasticsearch, [foo, bar], iters=1).run()
+    Concurrent(flask.apm_server.elasticsearch, [foo, bar], iters=1).run()
 
 
 @pytest.mark.version

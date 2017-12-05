@@ -15,13 +15,6 @@ def flask(apm_server):
 
 
 @pytest.fixture(scope="session")
-def flask_gunicorn(apm_server):
-    return Agent(os.environ['GUNICORN_APP_NAME'],
-                 os.environ['GUNICORN_URL'],
-                 apm_server)
-
-
-@pytest.fixture(scope="session")
 def django(apm_server):
     return Agent(os.environ['DJANGO_APP_NAME'],
                  os.environ['DJANGO_URL'],
