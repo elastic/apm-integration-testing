@@ -24,15 +24,10 @@ if [[ ${PYTHON_AGENT_VERSION_STATE} == "release" ]]; then
 else
   install_cmd="git+https://github.com/elastic/apm-agent-python.git@${PYTHON_AGENT_VERSION}"
 fi
-if [[ -z ${PY_SERVER} ]]; then
-  start_cmd="python app.py"
-  app_name=${FLASK_APP_NAME}
-  port=${FLASK_PORT}
-elif [[ ${PY_SERVER} == "gunicorn" ]]; then
-  app_name=${GUNICORN_APP_NAME}
-  port=${GUNICORN_PORT}
-  start_cmd="gunicorn -w 4 -b 0.0.0.0:${port} app:app"
-fi
+
+app_name=${FLASK_APP_NAME}
+port=${FLASK_PORT}
+start_cmd="gunicorn -w 4 -b 0.0.0.0:${port} app:app"
 
 docker build --pull -t ${app_name} -f ./docker/python/flask/Dockerfile .
 
