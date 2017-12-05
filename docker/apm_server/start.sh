@@ -35,7 +35,7 @@ if [[ ${APM_SERVER_VERSION_STATE} != "release" ]];then
         cd apm-server
         git checkout ${APM_SERVER_VERSION}
         make update apm-server 
-        ./apm-server -c ../apm-server.yml"
+        ./apm-server -e -d \"*\" -c ../apm-server.yml"
 else
   docker run -d \
     --name="${APM_SERVER_NAME}" \
