@@ -101,7 +101,11 @@ def prepare():
 
 
 def start(script):
-    subprocess.check_call([script])
+    if os.environ.get("REUSE_CONTAINERS") is None:
+        subprocess.check_call([script])
+    else:
+        print("Reusing started containers...")
+
 
 def set_version(env_var, default='master', state="github"):
     v = os.environ.get(env_var)
