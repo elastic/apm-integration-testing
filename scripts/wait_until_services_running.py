@@ -6,6 +6,7 @@ import sys
 
 @timeout_decorator.timeout(90)
 def wait_until_setup(url):
+    time.sleep(5)
 
     def call_service():
         try:
@@ -16,7 +17,7 @@ def wait_until_setup(url):
             return None
 
     while call_service() != 200:
-        time.sleep(1)
+        time.sleep(5)
 
 
 if __name__ == '__main__':
