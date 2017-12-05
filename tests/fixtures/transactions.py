@@ -7,8 +7,8 @@ def minimal():
         "app": {
             "name": "app1",
             "agent": {
-              "name": "python",
-              "version": "1.0"
+                "name": "python",
+                "version": "1.0"
             }
         },
         "transactions": [

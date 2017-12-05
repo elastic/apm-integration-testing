@@ -6,7 +6,8 @@ from tests.agent.concurrent_requests import Concurrent
 @pytest.mark.version
 @pytest.mark.flask
 def test_req_flask(flask):
-    utils.check_agent_transaction(flask.foo, flask.apm_server.elasticsearch, ct=2)
+    utils.check_agent_transaction(
+        flask.foo, flask.apm_server.elasticsearch, ct=2)
 
 
 @pytest.mark.version

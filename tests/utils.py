@@ -38,4 +38,5 @@ def check_elasticsearch_transaction(elasticsearch, expected_count):
             retries = max_retries
             actual_count = -1
 
-    assert actual_count == expected_count, "Expected {}, queried {}".format(expected_count, actual_count)
+    assert actual_count == expected_count, "Expected {}, queried {}".format(
+        expected_count, actual_count)

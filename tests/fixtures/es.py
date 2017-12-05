@@ -32,5 +32,4 @@ def es():
                 ct = s['hits']['total']
             return s
 
-
     return Elasticsearch(os.environ["ES_URL"])

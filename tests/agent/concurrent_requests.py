@@ -47,7 +47,8 @@ class Concurrent:
             elif self.app_name in ("express_app"):
                 self.agent = "nodejs"
             else:
-                raise Exception("Missing agent for app {}".format(self.app_name))
+                raise Exception(
+                    "Missing agent for app {}".format(self.app_name))
 
     def __init__(self, elasticsearch, endpoints, iters=1, index="apm-*"):
         self.num_reqs = 0
@@ -134,15 +135,20 @@ class Concurrent:
                     'transaction.name.keyword': ep.transaction_name
                 }}
             ]}}}
-            transaction_count = self.es.count(index=self.index, body = transaction_q)['count']
-            assert transaction_count == count, err.format("transactions per endpoint", count, transaction_count)
+            transaction_count = self.es.count(
+                index=self.index, body=transaction_q)['count']
+            assert transaction_count == count, err.format(
+                "transactions per endpoint", count, transaction_count)
 
-        assert transactions_count == transactions_sum, err.format("transactions all endpoints", transactions_count, transactions_sum)
-        assert traces_count == traces_sum, err.format("traces all endpoints", traces_count, traces_sum)
+        assert transactions_count == transactions_sum, err.format(
+            "transactions all endpoints", transactions_count, transactions_sum)
+        assert traces_count == traces_sum, err.format(
+            "traces all endpoints", traces_count, traces_sum)
 
     def check_content(self, it):
         for ep in self.endpoints:
-            q = self.elasticsearch.regexp_q("transaction.name", ep.transaction_name)
+            q = self.elasticsearch.regexp_q(
+                "transaction.name", ep.transaction_name)
             rs = self.es.search(index=self.index, body=q)
             for hit in lookup(rs, 'hits', 'hits'):
 
@@ -195,7 +201,8 @@ class Concurrent:
                 else:
                     raise Exception("Undefined agent {}".format(agent))
 
-                traces_query = self.elasticsearch.term_q("processor.event", "trace")
+                traces_query = self.elasticsearch.term_q(
+                    "processor.event", "trace")
                 traces_query = {'query': {'bool': {'must': [
                     {'term': {
                         'processor.event': 'trace'
@@ -204,7 +211,8 @@ class Concurrent:
                         'trace.transaction_id': transaction['id']
                     }}
                 ]}}}
-                trace_hits = lookup(self.es.search(self.index, body=traces_query), 'hits', 'hits')
+                trace_hits = lookup(self.es.search(
+                    self.index, body=traces_query), 'hits', 'hits')
                 assert len(trace_hits) == ep.no_per_event["trace"]
                 for trace_hit in trace_hits:
                     assert trace_hit['_source']['processor'] == {'name': 'trace',

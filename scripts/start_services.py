@@ -11,7 +11,8 @@ def elasticsearch():
         os.environ['ES_PORT'] = '9200'
         os.environ['ES_HOST'] = 'elasticsearch'
         os.environ['ES_NAME'] = 'elasticsearch'
-        os.environ['ES_URL'] = "http://elasticsearch:{}".format(os.environ['ES_PORT'])
+        os.environ['ES_URL'] = "http://elasticsearch:{}".format(
+            os.environ['ES_PORT'])
         set_version('ES_VERSION', "6.0.0", "release")
         start("docker/elasticsearch/start.sh")
     else:
@@ -25,7 +26,8 @@ def kibana():
     if os.environ.get('KIBANA_URL') is None:
         os.environ['KIBANA_PORT'] = "5601"
         os.environ['KIBANA_HOST'] = 'kibana'
-        os.environ['KIBANA_URL'] = "http://kibana:{}".format(os.environ['KIBANA_PORT'])
+        os.environ['KIBANA_URL'] = "http://kibana:{}".format(
+            os.environ['KIBANA_PORT'])
         set_version('KIBANA_VERSION', "6.0.0", "release")
         start("docker/kibana/start.sh")
     return os.environ['KIBANA_URL']
