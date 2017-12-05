@@ -44,6 +44,7 @@ ELASTIC_APM = {
     'APP_NAME': os.environ['DJANGO_APP_NAME'],
     'SERVER_URL': os.environ['APM_SERVER_URL'],
     'SERVER': os.environ['APM_SERVER_URL'],
+    'SERVER_URL': os.environ['APM_SERVER_URL'],
     'SECRET_TOKEN': '1234_test',
     'TRACES_SEND_FREQ': 1,
     'MAX_EVENT_QUEUE_LENGTH': 1,
