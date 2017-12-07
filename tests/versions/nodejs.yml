@@ -3,3 +3,4 @@ NODEJS_AGENT:
   - 'release;0.5.0'
   - 'github;master'
   - 'github;v0.6.0'
+  - 'github;v0.7.0'
