@@ -3,8 +3,10 @@
 set -ex
 
 if [[ -z ${PYTHON_AGENT_VERSION} ]] || 
-   [[ -z ${PYTHON_AGENT_VERSION_STATE} ]]; then
-  echo "PYTHON_AGENT_VERSION, PYTHON_AGENT_VERSION_STATE expected."
+   [[ -z ${PYTHON_AGENT_VERSION_STATE} ]] ||
+   [[ -z ${FLASK_APP_NAME} ]] ||
+   [[ -z ${FLASK_PORT} ]]; then
+  echo "PYTHON_AGENT_VERSION, PYTHON_AGENT_VERSION_STATE, FLASK_APP_NAME, FLASK_PORT expected."
   exit 2
 fi
 
