@@ -1,5 +1,3 @@
-import requests
-from timeout_decorator import TimeoutError
 from tests.agent.concurrent_requests import Concurrent
 
 

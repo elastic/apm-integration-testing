@@ -1,8 +1,9 @@
-import pytest
 import os
-import elasticsearch
-import timeout_decorator
 import time
+
+import elasticsearch
+import pytest
+import timeout_decorator
 
 
 @pytest.fixture(scope="session")
