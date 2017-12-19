@@ -31,10 +31,9 @@ if [[ ${APM_SERVER_VERSION_STATE} != "release" ]];then
     --rm "${APM_SERVER_NAME}" \
     /bin/bash \
     -c "rm -rf apm-server
-        git clone http://github.com/elastic/apm-server.git
+        git clone --depth 1 --branch ${APM_SERVER_VERSION} http://github.com/elastic/apm-server.git
         cd apm-server
-        git checkout ${APM_SERVER_VERSION}
-        make update apm-server 
+        make update apm-server
         ./apm-server -e -d \"*\" -c ../apm-server.yml"
 else
   docker run -d \
