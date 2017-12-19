@@ -18,13 +18,12 @@ The setup of the services needed is done by the script `scripts/start_services.p
   - use ENTRYPOPINT over CMD
   - check docker user permissions
 
-
 ## Development Info
 - Add a pre-commit hook for autopep8 formatting:
     - wget https://raw.githubusercontent.com/chibiegg/git-autopep8/master/pre-commit -O .git/hooks/pre-commit
     - chmod +x .git/hooks/pre-commit
 - Tests should be runnable also on cloud. 
-  The setup should be seperated from the test logic.
+  The setup should be separated from the test logic.
   When running tests on cloud dependencies will be started ahead and probably passed in by a URL.
 - Writing agent code: Reuse as much logic as possible to also point out differences in agents.
 - Possible structure of tests:
