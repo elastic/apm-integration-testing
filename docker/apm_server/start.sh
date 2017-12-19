@@ -21,14 +21,14 @@ fi
 echo "APM_SERVER_VERSION: ${APM_SERVER_VERSION}, ${APM_SERVER_VERSION_STATE}"
 
 if [[ ${APM_SERVER_VERSION_STATE} != "release" ]];then
-  docker build -f 'docker/apm_server/Dockerfile' -t ${APM_SERVER_NAME} .
+  docker build -f 'docker/apm_server/Dockerfile' -t ${APM_SERVER_NAME}:${APM_SERVER_VERSION} .
   docker run -d \
     --name="${APM_SERVER_NAME}" \
     --network="${NETWORK}" \
     -p ${APM_SERVER_PORT}:8200 \
     -e "ES_HOST=${ES_HOST}" \
     -e "ES_PORT=${ES_PORT}" \
-    --rm "${APM_SERVER_NAME}" \
+    --rm "${APM_SERVER_NAME}:${APM_SERVER_VERSION}" \
     /bin/bash \
     -c "rm -rf apm-server
         git clone --depth 1 --branch ${APM_SERVER_VERSION} http://github.com/elastic/apm-server.git
