@@ -1,9 +1,12 @@
-import time
-from tornado import ioloop, httpclient
 from datetime import datetime, timedelta
-import logging
 import copy
+import logging
 import os
+import time
+
+from tornado import ioloop, httpclient
+
+import timeout_decorator
 
 
 FOO = "foo"
@@ -75,19 +78,16 @@ class Concurrent:
         self.logger = logger
 
     def handle(self, r):
-        try:
-            assert r.code == 200
-            self.num_reqs -= 1
-            if self.num_reqs == 0:
-                self.logger.info("Stopping tornado I/O loop")
-                ioloop.IOLoop.instance().stop()
-
-        except AssertionError:
-            self.num_reqs == 0
+        if r.code != 200:
             ioloop.IOLoop.instance().stop()
-            self.logger.error(
-                "Bad response, aborting: {} - {} ({})".format(
-                    r.code, r.error, r.request_time))
+            message = "Bad response, aborting: {} - {} ({})".format(r.code, r.error, r.request_time)
+            self.logger.error(message)
+            raise Exception(message)
+
+        self.num_reqs -= 1
+        if self.num_reqs == 0:
+            self.logger.info("Stopping tornado I/O loop")
+            ioloop.IOLoop.instance().stop()
 
     def load_test(self):
         http_client = httpclient.AsyncHTTPClient(max_clients=4)
@@ -100,13 +100,18 @@ class Concurrent:
         self.logger.info("Starting tornado I/O loop")
         ioloop.IOLoop.instance().start()
 
-    def check_counts(self, it):
+    def check_counts(self, it, max_wait=60, backoff=.5):
         err = "queried for {}, expected {}, got {}"
 
-        def assert_count(field, value, count):
-            rs = self.es.count(index=self.index,
-                               body=self.elasticsearch.regexp_q(field, value))
-            assert rs['count'] == count, err.format(value, count, rs)
+        @timeout_decorator.timeout(max_wait)
+        def assert_count(field, value, cnt):
+            """wait a bit for doc count to reach expectation"""
+            rs = {'count': -1}
+            while rs['count'] < cnt:
+                rs = self.es.count(index=self.index,
+                                   body=self.elasticsearch.regexp_q(field, value))
+                time.sleep(backoff)
+            assert rs['count'] == cnt, err.format(value, cnt, rs)
 
         self.es.indices.refresh()
 
@@ -246,7 +251,6 @@ class Concurrent:
         for it in range(1, self.iters + 1):
             self.logger.info("Sending batch {} / {}".format(it, self.iters))
             self.load_test()
-            time.sleep(5)
             self.check_counts(it)
             self.check_content(it)
             self.logger.info("So far so good...")
