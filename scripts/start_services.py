@@ -13,7 +13,7 @@ def elasticsearch():
         os.environ['ES_NAME'] = 'elasticsearch'
         os.environ['ES_URL'] = "http://elasticsearch:{}".format(
             os.environ['ES_PORT'])
-        set_version('ES_VERSION', "6.0.0", "release")
+        set_version('ES_VERSION', "6.1.1", "release")
         start("docker/elasticsearch/start.sh")
     else:
         parsed_url = urlparse(os.environ['ES_URL'])
@@ -28,7 +28,7 @@ def kibana():
         os.environ['KIBANA_HOST'] = 'kibana'
         os.environ['KIBANA_URL'] = "http://kibana:{}".format(
             os.environ['KIBANA_PORT'])
-        set_version('KIBANA_VERSION', "6.0.0", "release")
+        set_version('KIBANA_VERSION', "6.1.1", "release")
         start("docker/kibana/start.sh")
     return os.environ['KIBANA_URL']
 
