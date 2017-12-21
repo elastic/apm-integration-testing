@@ -64,7 +64,7 @@ def django():
 
 
 def express():
-    set_version('NODEJS_AGENT_VERSION')
+    set_version('NODEJS_AGENT_VERSION', 'elastic-6.2', 'github')
     os.environ['EXPRESS_APP_NAME'] = "expressapp"
     os.environ['EXPRESS_PORT'] = "8010"
     os.environ['EXPRESS_URL'] = "http://{}:{}".format(os.environ['EXPRESS_APP_NAME'],
