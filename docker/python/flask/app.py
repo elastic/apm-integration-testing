@@ -12,11 +12,10 @@ app.debug = False
 
 app.config['ELASTIC_APM'] = {
     'DEBUG': True,
-    'TRACES_SEND_FREQ': 1,
+    'TRANSACTION_SEND_FREQ': 1,
     'MAX_EVENT_QUEUE_LENGTH': 1,
     'SERVER_URL': os.environ['APM_SERVER_URL'],
-    'SERVER': os.environ['APM_SERVER_URL'],
-    'APP_NAME': os.environ['FLASK_APP_NAME'],
+    'SERVICE_NAME': os.environ['FLASK_SERVICE_NAME'],
     'SECRET_TOKEN': '1234',
     'TRANSACTIONS_IGNORE_PATTERNS': ['.*healthcheck']
 }
@@ -38,7 +37,7 @@ def foo_route():
     return foo()
 
 
-@elasticapm.trace()
+@elasticapm.capture_span()
 def foo():
     return "foo"
 
@@ -48,13 +47,13 @@ def bar_route():
     return bar()
 
 
-@elasticapm.trace()
+@elasticapm.capture_span()
 def bar():
     extra()
     return "bar"
 
 
-@elasticapm.trace()
+@elasticapm.capture_span()
 def extra():
     return "extra"
 

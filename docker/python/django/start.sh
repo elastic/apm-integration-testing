@@ -4,9 +4,9 @@ set -ex
 
 if [[ -z ${PYTHON_AGENT_VERSION} ]] || 
    [[ -z ${PYTHON_AGENT_VERSION_STATE} ]] || 
-   [[ -z ${DJANGO_APP_NAME} ]] ||
+   [[ -z ${DJANGO_SERVICE_NAME} ]] ||
    [[ -z ${DJANGO_PORT} ]]; then
-  echo "PYTHON_AGENT_VERSION, PYTHON_AGENT_VERSION_STATE, DJANGO_APP_NAME and DJANGO_PORT expected."
+  echo "PYTHON_AGENT_VERSION, PYTHON_AGENT_VERSION_STATE, DJANGO_SERVICE_NAME and DJANGO_PORT expected."
   exit 2
 fi
 if [[ -z ${APM_SERVER_URL} ]]; then
@@ -21,7 +21,7 @@ fi
 
 echo "PYTHON_AGENT_VERSION: ${PYTHON_AGENT_VERSION}, ${PYTHON_AGENT_VERSION_STATE}"
 
-docker build --pull -t ${DJANGO_APP_NAME} -f ./docker/python/django/Dockerfile .
+docker build --pull -t ${DJANGO_SERVICE_NAME} -f ./docker/python/django/Dockerfile .
 
 
 if [[ ${PYTHON_AGENT_VERSION_STATE} == "release" ]]; then
@@ -31,13 +31,13 @@ else
 fi
 
 docker run -d \
-  --name ${DJANGO_APP_NAME} \
+  --name ${DJANGO_SERVICE_NAME} \
   --network=${NETWORK} \
   -p ${DJANGO_PORT}:${DJANGO_PORT} \
-  -e DJANGO_APP_NAME=${DJANGO_APP_NAME} \
+  -e DJANGO_SERVICE_NAME=${DJANGO_SERVICE_NAME} \
   -e DJANGO_PORT=${DJANGO_PORT} \
   -e APM_SERVER_URL=${APM_SERVER_URL} \
-  --rm "${DJANGO_APP_NAME}" \
+  --rm "${DJANGO_SERVICE_NAME}" \
   /bin/bash \
   -c "pip install -U ${install_cmd}
       python testapp/manage.py runserver 0.0.0.0:${DJANGO_PORT}"

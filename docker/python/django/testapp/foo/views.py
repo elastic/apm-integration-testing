@@ -8,6 +8,6 @@ def show(request):
     return HttpResponse(foo())
 
 
-@elasticapm.trace()
+@elasticapm.capture_span()
 def foo():
     return "foo"

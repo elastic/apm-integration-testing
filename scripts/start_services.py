@@ -45,9 +45,9 @@ def apm_server():
 
 def flask():
     set_version('PYTHON_AGENT_VERSION')
-    os.environ['FLASK_APP_NAME'] = "flaskapp"
+    os.environ['FLASK_SERVICE_NAME'] = "flaskapp"
     os.environ['FLASK_PORT'] = "8001"
-    os.environ['FLASK_URL'] = "http://{}:{}".format(os.environ['FLASK_APP_NAME'],
+    os.environ['FLASK_URL'] = "http://{}:{}".format(os.environ['FLASK_SERVICE_NAME'],
                                                     os.environ['FLASK_PORT'])
     start("docker/python/flask/start.sh")
     return "{}/healthcheck".format(os.environ['FLASK_URL'])
@@ -55,9 +55,9 @@ def flask():
 
 def django():
     set_version('PYTHON_AGENT_VERSION')
-    os.environ['DJANGO_APP_NAME'] = "djangoapp"
+    os.environ['DJANGO_SERVICE_NAME'] = "djangoapp"
     os.environ['DJANGO_PORT'] = "8003"
-    os.environ['DJANGO_URL'] = "http://{}:{}".format(os.environ['DJANGO_APP_NAME'],
+    os.environ['DJANGO_URL'] = "http://{}:{}".format(os.environ['DJANGO_SERVICE_NAME'],
                                                      os.environ['DJANGO_PORT'])
     start("docker/python/django/start.sh")
     return "{}/healthcheck".format(os.environ['DJANGO_URL'])

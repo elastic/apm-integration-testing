@@ -8,12 +8,12 @@ def show(request):
     return HttpResponse(bar())
 
 
-@elasticapm.trace()
+@elasticapm.capture_span()
 def bar():
     extra()
     return "bar"
 
 
-@elasticapm.trace()
+@elasticapm.capture_span()
 def extra():
     return "extra"

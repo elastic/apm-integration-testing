@@ -9,14 +9,14 @@ except ImportError:
 
 @pytest.fixture(scope="session")
 def flask(apm_server):
-    return Agent(os.environ['FLASK_APP_NAME'],
+    return Agent(os.environ['FLASK_SERVICE_NAME'],
                  os.environ['FLASK_URL'],
                  apm_server)
 
 
 @pytest.fixture(scope="session")
 def django(apm_server):
-    return Agent(os.environ['DJANGO_APP_NAME'],
+    return Agent(os.environ['DJANGO_SERVICE_NAME'],
                  os.environ['DJANGO_URL'],
                  apm_server)
 

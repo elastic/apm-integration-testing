@@ -25,7 +25,7 @@ else
   install_cmd="git+https://github.com/elastic/apm-agent-python.git@${PYTHON_AGENT_VERSION}"
 fi
 
-app_name=${FLASK_APP_NAME}
+app_name=${FLASK_SERVICE_NAME}
 port=${FLASK_PORT}
 start_cmd="gunicorn -w 4 -b 0.0.0.0:${port} app:app"
 
@@ -36,7 +36,7 @@ docker run -d \
   --name ${app_name} \
   --network=${NETWORK} \
   -p ${port}:${port} \
-  -e FLASK_APP_NAME=${app_name} \
+  -e FLASK_SERVICE_NAME=${app_name} \
   -e FLASK_PORT=${port} \
   -e APM_SERVER_URL=${APM_SERVER_URL} \
   --rm "${app_name}" \
