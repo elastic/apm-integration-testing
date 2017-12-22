@@ -59,7 +59,7 @@ def extra():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=os.environ['FLASK_PORT'])
+    app.run(host='0.0.0.0', port=int(os.environ['FLASK_PORT']))
 
     # Create a logging handler and attach it.
     handler = LoggingHandler(client=apm.client)

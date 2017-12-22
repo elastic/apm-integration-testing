@@ -27,7 +27,7 @@ fi
 
 app_name=${FLASK_SERVICE_NAME}
 port=${FLASK_PORT}
-start_cmd="gunicorn -w 4 -b 0.0.0.0:${port} app:app"
+start_cmd="python app.py"
 
 docker build --pull -t ${app_name} -f ./docker/python/flask/Dockerfile .
 
