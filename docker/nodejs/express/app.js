@@ -1,7 +1,7 @@
 'use strict'
 
 var apm = require('elastic-apm-node').start({
-  appName: process.env.EXPRESS_APP_NAME, 
+  serviceName: process.env.EXPRESS_APP_NAME,
   flushInterval: 1,
   maxQueueSize: 1,
   secretToken: '1234',
@@ -25,9 +25,9 @@ app.get("/foo", function(req, res) {
 });
 
 function foo_route () {
-    var trace = apm.buildTrace()
-    trace.start('app.foo')
-    trace.end()
+    var span = apm.buildSpan()
+    span.start('app.foo')
+    span.end()
 }
 
 app.get("/bar", function(req, res) {
@@ -36,16 +36,16 @@ app.get("/bar", function(req, res) {
 });
 
 function bar_route () {
-    var trace = apm.buildTrace()
-    trace.start('app.bar')
+    var span = apm.buildSpan()
+    span.start('app.bar')
     extra_route()
-    trace.end()
+    span.end()
 }
 
 function extra_route () {
-    var trace = apm.buildTrace()
-    trace.start('app.extra')
-    trace.end()
+    var span = apm.buildSpan()
+    span.start('app.extra')
+    span.end()
 }
 
 app.use(apm.middleware.express())

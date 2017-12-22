@@ -3,7 +3,7 @@ from timeout_decorator import TimeoutError
 from tests.agent.concurrent_requests import Concurrent
 
 
-def test_conc_req_flask_foobar(elasticsearch, apm_server, flask, django, express):
+def test_conc_req_flask_foobar(es, apm_server, flask, django, express):
     flask_f = Concurrent.Endpoint(flask.foo.url,
                                   flask.app_name,
                                   ["__main__.foo"],
@@ -34,6 +34,6 @@ def test_conc_req_flask_foobar(elasticsearch, apm_server, flask, django, express
                                     [".*app.bar", ".*app.extra"],
                                     "GET /bar",
                                     events_no=500)
-    Concurrent(elasticsearch,
+    Concurrent(es,
                [flask_f, flask_b, django_f, django_b, express_f, express_b],
                iters=1).run()

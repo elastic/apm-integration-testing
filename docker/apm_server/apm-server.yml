@@ -12,6 +12,8 @@ apm-server:
   # Authorization token to be checked. If a token is set here the agents must
   # send their token in the following format: Authorization: Bearer <secret-token>
   #secret_token:
+
+  concurrent_requests: 1000
   
 #============================== Kibana =====================================
 

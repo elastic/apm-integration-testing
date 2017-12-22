@@ -9,16 +9,16 @@ def test_request_express(express):
         express.foo, express.apm_server.elasticsearch)
 
 
-def test_conc_req_express(elasticsearch, apm_server, express):
+def test_conc_req_express(es, apm_server, express):
     foo = Concurrent.Endpoint(express.foo.url,
                               express.app_name,
                               [".*.foo"],
                               "GET /foo",
                               events_no=1000)
-    Concurrent(elasticsearch, [foo], iters=1).run()
+    Concurrent(es, [foo], iters=1).run()
 
 
-def test_conc_req_node_foobar(elasticsearch, apm_server, express):
+def test_conc_req_node_foobar(es, apm_server, express):
     foo = Concurrent.Endpoint(express.foo.url,
                               express.app_name,
                               [".*.foo"],
@@ -28,4 +28,4 @@ def test_conc_req_node_foobar(elasticsearch, apm_server, express):
                               [".*.bar", ".*.extra"],
                               "GET /bar",
                               events_no=820)
-    Concurrent(elasticsearch, [foo, bar], iters=1).run()
+    Concurrent(es, [foo, bar], iters=1).run()

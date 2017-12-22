@@ -1,5 +1,2 @@
 NODEJS_AGENT:
-  - 'release;latest'
-  - 'release;0.5.0'
-  - 'github;master'
-  - 'github;v0.6.0'
+  - 'github;elastic-6.2'

@@ -4,8 +4,8 @@ import pytest
 @pytest.fixture
 def minimal():
     return {
-        "app": {
-            "name": "app1",
+        "service": {
+            "name": "service1",
             "agent": {
                 "name": "python",
                 "version": "1.0"
