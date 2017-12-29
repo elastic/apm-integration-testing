@@ -1,10 +1,12 @@
-import pytest
 import os
-from tests.endpoint import Endpoint
 try:
     from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse
+
+import pytest
+
+from tests.endpoint import Endpoint
 
 
 @pytest.fixture(scope="session")

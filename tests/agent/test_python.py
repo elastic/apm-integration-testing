@@ -1,4 +1,5 @@
 import pytest
+
 from tests import utils
 from tests.agent.concurrent_requests import Concurrent
 

@@ -1,32 +1,35 @@
-import timeout_decorator
-import requests
+import argparse
 import time
-import sys
+
+import requests
+import timeout_decorator
 
 
 @timeout_decorator.timeout(90)
 def wait_until_setup(url):
-    time.sleep(5)
-
     def call_service():
         try:
-            return requests.get(url).status_code
+            return requests.get(url, timeout=5).status_code
         except timeout_decorator.TimeoutError:
             raise
         except:
-            return None
+            return
 
     while call_service() != 200:
         time.sleep(5)
 
 
-if __name__ == '__main__':
-    args = sys.argv
-    if len(args) == 1:
-        exit
-    elif len(args) == 2:
-        for url in args[1].split(","):
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('urls', nargs='+', help='health check url(s)')
+    args = parser.parse_args()
+
+    # each url arg can contain comma-separated values, for backwards compat
+    for urls in args.urls:
+        for url in urls.split(","):
             print("wait_until running: {}".format(url))
             wait_until_setup(url)
-    else:
-        raise Exception("Urls should be passed in as comma seperated string.")
+
+
+if __name__ == '__main__':
+    main()

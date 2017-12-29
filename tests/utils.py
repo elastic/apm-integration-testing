@@ -1,6 +1,5 @@
-import requests
 from timeout_decorator import TimeoutError
-import time
+import requests
 
 
 def check_agent_transaction(endpoint, elasticsearch, ct=2):

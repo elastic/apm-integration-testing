@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import copy
-import logging
 import os
+import logging
 import time
 
 from tornado import ioloop, httpclient
