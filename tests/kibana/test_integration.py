@@ -2,8 +2,10 @@ import os
 import urllib.parse
 
 from selenium.webdriver import Chrome, ChromeOptions
-from webium import BasePage
-from webium.driver import close_driver
+from selenium.webdriver.common.by import By
+from webium import BasePage, Find
+from webium.driver import close_driver, get_driver
+from webium.wait import wait
 
 import webium.settings
 
@@ -23,8 +25,18 @@ class KibanaPage(BasePage):
         url = urllib.parse.urljoin(os.environ['KIBANA_URL'], path)
         super().__init__(url=url)
 
+    apm_sidebar_button = Find(by=By.CSS_SELECTOR, value='a[aria-label="APM"]')
+
+    def current_url(self):
+        return get_driver().current_url[len(self.url):]
+
 
 def test_sidebar():
     home_page = KibanaPage('/')
     home_page.open()
+
+    assert not home_page.current_url().startswith("app/apm")
+    home_page.apm_sidebar_button.click()
+    assert home_page.current_url().startswith("app/apm"), "current url: " + home_page.current_url()
+
     close_driver()
