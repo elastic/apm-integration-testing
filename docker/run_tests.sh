@@ -9,6 +9,7 @@ docker build --pull -t ${name} .
 docker run \
   --name=${name} \
   --network=${NETWORK} \
+  --security-opt seccomp=unconfined \
   -e ES_URL=${ES_URL} \
   -e KIBANA_URL=${KIBANA_URL} \
   -e APM_SERVER_URL=${APM_SERVER_URL} \
