@@ -1,6 +1,8 @@
 FROM python:3
 
-RUN pip install -U pytest pytest-random-order requests timeout-decorator elasticsearch tornado pyyaml
+COPY requirements.txt requirements.txt
+
+RUN pip install -r requirements.txt
 
 COPY . /app
 WORKDIR /app
