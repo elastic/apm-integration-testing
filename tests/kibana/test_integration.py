@@ -1,11 +1,9 @@
-import os
 import urllib.parse
 
 from selenium.webdriver import Chrome, ChromeOptions
 from selenium.webdriver.common.by import By
 from webium import BasePage, Find
 from webium.driver import close_driver, get_driver
-from webium.wait import wait
 
 import webium.settings
 
@@ -21,8 +19,8 @@ webium.settings.driver_class = HeadlessChrome
 
 
 class KibanaPage(BasePage):
-    def __init__(self, path):
-        url = urllib.parse.urljoin(os.environ['KIBANA_URL'], path)
+    def __init__(self, base, path):
+        url = urllib.parse.urljoin(base, path)
         super().__init__(url=url)
 
     apm_sidebar_button = Find(by=By.CSS_SELECTOR, value='a[aria-label="APM"]')
@@ -31,8 +29,8 @@ class KibanaPage(BasePage):
         return get_driver().current_url[len(self.url):]
 
 
-def test_sidebar():
-    home_page = KibanaPage('/')
+def test_sidebar(kibana):
+    home_page = KibanaPage(kibana.url, '/')
     home_page.open()
 
     assert not home_page.current_url().startswith("app/apm")
