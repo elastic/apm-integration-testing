@@ -4,10 +4,10 @@ import pytest
 
 
 @pytest.fixture(scope="session")
-def kibana(elasticsearch):
+def kibana(es):
     class Kibana:
-        def __init__(self, url, elasticsearch):
+        def __init__(self, url, es):
             self.url = url
-            self.elasticsearch = elasticsearch
+            self.elasticsearch = es
 
-    return Kibana(os.environ["KIBANA_URL"], elasticsearch)
+    return Kibana(os.environ["KIBANA_URL"], es)

@@ -84,14 +84,15 @@ def nodejs_agents():
 def prepare():
     if os.environ.get("NETWORK") is None:
         os.environ["NETWORK"] = "apm_testing"
-    start("docker/prepare_docker.sh")
+    if 'REUSE_CONTAINERS' not in os.environ:
+        start("docker/prepare_docker.sh")
 
 
 def start(script):
-    if os.environ.get("REUSE_CONTAINERS") is None:
-        subprocess.check_call([script])
-    else:
+    if 'REUSE_CONTAINERS' in os.environ:
         print("Reusing started containers...")
+    else:
+        subprocess.check_call([script])
 
 
 def set_version(env_var, default='master', state="github"):
@@ -125,6 +126,9 @@ if __name__ == '__main__':
                 urls += nodejs_agents()
             else:
                 raise Exception("Agent {} not supported".format(agent))
+
+    if "TEST_KIBANA" in os.environ:
+        urls.append(kibana())
 
     os.environ['URLS'] = ",".join(urls)
     subprocess.check_call(["docker/run_tests.sh"])
