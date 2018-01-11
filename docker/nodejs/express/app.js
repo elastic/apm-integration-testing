@@ -48,8 +48,6 @@ function extra_route () {
     span.end()
 }
 
-app.use(apm.middleware.express())
-
 var server = app.listen(process.env.EXPRESS_PORT, '0.0.0.0', function () {
     console.log("Listening on %s...", server.address().port);
 });
