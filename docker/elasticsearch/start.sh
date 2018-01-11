@@ -11,6 +11,8 @@ if [[ -z ${NETWORK} ]]; then
   exit 2
 fi
 
+ES_REGISTRY=${ES_REGISTRY:-docker.elastic.co/elasticsearch/elasticsearch}
+
 docker run -d \
   --name="${ES_NAME}" \
   --network="${NETWORK}" \
@@ -21,4 +23,4 @@ docker run -d \
   -e "transport.host=0.0.0.0"\
   -e "http.host=0.0.0.0"\
   -e "xpack.security.enabled=${ES_XPACK:-false}" \
-  --rm docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION}
+  --rm ${ES_REGISTRY}:${ES_VERSION}

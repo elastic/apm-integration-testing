@@ -15,6 +15,7 @@ if [[ -z ${NETWORK} ]]; then
   exit 2
 fi
 
+KIBANA_REGISTRY=${KIBANA_REGISTRY:-docker.elastic.co/kibana/kibana}
 
 docker run -d \
   --name="${KIBANA_HOST}" \
@@ -23,6 +24,6 @@ docker run -d \
   -e "network.host=''" \
   -e "transport.host=0.0.0.0"\
   -e "http.host=0.0.0.0"\
-  -e "xpack.security.enabled=${KIBANA_XPACK:-false}" \
+  -e "xpack.security.enabled=${KIBANA_XPACK:-true}" \
   -e "elasticsearch.url=${ES_URL}" \
-  --rm "docker.elastic.co/kibana/kibana:${KIBANA_VERSION}"
+  --rm "${KIBANA_REGISTRY}:${KIBANA_VERSION}"
