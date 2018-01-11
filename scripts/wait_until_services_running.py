@@ -5,7 +5,7 @@ import requests
 import timeout_decorator
 
 
-@timeout_decorator.timeout(90)
+@timeout_decorator.timeout(180)
 def wait_until_setup(url):
     def call_service():
         try:
