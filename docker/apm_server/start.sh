@@ -20,7 +20,7 @@ fi
 
 echo "APM_SERVER_VERSION: ${APM_SERVER_VERSION}, ${APM_SERVER_VERSION_STATE}"
 
-if [[ ${APM_SERVER_VERSION_STATE} != "release" ]];then
+if [[ ${APM_SERVER_VERSION_STATE} == "github" ]];then
   docker build -f 'docker/apm_server/Dockerfile' -t ${APM_SERVER_NAME}:${APM_SERVER_VERSION} .
   docker run -d \
     --name="${APM_SERVER_NAME}" \
@@ -36,6 +36,20 @@ if [[ ${APM_SERVER_VERSION_STATE} != "release" ]];then
         make update apm-server
         ./apm-server -e -d \"*\" -c ../apm-server.yml"
 else
+  image_name="docker.elastic.co/apm/apm-server:${APM_SERVER_VERSION}"
+
+  if [[ ${APM_SERVER_VERSION_STATE} == "snapshot" ]];then
+    registry="https://snapshots.elastic.co/docker/"
+    name="apm-server"
+    version="${APM_SERVER_VERSION}-SNAPSHOT"
+    file_type="tar.gz"
+    file="${name}-${version}.${file_type}"
+    wget "${registry}${file}"
+    docker load -i "${file}"
+    rm "${file}"
+    image_name="docker.elastic.co/apm/${name}:${version}"
+  fi
+
   docker run -d \
     --name="${APM_SERVER_NAME}" \
     --network="${NETWORK}" \
@@ -43,5 +57,5 @@ else
     -e "ES_HOST=${ES_HOST}" \
     -e "ES_PORT=${ES_PORT}" \
     -v "$(pwd)/docker/apm_server/apm-server.yml:/usr/share/apm-server/apm-server.yml" \
-    --rm "docker.elastic.co/apm/apm-server:${APM_SERVER_VERSION}"
+    --rm "${image_name}"
 fi
