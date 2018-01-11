@@ -16,6 +16,19 @@ if [[ -z ${NETWORK} ]]; then
 fi
 
 
+image_name="docker.elastic.co/kibana/kibana:${KIBANA_VERSION}"
+
+if [[ ${KIBANA_VERSION_STATE} == "snapshot" ]]; then
+  registry="https://snapshots.elastic.co/docker/"
+  name="kibana"
+  version="${KIBANA_VERSION}-SNAPSHOT"
+  file_type="tar.gz"
+  file="${name}-${version}.${file_type}"
+  wget "${registry}${file}"
+  docker load -i "${file}"
+  rm "${file}"
+  image_name="docker.elastic.co/kibana/${name}:${version}"
+fi
 docker run -d \
   --name="${KIBANA_HOST}" \
   --network="${NETWORK}" \
@@ -25,4 +38,4 @@ docker run -d \
   -e "http.host=0.0.0.0"\
   -e "xpack.security.enabled=${KIBANA_XPACK:-false}" \
   -e "elasticsearch.url=${ES_URL}" \
-  --rm "docker.elastic.co/kibana/kibana:${KIBANA_VERSION}"
+  --rm "${image_name}"
