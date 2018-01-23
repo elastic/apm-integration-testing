@@ -20,6 +20,13 @@ fi
 
 echo "APM_SERVER_VERSION: ${APM_SERVER_VERSION}, ${APM_SERVER_VERSION_STATE}"
 
+start_server="./apm-server -e -d \"*\" \
+  -E apm-server.host=0.0.0.0:8200 \
+  -E apm-server.concurrent_requests=1000 \
+  -E setup.kibana.host=${KIBANA_HOST}:${KIBANA_PORT} \
+  -E output.elasticsearch.hosts=[${ES_HOST}:${ES_PORT}] \
+  -E apm-server.frontend.enabled=true"
+
 if [[ ${APM_SERVER_VERSION_STATE} == "github" ]];then
   docker build -f 'docker/apm_server/Dockerfile' -t ${APM_SERVER_NAME}:${APM_SERVER_VERSION} .
   docker run -d \
@@ -34,7 +41,7 @@ if [[ ${APM_SERVER_VERSION_STATE} == "github" ]];then
         git clone --depth 1 --branch ${APM_SERVER_VERSION} http://github.com/elastic/apm-server.git
         cd apm-server
         make update apm-server
-        ./apm-server -e -d \"*\" -c ../apm-server.yml"
+        ${start_server}"
 else
   image_name="docker.elastic.co/apm/apm-server:${APM_SERVER_VERSION}"
 
@@ -56,6 +63,7 @@ else
     -p ${APM_SERVER_PORT}:8200 \
     -e "ES_HOST=${ES_HOST}" \
     -e "ES_PORT=${ES_PORT}" \
-    -v "$(pwd)/docker/apm_server/apm-server.yml:/usr/share/apm-server/apm-server.yml" \
-    --rm "${image_name}"
+    --rm "${image_name}" \
+    /bin/bash \
+    -c "${start_server}" 
 fi

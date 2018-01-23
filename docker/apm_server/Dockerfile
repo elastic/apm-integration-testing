@@ -6,5 +6,3 @@ RUN set -x && \
     apt-get clean
 
 WORKDIR ${GOPATH}/src/github.com/elastic/
-
-COPY docker/apm_server/apm-server.yml ${WORKDIR}
