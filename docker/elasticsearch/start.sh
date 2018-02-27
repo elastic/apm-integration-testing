@@ -22,7 +22,7 @@ if [[ ${ES_VERSION_STATE} == "snapshot" ]]; then
   version="${ES_VERSION}-SNAPSHOT"
   file_type="tar.gz"
   file="${name}-${version}.${file_type}"
-  wget "${registry}${file}"
+  curl -sSLO "${registry}${file}"
   docker load -i "${file}"
   rm "${file}"
   image_name="docker.elastic.co/elasticsearch/${name}:${version}"

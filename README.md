@@ -20,7 +20,7 @@ The setup of the services needed is done by the script `scripts/start_services.p
 
 ## Development Info
 - Add a pre-commit hook for autopep8 formatting:
-    - wget https://raw.githubusercontent.com/chibiegg/git-autopep8/master/pre-commit -O .git/hooks/pre-commit
+    - curl -Lo .git/hooks/pre-commit https://raw.githubusercontent.com/chibiegg/git-autopep8/master/pre-commit
     - chmod +x .git/hooks/pre-commit
 - Tests should be runnable also on cloud. 
   The setup should be separated from the test logic.
