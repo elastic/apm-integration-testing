@@ -41,6 +41,8 @@ class Concurrent:
                 self.agent = "python"
             elif app_name in ("expressapp"):
                 self.agent = "nodejs"
+            elif self.app_name in ("railsapp"):
+                self.agent = "ruby"
             else:
                 raise Exception(
                     "Missing agent for app {}".format(app_name))
@@ -201,6 +203,12 @@ class Concurrent:
                 assert framework in ("django", "flask"), context
                 assert transaction['type'] == 'request'
                 assert search == '?q=1', context
+            elif agent == 'ruby':
+                assert lang == "ruby", context
+                assert framework in ("Ruby on Rails"), context
+                # TODO: fix this in the ruby app
+                assert transaction['type'] == 'app'
+                assert search == 'q=1', context
             else:
                 raise Exception("Undefined agent {}".format(agent))
 

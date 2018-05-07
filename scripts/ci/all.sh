@@ -2,7 +2,7 @@
 
 set -ex 
 
-export AGENTS="nodejs,python"
+export AGENTS="nodejs,python,ruby"
 export TEST_CMD="pytest -v"
 export TEST_KIBANA=1
 

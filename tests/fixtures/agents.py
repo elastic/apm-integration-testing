@@ -30,6 +30,13 @@ def express(apm_server):
                  apm_server)
 
 
+@pytest.fixture(scope="session")
+def rails(apm_server):
+    return Agent(os.environ['RAILS_SERVICE_NAME'],
+                 os.environ['RAILS_URL'],
+                 apm_server)
+
+
 class Agent:
     def __init__(self, app_name, url, apm_server):
         self.app_name = app_name

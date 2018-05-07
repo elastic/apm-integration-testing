@@ -7,3 +7,4 @@ from tests.fixtures.kibana import kibana
 from tests.fixtures.agents import flask
 from tests.fixtures.agents import django
 from tests.fixtures.agents import express
+from tests.fixtures.agents import rails

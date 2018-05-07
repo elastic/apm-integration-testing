@@ -4,3 +4,5 @@ apm-server
 .cache
 **/__pycache__
 /.idea
+**/tmp
+**/log
