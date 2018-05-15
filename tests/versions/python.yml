@@ -1,2 +1,4 @@
 PYTHON_AGENT:
   - 'github;master'
+  - 'release;2.0' 
+  - 'release;latest' 
