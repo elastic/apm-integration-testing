@@ -13,7 +13,7 @@ def elasticsearch():
         os.environ['ES_NAME'] = 'elasticsearch'
         os.environ['ES_URL'] = "http://elasticsearch:{}".format(
             os.environ['ES_PORT'])
-        set_version('ES_VERSION', "6.2.4", "snapshot")
+        set_version('ES_VERSION', "6.3.0", "snapshot")
         start("docker/elasticsearch/start.sh")
     else:
         parsed_url = urlparse(os.environ['ES_URL'])
@@ -28,7 +28,7 @@ def kibana():
         os.environ['KIBANA_HOST'] = 'kibana'
         os.environ['KIBANA_URL'] = "http://kibana:{}".format(
             os.environ['KIBANA_PORT'])
-        set_version('KIBANA_VERSION', "6.2.4", "snapshot")
+        set_version('KIBANA_VERSION', "6.3.0", "snapshot")
         start("docker/kibana/start.sh")
     return os.environ['KIBANA_URL']
 
@@ -44,7 +44,6 @@ def apm_server():
 
 
 def flask():
-    set_version('PYTHON_AGENT_VERSION')
     os.environ['FLASK_SERVICE_NAME'] = "flaskapp"
     os.environ['FLASK_PORT'] = "8001"
     os.environ['FLASK_URL'] = "http://{}:{}".format(os.environ['FLASK_SERVICE_NAME'],
@@ -54,7 +53,6 @@ def flask():
 
 
 def django():
-    set_version('PYTHON_AGENT_VERSION')
     os.environ['DJANGO_SERVICE_NAME'] = "djangoapp"
     os.environ['DJANGO_PORT'] = "8003"
     os.environ['DJANGO_URL'] = "http://{}:{}".format(os.environ['DJANGO_SERVICE_NAME'],
@@ -64,7 +62,6 @@ def django():
 
 
 def express():
-    set_version('NODEJS_AGENT_VERSION', '1.x', 'github')
     os.environ['EXPRESS_APP_NAME'] = "expressapp"
     os.environ['EXPRESS_PORT'] = "8010"
     os.environ['EXPRESS_URL'] = "http://{}:{}".format(os.environ['EXPRESS_APP_NAME'],
@@ -74,10 +71,12 @@ def express():
 
 
 def python_agents():
+    set_version('PYTHON_AGENT_VERSION')
     return [flask(), django()]
 
 
 def nodejs_agents():
+    set_version('NODEJS_AGENT_VERSION')
     return [express()]
 
 

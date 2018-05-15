@@ -177,7 +177,10 @@ class Concurrent:
             p = context['request']['url']['pathname'].strip("/")
             assert p == exp_p, p
 
-            assert 'tags' not in context.keys()
+            tags = {}
+            if 'tags' in context.keys():
+                tags = context['tags']
+            assert tags == {}, tags
 
             app_name = lookup(context, 'service', 'name')
             assert app_name == ep.app_name, app_name
