@@ -38,7 +38,7 @@ if [[ ${APM_SERVER_VERSION_STATE} == "github" ]];then
     --rm "${APM_SERVER_NAME}:${APM_SERVER_VERSION}" \
     /bin/bash \
     -c "rm -rf apm-server
-        git clone --depth 1 --branch ${APM_SERVER_VERSION} http://github.com/elastic/apm-server.git
+        git clone --depth 1 --branch ${APM_SERVER_VERSION} https://github.com/elastic/apm-server.git
         cd apm-server
         make update apm-server
         ${start_server}"
