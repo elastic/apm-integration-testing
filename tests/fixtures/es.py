@@ -17,11 +17,12 @@ def es():
             self.es.indices.delete(self.index)
             self.es.indices.refresh()
 
-        def term_q(self, field, val):
-            return {"query": {"term": {field: val}}}
-
-        def regexp_q(self, field, r):
-            return {"query": {"regexp": {field: r}}}
+        def term_q(self, terms):
+            t = []
+            for idx in range(len(terms)):
+                for k in terms[idx]:
+                    t.append({"term": {k: {"value": terms[idx][k]}}})
+            return {"query": {"bool": {"must": t}}}
 
         @timeout_decorator.timeout(10)
         def fetch(self, q):

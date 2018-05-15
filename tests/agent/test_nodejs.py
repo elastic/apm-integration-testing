@@ -12,7 +12,7 @@ def test_request_express(express):
 def test_conc_req_express(es, apm_server, express):
     foo = Concurrent.Endpoint(express.foo.url,
                               express.app_name,
-                              [".*.foo"],
+                              ["app.foo"],
                               "GET /foo",
                               events_no=1000)
     Concurrent(es, [foo], iters=1).run()
@@ -21,11 +21,11 @@ def test_conc_req_express(es, apm_server, express):
 def test_conc_req_node_foobar(es, apm_server, express):
     foo = Concurrent.Endpoint(express.foo.url,
                               express.app_name,
-                              [".*.foo"],
+                              ["app.foo"],
                               "GET /foo")
     bar = Concurrent.Endpoint(express.bar.url,
                               express.app_name,
-                              [".*.bar", ".*.extra"],
+                              ["app.bar", "app.extra"],
                               "GET /bar",
                               events_no=820)
     Concurrent(es, [foo, bar], iters=1).run()

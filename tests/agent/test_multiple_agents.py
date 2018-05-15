@@ -24,12 +24,12 @@ def test_conc_req_flask_foobar(es, apm_server, flask, django, express):
                                    events_no=500)
     express_f = Concurrent.Endpoint(express.foo.url,
                                     express.app_name,
-                                    [".*app.foo"],
+                                    ["app.foo"],
                                     "GET /foo",
                                     events_no=500)
     express_b = Concurrent.Endpoint(express.bar.url,
                                     express.app_name,
-                                    [".*app.bar", ".*app.extra"],
+                                    ["app.bar", "app.extra"],
                                     "GET /bar",
                                     events_no=500)
     Concurrent(es,

@@ -16,7 +16,7 @@ def test_req_flask(flask):
 def test_concurrent_req_flask(flask):
     foo = Concurrent.Endpoint(flask.foo.url,
                               flask.app_name,
-                              [".*.foo"],
+                              ["__main__.foo"],
                               "GET /foo")
     Concurrent(flask.apm_server.elasticsearch, [foo], iters=2).run()
 
@@ -26,12 +26,12 @@ def test_concurrent_req_flask(flask):
 def test_concurrent_req_flask_foobar(flask):
     foo = Concurrent.Endpoint(flask.foo.url,
                               flask.app_name,
-                              [".*.foo"],
+                              ["__main__.foo"],
                               "GET /foo",
                               events_no=375)
     bar = Concurrent.Endpoint(flask.bar.url,
                               flask.app_name,
-                              [".*.bar", ".*.extra"],
+                              ["__main__.bar", "__main__.extra"],
                               "GET /bar")
     Concurrent(flask.apm_server.elasticsearch, [foo, bar], iters=1).run()
 
@@ -47,7 +47,7 @@ def test_req_django(django):
 def test_concurrent_req_django(django):
     foo = Concurrent.Endpoint(django.foo.url,
                               django.app_name,
-                              [".*.foo"],
+                              ["foo.views.foo"],
                               "GET foo.views.show")
     Concurrent(django.apm_server.elasticsearch, [foo], iters=2).run()
 
@@ -57,11 +57,11 @@ def test_concurrent_req_django(django):
 def test_concurrent_req_django_foobar(django):
     foo = Concurrent.Endpoint(django.foo.url,
                               django.app_name,
-                              [".*.foo"],
+                              ["foo.views.foo"],
                               "GET foo.views.show")
     bar = Concurrent.Endpoint(django.bar.url,
                               django.app_name,
-                              [".*.bar", ".*.extra"],
+                              ["bar.views.bar", "bar.views.extra"],
                               "GET bar.views.show",
                               events_no=820)
     Concurrent(django.apm_server.elasticsearch, [foo, bar], iters=1).run()
