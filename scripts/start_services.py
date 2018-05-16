@@ -80,6 +80,15 @@ def rails():
     return "{}/healthcheck".format(os.environ['RAILS_URL'])
 
 
+def go_nethttp():
+    service_name = "go_nethttp"
+    url = "http://{}:8080".format(service_name)
+    os.environ['GO_NETHTTP_SERVICE_NAME'] = service_name
+    os.environ['GO_NETHTTP_URL'] = url
+    start("docker/go/nethttp/start.sh")
+    return url + "/healthcheck"
+
+
 def python_agents():
     set_version('PYTHON_AGENT_VERSION')
     return [flask(), django()]
@@ -92,6 +101,10 @@ def nodejs_agents():
 
 def ruby_agents():
     return [rails()]
+
+
+def go_agents():
+    return [go_nethttp()]
 
 
 def prepare():
@@ -139,6 +152,8 @@ if __name__ == '__main__':
                 urls += nodejs_agents()
             elif agent == "ruby":
                 urls += ruby_agents()
+            elif agent == "go":
+                urls += go_agents()
             else:
                 raise Exception("Agent {} not supported".format(agent))
 

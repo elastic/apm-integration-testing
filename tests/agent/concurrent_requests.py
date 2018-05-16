@@ -43,6 +43,8 @@ class Concurrent:
                 self.agent = "nodejs"
             elif self.app_name in ("railsapp"):
                 self.agent = "ruby"
+            elif self.app_name in ("go_nethttp"):
+                self.agent = "go"
             else:
                 raise Exception(
                     "Missing agent for app {}".format(app_name))
@@ -191,8 +193,14 @@ class Concurrent:
             assert agent == ep.agent, agent
             assert transaction['type'] == 'request'
 
+            try:
+                framework = lookup(context, 'service', 'framework', 'name')
+            except KeyError:
+                # The Go agent doesn't support reporting framework:
+                #   https://github.com/elastic/apm-agent-go/issues/69
+                assert agent == 'go'
+
             search = context['request']['url']['search']
-            framework = lookup(context, 'service', 'framework', 'name')
             lang = lookup(context, 'service', 'language', 'name')
             if agent == 'nodejs':
                 assert lang == "javascript", context
@@ -205,6 +213,9 @@ class Concurrent:
             elif agent == 'ruby':
                 assert lang == "ruby", context
                 assert framework in ("Ruby on Rails"), context
+            elif agent == 'go':
+                assert lang == "go", context
+                assert transaction['type'] == 'request'
                 assert search == 'q=1', context
             else:
                 raise Exception("Undefined agent {}".format(agent))
