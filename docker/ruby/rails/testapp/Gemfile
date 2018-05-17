@@ -24,7 +24,11 @@ group :development do
 end
 
 if ENV['RUBY_AGENT_VERSION_STATE']=='release'
-  gem 'elastic-apm', ENV['RUBY_AGENT_VERSION']
+  if ENV['RUBY_AGENT_VERSION'] == 'latest' 
+    gem 'elastic-apm'
+  else 
+    gem 'elastic-apm', ENV['RUBY_AGENT_VERSION']
+  end
 else
   gem 'elastic-apm', git: 'https://github.com/elastic/apm-agent-ruby.git', branch: ENV['RUBY_AGENT_VERSION']
 end

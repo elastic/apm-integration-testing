@@ -189,6 +189,7 @@ class Concurrent:
 
             agent = lookup(context, 'service', 'agent', 'name')
             assert agent == ep.agent, agent
+            assert transaction['type'] == 'request'
 
             search = context['request']['url']['search']
             framework = lookup(context, 'service', 'framework', 'name')
@@ -196,18 +197,14 @@ class Concurrent:
             if agent == 'nodejs':
                 assert lang == "javascript", context
                 assert framework in ("express"), context
-                assert transaction['type'] == 'request'
                 assert search == '?q=1', context
             elif agent == 'python':
                 assert lang == "python", context
                 assert framework in ("django", "flask"), context
-                assert transaction['type'] == 'request'
                 assert search == '?q=1', context
             elif agent == 'ruby':
                 assert lang == "ruby", context
                 assert framework in ("Ruby on Rails"), context
-                # TODO: fix this in the ruby app
-                assert transaction['type'] == 'app'
                 assert search == 'q=1', context
             else:
                 raise Exception("Undefined agent {}".format(agent))
