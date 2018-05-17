@@ -37,4 +37,4 @@ docker run -d \
   /bin/bash \
   -c "cd testapp &&\
       bundle install &&\
-      rails s -b 0.0.0.0 -p ${RAILS_PORT}"
+      RAILS_ENV=production rails s -b 0.0.0.0 -p ${RAILS_PORT}"
