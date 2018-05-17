@@ -41,6 +41,8 @@ class Concurrent:
                 self.agent = "python"
             elif app_name in ("expressapp"):
                 self.agent = "nodejs"
+            elif self.app_name in ("railsapp"):
+                self.agent = "ruby"
             else:
                 raise Exception(
                     "Missing agent for app {}".format(app_name))
@@ -187,6 +189,7 @@ class Concurrent:
 
             agent = lookup(context, 'service', 'agent', 'name')
             assert agent == ep.agent, agent
+            assert transaction['type'] == 'request'
 
             search = context['request']['url']['search']
             framework = lookup(context, 'service', 'framework', 'name')
@@ -194,13 +197,15 @@ class Concurrent:
             if agent == 'nodejs':
                 assert lang == "javascript", context
                 assert framework in ("express"), context
-                assert transaction['type'] == 'request'
                 assert search == '?q=1', context
             elif agent == 'python':
                 assert lang == "python", context
                 assert framework in ("django", "flask"), context
-                assert transaction['type'] == 'request'
                 assert search == '?q=1', context
+            elif agent == 'ruby':
+                assert lang == "ruby", context
+                assert framework in ("Ruby on Rails"), context
+                assert search == 'q=1', context
             else:
                 raise Exception("Undefined agent {}".format(agent))
 

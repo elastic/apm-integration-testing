@@ -70,6 +70,16 @@ def express():
     return "{}/healthcheck".format(os.environ['EXPRESS_URL'])
 
 
+def rails():
+    set_version('RUBY_AGENT_VERSION')
+    os.environ['RAILS_SERVICE_NAME'] = "railsapp"
+    os.environ['RAILS_PORT'] = "8020"
+    os.environ['RAILS_URL'] = "http://{}:{}".format(os.environ['RAILS_SERVICE_NAME'],
+                                                     os.environ['RAILS_PORT'])
+    start("docker/ruby/rails/start.sh")
+    return "{}/healthcheck".format(os.environ['RAILS_URL'])
+
+
 def python_agents():
     set_version('PYTHON_AGENT_VERSION')
     return [flask(), django()]
@@ -78,6 +88,10 @@ def python_agents():
 def nodejs_agents():
     set_version('NODEJS_AGENT_VERSION')
     return [express()]
+
+
+def ruby_agents():
+    return [rails()]
 
 
 def prepare():
@@ -123,6 +137,8 @@ if __name__ == '__main__':
                 urls += python_agents()
             elif agent == "nodejs":
                 urls += nodejs_agents()
+            elif agent == "ruby":
+                urls += ruby_agents()
             else:
                 raise Exception("Agent {} not supported".format(agent))
 

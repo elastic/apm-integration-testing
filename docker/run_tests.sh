@@ -19,6 +19,8 @@ docker run \
   -e FLASK_URL \
   -e DJANGO_SERVICE_NAME \
   -e DJANGO_URL \
+  -e RAILS_SERVICE_NAME \
+  -e RAILS_URL \
   -e URLS \
   -e PYTHONDONTWRITEBYTECODE=1 \
   -e TEST_CMD="${TEST_CMD}" \

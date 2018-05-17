@@ -1,0 +1,4 @@
+RUBY_AGENT:
+  - 'github;master'
+  - 'github;1.x'
+  - 'release;latest'
