@@ -21,6 +21,8 @@ docker run \
   -e DJANGO_URL \
   -e RAILS_SERVICE_NAME \
   -e RAILS_URL \
+  -e GO_NETHTTP_SERVICE_NAME \
+  -e GO_NETHTTP_URL \
   -e URLS \
   -e PYTHONDONTWRITEBYTECODE=1 \
   -e TEST_CMD="${TEST_CMD}" \

@@ -29,6 +29,12 @@ def express(apm_server):
                  os.environ['EXPRESS_URL'],
                  apm_server)
 
+@pytest.fixture(scope="session")
+def go_nethttp(apm_server):
+    return Agent(os.environ['GO_NETHTTP_SERVICE_NAME'],
+                 os.environ['GO_NETHTTP_URL'],
+                 apm_server)
+
 
 @pytest.fixture(scope="session")
 def rails(apm_server):

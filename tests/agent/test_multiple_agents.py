@@ -1,7 +1,7 @@
 from tests.agent.concurrent_requests import Concurrent
 
 
-def test_conc_req_all_agents(es, apm_server, flask, django, express, rails):
+def test_conc_req_all_agents(es, apm_server, flask, django, express, rails, go_nethttp):
     flask_f = Concurrent.Endpoint(flask.foo.url,
                                   flask.app_name,
                                   ["__main__.foo"],
@@ -42,7 +42,20 @@ def test_conc_req_all_agents(es, apm_server, flask, django, express, rails):
                                   ["ApplicationController#bar", "app.extra"],
                                   "ApplicationController#bar",
                                   events_no=500)
-    Concurrent(es,
-               [flask_f, flask_b, django_f, django_b,
-                express_f, express_b, rails_b, rails_f],
-               iters=1).run()
+    go_nethttp_f = Concurrent.Endpoint(go_nethttp.foo.url,
+                                       go_nethttp.app_name,
+                                       ["foo"],
+                                       "GET /foo",
+                                       events_no=500)
+    go_nethttp_b = Concurrent.Endpoint(go_nethttp.bar.url,
+                                       go_nethttp.app_name,
+                                       ["bar", "extra"],
+                                       "GET /bar",
+                                       events_no=500)
+    Concurrent(es, [
+        flask_f, flask_b,
+        django_f, django_b,
+        express_f, express_b,
+        rails_b, rails_f,
+        go_nethttp_f, go_nethttp_b,
+    ], iters=1).run()

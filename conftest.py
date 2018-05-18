@@ -8,3 +8,4 @@ from tests.fixtures.agents import flask
 from tests.fixtures.agents import django
 from tests.fixtures.agents import express
 from tests.fixtures.agents import rails
+from tests.fixtures.agents import go_nethttp
