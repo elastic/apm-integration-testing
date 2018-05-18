@@ -7,10 +7,5 @@ if [ $# -lt 2 ]; then
   exit 2
 fi
 
-export NODEJS_AGENT_VERSION=$1
-export APM_SERVER_VERSION=$2
-
-export AGENTS="nodejs"
-export TEST_CMD="pytest tests/agent/test_nodejs.py -v -m version"
-
-make dockerized_tests
+export COMPOSE_ARGS="start $2 --with-agent-nodejs-express --agent-nodejs-version=$1  --force-build"
+./scripts/ci/nodejs.sh

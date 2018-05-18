@@ -1,7 +1,3 @@
-#!/usr/bin/env bash
+#!/bin/bash -e
 
-set -ex
-
-export TEST_CMD="pytest tests/server/ -v"
-
-make dockerized_tests
+make stop-env env-server docker-test-server

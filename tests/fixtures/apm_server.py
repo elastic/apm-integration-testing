@@ -3,6 +3,7 @@ import os
 import pytest
 
 from tests.endpoint import Endpoint
+from tests.fixtures import default
 
 
 @pytest.fixture(scope="session")
@@ -17,4 +18,4 @@ def apm_server(es):
                                                  text="",
                                                  status_code=202)
 
-    return APMServer(os.environ['APM_SERVER_URL'], es)
+    return APMServer(default.from_env("APM_SERVER_URL"), es)

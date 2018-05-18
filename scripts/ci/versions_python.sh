@@ -7,10 +7,5 @@ if [ $# -lt 2 ]; then
   exit 2
 fi
 
-export PYTHON_AGENT_VERSION=$1
-export APM_SERVER_VERSION=$2
-
-export AGENTS="python"
-export TEST_CMD="pytest tests/agent/test_python.py -v -m version"
-
-make dockerized_tests
+export COMPOSE_ARGS="start $2 --with-agent-python-django --with-agent-python-flask --agent-python-version=$1  --force-build"
+./scripts/ci/python.sh

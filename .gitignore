@@ -6,3 +6,8 @@ apm-server
 /.idea
 **/tmp
 **/log
+**/.images
+venv/
+.coverage
+docker-compose.yml
+htmlcov/

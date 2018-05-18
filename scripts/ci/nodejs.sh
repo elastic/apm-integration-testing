@@ -1,8 +1,5 @@
-#!/usr/bin/env bash
+#!/bin/bash -e
 
-set -ex
-
-export AGENTS="nodejs"
-export TEST_CMD="pytest tests/agent/test_nodejs.py -v"
-
-make dockerized_tests
+DEFAULT_COMPOSE_ARGS="master --with-agent-nodejs-express --force-build"
+export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
+make stop-env env-agent-nodejs docker-test-agent-nodejs
