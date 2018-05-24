@@ -1449,6 +1449,7 @@ class LocalSetup(object):
                             "services to start. "
             ),
             services,
+            argv=argv,
         ).set_defaults(func=self.start_handler)
 
         subparsers.add_parser(
@@ -1504,7 +1505,9 @@ class LocalSetup(object):
     def __call__(self):
         self.args.func()
 
-    def init_start_parser(self, parser, services):
+    def init_start_parser(self, parser, services, argv=None):
+        if not argv:
+            argv = sys.argv
         available_versions = ' / '.join(list(self.SUPPORTED_VERSIONS))
         help_text = (
                 "Which version of the stack to start. " +
@@ -1514,10 +1517,12 @@ class LocalSetup(object):
 
         # Add a --no-x / --with-x argument for each service, depending on default enabled/disabled
         # Slightly hackish: if we have an `--all` argument, use `--no-x` for all opbeans services
-        has_all = '--all' in sys.argv
+        has_all = '--all' in argv
+        has_opbeans = has_all or any(o.startswith("--with-opbeans-") for o in argv)
         for service in services:
-            if service.enabled() or (
-                    has_all and (service.name().startswith('opbeans') or service.name() in ('postgres', 'redis'))):
+            if service.enabled() or \
+                    (has_all and service.name().startswith('opbeans')) or \
+                    (has_opbeans and service.name() in ('postgres', 'redis')):
                 action = 'store_true'
                 arg_prefix = '--no-'
                 help_prefix = 'Disable '
@@ -2246,6 +2251,34 @@ class LocalTest(unittest.TestCase):
                 "https://snapshots.elastic.co/docker/kibana-7.0.10-alpha1-SNAPSHOT.tar.gz",
             },
             image_cache_dir)
+
+    @unittest.mock.patch(__name__ + '.load_images')
+    def test_start_all(self, _ignore_load_images):
+        docker_compose_yml = io.StringIO()
+        setup = LocalSetup(
+            argv=["start", "master", "--all",
+                  "--docker-compose-path", "-"])
+        setup.set_docker_compose_path(docker_compose_yml)
+        setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        services = got["services"]
+        self.assertIn("redis", services)
+        self.assertIn("postgres", services)
+
+    @unittest.mock.patch(__name__ + '.load_images')
+    def test_start_one_opbeans(self, _ignore_load_images):
+        docker_compose_yml = io.StringIO()
+        setup = LocalSetup(
+            argv=["start", "master", "--with-opbeans-node",
+                  "--docker-compose-path", "-"])
+        setup.set_docker_compose_path(docker_compose_yml)
+        setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        services = got["services"]
+        self.assertIn("redis", services)
+        self.assertIn("postgres", services)
 
     def test_docker_download_image_url(self):
         Case = collections.namedtuple("Case", ("service", "expected", "args"))
