@@ -60,7 +60,7 @@ dockerized-test:
 
 	docker run \
 	  --name=apm-integraion-testing \
-	  --network=apm-integration-testing_default \
+	  --network=apm-integration-testing \
 	  --security-opt seccomp=unconfined \
 	  -e APM_SERVER_URL=http://apm-server:8200 \
 	  -e ES_URL=http://elasticsearch:9200 \

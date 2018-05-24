@@ -1752,10 +1752,13 @@ class LocalSetup(object):
         compose = dict(
             version="2.1",
             services=services,
+            networks=dict(
+                default={"name": "apm-integration-testing"},
+            ),
             volumes=dict(
                 esdata={"driver": "local"},
                 pgdata={"driver": "local"},
-            )
+            ),
         )
         yaml_opts = dict(
             explicit_start=True,
@@ -2061,6 +2064,8 @@ class LocalTest(unittest.TestCase):
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
                 ports: ['127.0.0.1:5601:5601']
+        networks:
+            default: {name: apm-integration-testing}
         volumes:
             esdata: {driver: local}
             pgdata: {driver: local}
@@ -2143,6 +2148,8 @@ class LocalTest(unittest.TestCase):
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
                 ports: ['127.0.0.1:5601:5601']
+        networks:
+            default: {name: apm-integration-testing}
         volumes:
             esdata: {driver: local}
             pgdata: {driver: local}
@@ -2225,6 +2232,8 @@ class LocalTest(unittest.TestCase):
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
                 ports: ['127.0.0.1:5601:5601']
+        networks:
+            default: {name: apm-integration-testing}
         volumes:
             esdata: {driver: local}
             pgdata: {driver: local}
