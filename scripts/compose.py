@@ -111,6 +111,19 @@ def load_images(urls, cache_dir):
         sys.exit(1)
 
 
+DEFAULT_HEALTHCHECK_INTERVAL = "5s"
+DEFAULT_HEALTHCHECK_RETRIES = 12
+
+
+def curl_healthcheck(port, host="localhost", path="/healthcheck", interval=DEFAULT_HEALTHCHECK_INTERVAL, retries=DEFAULT_HEALTHCHECK_RETRIES):
+    return {
+                "interval": interval,
+                "retries": retries,
+                "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null",
+                         "http://{}:{}{}".format(host, port, path)]
+            }
+
+
 class Service(ABC):
     """encapsulate docker-compose service definition"""
 
@@ -299,12 +312,7 @@ class ApmServer(DockerLoadableService, Service):
             cap_drop=["ALL"],
             command=["apm-server", "-e"] + command_args,
             depends_on={"elasticsearch": {"condition": "service_healthy"}},
-            healthcheck={
-                "interval": "10",
-                "retries": 10,
-                "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null",
-                         "http://apm-server:8200/healthcheck"]
-            },
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "apm-server"),
             labels=["co.elatic.apm.stack-version=" + self.version],
             ports=[
                 self.publish_port(self.port, self.SERVICE_PORT),
@@ -366,12 +374,7 @@ class Kibana(DockerLoadableService, Service):
 
     def _content(self):
         return dict(
-            healthcheck={
-                "interval": "10s",
-                "retries": 10,
-                "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null",
-                         "http://kibana:5601/"],
-            },
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/", interval="5s", retries=20),
             depends_on={"elasticsearch": {"condition": "service_healthy"}},
             environment=self.environment,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
@@ -516,6 +519,7 @@ class AgentNodejsExpress(Service):
             command="bash -c \"npm install {} && node app.js\"".format(
                 self.agent_package, self.SERVICE_PORT),
             container_name="expressapp",
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "expressapp"),
             image=None,
             labels=None,
             logging=None,
@@ -548,20 +552,15 @@ class AgentPythonDjango(AgentPython):
             command="bash -c \"pip install -U {} && python testapp/manage.py runserver 0.0.0.0:{}\"".format(
                 self.agent_package, self.SERVICE_PORT),
             container_name="djangoapp",
-            image=None,
-            labels=None,
-            logging=None,
             environment={
                 "APM_SERVER_URL": "http://apm-server:8200",
                 "DJANGO_PORT": self.SERVICE_PORT,
                 "DJANGO_SERVICE_NAME": "djangoapp",
             },
-            healthcheck={
-                "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null",
-                         "http://localhost:8003/healthcheck"],
-                "interval": "2s",
-                "retries": 30,
-            },
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "djangoapp"),
+            image=None,
+            labels=None,
+            logging=None,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
@@ -582,12 +581,7 @@ class AgentPythonFlask(AgentPython):
                 "FLASK_PORT": self.SERVICE_PORT,
                 "FLASK_SERVICE_NAME": "flaskapp",
             },
-            healthcheck={
-                "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null",
-                         "http://localhost:8001/healthcheck"],
-                "interval": "2s",
-                "retries": 30,
-            },
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "flaskapp"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
@@ -606,9 +600,6 @@ class AgentRubyRails(Service):
             command="bash -c \"bundle install && RAILS_ENV=production bundle exec rails s -b 0.0.0.0 -p {}\"".format(
                 self.SERVICE_PORT),
             container_name="railsapp",
-            image=None,
-            labels=None,
-            logging=None,
             environment={
                 "APM_SERVER_URL": "http://apm-server:8200",
                 "ELASTIC_APM_SERVER_URL": "http://apm-server:8200",
@@ -616,6 +607,10 @@ class AgentRubyRails(Service):
                 "RAILS_PORT": self.SERVICE_PORT,
                 "RAILS_SERVICE_NAME": "railsapp",
             },
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "railsapp"),
+            image=None,
+            labels=None,
+            logging=None,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
@@ -674,12 +669,7 @@ class OpbeansNode(Service):
             depends_on=depends_on,
             image=None,
             labels=None,
-            healthcheck={
-                "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null",
-                         "http://opbeans-node:3000/"],
-                "interval": "10s",
-                "retries": 10,
-            },
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "opbeans-node", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
             volumes=[
                 "{}:/local-install".format(self.local_repo),
@@ -749,12 +739,7 @@ class OpbeansPython(Service):
             depends_on=depends_on,
             image=None,
             labels=None,
-            healthcheck={
-                "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null",
-                         "http://opbeans-python:8000/"],
-                "interval": "10s",
-                "retries": 10,
-            },
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "opbeans-python", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
             volumes=[
                 "{}:/local-install".format(self.local_repo),
@@ -812,12 +797,7 @@ class OpbeansRuby(Service):
             depends_on=depends_on,
             image=None,
             labels=None,
-            healthcheck={
-                "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null",
-                         "http://opbeans-ruby:3001/"],
-                "interval": "10s",
-                "retries": 10,
-            },
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "opbeans-ruby", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
             volumes=[
                 "{}:/local-install".format(self.local_repo),
@@ -867,6 +847,10 @@ class AgentServiceTest(ServiceTest):
                         APM_SERVER_URL: http://apm-server:8200
                         EXPRESS_SERVICE_NAME: expressapp
                         EXPRESS_PORT: "8010"
+                    healthcheck:
+                        interval: 5s
+                        retries: 12
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://expressapp:8010/healthcheck"]
                     ports:
                         - 127.0.0.1:8010:8010
             """)
@@ -887,9 +871,9 @@ class AgentServiceTest(ServiceTest):
                         DJANGO_SERVICE_NAME: djangoapp
                         DJANGO_PORT: 8003
                     healthcheck:
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://localhost:8003/healthcheck"]
-                        retries: 30
-                        interval: 2s
+                        interval: 5s
+                        retries: 12
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://djangoapp:8003/healthcheck"]
                     ports:
                         - 127.0.0.1:8003:8003
             """)
@@ -910,9 +894,9 @@ class AgentServiceTest(ServiceTest):
                         FLASK_SERVICE_NAME: flaskapp
                         FLASK_PORT: 8001
                     healthcheck:
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://localhost:8001/healthcheck"]
-                        retries: 30
-                        interval: 2s
+                        interval: 5s
+                        retries: 12
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://flaskapp:8001/healthcheck"]
                     ports:
                         - 127.0.0.1:8001:8001
             """)
@@ -934,6 +918,10 @@ class AgentServiceTest(ServiceTest):
                         ELASTIC_APM_SERVICE_NAME: railsapp
                         RAILS_SERVICE_NAME: railsapp
                         RAILS_PORT: 8020
+                    healthcheck:
+                        interval: 5s
+                        retries: 12
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://railsapp:8020/healthcheck"]
                     ports:
                         - 127.0.0.1:8020:8020
             """)
@@ -1082,8 +1070,8 @@ class KibanaServiceTest(ServiceTest):
                             max-file: '5'
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://kibana:5601/"]
-                        retries: 10
-                        interval: 10s
+                        interval: 5s
+                        retries: 20
                     depends_on:
                         elasticsearch:
                             condition: service_healthy
@@ -1093,7 +1081,7 @@ class KibanaServiceTest(ServiceTest):
 
     def test_6_3_release(self):
         kibana = Kibana(version="6.3.5", release=True).render()
-        self.assertEqual(
+        self.assertDictEqual(
             kibana, yaml.load("""
                 kibana:
                     image: docker.elastic.co/kibana/kibana:6.3.5
@@ -1110,8 +1098,8 @@ class KibanaServiceTest(ServiceTest):
                             max-file: '5'
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://kibana:5601/"]
-                        retries: 10
-                        interval: 10s
+                        interval: 5s
+                        retries: 20
                     depends_on:
                         elasticsearch:
                             condition: service_healthy
@@ -1221,8 +1209,8 @@ class OpbeansServiceTest(ServiceTest):
                             condition: service_healthy
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-node:3000/"]
-                        interval: 10s
-                        retries: 10
+                        interval: 5s
+                        retries: 12
                     volumes:
                         - .:/local-install
                         - ./docker/opbeans/node/sourcemaps:/sourcemaps""")
@@ -1278,8 +1266,8 @@ class OpbeansServiceTest(ServiceTest):
                         - .:/local-install
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-python:8000/"]
-                        interval: 10s
-                        retries: 10
+                        interval: 5s
+                        retries: 12
             """)
         )
 
@@ -1343,8 +1331,8 @@ class OpbeansServiceTest(ServiceTest):
                       - .:/local-install
                     healthcheck:
                       test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-ruby:3001/"]
-                      interval: 10s
-                      retries: 10""")
+                      interval: 5s
+                      retries: 12""")
         )
 
 
@@ -1370,8 +1358,8 @@ class PostgresServiceTest(ServiceTest):
                         - ./docker/opbeans/sql:/docker-entrypoint-initdb.d
                         - pgdata:/var/lib/postgresql/data
                     healthcheck:
-                        test: ["CMD", "pg_isready", "-h", "postgres"]
-                        interval: 10s""")
+                        interval: 10s
+                        test: ["CMD", "pg_isready", "-h", "postgres"]""")
         )
 
 
@@ -1391,8 +1379,8 @@ class RedisServiceTest(ServiceTest):
                             max-size: '2m'
                             max-file: '5'
                     healthcheck:
-                        test: ["CMD", "redis-cli", "ping"]
-                        interval: 10s""")
+                        interval: 10s
+                        test: ["CMD", "redis-cli", "ping"]""")
         )
 
 
@@ -2043,8 +2031,8 @@ class LocalTest(unittest.TestCase):
                 depends_on:
                     elasticsearch: {condition: service_healthy}
                 healthcheck:
-                    interval: '10'
-                    retries: 10
+                    interval: 5s
+                    retries: 12
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --silent, --output, /dev/null, 'http://apm-server:8200/healthcheck']
                 image: docker.elastic.co/apm/apm-server:6.2.10-SNAPSHOT
                 labels: [co.elatic.apm.stack-version=6.2.10]
@@ -2077,8 +2065,8 @@ class LocalTest(unittest.TestCase):
                     elasticsearch: {condition: service_healthy}
                 environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org}
                 healthcheck:
-                    interval: 10s
-                    retries: 10
+                    interval: 5s
+                    retries: 20
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --silent, --output, /dev/null, 'http://kibana:5601/']
                 image: docker.elastic.co/kibana/kibana-x-pack:6.2.10-SNAPSHOT
                 labels: [co.elatic.apm.stack-version=6.2.10]
@@ -2127,8 +2115,8 @@ class LocalTest(unittest.TestCase):
                 depends_on:
                     elasticsearch: {condition: service_healthy}
                 healthcheck:
-                    interval: '10'
-                    retries: 10
+                    interval: 5s
+                    retries: 12
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --silent, --output, /dev/null, 'http://apm-server:8200/healthcheck']
                 image: docker.elastic.co/apm/apm-server:6.3.10-SNAPSHOT
                 labels: [co.elatic.apm.stack-version=6.3.10]
@@ -2161,8 +2149,8 @@ class LocalTest(unittest.TestCase):
                     elasticsearch: {condition: service_healthy}
                 environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org}
                 healthcheck:
-                    interval: 10s
-                    retries: 10
+                    interval: 5s
+                    retries: 20
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --silent, --output, /dev/null, 'http://kibana:5601/']
                 image: docker.elastic.co/kibana/kibana:6.3.10-SNAPSHOT
                 labels: [co.elatic.apm.stack-version=6.3.10]
@@ -2211,8 +2199,8 @@ class LocalTest(unittest.TestCase):
                 depends_on:
                     elasticsearch: {condition: service_healthy}
                 healthcheck:
-                    interval: '10'
-                    retries: 10
+                    interval: 5s
+                    retries: 12
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --silent, --output, /dev/null, 'http://apm-server:8200/healthcheck']
                 image: docker.elastic.co/apm/apm-server:7.0.10-alpha1-SNAPSHOT
                 labels: [co.elatic.apm.stack-version=7.0.10-alpha1]
@@ -2245,8 +2233,8 @@ class LocalTest(unittest.TestCase):
                     elasticsearch: {condition: service_healthy}
                 environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org}
                 healthcheck:
-                    interval: 10s
-                    retries: 10
+                    interval: 5s
+                    retries: 20
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --silent, --output, /dev/null, 'http://kibana:5601/']
                 image: docker.elastic.co/kibana/kibana:7.0.10-alpha1-SNAPSHOT
                 labels: [co.elatic.apm.stack-version=7.0.10-alpha1]
