@@ -27,5 +27,6 @@ six==1.11.0
 timeout-decorator==0.4.0
 tornado==4.5.2
 urllib3==1.22
+virtualenv==16.0.0
 waiting==1.4.1
 webium==1.2.1
