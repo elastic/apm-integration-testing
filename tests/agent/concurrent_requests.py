@@ -176,7 +176,6 @@ class Concurrent:
 
             context = lookup(hit, '_source', 'context')
             assert context['request']['method'] == "GET", context['request']['method']
-            assert context['request']['url']['hostname'] == ep.app_name
             exp_p = os.path.basename(os.path.normpath(ep.url.split('?')[0]))
             p = context['request']['url']['pathname'].strip("/")
             assert p == exp_p, p
