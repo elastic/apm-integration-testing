@@ -262,8 +262,17 @@ class ApmServer(DockerLoadableService, Service):
 
         self.apm_server_monitor_port = options.get("apm_server_monitor_port", self.DEFAULT_MONITOR_PORT)
         self.apm_server_output = options.get("apm_server_output", self.DEFAULT_OUTPUT)
-        if self.apm_server_output != "elasticsearch":
-            self.apm_server_command_args.append(("xpack.monitoring.elasticsearch.hosts", "[\"elasticsearch:9200\"]"))
+        if self.apm_server_output == "elasticsearch":
+            self.apm_server_command_args.extend([
+                ("output.elasticsearch.enabled", "true"),
+                ("output.elasticsearch.hosts", "[elasticsearch:9200]"),
+            ])
+        else:
+            self.apm_server_command_args.extend([
+                ("output.elasticsearch.enabled", "false"),
+                ("output.elasticsearch.hosts", "[elasticsearch:9200]"),
+                ("xpack.monitoring.elasticsearch.hosts", "[\"elasticsearch:9200\"]"),
+            ])
             if self.apm_server_output == "kafka":
                 self.apm_server_command_args.extend([
                     ("output.kafka.enabled", "true"),
@@ -968,12 +977,20 @@ class ApmServerServiceTest(ServiceTest):
             any(e.startswith("xpack.monitoring.elasticsearch.hosts=") for e in apm_server["command"]),
             "xpack.monitoring.elasticsearch.hosts while output=elasticsearch"
         )
+        self.assertTrue(
+            any(e == "output.elasticsearch.enabled=true" for e in apm_server["command"]),
+            "output.elasticsearch.enabled not true while output=elasticsearch"
+        )
 
     def test_kafka_output(self):
         apm_server = ApmServer(version="6.3.100", apm_server_output="kafka").render()["apm-server"]
         self.assertTrue(
             "xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in apm_server["command"],
             "xpack.monitoring.elasticsearch.hosts not set while output=kafka"
+        )
+        self.assertTrue(
+            any(e == "output.elasticsearch.enabled=false" for e in apm_server["command"]),
+            "output.elasticsearch.enabled not false while output=elasticsearch"
         )
         kafka_options = [
             "output.kafka.enabled=true",
@@ -2021,7 +2038,7 @@ class LocalTest(unittest.TestCase):
                 command: [apm-server, -e, -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
                     -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
                     -E, apm-server.write_timeout=1m, -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
-                    -E, xpack.monitoring.elasticsearch=true]
+                    -E, xpack.monitoring.elasticsearch=true, -E, output.elasticsearch.enabled=true, -E, 'output.elasticsearch.hosts=[elasticsearch:9200]']
                 container_name: localtesting_6.2.10_apm-server
                 depends_on:
                     elasticsearch: {condition: service_healthy}
@@ -2105,7 +2122,7 @@ class LocalTest(unittest.TestCase):
                 command: [apm-server, -e, -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
                     -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
                     -E, apm-server.write_timeout=1m, -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
-                    -E, xpack.monitoring.elasticsearch=true]
+                    -E, xpack.monitoring.elasticsearch=true, -E, output.elasticsearch.enabled=true, -E, 'output.elasticsearch.hosts=[elasticsearch:9200]']
                 container_name: localtesting_6.3.10_apm-server
                 depends_on:
                     elasticsearch: {condition: service_healthy}
@@ -2189,7 +2206,7 @@ class LocalTest(unittest.TestCase):
                 command: [apm-server, -e, -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
                     -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
                     -E, apm-server.write_timeout=1m, -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
-                    -E, xpack.monitoring.elasticsearch=true]
+                    -E, xpack.monitoring.elasticsearch=true, -E, output.elasticsearch.enabled=true, -E, 'output.elasticsearch.hosts=[elasticsearch:9200]']
                 container_name: localtesting_7.0.10-alpha1_apm-server
                 depends_on:
                     elasticsearch: {condition: service_healthy}
