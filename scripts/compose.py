@@ -309,7 +309,8 @@ class ApmServer(DockerLoadableService, Service):
 
 
 class Elasticsearch(DockerLoadableService, Service):
-    environment = ["cluster.name=docker-cluster", "bootstrap.memory_lock=true", "\"ES_JAVA_OPTS=-Xms1g -Xmx1g\""]
+    environment = ["cluster.name=docker-cluster", "bootstrap.memory_lock=true", "discovery.type=single-node",
+                   "\"ES_JAVA_OPTS=-Xms1g -Xmx1g\""]
 
     SERVICE_PORT = 9200
 
@@ -2029,7 +2030,7 @@ class LocalTest(unittest.TestCase):
 
             elasticsearch:
                 container_name: localtesting_6.2.10_elasticsearch
-                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, '"ES_JAVA_OPTS=-Xms1g -Xmx1g"', path.data=/usr/share/elasticsearch/data/6.2.10, xpack.security.enabled=false]
+                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, discovery.type=single-node, '"ES_JAVA_OPTS=-Xms1g -Xmx1g"', path.data=/usr/share/elasticsearch/data/6.2.10, xpack.security.enabled=false]
                 healthcheck:
                     interval: '20'
                     retries: 10
@@ -2111,7 +2112,7 @@ class LocalTest(unittest.TestCase):
 
             elasticsearch:
                 container_name: localtesting_6.3.10_elasticsearch
-                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, '"ES_JAVA_OPTS=-Xms1g -Xmx1g"', path.data=/usr/share/elasticsearch/data/6.3.10, xpack.security.enabled=false]
+                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, discovery.type=single-node, '"ES_JAVA_OPTS=-Xms1g -Xmx1g"', path.data=/usr/share/elasticsearch/data/6.3.10, xpack.security.enabled=false]
                 healthcheck:
                     interval: '20'
                     retries: 10
@@ -2193,7 +2194,7 @@ class LocalTest(unittest.TestCase):
 
             elasticsearch:
                 container_name: localtesting_7.0.10-alpha1_elasticsearch
-                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, '"ES_JAVA_OPTS=-Xms1g -Xmx1g"', path.data=/usr/share/elasticsearch/data/7.0.10-alpha1, xpack.security.enabled=false]
+                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, discovery.type=single-node, '"ES_JAVA_OPTS=-Xms1g -Xmx1g"', path.data=/usr/share/elasticsearch/data/7.0.10-alpha1, xpack.security.enabled=false]
                 healthcheck:
                     interval: '20'
                     retries: 10
