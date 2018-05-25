@@ -1,8 +1,9 @@
-#!/usr/bin/env bash
+#!/bin/bash -e
 
-set -ex
+srcdir=`dirname $0`
+test -z "$srcdir" && srcdir=.
+. ${srcdir}/common.sh
 
-export AGENTS="python"
-export TEST_CMD="pytest tests/agent/test_python.py -v"
-
-make dockerized_tests
+DEFAULT_COMPOSE_ARGS="master --no-kibana --with-agent-python-django --with-agent-python-flask --force-build"
+export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
+runTests env-agent-python docker-test-agent-python

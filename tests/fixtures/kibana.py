@@ -2,6 +2,8 @@ import os
 
 import pytest
 
+from tests.fixtures import default
+
 
 @pytest.fixture(scope="session")
 def kibana(es):
@@ -10,4 +12,4 @@ def kibana(es):
             self.url = url
             self.elasticsearch = es
 
-    return Kibana(os.environ["KIBANA_URL"], es)
+    return Kibana(default.from_env("KIBANA_URL"), es)

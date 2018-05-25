@@ -43,7 +43,7 @@ class Concurrent:
                 self.agent = "nodejs"
             elif self.app_name in ("railsapp"):
                 self.agent = "ruby"
-            elif self.app_name in ("go_nethttp"):
+            elif self.app_name in ("gonethttpapp"):
                 self.agent = "go"
             else:
                 raise Exception(
@@ -136,7 +136,7 @@ class Concurrent:
             transactions_sum += count
             assert_count([
                 {'context.service.name': ep.app_name},
-                {'transaction.name.keyword': ep.transaction_name}
+                {'transaction.name': ep.transaction_name}
             ], count)
 
         assert transactions_count == transactions_sum, err.format(
@@ -148,7 +148,7 @@ class Concurrent:
         for ep in self.endpoints:
             q = self.elasticsearch.term_q([
                 {'context.service.name': ep.app_name},
-                {'transaction.name.keyword': ep.transaction_name}
+                {'transaction.name': ep.transaction_name}
             ])
             rs = self.es.search(index=self.index, body=q)
 
@@ -176,7 +176,6 @@ class Concurrent:
 
             context = lookup(hit, '_source', 'context')
             assert context['request']['method'] == "GET", context['request']['method']
-            assert context['request']['url']['hostname'] == ep.app_name
             exp_p = os.path.basename(os.path.normpath(ep.url.split('?')[0]))
             p = context['request']['url']['pathname'].strip("/")
             assert p == exp_p, p
