@@ -6,23 +6,70 @@ __WIP__
 - docker
 This repo is tested with python 3. 
 
-## Integration testing
-
 ### Starting an Environment
 
 `scripts/compose.py` provides a handy cli for starting a testing environment using docker-compose.
 `make venv` creates a virtual environment with all of the python-based dependencies needed to run `scripts/compose.py` - it requires `virtualenv` in your `PATH`.
 Activate the virtualenv with `source venv/bin/activate` and use `scripts/compose.py --help` for information on subcommands and arguments.
 
+### Stopping
+
+All services:
+```
+compose.py stop
+
+# OR
+
+docker-compose down
+```
+
+All services and clean up volumes and networks:
+```
+make stop-env
+```
+
+Individual services:
+```
+docker-compose stop <service name>
+```
+
 #### Example environments
 
-- `start --all` - start `opbeans-*` services and their dependencies along with apm-server, elasticsearch, and kibana
-- `start --with-kafka --with-zookeeper --output=kafka --with-logstash` - configure apm-server to emit events via kafka and logstash to ingest them
+##### Change default ports
+
+Expose Kibana on http://localhost:1234:
+
+```
+./scripts/compose.py start master --kibana-port 1234
+```
+
+##### Opbeans
+
+    Opbeans are demo web applications that are instrumented with Elastic APM.
+
+    - `./srcipts/compose.py start --all master` - start `opbeans-*` services and their dependencies along with apm-server, elasticsearch, and kibana
+
+##### Kafka output
+
+    ./scripts/compose.py start --with-kafka --with-zookeeper --apm-server-output=kafka --with-logstash master
+
+Logstash will be configured to ingest events from kafka.
+
+Topics are named according to service name. To view events for 1234_service-12a3:
+
+    docker exec -it localtesting_6.3.0-SNAPSHOT_kafka kafka-console-consumer --bootstrap-server kafka:9092 --topic apm-1234_service-12a3 --from-beginning --max-messages 100
 
 #### Advanced topics
 
-- `start --docker-compose-path -` will dump the generated `docker-compose.yml` to standard out without starting any containers.
-- `compose.py` includes unittests, `make test-compose` to run.
+##### Dumping docker-compose.yml
+
+    `start --docker-compose-path --skip-download -` will dump the generated `docker-compose.yml` to standard out without starting any containers or downloading images.  Omit `--skip-download` to just download images.
+
+##### Testing compose
+
+    `compose.py` includes unittests, `make test-compose` to run.
+
+Onboarding events will go to the apm topic.
 
 ### Running Tests
 
@@ -46,9 +93,22 @@ Prefix any of the `test-` targets with `docker-` to run them in a container eg: 
 
 CI runs the scripts from `scripts/ci/`.
 
-Those scripts shut down any existing testing containers and start a fresh new environment before running tests.
+Those scripts shut down any existing testing containers and start a fresh new environment before running tests unless the `REUSE_CONTAINERS` environment variable is set.
 
 ## Development Info
+
+### Uploading Sourcemaps
+
+The frontend app packaged with opbeans-node runs in a production build, which means the source code is minified. The APM server needs the corresponding sourcemap to unminify the code. You can upload the sourcemap with this command:
+
+    ./scripts/compose.py upload-sourcemap
+
+In the standard setup, it will find the config options itself, but they can be overwritten. See
+
+    ./scripts/compose.py upload-sourcemap --help
+
+### Misc
+
 - Add a pre-commit hook for autopep8 formatting:
     - curl -Lo .git/hooks/pre-commit https://raw.githubusercontent.com/chibiegg/git-autopep8/master/pre-commit
     - chmod +x .git/hooks/pre-commit
