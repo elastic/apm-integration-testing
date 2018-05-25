@@ -8,4 +8,6 @@ if [ $# -lt 2 ]; then
 fi
 
 export COMPOSE_ARGS="start $2 --with-agent-ruby-rails --agent-ruby-version=$1  --force-build"
-./scripts/ci/ruby.sh
+srcdir=`dirname $0`
+test -z "$srcdir" && srcdir=.
+${srcdir}/ruby.sh

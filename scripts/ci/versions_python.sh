@@ -8,4 +8,6 @@ if [ $# -lt 2 ]; then
 fi
 
 export COMPOSE_ARGS="start $2 --with-agent-python-django --with-agent-python-flask --agent-python-version=$1  --force-build"
-./scripts/ci/python.sh
+srcdir=`dirname $0`
+test -z "$srcdir" && srcdir=.
+${srcdir}/python.sh
