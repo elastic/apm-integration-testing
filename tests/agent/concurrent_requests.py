@@ -43,7 +43,7 @@ class Concurrent:
                 self.agent = "nodejs"
             elif self.app_name in ("railsapp"):
                 self.agent = "ruby"
-            elif self.app_name in ("go_nethttp"):
+            elif self.app_name in ("gonethttpapp"):
                 self.agent = "go"
             else:
                 raise Exception(
