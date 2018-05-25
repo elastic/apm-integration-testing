@@ -1957,7 +1957,7 @@ class LocalSetup(object):
                 print("\tBuild SHA: {}".format(data['build']['sha']))
                 print("\tBuild number: {}".format(data['build']['number']))
 
-        def print_opbeansnode_version():
+        def print_opbeansnode_version(_):
             print("\nAgent version (in opbeans-node):")
 
             version = run_container_command(
@@ -1968,7 +1968,7 @@ class LocalSetup(object):
                 version = version.replace('+-- elastic-apm-node@', '')
                 print("\t{0}".format(version))
 
-        def print_opbeanspython_version():
+        def print_opbeanspython_version(_):
             print("\nAgent version (in opbeans-python):")
 
             version = run_container_command(
@@ -1979,7 +1979,7 @@ class LocalSetup(object):
                 version = version.replace('elastic-apm==', '')
                 print("\t{0}".format(version))
 
-        def print_opbeansruby_version():
+        def print_opbeansruby_version(_):
             print("\nAgent version (in opbeans-ruby):")
 
             version = run_container_command(
@@ -1990,12 +1990,20 @@ class LocalSetup(object):
                 version = version.replace('elastic-apm (*+)', '\1')
                 print("\t{0}".format(version))
 
-        print_elasticsearch_version(running_versions['elasticsearch'])
-        print_apmserver_version(running_versions['apm-server'])
-        print_kibana_version(running_versions['kibana'])
-        print_opbeansnode_version()
-        print_opbeanspython_version()
-        print_opbeansruby_version()
+        dispatch = {
+            'apm-server': print_apmserver_version,
+            'elasticsearch': print_elasticsearch_version,
+            'kibana': print_kibana_version,
+            'opbeans-node': print_opbeansnode_version,
+            'opbeans-python': print_opbeanspython_version,
+            'opbeans-ruby': print_opbeansruby_version,
+        }
+        for service_name, container in running_versions.items():
+            print_version = dispatch.get(service_name)
+            if not print_version:
+                print("unknown version for", service_name)
+                continue
+            print_version(container)
 
 
 #
