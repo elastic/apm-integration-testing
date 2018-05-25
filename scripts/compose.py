@@ -497,7 +497,7 @@ class AgentGoNetHttp(Service):
             labels=None,
             logging=None,
             environment={
-                "ELASTIC_APM_SERVICE_NAME": "gonethttp",
+                "ELASTIC_APM_SERVICE_NAME": "gonethttpapp",
                 "ELASTIC_APM_SERVER_URL": "http://apm-server:8200",
                 "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
                 "ELASTIC_APM_FLUSH_INTERVAL": "500ms",
@@ -826,7 +826,7 @@ class AgentServiceTest(ServiceTest):
                         context: docker/go/nethttp
                     container_name: gonethttpapp
                     environment:
-                        ELASTIC_APM_SERVICE_NAME: gonethttp
+                        ELASTIC_APM_SERVICE_NAME: gonethttpapp
                         ELASTIC_APM_SERVER_URL: http://apm-server:8200
                         ELASTIC_APM_TRANSACTION_IGNORE_NAMES: healthcheck
                         ELASTIC_APM_FLUSH_INTERVAL: 500ms
