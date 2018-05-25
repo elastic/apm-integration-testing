@@ -36,6 +36,9 @@ env-%: venv
 
 test: test-all lint
 
+test-agent-%-version: venv
+	pytest tests/agent/test_$*.py -v -m version
+
 test-agent-%: venv
 	pytest tests/agent/test_$*.py -v
 

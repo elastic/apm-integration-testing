@@ -1,3 +1,0 @@
-ELASTICSEARCH:
-  - 'release;6.x'
-  - 'snapshot;daily'

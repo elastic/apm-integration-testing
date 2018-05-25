@@ -1,4 +1,4 @@
 APM_SERVER:
-  - 'github;master'
-  - 'github;6.x'
-  - 'snapshot;6.3.0'
+  - master
+  - '6.3'
+  - '6.2'

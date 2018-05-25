@@ -515,6 +515,14 @@ class AgentNodejsExpress(Service):
         super().__init__(**options)
         self.agent_package = options.get("nodejs_agent_package", self.DEFAULT_AGENT_PACKAGE)
 
+    @classmethod
+    def add_arguments(cls, parser):
+        super().add_arguments(parser)
+        parser.add_argument(
+            '--nodejs-agent-package',
+            default=cls.DEFAULT_AGENT_PACKAGE,
+        )
+
     def _content(self):
         return dict(
             build={"context": "docker/nodejs/express", "dockerfile": "Dockerfile"},
@@ -540,6 +548,16 @@ class AgentPython(Service):
     def __init__(self, **options):
         super().__init__(**options)
         self.agent_package = options.get("python_agent_package", self.DEFAULT_AGENT_PACKAGE)
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super().add_arguments(parser)
+        parser.add_argument(
+            '--python-agent-package',
+            default=cls.DEFAULT_AGENT_PACKAGE,
+        )
+        # prevent calling again
+        cls.add_arguments = lambda *x: True
 
     def _content(self):
         raise NotImplemented
@@ -857,6 +875,10 @@ class AgentServiceTest(ServiceTest):
                         - 127.0.0.1:8010:8010
             """)
         )
+
+        vagent = AgentNodejsExpress(nodejs_agent_package="elastic/apm-agent-nodejs#test").render()
+        self.assertEqual('bash -c "npm install elastic/apm-agent-nodejs#test && node app.js"',
+                         vagent["agent-nodejs-express"]["command"])
 
     def test_agent_python_django(self):
         agent = AgentPythonDjango().render()
