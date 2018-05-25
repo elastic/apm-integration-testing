@@ -11,11 +11,12 @@ This repo is tested with python 3.
 ### Starting an Environment
 
 `scripts/compose.py` provides a handy cli for starting a testing environment using docker-compose.
-Use `scripts/compose.py --help` for information on subcommands and arguments.
+`make venv` creates a virtual environment with all of the python-based dependencies needed to run `scripts/compose.py` - it requires `virtualenv` in your `PATH`.
+Activate the virtualenv with `source venv/bin/activate` and use `scripts/compose.py --help` for information on subcommands and arguments.
 
 #### Example environments
 
-- `start --all-opbeans` - start `opbeans-*` services and their dependencies along with apm-server, elasticsearch, and kibana
+- `start --all` - start `opbeans-*` services and their dependencies along with apm-server, elasticsearch, and kibana
 - `start --with-kafka --with-zookeeper --output=kafka --with-logstash` - configure apm-server to emit events via kafka and logstash to ingest them
 
 #### Advanced topics
