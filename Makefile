@@ -49,7 +49,7 @@ test-server: venv
 	pytest tests/server/ -v
 
 test-all: venv test-compose
-	pytest -v
+	pytest -v --ignore=tests/agent/test_ruby.py
 
 docker-test-%:
 	TARGET=test-$* $(MAKE) dockerized-test
