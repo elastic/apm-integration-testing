@@ -13,7 +13,7 @@ all: test
 # The tests are written in Python. Make a virtualenv to handle the dependencies.
 venv: requirements.txt
 	test -d venv || virtualenv --python=$(PYTHON3) venv;\
-	pip install -r requirements.txt;\
+	venv/bin/python venv/bin/pip install -r requirements.txt;\
 	touch venv;\
 
 lint: venv
