@@ -607,7 +607,7 @@ class AgentRubyRails(Service):
                 "RAILS_PORT": self.SERVICE_PORT,
                 "RAILS_SERVICE_NAME": "railsapp",
             },
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "railsapp"),
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "railsapp", interval="10s", retries=60),
             image=None,
             labels=None,
             logging=None,
@@ -919,8 +919,8 @@ class AgentServiceTest(ServiceTest):
                         RAILS_SERVICE_NAME: railsapp
                         RAILS_PORT: 8020
                     healthcheck:
-                        interval: 5s
-                        retries: 12
+                        interval: 10s
+                        retries: 60
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://railsapp:8020/healthcheck"]
                     ports:
                         - 127.0.0.1:8020:8020
