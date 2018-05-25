@@ -29,9 +29,6 @@ def main():
         for url in urls.split(","):
             print("wait_until running: {}".format(url))
             wait_until_setup(url)
-    # temporarily necessary until we can configure
-    # to ignore the healthcheck endpoint for writing to ES in all agents
-    time.sleep(2)
 
 
 if __name__ == '__main__':
