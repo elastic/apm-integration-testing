@@ -10,5 +10,6 @@ function runTests() {
     targets="destroy-env"
   fi
   targets="${targets} $@"
+  export VENV=${VENV:-${TMPDIR:-/tmp/}venv-$$}
   make ${targets}
 }

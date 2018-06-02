@@ -1,20 +1,22 @@
 SHELL := /bin/bash
 PYTHON ?= python
 PYTHON3 ?= python3
+VENV ?= ./venv
 
 COMPOSE_ARGS ?=
 
 # Make sure we run local versions of everything, particularly commands
 # installed into our virtualenv with pip eg. `docker-compose`.
-export PATH := ./bin:./venv/bin:$(PATH)
+export PATH := ./bin:$(VENV)/bin:$(PATH)
 
 all: test
 
 # The tests are written in Python. Make a virtualenv to handle the dependencies.
+# make doesn't play nicely with custom VENV, intended only for CI usage
 venv: requirements.txt
-	test -d venv || virtualenv --python=$(PYTHON3) venv;\
-	venv/bin/python venv/bin/pip install -r requirements.txt;\
-	touch venv;\
+	test -d $(VENV) || virtualenv --python=$(PYTHON3) $(VENV);\
+	pip install -r requirements.txt;\
+	touch $(VENV);\
 
 lint: venv
 	flake8 tests/
