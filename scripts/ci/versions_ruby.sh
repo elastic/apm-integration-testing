@@ -3,7 +3,7 @@
 set -ex
 
 if [ $# -lt 2 ]; then
-  echo "Argument missing, ruby_agent_version and apm_server_version must be provided"
+  echo "Argument missing, ruby agent version spec and stack versions must be provided"
   exit 2
 fi
 

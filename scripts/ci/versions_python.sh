@@ -3,7 +3,7 @@
 set -ex
 
 if [ $# -lt 2 ]; then
-  echo "Argument missing, python_agent_version and apm_server_version must be provided"
+  echo "Argument missing, python agent version spec and stack version must be provided"
   exit 2
 fi
 
