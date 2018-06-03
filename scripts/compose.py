@@ -1765,7 +1765,8 @@ class LocalSetup(object):
         args = vars(self.args)
 
         if "version" not in args:
-            args["version"] = self.SUPPORTED_VERSIONS[args["stack-version"]]
+            # use stack-version directly if not supported, to allow use of specific releases, eg 6.2.3
+            args["version"] = self.SUPPORTED_VERSIONS.get(args["stack-version"], args["stack-version"])
 
         selections = set()
         for service in self.services:
@@ -2319,6 +2320,36 @@ class LocalTest(unittest.TestCase):
         services = got["services"]
         self.assertIn("redis", services)
         self.assertIn("postgres", services)
+
+    @unittest.mock.patch(__name__ + '.load_images')
+    def test_start_unsupported_version_pre_6_3(self, _ignore_load_images):
+        docker_compose_yml = io.StringIO()
+        version = "1.2.3"
+        self.assertNotIn(version, LocalSetup.SUPPORTED_VERSIONS)
+        setup = LocalSetup(
+            argv=["start", version, "--docker-compose-path", "-", "--release"])
+        setup.set_docker_compose_path(docker_compose_yml)
+        setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        services = got["services"]
+        self.assertEqual("docker.elastic.co/elasticsearch/elasticsearch-platinum:{}".format(version), services["elasticsearch"]["image"])
+        self.assertEqual("docker.elastic.co/kibana/kibana-x-pack:{}".format(version), services["kibana"]["image"])
+
+    @unittest.mock.patch(__name__ + '.load_images')
+    def test_start_unsupported_version(self, _ignore_load_images):
+        docker_compose_yml = io.StringIO()
+        version = "6.9.5"
+        self.assertNotIn(version, LocalSetup.SUPPORTED_VERSIONS)
+        setup = LocalSetup(
+            argv=["start", version, "--docker-compose-path", "-"])
+        setup.set_docker_compose_path(docker_compose_yml)
+        setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        services = got["services"]
+        self.assertEqual("docker.elastic.co/elasticsearch/elasticsearch:{}-SNAPSHOT".format(version), services["elasticsearch"]["image"])
+        self.assertEqual("docker.elastic.co/kibana/kibana:{}-SNAPSHOT".format(version), services["kibana"]["image"])
 
     def test_docker_download_image_url(self):
         Case = collections.namedtuple("Case", ("service", "expected", "args"))
