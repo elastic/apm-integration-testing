@@ -1,3 +1,5 @@
 NODEJS_AGENT:
-  - 'release;latest'
+  # github;version -> npm install elastic/apm-agent-nodejs#version
+  # release;version -> npm install elastic-apm-node@version
   - 'github;master'
+  - 'release;latest'

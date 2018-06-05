@@ -7,39 +7,40 @@ except ImportError:
 import pytest
 
 from tests.endpoint import Endpoint
+from tests.fixtures import default
 
 
 @pytest.fixture(scope="session")
 def flask(apm_server):
-    return Agent(os.environ['FLASK_SERVICE_NAME'],
-                 os.environ['FLASK_URL'],
+    return Agent(default.from_env('FLASK_SERVICE_NAME'),
+                 default.from_env('FLASK_URL'),
                  apm_server)
 
 
 @pytest.fixture(scope="session")
 def django(apm_server):
-    return Agent(os.environ['DJANGO_SERVICE_NAME'],
-                 os.environ['DJANGO_URL'],
+    return Agent(default.from_env('DJANGO_SERVICE_NAME'),
+                 default.from_env('DJANGO_URL'),
                  apm_server)
 
 
 @pytest.fixture(scope="session")
 def express(apm_server):
-    return Agent(os.environ['EXPRESS_APP_NAME'],
-                 os.environ['EXPRESS_URL'],
+    return Agent(default.from_env('EXPRESS_SERVICE_NAME'),
+                 default.from_env('EXPRESS_URL'),
                  apm_server)
 
 @pytest.fixture(scope="session")
 def go_nethttp(apm_server):
-    return Agent(os.environ['GO_NETHTTP_SERVICE_NAME'],
-                 os.environ['GO_NETHTTP_URL'],
+    return Agent(default.from_env('GO_NETHTTP_SERVICE_NAME'),
+                 default.from_env('GO_NETHTTP_URL'),
                  apm_server)
 
 
 @pytest.fixture(scope="session")
 def rails(apm_server):
-    return Agent(os.environ['RAILS_SERVICE_NAME'],
-                 os.environ['RAILS_URL'],
+    return Agent(default.from_env('RAILS_SERVICE_NAME'),
+                 default.from_env('RAILS_URL'),
                  apm_server)
 
 

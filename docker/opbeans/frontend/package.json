@@ -1,0 +1,9 @@
+{
+  "name": "opbeans-frontend-loadgen",
+  "version": "1.0.0",
+  "description": "Load generator for opbeans frontend app",
+  "dependencies": {
+    "chromeless": "^1.4.0",
+    "pm2": "^2.9.1"
+  }
+}

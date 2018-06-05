@@ -32,16 +32,16 @@ def test_conc_req_all_agents(es, apm_server, flask, django, express, rails, go_n
                                     ["app.bar", "app.extra"],
                                     "GET /bar",
                                     events_no=500)
-    rails_f = Concurrent.Endpoint(rails.foo.url,
-                                  rails.app_name,
-                                  ["ApplicationController#foo"],
-                                  "ApplicationController#foo",
-                                  events_no=500)
-    rails_b = Concurrent.Endpoint(rails.bar.url,
-                                  rails.app_name,
-                                  ["ApplicationController#bar", "app.extra"],
-                                  "ApplicationController#bar",
-                                  events_no=500)
+    # rails_f = Concurrent.Endpoint(rails.foo.url,
+    #                               rails.app_name,
+    #                               ["ApplicationController#foo"],
+    #                               "ApplicationController#foo",
+    #                               events_no=500)
+    # rails_b = Concurrent.Endpoint(rails.bar.url,
+    #                               rails.app_name,
+    #                               ["ApplicationController#bar", "app.extra"],
+    #                               "ApplicationController#bar",
+    #                               events_no=500)
     go_nethttp_f = Concurrent.Endpoint(go_nethttp.foo.url,
                                        go_nethttp.app_name,
                                        ["foo"],
@@ -56,6 +56,6 @@ def test_conc_req_all_agents(es, apm_server, flask, django, express, rails, go_n
         flask_f, flask_b,
         django_f, django_b,
         express_f, express_b,
-        rails_b, rails_f,
+        # rails_b, rails_f,
         go_nethttp_f, go_nethttp_b,
     ], iters=1).run()

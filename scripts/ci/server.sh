@@ -1,7 +1,9 @@
-#!/usr/bin/env bash
+#!/bin/bash -e
 
-set -ex
+srcdir=`dirname $0`
+test -z "$srcdir" && srcdir=.
+. ${srcdir}/common.sh
 
-export TEST_CMD="pytest tests/server/ -v"
-
-make dockerized_tests
+DEFAULT_COMPOSE_ARGS="master --no-kibana"
+export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
+runTests env-server docker-test-server

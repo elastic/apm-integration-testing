@@ -3,14 +3,25 @@
 set -ex
 
 if [ $# -lt 2 ]; then
-  echo "Argument missing, python_agent_version and apm_server_version must be provided"
+  echo "Argument missing, python agent version spec and stack version must be provided"
   exit 2
 fi
 
-export PYTHON_AGENT_VERSION=$1
-export APM_SERVER_VERSION=$2
+version_type=${1%;*}
+version=${1#*;}
+stack_version=$2
 
-export AGENTS="python"
-export TEST_CMD="pytest tests/agent/test_python.py -v -m version"
+# use release version by default
+python_pkg="elastic-apm==${version}"
+if [[ ${version_type} == github ]]; then
+  python_pkg="git+https://github.com/elastic/apm-agent-python.git@${version}"
+else
+  if [[ ${version} == latest ]]; then
+    python_pkg="elastic-apm"
+  fi
+fi
 
-make dockerized_tests
+export COMPOSE_ARGS="$2 --no-kibana --with-agent-python-django --with-agent-python-flask --python-agent-package='${python_pkg}' --force-build"
+srcdir=`dirname $0`
+test -z "$srcdir" && srcdir=.
+${srcdir}/python.sh

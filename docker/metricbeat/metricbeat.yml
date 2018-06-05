@@ -1,0 +1,70 @@
+metricbeat.config.modules:
+  path: /dev/null
+  reload.enabled: false
+
+setup.template.settings:
+  index.number_of_shards: 1
+  index.codec: best_compression
+  index.number_of_replicas: 0
+
+setup.dashboards.enabled: true
+
+setup.kibana:
+  host: "kibana:5601"
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+
+###################################################################################################
+## modules
+###################################################################################################
+metricbeat.modules:
+- module: golang
+  metricsets: ["expvar","heap"]
+  period: 10s
+  hosts: ["apm-server:6060"]
+  heap.path: "/debug/vars"
+  expvar:
+    namespace: "apm-server"
+    path: "/debug/vars"
+- module: docker
+  metricsets: ["container", "cpu", "diskio", "healthcheck", "info", "memory", "network"]
+  hosts: ["unix:///var/run/docker.sock"]
+  period: 10s
+
+metricbeat.autodiscover:
+  providers:
+    - type: docker
+      templates:
+      - condition:
+          contains:
+            docker.container.image: "redis"
+        config:
+          - module: redis
+            metricsets: ["info", "keyspace"]
+            hosts: "${data.host}:6379"
+      - condition:
+          contains:
+            docker.container.image: "postgres"
+        config:
+          - module: postgresql
+            metricsets: ["database", "bgwriter", "activity"]
+            hosts: ["postgres://${data.host}:5432?sslmode=disable"]
+            password: verysecure
+            username: postgres
+      - condition:
+          contains:
+            docker.container.image: "elasticsearch"
+        config:
+          - module: elasticsearch
+            metricsets: ["node", "node_stats"]
+            period: 10s
+            hosts: "${data.host}:9200"
+      - condition:
+          contains:
+            docker.container.image: "kafka"
+        config:
+          - module: kafka
+            metricsets: ["consumergroup", "partition"]
+            period: 10s
+            hosts: "${data.host}:9092"

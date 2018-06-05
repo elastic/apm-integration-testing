@@ -1,6 +1,9 @@
-#!/usr/bin/env bash -ex
+#!/bin/bash -e
 
-export TEST_CMD="pytest tests/kibana/test_integration.py -v"
-export TEST_KIBANA=1
+srcdir=`dirname $0`
+test -z "$srcdir" && srcdir=.
+. ${srcdir}/common.sh
 
-make dockerized_tests
+DEFAULT_COMPOSE_ARGS="master"
+export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
+runTests env-kibana docker-test-kibana

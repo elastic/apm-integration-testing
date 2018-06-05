@@ -7,6 +7,6 @@ RUN apt-get update && \
 
 RUN mkdir -p /app
 
-COPY docker/ruby/rails/testapp /app/testapp
+COPY testapp /app/testapp
 
-WORKDIR /app
+WORKDIR /app/testapp

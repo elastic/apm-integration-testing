@@ -1,3 +1,14 @@
-__pycache__/
+**/*.pyc
+**/.images
+**/__pycache__
+**/log
+**/tmp
 *.py[cod]
-.cache/
+*.pyc
+.cache
+.coverage
+/.idea
+apm-server
+docker-compose.yml
+htmlcov/
+venv/
