@@ -15,7 +15,7 @@ function runTests() {
 }
 
 # assume we're under CI if BUILD_NUMBER is set
-if [ -n "${BUILD_NUMBER}" ]; then
+if [ -z "${BUILD_NUMBER}" ]; then
   # kill any running containers under CI
   docker ps -aq | xargs -t docker rm -f || true
 fi
