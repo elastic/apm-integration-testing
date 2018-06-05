@@ -35,7 +35,7 @@ func barHandler(w http.ResponseWriter, req *http.Request) {
 func foo(req *http.Request) string {
 	span, _ := elasticapm.StartSpan(req.Context(), "foo", "app")
 	if span != nil {
-		defer span.Done(-1)
+		defer span.End()
 	}
 	return "foo"
 }
@@ -44,7 +44,7 @@ func bar(req *http.Request) string {
 	span, ctx := elasticapm.StartSpan(req.Context(), "bar", "app")
 	if span != nil {
 		req = req.WithContext(ctx)
-		defer span.Done(-1)
+		defer span.End()
 	}
 	_ = extra(req)
 	return "bar"
@@ -53,7 +53,7 @@ func bar(req *http.Request) string {
 func extra(req *http.Request) string {
 	span, _ := elasticapm.StartSpan(req.Context(), "extra", "app")
 	if span != nil {
-		defer span.Done(-1)
+		defer span.End()
 	}
 	return "extra"
 }
