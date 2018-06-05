@@ -57,7 +57,7 @@ test-server: venv
 	pytest tests/server/ -v $(JUNIT_OPT)/server-junit.xml
 
 test-all: venv test-compose
-	pytest -v --ignore=tests/agent/test_ruby.py $(JUNIT_OPT)/all-junit.xml
+	pytest -v $(JUNIT_OPT)/all-junit.xml
 
 docker-test-%:
 	TARGET=test-$* $(MAKE) dockerized-test
