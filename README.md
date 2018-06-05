@@ -39,17 +39,15 @@ docker-compose stop <service name>
 
 Expose Kibana on http://localhost:1234:
 
-```
-./scripts/compose.py start master --kibana-port 1234
-```
+    ./scripts/compose.py start master --kibana-port 1234
 
 ##### Opbeans
 
-    Opbeans are demo web applications that are instrumented with Elastic APM.
+Opbeans are demo web applications that are instrumented with Elastic APM.
+Start `opbeans-*` services and their dependencies along with apm-server, elasticsearch, and kibana:
 
-    `./scripts/compose.py start --all master`
+    ./scripts/compose.py start --all master
 
-Start `opbeans-*` services and their dependencies along with apm-server, elasticsearch, and kibana.
 
 ###### Uploading Sourcemaps
 
@@ -65,7 +63,7 @@ In the standard setup, it will find the config options itself, but they can be o
 
 ##### Kafka output
 
-    `./scripts/compose.py start --with-kafka --with-zookeeper --apm-server-output=kafka --with-logstash master`
+    ./scripts/compose.py start --with-kafka --with-zookeeper --apm-server-output=kafka --with-logstash master
 
 Logstash will be configured to ingest events from kafka.
 
@@ -79,13 +77,13 @@ Onboarding events will go to the apm topic.
 
 ##### Dumping docker-compose.yml
 
-    `./scripts/compose.py start master --docker-compose-path - --skip-download` will dump the generated `docker-compose.yml` to standard out (`-`) without starting any containers or downloading images.
+`./scripts/compose.py start master --docker-compose-path - --skip-download` will dump the generated `docker-compose.yml` to standard out (`-`) without starting any containers or downloading images.
 
-    Omit `--skip-download` to just download images.
+Omit `--skip-download` to just download images.
 
 ##### Testing compose
 
-    `compose.py` includes unittests, `make test-compose` to run.
+`compose.py` includes unittests, `make test-compose` to run.
 
 ### Running Tests
 
