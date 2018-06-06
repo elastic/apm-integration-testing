@@ -387,7 +387,7 @@ class Kibana(DockerLoadableService, Service):
         return True
 
 
-class Logstash(Service):
+class Logstash(DockerLoadableService, Service):
     SERVICE_PORT = 5044
 
     def _content(self):
@@ -2308,6 +2308,26 @@ class LocalTest(unittest.TestCase):
                 "https://snapshots.elastic.co/docker/apm-server-7.0.10-alpha1-SNAPSHOT.tar.gz",
                 "https://snapshots.elastic.co/docker/elasticsearch-7.0.10-alpha1-SNAPSHOT.tar.gz",
                 "https://snapshots.elastic.co/docker/kibana-7.0.10-alpha1-SNAPSHOT.tar.gz",
+            },
+            image_cache_dir)
+
+    @unittest.mock.patch(__name__ + '.load_images')
+    def test_start_master_with_logstash(self, mock_load_images):
+        import io
+        docker_compose_yml = io.StringIO()
+        image_cache_dir = "/foo"
+        with unittest.mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
+            setup = LocalSetup(
+                argv=["start", "master", "--docker-compose-path", "-", "--image-cache-dir", image_cache_dir,
+                      "--with-logstash"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        mock_load_images.assert_called_once_with(
+            {
+                "https://snapshots.elastic.co/docker/apm-server-7.0.10-alpha1-SNAPSHOT.tar.gz",
+                "https://snapshots.elastic.co/docker/elasticsearch-7.0.10-alpha1-SNAPSHOT.tar.gz",
+                "https://snapshots.elastic.co/docker/kibana-7.0.10-alpha1-SNAPSHOT.tar.gz",
+                "https://snapshots.elastic.co/docker/logstash-7.0.10-alpha1-SNAPSHOT.tar.gz",
             },
             image_cache_dir)
 
