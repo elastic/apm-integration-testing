@@ -1806,7 +1806,7 @@ class LocalSetup(object):
             print("Starting stack services..\n")
             cmd = ['docker-compose', '-f', docker_compose_path.name, 'up', '-d']
             if args["force_build"]:
-                cmd.append("--build")
+                subprocess.call(['docker-compose', '-f', docker_compose_path.name, 'build', '--pull'])
             subprocess.call(cmd)
 
     @staticmethod
