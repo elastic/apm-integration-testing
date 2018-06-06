@@ -1,16 +1,10 @@
-FROM python:3.6
+FROM opbeans/opbeans-python:latest
 
-LABEL lastupdate="2018-02-09"
+COPY requirements.molotov.txt /app/
+RUN pip install -r requirements.molotov.txt
 
-WORKDIR /app
-
-RUN curl -L https://github.com/elastic/opbeans-python/archive/master.tar.gz | tar --strip-components=1 --exclude=demo/db.sql.bz2 -xzv
-
-RUN pip install -r requirements.txt
-
-RUN python manage.py collectstatic
-
-COPY entrypoint.sh /app/entrypoint.sh
+COPY entrypoint.sh molotov_scenarios.py  /app/
+RUN echo "\nload: molotov --delay 0.6 molotov_scenarios.py" >> Procfile
 
 CMD ["honcho", "start"]
 ENTRYPOINT ["/bin/bash", "/app/entrypoint.sh"]
