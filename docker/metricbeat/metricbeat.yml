@@ -68,3 +68,11 @@ metricbeat.autodiscover:
             metricsets: ["consumergroup", "partition"]
             period: 10s
             hosts: "${data.host}:9092"
+      - condition:
+          contains:
+            docker.container.image: "logstash"
+        config:
+          - module: logstash
+            metricsets: ["node", "node_stats"]
+            period: 10s
+            hosts: "${data.host}:9600"

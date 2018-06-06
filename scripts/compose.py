@@ -256,7 +256,7 @@ class ApmServer(DockerLoadableService, Service):
     SERVICE_PORT = 8200
     DEFAULT_MONITOR_PORT = "6060"
     DEFAULT_OUTPUT = "elasticsearch"
-    OUTPUTS = {'elasticsearch', 'kafka'}
+    OUTPUTS = {"elasticsearch", "kafka", "logstash"}
 
     def __init__(self, **options):
         super().__init__(**options)
@@ -293,6 +293,11 @@ class ApmServer(DockerLoadableService, Service):
                     ("output.kafka.enabled", "true"),
                     ("output.kafka.hosts", "[\"kafka:9092\"]"),
                     ("output.kafka.topics", "[{default: 'apm', topic: 'apm-%{[context.service.name]}'}]"),
+                ])
+            elif self.apm_server_output == "logstash":
+                self.apm_server_command_args.extend([
+                    ("output.logstash.enabled", "true"),
+                    ("output.logstash.hosts", "[\"logstash:5044\"]"),
                 ])
 
     @classmethod
@@ -394,7 +399,7 @@ class Logstash(DockerLoadableService, Service):
         return dict(
             depends_on={"elasticsearch": {"condition": "service_healthy"}},
             environment={"ELASTICSEARCH_URL": "http://elasticsearch:9200"},
-            ports=[self.publish_port(self.port, self.SERVICE_PORT)],
+            ports=[self.publish_port(self.port, self.SERVICE_PORT), "9600"],
             volumes=["./docker/logstash/pipeline/:/usr/share/logstash/pipeline/"]
         )
 
@@ -1012,6 +1017,23 @@ class ApmServerServiceTest(ServiceTest):
             "output.elasticsearch.enabled not true while output=elasticsearch"
         )
 
+    def test_logstash_output(self):
+        apm_server = ApmServer(version="6.3.100", apm_server_output="logstash").render()["apm-server"]
+        self.assertTrue(
+            "xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in apm_server["command"],
+            "xpack.monitoring.elasticsearch.hosts not set while output=logstash"
+        )
+        self.assertTrue(
+            any(e == "output.elasticsearch.enabled=false" for e in apm_server["command"]),
+            "output.elasticsearch.enabled not false while output=elasticsearch"
+        )
+        logstash_options = [
+            "output.logstash.enabled=true",
+            "output.logstash.hosts=[\"logstash:5044\"]",
+        ]
+        for o in logstash_options:
+            self.assertTrue(o in apm_server["command"], "{} not set while output=logstash".format(o))
+
     def test_kafka_output(self):
         apm_server = ApmServer(version="6.3.100", apm_server_output="kafka").render()["apm-server"]
         self.assertTrue(
@@ -1174,7 +1196,7 @@ class LogstashServiceTest(ServiceTest):
             logging:
                 driver: json-file
                 options: {max-file: '5', max-size: 2m}
-            ports: ['127.0.0.1:5044:5044']
+            ports: ['127.0.0.1:5044:5044', '9600']
             volumes: ['./docker/logstash/pipeline/:/usr/share/logstash/pipeline/']""")
         )
 

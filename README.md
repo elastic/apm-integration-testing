@@ -78,6 +78,12 @@ Topics are named according to service name. To view events for 1234_service-12a3
 
 Onboarding events will go to the apm topic.
 
+Note that index templates are not loaded automatically when using outputs other than Elasticsearch.  Create them manually with:
+
+    ./scripts/compose.py load-dashboards
+
+If data was inserted before this point (eg an opbeans service was started) you'll probably have to delete the auto-created `apm-*` indexes and let them be recreated.
+
 #### Advanced topics
 
 ##### Dumping docker-compose.yml
