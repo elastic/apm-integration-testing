@@ -607,12 +607,26 @@ class AgentPythonFlask(AgentPython):
 
 
 class AgentRubyRails(Service):
-    DEFAULT_AGENT_PACKAGE = "elastic-apm-node"
+    DEFAULT_AGENT_VERSION = "latest"
+    DEFAULT_AGENT_VERSION_STATE = "release"
     SERVICE_PORT = 8020
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super().add_arguments(parser)
+        parser.add_argument(
+            "--ruby-agent-version",
+            default=cls.DEFAULT_AGENT_VERSION,
+        )
+        parser.add_argument(
+            "--ruby-agent-version-state",
+            default=cls.DEFAULT_AGENT_VERSION_STATE,
+        )
 
     def __init__(self, **options):
         super().__init__(**options)
-        self.agent_package = options.get("ruby_agent_package", self.DEFAULT_AGENT_PACKAGE)
+        self.agent_version = options.get("ruby_agent_version", self.DEFAULT_AGENT_VERSION)
+        self.agent_version_state = options.get("ruby_agent_version_state", self.DEFAULT_AGENT_VERSION_STATE)
 
     def _content(self):
         return dict(
@@ -626,6 +640,8 @@ class AgentRubyRails(Service):
                 "ELASTIC_APM_SERVICE_NAME": "railsapp",
                 "RAILS_PORT": self.SERVICE_PORT,
                 "RAILS_SERVICE_NAME": "railsapp",
+                "RUBY_AGENT_VERSION_STATE": self.agent_version_state,
+                "RUBY_AGENT_VERSION": self.agent_version,
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "railsapp", interval="10s", retries=60),
             image=None,
@@ -942,6 +958,8 @@ class AgentServiceTest(ServiceTest):
                         ELASTIC_APM_SERVICE_NAME: railsapp
                         RAILS_SERVICE_NAME: railsapp
                         RAILS_PORT: 8020
+                        RUBY_AGENT_VERSION: latest
+                        RUBY_AGENT_VERSION_STATE: release
                     healthcheck:
                         interval: 10s
                         retries: 60
