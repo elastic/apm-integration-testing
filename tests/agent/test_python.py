@@ -16,7 +16,7 @@ def test_req_flask(flask):
 def test_concurrent_req_flask(flask):
     foo = Concurrent.Endpoint(flask.foo.url,
                               flask.app_name,
-                              ["__main__.foo"],
+                              ["app.foo"],
                               "GET /foo")
     Concurrent(flask.apm_server.elasticsearch, [foo], iters=2).run()
 
@@ -26,12 +26,12 @@ def test_concurrent_req_flask(flask):
 def test_concurrent_req_flask_foobar(flask):
     foo = Concurrent.Endpoint(flask.foo.url,
                               flask.app_name,
-                              ["__main__.foo"],
+                              ["app.foo"],
                               "GET /foo",
                               events_no=375)
     bar = Concurrent.Endpoint(flask.bar.url,
                               flask.app_name,
-                              ["__main__.bar", "__main__.extra"],
+                              ["app.bar", "app.extra"],
                               "GET /bar")
     Concurrent(flask.apm_server.elasticsearch, [foo, bar], iters=1).run()
 

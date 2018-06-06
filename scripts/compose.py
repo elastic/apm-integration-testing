@@ -591,15 +591,15 @@ class AgentPythonFlask(AgentPython):
     def _content(self):
         return dict(
             build={"context": "docker/python/flask", "dockerfile": "Dockerfile"},
-            command="bash -c \"pip install -U {} && python app.py\"".format(self.agent_package),
+            command="bash -c \"pip install -U {} && gunicorn app:app\"".format(self.agent_package),
             container_name="flaskapp",
             image=None,
             labels=None,
             logging=None,
             environment={
                 "APM_SERVER_URL": "http://apm-server:8200",
-                "FLASK_PORT": self.SERVICE_PORT,
                 "FLASK_SERVICE_NAME": "flaskapp",
+                "GUNICORN_CMD_ARGS": "-w 4 -b 0.0.0.0:{}".format(self.SERVICE_PORT),
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "flaskapp"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
@@ -911,12 +911,12 @@ class AgentServiceTest(ServiceTest):
                     build:
                         dockerfile: Dockerfile
                         context: docker/python/flask
-                    command: bash -c "pip install -U elastic-apm && python app.py"
+                    command: bash -c "pip install -U elastic-apm && gunicorn app:app"
                     container_name: flaskapp
                     environment:
                         APM_SERVER_URL: http://apm-server:8200
                         FLASK_SERVICE_NAME: flaskapp
-                        FLASK_PORT: 8001
+                        GUNICORN_CMD_ARGS: "-w 4 -b 0.0.0.0:8001"
                     healthcheck:
                         interval: 5s
                         retries: 12
