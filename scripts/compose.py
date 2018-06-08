@@ -124,6 +124,17 @@ def curl_healthcheck(port, host="localhost", path="/healthcheck", interval=DEFAU
             }
 
 
+def parse_version(version):
+    res = []
+    for x in version.split('.'):
+        try:
+            y = int(x)
+        except ValueError:
+            y = int(x.split("-", 1)[0])
+        res.append(y)
+    return res
+
+
 class Service(ABC):
     """encapsulate docker-compose service definition"""
 
@@ -172,6 +183,9 @@ class Service(ABC):
     @staticmethod
     def enabled():
         return False
+
+    def at_least_version(self, target):
+        return parse_version(self.version) >= parse_version(target)
 
     @classmethod
     def name(cls):
@@ -335,14 +349,15 @@ class Elasticsearch(DockerLoadableService, Service):
 
     def __init__(self, **options):
         super().__init__(**options)
-        # good until 6.10
-        if self.version.split(".", 3)[0:2] < ["6", "3"] and not self.options.get("oss"):
+        if not self.options.get("oss") and not self.at_least_version("6.3"):
             self.docker_name = self.name() + "-platinum"
 
     def _content(self):
         environment = self.environment + ["path.data=/usr/share/elasticsearch/data/" + self.version]
         if not self.options.get("oss"):
             environment.append("xpack.security.enabled=false")
+            if self.at_least_version("6.3"):
+                environment.append("xpack.monitoring.collection.enabled=true")
         return dict(
             environment=environment,
             healthcheck={
@@ -364,15 +379,19 @@ class Elasticsearch(DockerLoadableService, Service):
 
 
 class Kibana(DockerLoadableService, Service):
-    environment = {"SERVER_NAME": "kibana.example.org", "ELASTICSEARCH_URL": "http://elasticsearch:9200"}
+    default_environment = {"SERVER_NAME": "kibana.example.org", "ELASTICSEARCH_URL": "http://elasticsearch:9200"}
 
     SERVICE_PORT = 5601
 
     def __init__(self, **options):
         super().__init__(**options)
-        # good until 6.10
-        if self.version.split(".", 3)[0:2] < ["6", "3"] and not self.options.get("oss"):
+        if not self.at_least_version("6.3") and not self.options.get("oss"):
             self.docker_name = self.name() + "-x-pack"
+        self.environment = self.default_environment.copy()
+        if not self.options.get("oss"):
+            self.environment["XPACK_MONITORING_ENABLED"] = "true"
+            if self.at_least_version("6.3"):
+                self.environment["XPACK_XPACK_MAIN_TELEMETRY_ENABLED"] = "false"
 
     def _content(self):
         return dict(
@@ -1103,6 +1122,7 @@ class KibanaServiceTest(ServiceTest):
                     environment:
                         SERVER_NAME: kibana.example.org
                         ELASTICSEARCH_URL: http://elasticsearch:9200
+                        XPACK_MONITORING_ENABLED: 'true'
                     ports:
                         - "127.0.0.1:5601:5601"
                     logging:
@@ -1131,6 +1151,8 @@ class KibanaServiceTest(ServiceTest):
                     environment:
                         SERVER_NAME: kibana.example.org
                         ELASTICSEARCH_URL: http://elasticsearch:9200
+                        XPACK_MONITORING_ENABLED: 'true'
+                        XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'
                     ports:
                         - "127.0.0.1:5601:5601"
                     logging:
@@ -1318,7 +1340,7 @@ class OpbeansServiceTest(ServiceTest):
         branch = [e for e in opbeans_python_6_1["environment"] if e.startswith("PYTHON_AGENT_BRANCH")]
         self.assertEqual(branch, ["PYTHON_AGENT_BRANCH=1.x"])
 
-        opbeans_python_master = OpbeansPython(version="master").render()["opbeans-python"]
+        opbeans_python_master = OpbeansPython(version="7.0.0-alpha1").render()["opbeans-python"]
         branch = [e for e in opbeans_python_master["environment"] if e.startswith("PYTHON_AGENT_BRANCH")]
         self.assertEqual(branch, ["PYTHON_AGENT_BRANCH=2.x"])
 
@@ -2115,7 +2137,7 @@ class LocalTest(unittest.TestCase):
                 container_name: localtesting_6.2.10_kibana
                 depends_on:
                     elasticsearch: {condition: service_healthy}
-                environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org}
+                environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true'}
                 healthcheck:
                     interval: 5s
                     retries: 20
@@ -2180,7 +2202,7 @@ class LocalTest(unittest.TestCase):
 
             elasticsearch:
                 container_name: localtesting_6.3.10_elasticsearch
-                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, discovery.type=single-node, '"ES_JAVA_OPTS=-Xms1g -Xmx1g"', path.data=/usr/share/elasticsearch/data/6.3.10, xpack.security.enabled=false]
+                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, discovery.type=single-node, '"ES_JAVA_OPTS=-Xms1g -Xmx1g"', path.data=/usr/share/elasticsearch/data/6.3.10, xpack.security.enabled=false, xpack.monitoring.collection.enabled=true]
                 healthcheck:
                     interval: '20'
                     retries: 10
@@ -2200,7 +2222,7 @@ class LocalTest(unittest.TestCase):
                 container_name: localtesting_6.3.10_kibana
                 depends_on:
                     elasticsearch: {condition: service_healthy}
-                environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org}
+                environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
                 healthcheck:
                     interval: 5s
                     retries: 20
@@ -2265,7 +2287,7 @@ class LocalTest(unittest.TestCase):
 
             elasticsearch:
                 container_name: localtesting_7.0.10-alpha1_elasticsearch
-                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, discovery.type=single-node, '"ES_JAVA_OPTS=-Xms1g -Xmx1g"', path.data=/usr/share/elasticsearch/data/7.0.10-alpha1, xpack.security.enabled=false]
+                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, discovery.type=single-node, '"ES_JAVA_OPTS=-Xms1g -Xmx1g"', path.data=/usr/share/elasticsearch/data/7.0.10-alpha1, xpack.security.enabled=false, xpack.monitoring.collection.enabled=true]
                 healthcheck:
                     interval: '20'
                     retries: 10
@@ -2285,7 +2307,7 @@ class LocalTest(unittest.TestCase):
                 container_name: localtesting_7.0.10-alpha1_kibana
                 depends_on:
                     elasticsearch: {condition: service_healthy}
-                environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org}
+                environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
                 healthcheck:
                     interval: 5s
                     retries: 20
@@ -2417,6 +2439,18 @@ class LocalTest(unittest.TestCase):
             service = case.service(**args)
             got = service.image_download_url()
             self.assertEqual(case.expected, got)
+
+    def test_parse(self):
+        cases = [
+            ("6.3", [6, 3]),
+            ("6.3.0", [6, 3, 0]),
+            ("6.3.1", [6, 3, 1]),
+            ("6.3.10", [6, 3, 10]),
+            ("6.3.10-alpha1", [6, 3, 10]),
+        ]
+        for ver, want in cases:
+            got = parse_version(ver)
+            self.assertEqual(want, got)
 
 
 def main():
