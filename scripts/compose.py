@@ -31,8 +31,11 @@ import sys
 import subprocess
 import unittest, unittest.mock
 
-import yaml
-
+# TODO: convert yaml fixtures and remove this, only needed for tests
+try:
+    import yaml
+except:
+    pass
 #
 # package info
 #
@@ -1813,14 +1816,13 @@ class LocalSetup(object):
                 pgdata={"driver": "local"},
             ),
         )
-        yaml_opts = dict(
-            explicit_start=True,
-        )
         docker_compose_path = args["docker_compose_path"]
-        yaml.dump(compose, docker_compose_path, **yaml_opts)
+        json.dump(compose, docker_compose_path)
+        docker_compose_path.flush()
 
         # try to figure out if writing to a real file, not amazing
         if hasattr(docker_compose_path, "name") and os.path.isdir(os.path.dirname(docker_compose_path.name)):
+            docker_compose_path.close()
             print("Starting stack services..\n")
             cmd = ['docker-compose', '-f', docker_compose_path.name, 'up', '-d']
             if args["force_build"]:
