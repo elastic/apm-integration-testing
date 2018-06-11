@@ -11,6 +11,13 @@ This repo contains tools for end to end (eg agent -> apm server -> elasticsearch
 
 This repo is tested with python 3. 
 
+On a Mac with Homebrew and Homebrew Cask:
+
+```sh
+brew install pyenv-virtualenv
+brew cask install docker
+```
+
 ### Starting an Environment
 
 `scripts/compose.py` provides a handy cli for starting a testing environment using docker-compose.
