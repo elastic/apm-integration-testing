@@ -69,6 +69,8 @@ dockerized-test:
 	@echo running make $(TARGET) inside a container
 	docker build --pull -t apm-integration-testing .
 
+	mkdir -p -m 777 "$(PWD)/$(JUNIT_RESULTS_DIR)"
+	chmod 777 "$(PWD)/$(JUNIT_RESULTS_DIR)"
 	docker run \
 	  --name=apm-integraion-testing \
 	  --network=apm-integration-testing \
