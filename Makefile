@@ -5,6 +5,9 @@ VENV ?= ./venv
 
 COMPOSE_ARGS ?=
 
+JUNIT_RESULTS_DIR=tests/results
+JUNIT_OPT=--junitxml $(JUNIT_RESULTS_DIR)
+
 # Make sure we run local versions of everything, particularly commands
 # installed into our virtualenv with pip eg. `docker-compose`.
 export PATH := ./bin:$(VENV)/bin:$(PATH)
@@ -39,22 +42,22 @@ env-%: venv
 test: test-all lint
 
 test-agent-%-version: venv
-	pytest tests/agent/test_$*.py -v -m version
+	pytest tests/agent/test_$*.py -v -m version $(JUNIT_OPT)/agent-$*-version-junit.xml
 
 test-agent-%: venv
-	pytest tests/agent/test_$*.py -v
+	pytest tests/agent/test_$*.py -v $(JUNIT_OPT)/agent-$*-junit.xml
 
 test-compose: venv
-	$(PYTHON) -munittest scripts.compose -v
+	pytest scripts/compose.py -v $(JUNIT_OPT)/compose-junit.xml
 
 test-kibana: venv
-	pytest tests/kibana/test_integration.py -v
+	pytest tests/kibana/test_integration.py -v $(JUNIT_OPT)/kibana-junit.xml
 
 test-server: venv
-	pytest tests/server/ -v
+	pytest tests/server/ -v $(JUNIT_OPT)/server-junit.xml
 
 test-all: venv test-compose
-	pytest -v --ignore=tests/agent/test_ruby.py
+	pytest -v --ignore=tests/agent/test_ruby.py $(JUNIT_OPT)/all-junit.xml
 
 docker-test-%:
 	TARGET=test-$* $(MAKE) dockerized-test
@@ -79,6 +82,7 @@ dockerized-test:
 	  -e GO_NETHTTP_URL="http://gonethttpapp:8080" \
 	  -e RAILS_URL="http://railsapp:8020" \
 	  -e PYTHONDONTWRITEBYTECODE=1 \
+	  -v "$(PWD)/$(JUNIT_RESULTS_DIR)":"/app/$(JUNIT_RESULTS_DIR)" \
 	  --rm \
 	  --entrypoint make \
 	  apm-integration-testing \

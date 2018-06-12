@@ -11,3 +11,4 @@ venv/
 .coverage
 docker-compose.yml
 htmlcov/
+tests/results/
