@@ -6,6 +6,7 @@ ElasticAPM.add_filter(:healthcheck) do |payload|
   payload[:transactions]&.reject! do |t| 
     t[:name] == 'ApplicationController#healthcheck' 
   end
+  payload
 end
 
 run Rails.application
