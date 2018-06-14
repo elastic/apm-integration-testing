@@ -8,8 +8,7 @@ This repo contains tools for end to end (eg agent -> apm server -> elasticsearch
 
 - docker
 - virtualenv
-
-This repo is tested with python 3. 
+- python3
 
 On a Mac with Homebrew and Homebrew Cask:
 
@@ -17,6 +16,16 @@ On a Mac with Homebrew and Homebrew Cask:
 brew install pyenv-virtualenv
 brew cask install docker
 ```
+
+On a Mac, upgrading to Python3:
+
+```
+brew install python
+sudo mkdir /usr/local/Frameworks
+sudo chown $(whoami):admin /usr/local/Frameworks
+brew link python3
+```
+
 
 ### Starting an Environment
 
