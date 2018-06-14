@@ -50,6 +50,11 @@ test-agent-%: venv
 test-compose: venv
 	pytest scripts/compose.py -v $(JUNIT_OPT)/compose-junit.xml
 
+test-compose-2:
+	virtualenv --python=python2.7 venv2
+	./venv2/bin/pip2 install mock pytest pyyaml
+	./venv2/bin/pytest --noconftest scripts/compose.py
+
 test-kibana: venv
 	pytest tests/kibana/test_integration.py -v $(JUNIT_OPT)/kibana-junit.xml
 
