@@ -703,7 +703,7 @@ class OpbeansNode(Service):
             "redis": {"condition": "service_healthy"},
         }
 
-        if self.options.get("with_apm-server", True):
+        if not self.options.get("disable_apm_server", False):
             depends_on["apm-server"] = {"condition": "service_healthy"}
 
         content = dict(
@@ -772,7 +772,7 @@ class OpbeansPython(Service):
             "redis": {"condition": "service_healthy"},
         }
 
-        if self.options.get("with_apm-server", True):
+        if not self.options.get("disable_apm_server", False):
             depends_on["apm-server"] = {"condition": "service_healthy"}
 
         content = dict(
@@ -838,7 +838,7 @@ class OpbeansRuby(Service):
             "redis": {"condition": "service_healthy"},
         }
 
-        if self.options.get("with_apm-server", True):
+        if not self.options.get("disable_apm_server", False):
             depends_on["apm-server"] = {"condition": "service_healthy"}
 
         content = dict(
@@ -2404,6 +2404,25 @@ class LocalTest(unittest.TestCase):
         services = got["services"]
         self.assertIn("redis", services)
         self.assertIn("postgres", services)
+
+    @unittest.mock.patch(__name__ + '.load_images')
+    def test_start_opbeans_no_apm_server(self, _ignore_load_images):
+        docker_compose_yml = io.StringIO()
+        setup = LocalSetup(
+            argv=["start", "master", "--all", "--no-apm-server",
+                  "--docker-compose-path", "-"])
+        setup.set_docker_compose_path(docker_compose_yml)
+        setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        depends_on = set(got["services"]["opbeans-node"]["depends_on"].keys())
+        self.assertSetEqual({"postgres", "redis"}, depends_on)
+        depends_on = set(got["services"]["opbeans-python"]["depends_on"].keys())
+        self.assertSetEqual({"elasticsearch", "postgres", "redis"}, depends_on)
+        depends_on = set(got["services"]["opbeans-ruby"]["depends_on"].keys())
+        self.assertSetEqual({"elasticsearch", "postgres", "redis"}, depends_on)
+        for name, service in got["services"].items():
+            self.assertNotIn("apm-server", service.get("depends_on", {}), "{} depends on apm-server".format(name))
 
     @unittest.mock.patch(__name__ + '.load_images')
     def test_start_unsupported_version_pre_6_3(self, _ignore_load_images):
