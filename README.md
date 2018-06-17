@@ -18,13 +18,13 @@ brew install pyenv-virtualenv
 brew cask install docker
 ```
 
-### Starting an Environment
+## Starting an Environment
 
 `scripts/compose.py` provides a handy cli for starting a testing environment using docker-compose.
 `make venv` creates a virtual environment with all of the python-based dependencies needed to run `scripts/compose.py` - it requires `virtualenv` in your `PATH`.
 Activate the virtualenv with `source venv/bin/activate` and use `scripts/compose.py --help` for information on subcommands and arguments.
 
-### Stopping an Environment
+## Stopping an Environment
 
 All services:
 ```
@@ -45,15 +45,15 @@ Individual services:
 docker-compose stop <service name>
 ```
 
-#### Example environments
+## Example environments
 
-##### Change default ports
+### Change default ports
 
 Expose Kibana on http://localhost:1234:
 
     ./scripts/compose.py start master --kibana-port 1234
 
-##### Opbeans
+### Opbeans
 
 Opbeans are demo web applications that are instrumented with Elastic APM.
 Start `opbeans-*` services and their dependencies along with apm-server, elasticsearch, and kibana:
@@ -61,7 +61,7 @@ Start `opbeans-*` services and their dependencies along with apm-server, elastic
     ./scripts/compose.py start --all master
 
 
-###### Uploading Sourcemaps
+### Uploading Sourcemaps
 
 The frontend app packaged with opbeans-node runs in a production build, which means the source code is minified. The APM server needs the corresponding sourcemap to unminify the code.
 
@@ -73,7 +73,7 @@ In the standard setup, it will find the config options itself, but they can be o
 
     ./scripts/compose.py upload-sourcemap --help
 
-##### Kafka output
+### Kafka output
 
     ./scripts/compose.py start --with-kafka --with-zookeeper --apm-server-output=kafka --with-logstash master
 
@@ -91,19 +91,19 @@ Note that index templates are not loaded automatically when using outputs other 
 
 If data was inserted before this point (eg an opbeans service was started) you'll probably have to delete the auto-created `apm-*` indexes and let them be recreated.
 
-#### Advanced topics
+## Advanced topics
 
-##### Dumping docker-compose.yml
+### Dumping docker-compose.yml
 
 `./scripts/compose.py start master --docker-compose-path - --skip-download` will dump the generated `docker-compose.yml` to standard out (`-`) without starting any containers or downloading images.
 
 Omit `--skip-download` to just download images.
 
-##### Testing compose
+### Testing compose
 
 `compose.py` includes unittests, `make test-compose` to run.
 
-### Running Tests
+## Running Tests
 
 All integration tests are written in python and live under `tests/`.
 
@@ -121,13 +121,13 @@ Tests should always eventually be run within a docker container to ensure a cons
 
 Prefix any of the `test-` targets with `docker-` to run them in a container eg: `make docker-test-server`.
 
-#### Continuous Integration
+### Continuous Integration
 
 Jenkins runs the scripts from `scripts/ci/` and is viewable at https://apm-ci.elastic.co/.
 
 Those scripts shut down any existing testing containers and start a fresh new environment before running tests unless the `REUSE_CONTAINERS` environment variable is set.
 
-##### Version tests
+#### Version tests
 
 Various combinations of versions of agents and the Elastic Stack are tested together to ensure compatibility.
 The matrix is defined using [apm_server.yml](https://github.com/elastic/apm-integration-testing/blob/master/tests/versions/apm_server.yml) for one axis and then a per-agent specification for the other axis.
@@ -135,7 +135,7 @@ For example, [the nodejs matrix](https://apm-ci.elastic.co/view/All/job/elastic+
 When those tests run, `scripts/ci/versions_nodejs.sh` is invoked with the product of those files, eg `scripts/ci/versions_nodejs.sh 'github;master' '6.3'`.
 Specific combinations are excluded using [nodejs_exclude](https://github.com/elastic/apm-integration-testing/blob/master/tests/versions/nodejs_exclude.yml)
 
-#### Agent Development
+### Agent Development
 
 To run integration tests against unreleased agent code, start an environment where that agent code is used by the test application.
 
