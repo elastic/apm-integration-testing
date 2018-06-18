@@ -7,10 +7,6 @@ from __future__ import print_function
 from abc import abstractmethod
 
 try:
-    from abc import ABC
-except ImportError:
-    from abc import ABCMeta as ABC
-try:
     from urllib.request import urlopen, urlretrieve, Request
 except ImportError:
     from urllib import urlretrieve
@@ -29,13 +25,30 @@ import os
 import re
 import sys
 import subprocess
-import unittest, unittest.mock
+import unittest
+try:
+    import unittest.mock as mock
+except ImportError:
+    try:
+        import mock
+    except ImportError:
+        class IgnoreMock(object):
+            @staticmethod
+            def patch(_):
+                return lambda *args: None
+        mock = IgnoreMock()
 
 # TODO: convert yaml fixtures and remove this, only needed for tests
 try:
     import yaml
-except:
+except ImportError:
     pass
+
+if sys.version_info[0] == 3:
+    stringIO = io.StringIO
+else:
+    stringIO = io.BytesIO
+
 #
 # package info
 #
@@ -138,7 +151,7 @@ def parse_version(version):
     return res
 
 
-class Service(ABC):
+class Service(object):
     """encapsulate docker-compose service definition"""
 
     def __init__(self, **options):
@@ -242,7 +255,7 @@ class Service(ABC):
         pass
 
 
-class DockerLoadableService:
+class DockerLoadableService(object):
     """Mix in for Elastic services that have public docker images built but not available in a registry [yet]"""
 
     def image_download_url(self):
@@ -276,7 +289,7 @@ class ApmServer(DockerLoadableService, Service):
     OUTPUTS = {"elasticsearch", "kafka", "logstash"}
 
     def __init__(self, **options):
-        super().__init__(**options)
+        super(ApmServer, self).__init__(**options)
 
         self.apm_server_command_args = [
             ("apm-server.frontend.enabled", "true"),
@@ -319,7 +332,7 @@ class ApmServer(DockerLoadableService, Service):
 
     @classmethod
     def add_arguments(cls, parser):
-        super().add_arguments(parser)
+        super(ApmServer, cls).add_arguments(parser)
         parser.add_argument(
             '--apm-server-output',
             choices=cls.OUTPUTS,
@@ -356,7 +369,7 @@ class Elasticsearch(DockerLoadableService, Service):
     SERVICE_PORT = 9200
 
     def __init__(self, **options):
-        super().__init__(**options)
+        super(Elasticsearch, self).__init__(**options)
         if not self.options.get("oss") and not self.at_least_version("6.3"):
             self.docker_name = self.name() + "-platinum"
 
@@ -392,7 +405,7 @@ class Kibana(DockerLoadableService, Service):
     SERVICE_PORT = 5601
 
     def __init__(self, **options):
-        super().__init__(**options)
+        super(Kibana, self).__init__(**options)
         if not self.at_least_version("6.3") and not self.options.get("oss"):
             self.docker_name = self.name() + "-x-pack"
         self.environment = self.default_environment.copy()
@@ -539,12 +552,12 @@ class AgentNodejsExpress(Service):
     SERVICE_PORT = 8010
 
     def __init__(self, **options):
-        super().__init__(**options)
+        super(AgentNodejsExpress, self).__init__(**options)
         self.agent_package = options.get("nodejs_agent_package", self.DEFAULT_AGENT_PACKAGE)
 
     @classmethod
     def add_arguments(cls, parser):
-        super().add_arguments(parser)
+        super(AgentNodejsExpress, cls).add_arguments(parser)
         parser.add_argument(
             '--nodejs-agent-package',
             default=cls.DEFAULT_AGENT_PACKAGE,
@@ -571,20 +584,24 @@ class AgentNodejsExpress(Service):
 
 class AgentPython(Service):
     DEFAULT_AGENT_PACKAGE = "elastic-apm"
+    _arguments_added = False
 
     def __init__(self, **options):
-        super().__init__(**options)
+        super(AgentPython, self).__init__(**options)
         self.agent_package = options.get("python_agent_package", self.DEFAULT_AGENT_PACKAGE)
 
     @classmethod
     def add_arguments(cls, parser):
-        super().add_arguments(parser)
+        if cls._arguments_added:
+            return
+
+        super(AgentPython, cls).add_arguments(parser)
         parser.add_argument(
             '--python-agent-package',
             default=cls.DEFAULT_AGENT_PACKAGE,
         )
         # prevent calling again
-        cls.add_arguments = lambda *x: True
+        cls._arguments_added = True
 
     def _content(self):
         raise NotImplemented
@@ -640,7 +657,7 @@ class AgentRubyRails(Service):
 
     @classmethod
     def add_arguments(cls, parser):
-        super().add_arguments(parser)
+        super(AgentRubyRails, cls).add_arguments(parser)
         parser.add_argument(
             "--ruby-agent-version",
             default=cls.DEFAULT_AGENT_VERSION,
@@ -651,7 +668,7 @@ class AgentRubyRails(Service):
         )
 
     def __init__(self, **options):
-        super().__init__(**options)
+        super(AgentRubyRails, self).__init__(**options)
         self.agent_version = options.get("ruby_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_version_state = options.get("ruby_agent_version_state", self.DEFAULT_AGENT_VERSION_STATE)
 
@@ -687,14 +704,14 @@ class OpbeansNode(Service):
 
     @classmethod
     def add_arguments(cls, parser):
-        super().add_arguments(parser)
+        super(OpbeansNode, cls).add_arguments(parser)
         parser.add_argument(
             '--opbeans-node-local-repo',
             default=cls.DEFAULT_LOCAL_REPO,
         )
 
     def __init__(self, **options):
-        super().__init__(**options)
+        super(OpbeansNode, self).__init__(**options)
         self.local_repo = options.get("opbeans_node_local_repo", self.DEFAULT_LOCAL_REPO)
 
     def _content(self):
@@ -750,14 +767,14 @@ class OpbeansPython(Service):
 
     @classmethod
     def add_arguments(cls, parser):
-        super().add_arguments(parser)
+        super(OpbeansPython, cls).add_arguments(parser)
         parser.add_argument(
             '--opbeans-python-local-repo',
             default=cls.DEFAULT_LOCAL_REPO,
         )
 
     def __init__(self, **options):
-        super().__init__(**options)
+        super(OpbeansPython, self).__init__(**options)
         self.local_repo = options.get("opbeans_python_local_repo", self.DEFAULT_LOCAL_REPO)
         if self.version.split(".", 3)[0:2] < ["6", "2"]:
             self.agent_branch = "1.x"
@@ -819,14 +836,14 @@ class OpbeansRuby(Service):
 
     @classmethod
     def add_arguments(cls, parser):
-        super().add_arguments(parser)
+        super(OpbeansRuby, cls).add_arguments(parser)
         parser.add_argument(
             '--opbeans-ruby-local-repo',
             default=cls.DEFAULT_LOCAL_REPO,
         )
 
     def __init__(self, **options):
-        super().__init__(**options)
+        super(OpbeansRuby, self).__init__(**options)
         self.local_repo = options.get("opbeans_ruby_local_repo", self.DEFAULT_LOCAL_REPO)
         self.agent_branch = options.get("opbeans_agent_branch", self.DEFAULT_AGENT_BRANCH)
         self.agent_repo = options.get("opbeans_agent_repo", self.DEFAULT_AGENT_REPO)
@@ -1631,7 +1648,6 @@ class LocalSetup(object):
                 dest='disable_' + service.option_name(),
                 help=help_prefix + service.name()
             )
-
             service.add_arguments(parser)
 
         # Add build candidate argument
@@ -2103,11 +2119,11 @@ class LocalTest(unittest.TestCase):
         registry = discover_services()
         self.assertIn(ApmServer, registry)
 
-    @unittest.mock.patch(__name__ + ".load_images")
+    @mock.patch(__name__ + ".load_images")
     def test_start_6_2_default(self, mock_load_images):
-        docker_compose_yml = io.StringIO()
+        docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
-        with unittest.mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.2': '6.2.10'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.2': '6.2.10'}):
             setup = LocalSetup(
                 argv=["start", "6.2", "--docker-compose-path", "-", "--image-cache-dir", image_cache_dir])
             setup.set_docker_compose_path(docker_compose_yml)
@@ -2187,12 +2203,12 @@ class LocalTest(unittest.TestCase):
             },
             image_cache_dir)
 
-    @unittest.mock.patch(__name__ + '.load_images')
+    @mock.patch(__name__ + '.load_images')
     def test_start_6_3_default(self, mock_load_images):
         import io
-        docker_compose_yml = io.StringIO()
+        docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
-        with unittest.mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.3': '6.3.10'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.3': '6.3.10'}):
             setup = LocalSetup(
                 argv=["start", "6.3", "--docker-compose-path", "-", "--image-cache-dir", image_cache_dir])
             setup.set_docker_compose_path(docker_compose_yml)
@@ -2272,12 +2288,12 @@ class LocalTest(unittest.TestCase):
             },
             image_cache_dir)
 
-    @unittest.mock.patch(__name__ + '.load_images')
+    @mock.patch(__name__ + '.load_images')
     def test_start_master_default(self, mock_load_images):
         import io
-        docker_compose_yml = io.StringIO()
+        docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
-        with unittest.mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
             setup = LocalSetup(
                 argv=["start", "master", "--docker-compose-path", "-", "--image-cache-dir", image_cache_dir])
             setup.set_docker_compose_path(docker_compose_yml)
@@ -2357,12 +2373,12 @@ class LocalTest(unittest.TestCase):
             },
             image_cache_dir)
 
-    @unittest.mock.patch(__name__ + '.load_images')
+    @mock.patch(__name__ + '.load_images')
     def test_start_master_with_logstash(self, mock_load_images):
         import io
-        docker_compose_yml = io.StringIO()
+        docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
-        with unittest.mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
             setup = LocalSetup(
                 argv=["start", "master", "--docker-compose-path", "-", "--image-cache-dir", image_cache_dir,
                       "--with-logstash"])
@@ -2377,9 +2393,9 @@ class LocalTest(unittest.TestCase):
             },
             image_cache_dir)
 
-    @unittest.mock.patch(__name__ + '.load_images')
+    @mock.patch(__name__ + '.load_images')
     def test_start_all(self, _ignore_load_images):
-        docker_compose_yml = io.StringIO()
+        docker_compose_yml = stringIO()
         setup = LocalSetup(
             argv=["start", "master", "--all",
                   "--docker-compose-path", "-"])
@@ -2391,9 +2407,9 @@ class LocalTest(unittest.TestCase):
         self.assertIn("redis", services)
         self.assertIn("postgres", services)
 
-    @unittest.mock.patch(__name__ + '.load_images')
+    @mock.patch(__name__ + '.load_images')
     def test_start_one_opbeans(self, _ignore_load_images):
-        docker_compose_yml = io.StringIO()
+        docker_compose_yml = stringIO()
         setup = LocalSetup(
             argv=["start", "master", "--with-opbeans-node",
                   "--docker-compose-path", "-"])
@@ -2405,9 +2421,9 @@ class LocalTest(unittest.TestCase):
         self.assertIn("redis", services)
         self.assertIn("postgres", services)
 
-    @unittest.mock.patch(__name__ + '.load_images')
+    @mock.patch(__name__ + '.load_images')
     def test_start_opbeans_no_apm_server(self, _ignore_load_images):
-        docker_compose_yml = io.StringIO()
+        docker_compose_yml = stringIO()
         setup = LocalSetup(
             argv=["start", "master", "--all", "--no-apm-server",
                   "--docker-compose-path", "-"])
@@ -2424,9 +2440,9 @@ class LocalTest(unittest.TestCase):
         for name, service in got["services"].items():
             self.assertNotIn("apm-server", service.get("depends_on", {}), "{} depends on apm-server".format(name))
 
-    @unittest.mock.patch(__name__ + '.load_images')
+    @mock.patch(__name__ + '.load_images')
     def test_start_unsupported_version_pre_6_3(self, _ignore_load_images):
-        docker_compose_yml = io.StringIO()
+        docker_compose_yml = stringIO()
         version = "1.2.3"
         self.assertNotIn(version, LocalSetup.SUPPORTED_VERSIONS)
         setup = LocalSetup(
@@ -2439,9 +2455,9 @@ class LocalTest(unittest.TestCase):
         self.assertEqual("docker.elastic.co/elasticsearch/elasticsearch-platinum:{}".format(version), services["elasticsearch"]["image"])
         self.assertEqual("docker.elastic.co/kibana/kibana-x-pack:{}".format(version), services["kibana"]["image"])
 
-    @unittest.mock.patch(__name__ + '.load_images')
+    @mock.patch(__name__ + '.load_images')
     def test_start_unsupported_version(self, _ignore_load_images):
-        docker_compose_yml = io.StringIO()
+        docker_compose_yml = stringIO()
         version = "6.9.5"
         self.assertNotIn(version, LocalSetup.SUPPORTED_VERSIONS)
         setup = LocalSetup(
