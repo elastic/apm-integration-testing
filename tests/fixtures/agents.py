@@ -1,4 +1,3 @@
-import os
 try:
     from urlparse import urlparse
 except ImportError:
@@ -29,6 +28,7 @@ def express(apm_server):
     return Agent(default.from_env('EXPRESS_SERVICE_NAME'),
                  default.from_env('EXPRESS_URL'),
                  apm_server)
+
 
 @pytest.fixture(scope="session")
 def go_nethttp(apm_server):

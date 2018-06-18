@@ -1,5 +1,3 @@
-import os
-
 import pytest
 
 from tests.endpoint import Endpoint

@@ -131,7 +131,8 @@ DEFAULT_HEALTHCHECK_INTERVAL = "5s"
 DEFAULT_HEALTHCHECK_RETRIES = 12
 
 
-def curl_healthcheck(port, host="localhost", path="/healthcheck", interval=DEFAULT_HEALTHCHECK_INTERVAL, retries=DEFAULT_HEALTHCHECK_RETRIES):
+def curl_healthcheck(port, host="localhost", path="/healthcheck",
+                     interval=DEFAULT_HEALTHCHECK_INTERVAL, retries=DEFAULT_HEALTHCHECK_RETRIES):
     return {
                 "interval": interval,
                 "retries": retries,
@@ -933,7 +934,7 @@ class AgentServiceTest(ServiceTest):
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://expressapp:8010/healthcheck"]
                     ports:
                         - 127.0.0.1:8010:8010
-            """)
+            """)  # noqa: 501
         )
 
         vagent = AgentNodejsExpress(nodejs_agent_package="elastic/apm-agent-nodejs#test").render()
@@ -960,7 +961,7 @@ class AgentServiceTest(ServiceTest):
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://djangoapp:8003/healthcheck"]
                     ports:
                         - 127.0.0.1:8003:8003
-            """)
+            """)  # noqa: 501
         )
 
     def test_agent_python_flask(self):
@@ -983,7 +984,7 @@ class AgentServiceTest(ServiceTest):
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://flaskapp:8001/healthcheck"]
                     ports:
                         - 127.0.0.1:8001:8001
-            """)
+            """)  # noqa: 501
         )
 
     def test_agent_ruby_rails(self):
@@ -1010,7 +1011,7 @@ class AgentServiceTest(ServiceTest):
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://railsapp:8020/healthcheck"]
                     ports:
                         - 127.0.0.1:8020:8020
-            """)
+            """)  # noqa: 501
         )
 
 
@@ -1180,7 +1181,7 @@ class KibanaServiceTest(ServiceTest):
                         elasticsearch:
                             condition: service_healthy
                     labels:
-                        - co.elatic.apm.stack-version=6.2.4""")
+                        - co.elatic.apm.stack-version=6.2.4""")  # noqa: 501
         )
 
     def test_6_3_release(self):
@@ -1210,7 +1211,7 @@ class KibanaServiceTest(ServiceTest):
                         elasticsearch:
                             condition: service_healthy
                     labels:
-                        - co.elatic.apm.stack-version=6.3.5""")
+                        - co.elatic.apm.stack-version=6.3.5""")  # noqa: 501
         )
 
 
@@ -1319,7 +1320,7 @@ class OpbeansServiceTest(ServiceTest):
                         retries: 12
                     volumes:
                         - .:/local-install
-                        - ./docker/opbeans/node/sourcemaps:/sourcemaps""")
+                        - ./docker/opbeans/node/sourcemaps:/sourcemaps""")  # noqa: 501
         )
 
     def test_opbeans_python(self):
@@ -1374,7 +1375,7 @@ class OpbeansServiceTest(ServiceTest):
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-python:8000/"]
                         interval: 5s
                         retries: 12
-            """)
+            """)  # noqa: 501
         )
 
     def test_opbeans_python_branch(self):
@@ -1438,7 +1439,7 @@ class OpbeansServiceTest(ServiceTest):
                     healthcheck:
                       test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-ruby:3001/"]
                       interval: 5s
-                      retries: 12""")
+                      retries: 12""")  # noqa: 501
         )
 
 
@@ -1763,7 +1764,7 @@ class LocalSetup(object):
             '--service-version',
             action='store',
             dest='service_version',
-            help='Version of the frontend app. Defaults to the BUILDDATE environment variable of the "opbeans-node" container',
+            help='Version of the frontend app. Defaults to the BUILDDATE env variable of the "opbeans-node" container',
             default=''
         )
 
@@ -1771,7 +1772,7 @@ class LocalSetup(object):
             '--bundle-path',
             action='store',
             dest='bundle_path',
-            help='Bundle path as it appears in minified files. Defaults to "http://opbeans-node:3000/static/js/" + name of sourcemap',
+            help='Bundle path in minified files. Defaults to "http://opbeans-node:3000/static/js/" + name of sourcemap',
             default=''
         )
 
@@ -2011,14 +2012,10 @@ class LocalSetup(object):
             # Run command
             try:
                 output = subprocess.check_output(
-                    command, stderr=open(os.devnull, 'w'), shell=True
-                ).decode('utf8').strip()
+                    command, stderr=open(os.devnull, 'w'), shell=True).decode('utf8').strip()
             except subprocess.CalledProcessError:
                 # Handle errors
-                print(
-                    '\tContainer "{}" is not running or an error occurred'.
-                        format(name)
-                )
+                print('\tContainer "{}" is not running or an error occurred'.format(name))
                 return False
 
             return output
@@ -2193,7 +2190,7 @@ class LocalTest(unittest.TestCase):
         volumes:
             esdata: {driver: local}
             pgdata: {driver: local}
-        """)
+        """)  # noqa: 501
         self.assertDictEqual(got, want)
         mock_load_images.assert_called_once_with(
             {
@@ -2205,7 +2202,6 @@ class LocalTest(unittest.TestCase):
 
     @mock.patch(__name__ + '.load_images')
     def test_start_6_3_default(self, mock_load_images):
-        import io
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.3': '6.3.10'}):
@@ -2278,7 +2274,7 @@ class LocalTest(unittest.TestCase):
         volumes:
             esdata: {driver: local}
             pgdata: {driver: local}
-        """)
+        """)  # noqa: 501
         self.assertDictEqual(got, want)
         mock_load_images.assert_called_once_with(
             {
@@ -2290,7 +2286,6 @@ class LocalTest(unittest.TestCase):
 
     @mock.patch(__name__ + '.load_images')
     def test_start_master_default(self, mock_load_images):
-        import io
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
@@ -2363,7 +2358,7 @@ class LocalTest(unittest.TestCase):
         volumes:
             esdata: {driver: local}
             pgdata: {driver: local}
-        """)
+        """)  # noqa: 501
         self.assertDictEqual(got, want)
         mock_load_images.assert_called_once_with(
             {
@@ -2452,7 +2447,10 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml.seek(0)
         got = yaml.load(docker_compose_yml)
         services = got["services"]
-        self.assertEqual("docker.elastic.co/elasticsearch/elasticsearch-platinum:{}".format(version), services["elasticsearch"]["image"])
+        self.assertEqual(
+            "docker.elastic.co/elasticsearch/elasticsearch-platinum:{}".format(version),
+            services["elasticsearch"]["image"]
+        )
         self.assertEqual("docker.elastic.co/kibana/kibana-x-pack:{}".format(version), services["kibana"]["image"])
 
     @mock.patch(__name__ + '.load_images')
@@ -2467,7 +2465,10 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml.seek(0)
         got = yaml.load(docker_compose_yml)
         services = got["services"]
-        self.assertEqual("docker.elastic.co/elasticsearch/elasticsearch:{}-SNAPSHOT".format(version), services["elasticsearch"]["image"])
+        self.assertEqual(
+            "docker.elastic.co/elasticsearch/elasticsearch:{}-SNAPSHOT".format(version),
+            services["elasticsearch"]["image"]
+        )
         self.assertEqual("docker.elastic.co/kibana/kibana:{}-SNAPSHOT".format(version), services["kibana"]["image"])
 
     def test_docker_download_image_url(self):

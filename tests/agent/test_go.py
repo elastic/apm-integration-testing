@@ -34,4 +34,3 @@ def test_concurrent_req_go_nethttp_foobar(go_nethttp):
                               ["bar", "extra"],
                               "GET /bar")
     Concurrent(go_nethttp.apm_server.elasticsearch, [foo, bar], iters=1).run()
-
