@@ -6,25 +6,28 @@ This repo contains tools for end to end (eg agent -> apm server -> elasticsearch
 
 ## Installation Requirements
 
-- docker
-- virtualenv
+The basic requirements for starting a local environment are:
 
-This repo is tested with python 3. 
+- docker
+- python (python3 preferred)
+
+This repo is tested with python 3 but best effort is made to make starting/stopping environments work with python 2.7.
 
 On a Mac with Homebrew and Homebrew Cask:
 
 ```sh
-brew install pyenv-virtualenv
 brew cask install docker
 ```
 
-## Starting an Environment
+## Running Local Enviroments
+
+### Starting an Environment
 
 `scripts/compose.py` provides a handy cli for starting a testing environment using docker-compose.
 `make venv` creates a virtual environment with all of the python-based dependencies needed to run `scripts/compose.py` - it requires `virtualenv` in your `PATH`.
 Activate the virtualenv with `source venv/bin/activate` and use `scripts/compose.py --help` for information on subcommands and arguments.
 
-## Stopping an Environment
+### Stopping an Environment
 
 All services:
 ```
@@ -104,6 +107,16 @@ Omit `--skip-download` to just download images.
 `compose.py` includes unittests, `make test-compose` to run.
 
 ## Running Tests
+
+Additional dependencies are required for running the integration tests:
+- python3
+- virtualenv
+
+On a Mac with Homebrew:
+
+```sh
+brew install pyenv-virtualenv
+```
 
 All integration tests are written in python and live under `tests/`.
 
