@@ -439,7 +439,7 @@ class Logstash(DockerLoadableService, Service):
         )
 
 
-class Metricbeat(Service):
+class Metricbeat(DockerLoadableService, Service):
     docker_path = "beats"
 
     def _content(self):
@@ -2374,14 +2374,13 @@ class LocalTest(unittest.TestCase):
             image_cache_dir)
 
     @mock.patch(__name__ + '.load_images')
-    def test_start_master_with_logstash(self, mock_load_images):
-        import io
+    def test_start_master_with_logstash_and_metricbeat(self, mock_load_images):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
             setup = LocalSetup(
                 argv=["start", "master", "--docker-compose-path", "-", "--image-cache-dir", image_cache_dir,
-                      "--with-logstash"])
+                      "--with-logstash", "--with-metricbeat"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         mock_load_images.assert_called_once_with(
@@ -2390,6 +2389,7 @@ class LocalTest(unittest.TestCase):
                 "https://snapshots.elastic.co/docker/elasticsearch-7.0.10-alpha1-SNAPSHOT.tar.gz",
                 "https://snapshots.elastic.co/docker/kibana-7.0.10-alpha1-SNAPSHOT.tar.gz",
                 "https://snapshots.elastic.co/docker/logstash-7.0.10-alpha1-SNAPSHOT.tar.gz",
+                "https://snapshots.elastic.co/docker/metricbeat-7.0.10-alpha1-SNAPSHOT.tar.gz",
             },
             image_cache_dir)
 
