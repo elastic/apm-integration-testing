@@ -1,0 +1,21 @@
+setup.template.settings:
+  index.number_of_shards: 1
+  index.codec: best_compression
+  index.number_of_replicas: 0
+
+setup.dashboards.enabled: true
+
+setup.kibana:
+  host: "kibana:5601"
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+
+filebeat.prospectors:
+  - type: log
+    paths:
+     - '/var/lib/docker/containers/*/*.log'
+    json.message_key: log
+    json.overwrite_keys: true
+    json.keys_under_root: false
+    json.add_error_key: true
