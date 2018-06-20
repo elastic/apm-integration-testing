@@ -912,7 +912,7 @@ class OpbeansJava(Service):
             "postgres": {"condition": "service_healthy"},
         }
 
-        if self.options.get("with_apm-server", True):
+        if not self.options.get("disable_apm_server", False):
             depends_on["apm-server"] = {"condition": "service_healthy"}
 
         content = dict(
