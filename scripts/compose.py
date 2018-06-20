@@ -894,7 +894,7 @@ class OpbeansJava(Service):
 
     @classmethod
     def add_arguments(cls, parser):
-        super().add_arguments(parser)
+        super(OpbeansJava, self).__init__(**options)
         parser.add_argument(
             '--opbeans-java-local-repo',
             default=cls.DEFAULT_LOCAL_REPO,
@@ -917,11 +917,11 @@ class OpbeansJava(Service):
 
         content = dict(
             build=dict(
-                context= "docker/opbeans/java",
-                dockerfile= "Dockerfile",
-                args= [
-                    "JAVA_AGENT_BRANCH="+ self.agent_branch,
-                    "JAVA_AGENT_REPO="+ self.agent_repo,
+                context="docker/opbeans/java",
+                dockerfile="Dockerfile",
+                args=[
+                    "JAVA_AGENT_BRANCH=" + self.agent_branch,
+                    "JAVA_AGENT_REPO=" + self.agent_repo,
                 ]
             ),
             environment=[
@@ -1549,7 +1549,7 @@ class OpbeansServiceTest(ServiceTest):
                     healthcheck:
                       test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-java:3002/"]
                       interval: 5s
-                      retries: 12""")
+                      retries: 12""") # noqa: 501
         )
 
 class PostgresServiceTest(ServiceTest):
