@@ -894,14 +894,14 @@ class OpbeansJava(Service):
 
     @classmethod
     def add_arguments(cls, parser):
-        super(OpbeansJava, self).__init__(**options)
+        super(OpbeansJava, cls).add_arguments(parser)
         parser.add_argument(
             '--opbeans-java-local-repo',
             default=cls.DEFAULT_LOCAL_REPO,
         )
 
     def __init__(self, **options):
-        super().__init__(**options)
+        super(OpbeansJava, self).__init__(**options)
         self.local_repo = options.get("opbeans_java_local_repo", self.DEFAULT_LOCAL_REPO)
         self.agent_branch = options.get("opbeans_agent_branch", self.DEFAULT_AGENT_BRANCH)
         self.agent_repo = options.get("opbeans_agent_repo", self.DEFAULT_AGENT_REPO)
