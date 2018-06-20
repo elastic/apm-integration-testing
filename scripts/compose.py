@@ -886,6 +886,7 @@ class OpbeansRuby(Service):
         )
         return content
 
+
 class OpbeansJava(Service):
     SERVICE_PORT = 3002
     DEFAULT_AGENT_BRANCH = "master"
@@ -949,6 +950,7 @@ class OpbeansJava(Service):
             ]
         )
         return content
+
 
 #
 # Service Tests
@@ -1503,7 +1505,9 @@ class OpbeansServiceTest(ServiceTest):
                       test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-ruby:3001/"]
                       interval: 5s
                       retries: 12""")  # noqa: 501
+
         )
+
     def test_opbeans_java(self):
         opbeans_java = OpbeansJava(version="6.3.10").render()
         self.assertEqual(
@@ -1551,6 +1555,7 @@ class OpbeansServiceTest(ServiceTest):
                       interval: 5s
                       retries: 12""") # noqa: 501
         )
+
 
 class PostgresServiceTest(ServiceTest):
     def test_postgres(self):
