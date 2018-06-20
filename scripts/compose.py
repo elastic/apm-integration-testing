@@ -909,7 +909,7 @@ class OpbeansJava(Service):
     def _content(self):
         depends_on = {
             "elasticsearch": {"condition": "service_healthy"},
-            "postgres": {"condition": "service_healthy"}
+            "postgres": {"condition": "service_healthy"},
         }
 
         if self.options.get("with_apm-server", True):
@@ -1504,7 +1504,53 @@ class OpbeansServiceTest(ServiceTest):
                       interval: 5s
                       retries: 12""")  # noqa: 501
         )
-
+    def test_opbeans_java(self):
+        opbeans_java = OpbeansJava(version="6.3.10").render()
+        self.assertEqual(
+            opbeans_java, yaml.load("""
+                opbeans-java:
+                    build:
+                      dockerfile: Dockerfile
+                      context: docker/opbeans/java
+                      args:
+                        - JAVA_AGENT_BRANCH=master
+                        - JAVA_AGENT_REPO=elastic/apm-agent-java
+                    container_name: localtesting_6.3.10_opbeans-java
+                    ports:
+                      - "127.0.0.1:3002:3002"
+                    environment:
+                      - ELASTIC_APM_SERVICE_NAME=opbeans-java
+                      - ELASTIC_APM_APPLICATION_PACKAGES=co.elastic.apm.opbeans
+                      - ELASTIC_APM_SERVER_URL=http://apm-server:8200
+                      - ELASTIC_APM_FLUSH_INTERVAL=5
+                      - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
+                      - ELASTIC_APM_SAMPLE_RATE=1
+                      - DATABASE_URL=jdbc:postgresql://postgres/opbeans?user=postgres&password=verysecure
+                      - DATABASE_DIALECT=POSTGRESQL
+                      - DATABASE_DRIVER=org.postgresql.Driver
+                      - REDIS_URL=redis://redis:6379
+                      - ELASTICSEARCH_URL=http://elasticsearch:9200
+                      - OPBEANS_SERVER_PORT=3002
+                      - JAVA_AGENT_VERSION
+                    logging:
+                      driver: 'json-file'
+                      options:
+                          max-size: '2m'
+                          max-file: '5'
+                    depends_on:
+                      elasticsearch:
+                        condition: service_healthy
+                      postgres:
+                        condition: service_healthy
+                      apm-server:
+                        condition: service_healthy
+                    volumes:
+                      - .:/local-install
+                    healthcheck:
+                      test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-java:3002/"]
+                      interval: 5s
+                      retries: 12""")
+        )
 
 class PostgresServiceTest(ServiceTest):
     def test_postgres(self):
