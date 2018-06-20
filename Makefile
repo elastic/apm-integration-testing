@@ -22,7 +22,8 @@ venv: requirements.txt
 	touch $(VENV);\
 
 lint: venv
-	flake8 tests/
+	flake8 tests/ scripts/compose.py
+
 .PHONY: lint
 
 start-env: venv
@@ -39,7 +40,7 @@ destroy-env: venv
 env-%: venv
 	$(MAKE) start-env
 
-test: test-all lint
+test: test-all
 
 test-agent-%-version: venv
 	pytest tests/agent/test_$*.py -v -m version $(JUNIT_OPT)/agent-$*-version-junit.xml
@@ -61,7 +62,7 @@ test-kibana: venv
 test-server: venv
 	pytest tests/server/ -v $(JUNIT_OPT)/server-junit.xml
 
-test-all: venv test-compose
+test-all: venv test-compose lint
 	pytest -v $(JUNIT_OPT)/all-junit.xml
 
 docker-test-%:

@@ -7,7 +7,7 @@ coverage==4.5.1
 docker-compose==1.21.1
 docker-compose-wait==1.0.0
 elasticsearch==6.0.0
-flake8==3.3.0
+flake8==3.5.0
 funcsigs==1.0.2
 future==0.16.0
 idna==2.6
