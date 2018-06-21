@@ -41,6 +41,26 @@ filebeat.autodiscover:
                   fields: ["message"]
                   target: "filebeat"
       - condition:
+          contains:
+            docker.container.image: "opbeans-node"
+        config:
+          - type: docker
+            containers.ids:
+              - "${data.docker.container.id}"
+            multiline.pattern: '^ '
+            multiline.negate: false
+            multiline.match: after
+      - condition:
+          contains:
+            docker.container.image: "postgres"
+        config:
+          - type: docker
+            containers.ids:
+              - "${data.docker.container.id}"
+            multiline.pattern: '^\t'
+            multiline.negate: false
+            multiline.match: after
+      - condition:
           and:
             - not:
                 contains:
@@ -48,6 +68,12 @@ filebeat.autodiscover:
             - not:
                 contains:
                   docker.container.image: "filebeat"
+            - not:
+                contains:
+                  docker.container.image: "opbeans-node"
+            - not:
+                contains:
+                  docker.container.image: "postgres"
         config:
           - type: docker
             containers.ids:
