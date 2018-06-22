@@ -7,8 +7,10 @@ apm-server
 **/tmp
 **/log
 **/.images
+.pytest_cache/
 venv/
 .coverage
 docker-compose.yml
 htmlcov/
 tests/results/
+docker/opbeans/node/sourcemaps/*.map
