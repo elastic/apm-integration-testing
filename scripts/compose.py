@@ -2071,7 +2071,7 @@ class LocalSetup(object):
             ),
         )
         docker_compose_path = args["docker_compose_path"]
-        json.dump(compose, docker_compose_path)
+        json.dump(compose, docker_compose_path, indent=2, sort_keys=True)
         docker_compose_path.flush()
 
         # try to figure out if writing to a real file, not amazing
