@@ -299,6 +299,8 @@ class ApmServer(DockerLoadableService, Service):
             ("apm-server.read_timeout", "1m"),
             ("apm-server.shutdown_timeout", "2m"),
             ("apm-server.write_timeout", "1m"),
+            ("logging.json", "true"),
+            ("logging.metrics.enabled", "false"),
             ("setup.kibana.host", "kibana:5601"),
             ("setup.template.settings.index.number_of_replicas", "0"),
             ("setup.template.settings.index.number_of_shards", "1"),
@@ -398,6 +400,31 @@ class Elasticsearch(DockerLoadableService, Service):
     @staticmethod
     def enabled():
         return True
+
+
+class Filebeat(DockerLoadableService, Service):
+    docker_path = "beats"
+
+    def __init__(self, **options):
+        super(Filebeat, self).__init__(**options)
+        config = "filebeat.yml" if self.at_least_version("6.1") else "filebeat.simple.yml"
+        self.filebeat_config_path = os.path.join(".", "docker", "filebeat", config)
+
+    def _content(self):
+        return dict(
+            command="filebeat -e --strict.perms=false",
+            depends_on={
+                "elasticsearch": {"condition": "service_healthy"},
+                "kibana": {"condition": "service_healthy"},
+            },
+            labels=None,
+            user="root",
+            volumes=[
+                self.filebeat_config_path + ":/usr/share/filebeat/filebeat.yml",
+                "/var/lib/docker/containers:/var/lib/docker/containers",
+                "/var/run/docker.sock:/var/run/docker.sock",
+            ]
+        )
 
 
 class Kibana(DockerLoadableService, Service):
@@ -1195,6 +1222,58 @@ class ElasticsearchServiceTest(ServiceTest):
         )
         self.assertTrue(
             "xpack.security.enabled=false" in elasticsearch["environment"], "xpack.security.enabled=false"
+        )
+
+
+class FilebeatServiceTest(ServiceTest):
+    def test_filebeat_pre_6_1(self):
+        filebeat = Filebeat(version="6.0.4", release=True).render()
+        self.assertEqual(
+            filebeat, yaml.load("""
+                filebeat:
+                    image: docker.elastic.co/beats/filebeat:6.0.4
+                    container_name: localtesting_6.0.4_filebeat
+                    user: root
+                    command: filebeat -e --strict.perms=false
+                    logging:
+                        driver: 'json-file'
+                        options:
+                            max-size: '2m'
+                            max-file: '5'
+                    depends_on:
+                        elasticsearch:
+                            condition: service_healthy
+                        kibana:
+                            condition: service_healthy
+                    volumes:
+                        - ./docker/filebeat/filebeat.simple.yml:/usr/share/filebeat/filebeat.yml
+                        - /var/lib/docker/containers:/var/lib/docker/containers
+                        - /var/run/docker.sock:/var/run/docker.sock""")
+        )
+
+    def test_filebeat_post_6_1(self):
+        filebeat = Filebeat(version="6.1.1", release=True).render()
+        self.assertEqual(
+            filebeat, yaml.load("""
+                filebeat:
+                    image: docker.elastic.co/beats/filebeat:6.1.1
+                    container_name: localtesting_6.1.1_filebeat
+                    user: root
+                    command: filebeat -e --strict.perms=false
+                    logging:
+                        driver: 'json-file'
+                        options:
+                            max-size: '2m'
+                            max-file: '5'
+                    depends_on:
+                        elasticsearch:
+                            condition: service_healthy
+                        kibana:
+                            condition: service_healthy
+                    volumes:
+                        - ./docker/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+                        - /var/lib/docker/containers:/var/lib/docker/containers
+                        - /var/run/docker.sock:/var/run/docker.sock""")
         )
 
 
@@ -2249,7 +2328,8 @@ class LocalTest(unittest.TestCase):
                 cap_drop: [ALL]
                 command: [apm-server, -e, -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
                     -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
-                    -E, apm-server.write_timeout=1m, -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
+                    -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
+                    -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
                     -E, xpack.monitoring.elasticsearch=true, -E, output.elasticsearch.enabled=true, -E, 'output.elasticsearch.hosts=[elasticsearch:9200]']
                 container_name: localtesting_6.2.10_apm-server
@@ -2333,7 +2413,8 @@ class LocalTest(unittest.TestCase):
                 cap_drop: [ALL]
                 command: [apm-server, -e, -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
                     -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
-                    -E, apm-server.write_timeout=1m, -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
+                    -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
+                    -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
                     -E, xpack.monitoring.elasticsearch=true, -E, output.elasticsearch.enabled=true, -E, 'output.elasticsearch.hosts=[elasticsearch:9200]']
                 container_name: localtesting_6.3.10_apm-server
@@ -2417,7 +2498,8 @@ class LocalTest(unittest.TestCase):
                 cap_drop: [ALL]
                 command: [apm-server, -e, -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
                     -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
-                    -E, apm-server.write_timeout=1m, -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
+                    -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
+                    -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
                     -E, xpack.monitoring.elasticsearch=true, -E, output.elasticsearch.enabled=true, -E, 'output.elasticsearch.hosts=[elasticsearch:9200]']
                 container_name: localtesting_7.0.10-alpha1_apm-server

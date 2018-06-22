@@ -1,0 +1,94 @@
+setup.template.settings:
+  index.number_of_shards: 1
+  index.codec: best_compression
+  index.number_of_replicas: 0
+
+setup.dashboards.enabled: true
+
+setup.kibana:
+  host: "kibana:5601"
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+
+logging.json: true
+logging.metrics.enabled: false
+
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      templates:
+      - condition:
+          contains:
+            docker.container.image: "apm-server"
+        config:
+          - type: docker
+            containers.ids:
+              - "${data.docker.container.id}"
+            processors:
+              - decode_json_fields:
+                  fields: ["message"]
+                  target: "apm-server"
+      - condition:
+          contains:
+            docker.container.image: "filebeat"
+        config:
+          - type: docker
+            containers.ids:
+              - "${data.docker.container.id}"
+            processors:
+              - decode_json_fields:
+                  fields: ["message"]
+                  target: "filebeat"
+      - condition:
+          contains:
+            docker.container.image: "kibana"
+        config:
+          - type: docker
+            containers.ids:
+              - "${data.docker.container.id}"
+            processors:
+              - decode_json_fields:
+                  fields: ["message"]
+                  target: "kibana"
+      - condition:
+          contains:
+            docker.container.image: "opbeans-node"
+        config:
+          - type: docker
+            containers.ids:
+              - "${data.docker.container.id}"
+            multiline.pattern: '^ '
+            multiline.negate: false
+            multiline.match: after
+      - condition:
+          contains:
+            docker.container.image: "postgres"
+        config:
+          - type: docker
+            containers.ids:
+              - "${data.docker.container.id}"
+            multiline.pattern: '^\t'
+            multiline.negate: false
+            multiline.match: after
+      - condition:
+          and:
+            - not:
+                contains:
+                  docker.container.image: "apm-server"
+            - not:
+                contains:
+                  docker.container.image: "filebeat"
+            - not:
+                contains:
+                  docker.container.image: "kibana"
+            - not:
+                contains:
+                  docker.container.image: "opbeans-node"
+            - not:
+                contains:
+                  docker.container.image: "postgres"
+        config:
+          - type: docker
+            containers.ids:
+              - "${data.docker.container.id}"
