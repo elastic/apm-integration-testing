@@ -13,3 +13,4 @@ venv/
 docker-compose.yml
 htmlcov/
 tests/results/
+docker/opbeans/node/sourcemaps/*.map
