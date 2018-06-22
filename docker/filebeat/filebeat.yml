@@ -53,6 +53,17 @@ filebeat.autodiscover:
                   target: "kibana"
       - condition:
           contains:
+            docker.container.image: "metricbeat"
+        config:
+          - type: docker
+            containers.ids:
+              - "${data.docker.container.id}"
+            processors:
+              - decode_json_fields:
+                  fields: ["message"]
+                  target: "metricbeat"
+      - condition:
+          contains:
             docker.container.image: "opbeans-node"
         config:
           - type: docker
@@ -82,6 +93,9 @@ filebeat.autodiscover:
             - not:
                 contains:
                   docker.container.image: "kibana"
+            - not:
+                contains:
+                  docker.container.image: "metricbeat"
             - not:
                 contains:
                   docker.container.image: "opbeans-node"
