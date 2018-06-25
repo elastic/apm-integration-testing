@@ -914,6 +914,25 @@ class OpbeansRuby(Service):
         return content
 
 
+class OpbeansRum(Service):
+    SERVICE_PORT = 9222
+
+    def _content(self):
+        content = dict(
+            build={"context": "docker/opbeans/rum", "dockerfile": "Dockerfile"},
+            cap_add=["SYS_ADMIN"],
+            depends_on={'opbeans-node': {'condition': 'service_healthy'}},
+            environment=[
+                "OPBEANS_BASE_URL=http://opbeans-node:3000",
+            ],
+            image=None,
+            labels=None,
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "opbeans-rum", path="/"),
+            ports=[self.publish_port(self.port, self.SERVICE_PORT)],
+        )
+        return content
+
+
 class OpbeansJava(Service):
     SERVICE_PORT = 3002
     DEFAULT_AGENT_BRANCH = "master"
@@ -1585,6 +1604,35 @@ class OpbeansServiceTest(ServiceTest):
                       interval: 5s
                       retries: 12""")  # noqa: 501
 
+        )
+
+    def test_opbeans_rum(self):
+        opbeans_rum = OpbeansRum(version="6.3.10").render()
+        self.assertEqual(
+            opbeans_rum, yaml.load("""
+                opbeans-rum:
+                     build:
+                         dockerfile: Dockerfile
+                         context: docker/opbeans/rum
+                     container_name: localtesting_6.3.10_opbeans-rum
+                     environment:
+                         - OPBEANS_BASE_URL=http://opbeans-node:3000
+                     cap_add:
+                         - SYS_ADMIN
+                     ports:
+                         - "127.0.0.1:9222:9222"
+                     logging:
+                          driver: 'json-file'
+                          options:
+                              max-size: '2m'
+                              max-file: '5'
+                     depends_on:
+                         opbeans-node:
+                             condition: service_healthy
+                     healthcheck:
+                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-rum:9222/"]
+                         interval: 5s
+                         retries: 12""")  # noqa: 501
         )
 
     def test_opbeans_java(self):
