@@ -78,7 +78,7 @@ dockerized-test:
 	mkdir -p -m 777 "$(PWD)/$(JUNIT_RESULTS_DIR)"
 	chmod 777 "$(PWD)/$(JUNIT_RESULTS_DIR)"
 	docker run \
-	  --name=apm-integraion-testing \
+	  --name=apm-integration-testing \
 	  --network=apm-integration-testing \
 	  --security-opt seccomp=unconfined \
 	  -e APM_SERVER_URL=http://apm-server:8200 \

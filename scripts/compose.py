@@ -726,6 +726,71 @@ class AgentRubyRails(Service):
 #
 # Opbeans Services
 #
+class OpbeansJava(Service):
+    SERVICE_PORT = 3002
+    DEFAULT_AGENT_BRANCH = "master"
+    DEFAULT_AGENT_REPO = "elastic/apm-agent-java"
+    DEFAULT_LOCAL_REPO = "."
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(OpbeansJava, cls).add_arguments(parser)
+        parser.add_argument(
+            '--opbeans-java-local-repo',
+            default=cls.DEFAULT_LOCAL_REPO,
+        )
+
+    def __init__(self, **options):
+        super(OpbeansJava, self).__init__(**options)
+        self.local_repo = options.get("opbeans_java_local_repo", self.DEFAULT_LOCAL_REPO)
+        self.agent_branch = options.get("opbeans_agent_branch", self.DEFAULT_AGENT_BRANCH)
+        self.agent_repo = options.get("opbeans_agent_repo", self.DEFAULT_AGENT_REPO)
+
+    def _content(self):
+        depends_on = {
+            "elasticsearch": {"condition": "service_healthy"},
+            "postgres": {"condition": "service_healthy"},
+        }
+
+        if not self.options.get("disable_apm_server", False):
+            depends_on["apm-server"] = {"condition": "service_healthy"}
+
+        content = dict(
+            build=dict(
+                context="docker/opbeans/java",
+                dockerfile="Dockerfile",
+                args=[
+                    "JAVA_AGENT_BRANCH=" + self.agent_branch,
+                    "JAVA_AGENT_REPO=" + self.agent_repo,
+                ]
+            ),
+            environment=[
+                "ELASTIC_APM_SERVICE_NAME=opbeans-java",
+                "ELASTIC_APM_APPLICATION_PACKAGES=co.elastic.apm.opbeans",
+                "ELASTIC_APM_SERVER_URL=http://apm-server:8200",
+                "ELASTIC_APM_FLUSH_INTERVAL=5",
+                "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
+                "ELASTIC_APM_SAMPLE_RATE=1",
+                "DATABASE_URL=jdbc:postgresql://postgres/opbeans?user=postgres&password=verysecure",
+                "DATABASE_DIALECT=POSTGRESQL",
+                "DATABASE_DRIVER=org.postgresql.Driver",
+                "REDIS_URL=redis://redis:6379",
+                "ELASTICSEARCH_URL=http://elasticsearch:9200",
+                "OPBEANS_SERVER_PORT={:d}".format(self.SERVICE_PORT),
+                "JAVA_AGENT_VERSION",
+            ],
+            depends_on=depends_on,
+            image=None,
+            labels=None,
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "opbeans-java", path="/"),
+            ports=[self.publish_port(self.port, self.SERVICE_PORT)],
+            volumes=[
+                "{}:/local-install".format(self.local_repo),
+            ]
+        )
+        return content
+
+
 class OpbeansNode(Service):
     SERVICE_PORT = 3000
     DEFAULT_LOCAL_REPO = "."
@@ -929,71 +994,6 @@ class OpbeansRum(Service):
             labels=None,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "opbeans-rum", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
-        )
-        return content
-
-
-class OpbeansJava(Service):
-    SERVICE_PORT = 3002
-    DEFAULT_AGENT_BRANCH = "master"
-    DEFAULT_AGENT_REPO = "elastic/apm-agent-java"
-    DEFAULT_LOCAL_REPO = "."
-
-    @classmethod
-    def add_arguments(cls, parser):
-        super(OpbeansJava, cls).add_arguments(parser)
-        parser.add_argument(
-            '--opbeans-java-local-repo',
-            default=cls.DEFAULT_LOCAL_REPO,
-        )
-
-    def __init__(self, **options):
-        super(OpbeansJava, self).__init__(**options)
-        self.local_repo = options.get("opbeans_java_local_repo", self.DEFAULT_LOCAL_REPO)
-        self.agent_branch = options.get("opbeans_agent_branch", self.DEFAULT_AGENT_BRANCH)
-        self.agent_repo = options.get("opbeans_agent_repo", self.DEFAULT_AGENT_REPO)
-
-    def _content(self):
-        depends_on = {
-            "elasticsearch": {"condition": "service_healthy"},
-            "postgres": {"condition": "service_healthy"},
-        }
-
-        if not self.options.get("disable_apm_server", False):
-            depends_on["apm-server"] = {"condition": "service_healthy"}
-
-        content = dict(
-            build=dict(
-                context="docker/opbeans/java",
-                dockerfile="Dockerfile",
-                args=[
-                    "JAVA_AGENT_BRANCH=" + self.agent_branch,
-                    "JAVA_AGENT_REPO=" + self.agent_repo,
-                ]
-            ),
-            environment=[
-                "ELASTIC_APM_SERVICE_NAME=opbeans-java",
-                "ELASTIC_APM_APPLICATION_PACKAGES=co.elastic.apm.opbeans",
-                "ELASTIC_APM_SERVER_URL=http://apm-server:8200",
-                "ELASTIC_APM_FLUSH_INTERVAL=5",
-                "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
-                "ELASTIC_APM_SAMPLE_RATE=1",
-                "DATABASE_URL=jdbc:postgresql://postgres/opbeans?user=postgres&password=verysecure",
-                "DATABASE_DIALECT=POSTGRESQL",
-                "DATABASE_DRIVER=org.postgresql.Driver",
-                "REDIS_URL=redis://redis:6379",
-                "ELASTICSEARCH_URL=http://elasticsearch:9200",
-                "OPBEANS_SERVER_PORT={:d}".format(self.SERVICE_PORT),
-                "JAVA_AGENT_VERSION",
-            ],
-            depends_on=depends_on,
-            image=None,
-            labels=None,
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "opbeans-java", path="/"),
-            ports=[self.publish_port(self.port, self.SERVICE_PORT)],
-            volumes=[
-                "{}:/local-install".format(self.local_repo),
-            ]
         )
         return content
 
@@ -1434,6 +1434,54 @@ class MetricbeatServiceTest(ServiceTest):
 
 
 class OpbeansServiceTest(ServiceTest):
+    def test_opbeans_java(self):
+        opbeans_java = OpbeansJava(version="6.3.10").render()
+        self.assertEqual(
+            opbeans_java, yaml.load("""
+                opbeans-java:
+                    build:
+                      dockerfile: Dockerfile
+                      context: docker/opbeans/java
+                      args:
+                        - JAVA_AGENT_BRANCH=master
+                        - JAVA_AGENT_REPO=elastic/apm-agent-java
+                    container_name: localtesting_6.3.10_opbeans-java
+                    ports:
+                      - "127.0.0.1:3002:3002"
+                    environment:
+                      - ELASTIC_APM_SERVICE_NAME=opbeans-java
+                      - ELASTIC_APM_APPLICATION_PACKAGES=co.elastic.apm.opbeans
+                      - ELASTIC_APM_SERVER_URL=http://apm-server:8200
+                      - ELASTIC_APM_FLUSH_INTERVAL=5
+                      - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
+                      - ELASTIC_APM_SAMPLE_RATE=1
+                      - DATABASE_URL=jdbc:postgresql://postgres/opbeans?user=postgres&password=verysecure
+                      - DATABASE_DIALECT=POSTGRESQL
+                      - DATABASE_DRIVER=org.postgresql.Driver
+                      - REDIS_URL=redis://redis:6379
+                      - ELASTICSEARCH_URL=http://elasticsearch:9200
+                      - OPBEANS_SERVER_PORT=3002
+                      - JAVA_AGENT_VERSION
+                    logging:
+                      driver: 'json-file'
+                      options:
+                          max-size: '2m'
+                          max-file: '5'
+                    depends_on:
+                      elasticsearch:
+                        condition: service_healthy
+                      postgres:
+                        condition: service_healthy
+                      apm-server:
+                        condition: service_healthy
+                    volumes:
+                      - .:/local-install
+                    healthcheck:
+                      test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-java:3002/"]
+                      interval: 5s
+                      retries: 12""") # noqa: 501
+        )
+
     def test_opbeans_node(self):
         opbeans_node = OpbeansNode(version="6.2.4").render()
         self.assertEqual(
@@ -1633,54 +1681,6 @@ class OpbeansServiceTest(ServiceTest):
                          test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-rum:9222/"]
                          interval: 5s
                          retries: 12""")  # noqa: 501
-        )
-
-    def test_opbeans_java(self):
-        opbeans_java = OpbeansJava(version="6.3.10").render()
-        self.assertEqual(
-            opbeans_java, yaml.load("""
-                opbeans-java:
-                    build:
-                      dockerfile: Dockerfile
-                      context: docker/opbeans/java
-                      args:
-                        - JAVA_AGENT_BRANCH=master
-                        - JAVA_AGENT_REPO=elastic/apm-agent-java
-                    container_name: localtesting_6.3.10_opbeans-java
-                    ports:
-                      - "127.0.0.1:3002:3002"
-                    environment:
-                      - ELASTIC_APM_SERVICE_NAME=opbeans-java
-                      - ELASTIC_APM_APPLICATION_PACKAGES=co.elastic.apm.opbeans
-                      - ELASTIC_APM_SERVER_URL=http://apm-server:8200
-                      - ELASTIC_APM_FLUSH_INTERVAL=5
-                      - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
-                      - ELASTIC_APM_SAMPLE_RATE=1
-                      - DATABASE_URL=jdbc:postgresql://postgres/opbeans?user=postgres&password=verysecure
-                      - DATABASE_DIALECT=POSTGRESQL
-                      - DATABASE_DRIVER=org.postgresql.Driver
-                      - REDIS_URL=redis://redis:6379
-                      - ELASTICSEARCH_URL=http://elasticsearch:9200
-                      - OPBEANS_SERVER_PORT=3002
-                      - JAVA_AGENT_VERSION
-                    logging:
-                      driver: 'json-file'
-                      options:
-                          max-size: '2m'
-                          max-file: '5'
-                    depends_on:
-                      elasticsearch:
-                        condition: service_healthy
-                      postgres:
-                        condition: service_healthy
-                      apm-server:
-                        condition: service_healthy
-                    volumes:
-                      - .:/local-install
-                    healthcheck:
-                      test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-java:3002/"]
-                      interval: 5s
-                      retries: 12""") # noqa: 501
         )
 
 
