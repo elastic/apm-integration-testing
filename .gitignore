@@ -8,7 +8,7 @@ apm-server
 **/log
 **/.images
 .pytest_cache/
-venv/
+venv*/
 .coverage
 docker-compose.yml
 htmlcov/
