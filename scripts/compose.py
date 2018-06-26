@@ -2126,10 +2126,17 @@ class LocalSetup(object):
         if hasattr(docker_compose_path, "name") and os.path.isdir(os.path.dirname(docker_compose_path.name)):
             docker_compose_path.close()
             print("Starting stack services..\n")
-            cmd = ['docker-compose', '-f', docker_compose_path.name, 'up', '-d']
-            if args["force_build"]:
-                cmd.append("--build")
-            subprocess.call(cmd)
+
+            # always build if possible, should be quick for rebuilds
+            if any("build" in service for service in compose["services"].values()):
+                docker_compose_build = ["docker-compose", "-f", docker_compose_path.name, "build", "--pull"]
+                if args["force_build"]:
+                    docker_compose_build.append("--no-cache")
+                subprocess.call(docker_compose_build)
+
+            # really start
+            docker_compose_up = ["docker-compose", "-f", docker_compose_path.name, "up", "-d"]
+            subprocess.call(docker_compose_up)
 
     @staticmethod
     def status_handler():
