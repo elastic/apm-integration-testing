@@ -265,15 +265,18 @@ class DockerLoadableService(object):
             return
 
         version = self.options["version"]
+        image = self.docker_name
+        if self.options.get("oss"):
+            image += "-oss"
         if self.options.get("bc"):
             return "https://staging.elastic.co/{version}-{sha}/docker/{image}-{version}.tar.gz".format(
                 sha=self.options["bc"],
-                image=self.docker_name,
+                image=image,
                 version=version,
             )
 
         return "https://snapshots.elastic.co/docker/{image}-{version}-SNAPSHOT.tar.gz".format(
-            image=self.docker_name,
+            image=image,
             version=version,
         )
 
@@ -1143,6 +1146,12 @@ class ApmServerServiceTest(ServiceTest):
         apm_server = ApmServer(version="6.3.100", release=True).render()["apm-server"]
         self.assertEqual(
             apm_server["image"], "docker.elastic.co/apm/apm-server:6.3.100"
+        )
+
+    def test_oss_buildcandidate(self):
+        apm_server = ApmServer(version="6.3.100", oss=True, bc="123").render()["apm-server"]
+        self.assertEqual(
+            apm_server["image"], "docker.elastic.co/apm/apm-server-oss:6.3.100"
         )
 
     def test_oss_snapshot(self):
@@ -2731,8 +2740,12 @@ class LocalTest(unittest.TestCase):
                  dict(version="6.3.10")),
             Case(Elasticsearch, "https://staging.elastic.co/6.3.10-be84d930/docker/elasticsearch-6.3.10.tar.gz",
                  dict(bc="be84d930", version="6.3.10")),
+            Case(Elasticsearch, "https://staging.elastic.co/6.3.10-be84d930/docker/elasticsearch-oss-6.3.10.tar.gz",
+                 dict(bc="be84d930", oss=True, version="6.3.10")),
             Case(Elasticsearch, "https://snapshots.elastic.co/docker/elasticsearch-6.3.10-SNAPSHOT.tar.gz",
                  dict(version="6.3.10")),
+            Case(Elasticsearch, "https://snapshots.elastic.co/docker/elasticsearch-oss-6.3.10-SNAPSHOT.tar.gz",
+                 dict(oss=True, version="6.3.10")),
             Case(Kibana, "https://snapshots.elastic.co/docker/kibana-6.3.10-SNAPSHOT.tar.gz",
                  dict(version="6.3.10")),
         ]
