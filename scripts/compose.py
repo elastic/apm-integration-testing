@@ -518,7 +518,7 @@ class Postgres(Service):
     def _content(self):
         return dict(
             environment=["POSTGRES_DB=opbeans", "POSTGRES_PASSWORD=verysecure"],
-            healthcheck={"interval": "10s", "test": ["CMD", "pg_isready", "-h", "postgres"]},
+            healthcheck={"interval": "10s", "test": ["CMD", "pg_isready", "-h", "postgres", "-U", "postgres"]},
             image="postgres:10",
             labels=None,
             ports=[self.publish_port(self.port, self.SERVICE_PORT, expose=True)],
@@ -1721,7 +1721,7 @@ class PostgresServiceTest(ServiceTest):
                         - pgdata:/var/lib/postgresql/data
                     healthcheck:
                         interval: 10s
-                        test: ["CMD", "pg_isready", "-h", "postgres"]""")
+                        test: ["CMD", "pg_isready", "-h", "postgres", "-U", "postgres"]""")
         )
 
 
