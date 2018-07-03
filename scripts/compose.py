@@ -72,7 +72,8 @@ def discover_services(mod=None):
         mod = sys.modules[__name__]
     for obj in dir(mod):
         cls = getattr(mod, obj)
-        if inspect.isclass(cls) and issubclass(cls, Service) and cls != Service:
+        if inspect.isclass(cls) and issubclass(cls, Service) \
+                and cls not in (Service, OpbeansService):
             ret.append(cls)
     return ret
 
