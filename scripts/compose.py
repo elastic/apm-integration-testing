@@ -730,6 +730,58 @@ class AgentRubyRails(Service):
 #
 # Opbeans Services
 #
+class OpbeansGo(Service):
+    SERVICE_PORT = 3003
+    DEFAULT_AGENT_BRANCH = "master"
+    DEFAULT_AGENT_REPO = "elastic/apm-agent-go"
+
+    def __init__(self, **options):
+        super(OpbeansGo, self).__init__(**options)
+        self.agent_branch = options.get("opbeans_agent_branch", self.DEFAULT_AGENT_BRANCH)
+        self.agent_repo = options.get("opbeans_agent_repo", self.DEFAULT_AGENT_REPO)
+
+    def _content(self):
+        depends_on = {
+            "elasticsearch": {"condition": "service_healthy"},
+            "postgres": {"condition": "service_healthy"},
+            "redis": {"condition": "service_healthy"},
+        }
+
+        if not self.options.get("disable_apm_server", False):
+            depends_on["apm-server"] = {"condition": "service_healthy"}
+
+        content = dict(
+            build=dict(
+                context="docker/opbeans/go",
+                dockerfile="Dockerfile",
+                args=[
+                    "GO_AGENT_BRANCH=" + self.agent_branch,
+                    "GO_AGENT_REPO=" + self.agent_repo,
+                ]
+            ),
+            environment=[
+                "ELASTIC_APM_SERVER_URL=http://apm-server:8200",
+                "ELASTIC_APM_JS_SERVER_URL=http://localhost:8200",
+                "ELASTIC_APM_FLUSH_INTERVAL=5",
+                "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
+                "ELASTIC_APM_SAMPLE_RATE=1",
+                "ELASTICSEARCH_URL=http://elasticsearch:9200",
+                "OPBEANS_CACHE=redis://redis:6379",
+                "OPBEANS_PORT={:d}".format(self.SERVICE_PORT),
+                "PGHOST=postgres",
+                "PGPORT=5432",
+                "PGUSER=postgres",
+                "PGPASSWORD=verysecure",
+                "PGSSLMODE=disable",
+            ],
+            depends_on=depends_on,
+            image=None,
+            labels=None,
+            ports=[self.publish_port(self.port, self.SERVICE_PORT)],
+        )
+        return content
+
+
 class OpbeansJava(Service):
     SERVICE_PORT = 3002
     DEFAULT_AGENT_BRANCH = "master"
@@ -1448,6 +1500,50 @@ class MetricbeatServiceTest(ServiceTest):
 
 
 class OpbeansServiceTest(ServiceTest):
+    def test_opbeans_go(self):
+        opbeans_go = OpbeansGo(version="6.3.10").render()
+        self.assertEqual(
+            opbeans_go, yaml.load("""
+                opbeans-go:
+                    build:
+                      dockerfile: Dockerfile
+                      context: docker/opbeans/go
+                      args:
+                        - GO_AGENT_BRANCH=master
+                        - GO_AGENT_REPO=elastic/apm-agent-go
+                    container_name: localtesting_6.3.10_opbeans-go
+                    ports:
+                      - "127.0.0.1:3003:3003"
+                    environment:
+                      - ELASTIC_APM_SERVER_URL=http://apm-server:8200
+                      - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
+                      - ELASTIC_APM_FLUSH_INTERVAL=5
+                      - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
+                      - ELASTIC_APM_SAMPLE_RATE=1
+                      - ELASTICSEARCH_URL=http://elasticsearch:9200
+                      - OPBEANS_CACHE=redis://redis:6379
+                      - OPBEANS_PORT=3003
+                      - PGHOST=postgres
+                      - PGPORT=5432
+                      - PGUSER=postgres
+                      - PGPASSWORD=verysecure
+                      - PGSSLMODE=disable
+                    logging:
+                      driver: 'json-file'
+                      options:
+                          max-size: '2m'
+                          max-file: '5'
+                    depends_on:
+                      elasticsearch:
+                        condition: service_healthy
+                      postgres:
+                        condition: service_healthy
+                      redis:
+                        condition: service_healthy
+                      apm-server:
+                        condition: service_healthy""") # noqa: 501
+        )
+
     def test_opbeans_java(self):
         opbeans_java = OpbeansJava(version="6.3.10").render()
         self.assertEqual(
