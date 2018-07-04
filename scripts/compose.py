@@ -378,6 +378,21 @@ class Elasticsearch(DockerLoadableService, Service):
         super(Elasticsearch, self).__init__(**options)
         if not self.options.get("oss") and not self.at_least_version("6.3"):
             self.docker_name = self.name() + "-platinum"
+        self.plugins = self.options.get("elasticsearch_plugins")
+        if self.plugins:
+            gen_file_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "docker", "elasticsearch"))
+            gen_file_path = os.path.join(gen_file_dir, "Dockerfile.generated")
+            self.dockerfile = open(gen_file_path, "w")  # maybe closed later
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(Elasticsearch, cls).add_arguments(parser)
+        parser.add_argument(
+            "--elasticsearch-plugin",
+            action="append",
+            dest="elasticsearch_plugins",
+            help="enable elasticsearch plugins",
+        )
 
     def _content(self):
         environment = self.environment + ["path.data=/usr/share/elasticsearch/data/" + self.version]
@@ -386,7 +401,7 @@ class Elasticsearch(DockerLoadableService, Service):
             environment.append("xpack.license.self_generated.type=trial")
             if self.at_least_version("6.3"):
                 environment.append("xpack.monitoring.collection.enabled=true")
-        return dict(
+        content = dict(
             environment=environment,
             healthcheck={
                 "interval": "20",
@@ -400,6 +415,21 @@ class Elasticsearch(DockerLoadableService, Service):
             },
             volumes=["esdata:/usr/share/elasticsearch/data"]
         )
+        # customize image for plugins
+        if self.plugins:
+            content.update({
+                "build": {
+                    "context": "docker/elasticsearch",
+                    "dockerfile": "Dockerfile.generated",
+                },
+                "image": self.default_image(self.version + "-CUSTOM"),
+            })
+            self.dockerfile.write("FROM {}\n".format(self.default_image(self.version)))
+            for plugin in self.plugins:
+                self.dockerfile.write("RUN elasticsearch-plugin install {}\n".format(plugin))
+            self.dockerfile.close()
+
+        return content
 
     @staticmethod
     def enabled():
@@ -1307,6 +1337,32 @@ class ElasticsearchServiceTest(ServiceTest):
         )
         self.assertTrue(
             "xpack.license.self_generated.type=trial" in elasticsearch["environment"], "xpack.license type"
+        )
+
+    def test_custom_6_3_release(self):
+        es_service = Elasticsearch(version="6.3.4", snapshot=True, elasticsearch_plugins=["analysis-icu"])
+        es_service.dockerfile.close()
+
+        class nopCloseStringIO(stringIO):
+            def close(self): pass
+
+        dockerfile = nopCloseStringIO()
+        es_service.dockerfile = dockerfile
+
+        elasticsearch = es_service.render()["elasticsearch"]
+        self.assertEqual(
+            elasticsearch["image"], "docker.elastic.co/elasticsearch/elasticsearch:6.3.4-CUSTOM-SNAPSHOT"
+        )
+        self.assertEqual(
+            elasticsearch["build"], {"context": "docker/elasticsearch", "dockerfile": "Dockerfile.generated"}
+        )
+        generated = dockerfile.getvalue()
+        self.assertEqual(
+            (
+                "FROM docker.elastic.co/elasticsearch/elasticsearch:6.3.4-SNAPSHOT\n"
+                "RUN elasticsearch-plugin install analysis-icu\n"
+            ),
+            generated
         )
 
 
