@@ -72,7 +72,8 @@ def discover_services(mod=None):
         mod = sys.modules[__name__]
     for obj in dir(mod):
         cls = getattr(mod, obj)
-        if inspect.isclass(cls) and issubclass(cls, Service) and cls != Service:
+        if inspect.isclass(cls) and issubclass(cls, Service) \
+                and cls not in (Service, OpbeansService):
             ret.append(cls)
     return ret
 
@@ -730,7 +731,29 @@ class AgentRubyRails(Service):
 #
 # Opbeans Services
 #
-class OpbeansGo(Service):
+
+class OpbeansService(Service):
+    DEFAULT_APM_SERVER_URL = "http://apm-server:8200"
+
+    def __init__(self, **options):
+        super(OpbeansService, self).__init__(**options)
+        self.apm_server_url = options.get("opbeans_apm_server_url", self.DEFAULT_APM_SERVER_URL)
+
+    @classmethod
+    def add_arguments(cls, parser):
+        """add service-specific command line arguments"""
+        # allow port overrides
+        super(OpbeansService, cls).add_arguments(parser)
+        if hasattr(cls, 'DEFAULT_SERVICE_NAME'):
+            parser.add_argument(
+                '--' + cls.name() + '-service-name',
+                default=cls.DEFAULT_SERVICE_NAME,
+                dest=cls.option_name() + '_service_name',
+                help="service name"
+            )
+
+
+class OpbeansGo(OpbeansService):
     SERVICE_PORT = 3003
     DEFAULT_AGENT_BRANCH = "master"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-go"
@@ -760,7 +783,7 @@ class OpbeansGo(Service):
                 ]
             ),
             environment=[
-                "ELASTIC_APM_SERVER_URL=http://apm-server:8200",
+                "ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
                 "ELASTIC_APM_JS_SERVER_URL=http://localhost:8200",
                 "ELASTIC_APM_FLUSH_INTERVAL=5",
                 "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
@@ -782,11 +805,12 @@ class OpbeansGo(Service):
         return content
 
 
-class OpbeansJava(Service):
+class OpbeansJava(OpbeansService):
     SERVICE_PORT = 3002
     DEFAULT_AGENT_BRANCH = "master"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-java"
     DEFAULT_LOCAL_REPO = "."
+    DEFAULT_SERVICE_NAME = 'opbeans-java'
 
     @classmethod
     def add_arguments(cls, parser):
@@ -801,6 +825,7 @@ class OpbeansJava(Service):
         self.local_repo = options.get("opbeans_java_local_repo", self.DEFAULT_LOCAL_REPO)
         self.agent_branch = options.get("opbeans_agent_branch", self.DEFAULT_AGENT_BRANCH)
         self.agent_repo = options.get("opbeans_agent_repo", self.DEFAULT_AGENT_REPO)
+        self.service_name = options.get("opbeans_java_service_name", self.DEFAULT_SERVICE_NAME)
 
     def _content(self):
         depends_on = {
@@ -821,9 +846,9 @@ class OpbeansJava(Service):
                 ]
             ),
             environment=[
-                "ELASTIC_APM_SERVICE_NAME=opbeans-java",
+                "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
                 "ELASTIC_APM_APPLICATION_PACKAGES=co.elastic.apm.opbeans",
-                "ELASTIC_APM_SERVER_URL=http://apm-server:8200",
+                "ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
                 "ELASTIC_APM_FLUSH_INTERVAL=5",
                 "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
                 "ELASTIC_APM_SAMPLE_RATE=1",
@@ -847,9 +872,10 @@ class OpbeansJava(Service):
         return content
 
 
-class OpbeansNode(Service):
+class OpbeansNode(OpbeansService):
     SERVICE_PORT = 3000
     DEFAULT_LOCAL_REPO = "."
+    DEFAULT_SERVICE_NAME = "opbeans-node"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -862,6 +888,7 @@ class OpbeansNode(Service):
     def __init__(self, **options):
         super(OpbeansNode, self).__init__(**options)
         self.local_repo = options.get("opbeans_node_local_repo", self.DEFAULT_LOCAL_REPO)
+        self.service_name = options.get("opbeans_node_service_name", self.DEFAULT_SERVICE_NAME)
 
     def _content(self):
         depends_on = {
@@ -875,16 +902,16 @@ class OpbeansNode(Service):
         content = dict(
             build={"context": "docker/opbeans/node", "dockerfile": "Dockerfile"},
             environment=[
-                "ELASTIC_APM_SERVER_URL=http://apm-server:8200",
+                "ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
                 "ELASTIC_APM_APP_NAME=opbeans-node",
-                "ELASTIC_APM_SERVICE_NAME=opbeans-node",
+                "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
                 "ELASTIC_APM_LOG_LEVEL=debug",
                 "ELASTIC_APM_SOURCE_LINES_ERROR_APP_FRAMES",
                 "ELASTIC_APM_SOURCE_LINES_SPAN_APP_FRAMES=5",
                 "ELASTIC_APM_SOURCE_LINES_ERROR_LIBRARY_FRAMES",
                 "ELASTIC_APM_SOURCE_LINES_SPAN_LIBRARY_FRAMES",
                 "WORKLOAD_ELASTIC_APM_APP_NAME=workload",
-                "WORKLOAD_ELASTIC_APM_SERVER_URL=http://apm-server:8200",
+                "WORKLOAD_ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
                 "OPBEANS_SERVER_PORT=3000",
                 "OPBEANS_SERVER_HOSTNAME=opbeans-node",
                 "NODE_ENV=production",
@@ -908,11 +935,12 @@ class OpbeansNode(Service):
         return content
 
 
-class OpbeansPython(Service):
+class OpbeansPython(OpbeansService):
     SERVICE_PORT = 8000
     DEFAULT_AGENT_REPO = "elastic/apm-agent-python"
     DEFAULT_AGENT_BRANCH = "2.x"
     DEFAULT_LOCAL_REPO = "."
+    DEFAULT_SERVICE_NAME = 'opbeans-python'
 
     @classmethod
     def add_arguments(cls, parser):
@@ -930,6 +958,7 @@ class OpbeansPython(Service):
         else:
             self.agent_branch = self.DEFAULT_AGENT_BRANCH
         self.agent_repo = options.get("opbeans_agent_repo", self.DEFAULT_AGENT_REPO)
+        self.service_name = options.get("opbeans_python_service_name", self.DEFAULT_SERVICE_NAME)
 
     def _content(self):
         depends_on = {
@@ -945,13 +974,9 @@ class OpbeansPython(Service):
             build={"context": "docker/opbeans/python", "dockerfile": "Dockerfile"},
             environment=[
                 "DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans",
-                "ELASTIC_APM_APP_NAME=opbeans-python",
-                "ELASTIC_APM_SERVICE_NAME=opbeans-python",
-                "ELASTIC_APM_SERVER=http://apm-server:8200",
-                "ELASTIC_APM_SERVER_URL=http://apm-server:8200",
+                "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
+                "ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
                 "ELASTIC_APM_FLUSH_INTERVAL=5",
-                "ELASTIC_APM_TRACES_SEND_FREQ=5",
-                "ELASTIC_APM_TRANSACTION_SEND_FREQ=5",
                 "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
                 "ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.5",
                 "ELASTIC_APM_SOURCE_LINES_ERROR_APP_FRAMES",
@@ -977,11 +1002,12 @@ class OpbeansPython(Service):
         return content
 
 
-class OpbeansRuby(Service):
+class OpbeansRuby(OpbeansService):
     SERVICE_PORT = 3001
     DEFAULT_AGENT_BRANCH = "master"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-ruby"
     DEFAULT_LOCAL_REPO = "."
+    DEFAULT_SERVICE_NAME = "opbeans-ruby"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -996,6 +1022,7 @@ class OpbeansRuby(Service):
         self.local_repo = options.get("opbeans_ruby_local_repo", self.DEFAULT_LOCAL_REPO)
         self.agent_branch = options.get("opbeans_agent_branch", self.DEFAULT_AGENT_BRANCH)
         self.agent_repo = options.get("opbeans_agent_repo", self.DEFAULT_AGENT_REPO)
+        self.service_name = options.get("opbeans_ruby_service_name", self.DEFAULT_SERVICE_NAME)
 
     def _content(self):
         depends_on = {
@@ -1010,8 +1037,8 @@ class OpbeansRuby(Service):
         content = dict(
             build={"context": "docker/opbeans/ruby", "dockerfile": "Dockerfile"},
             environment=[
-                "ELASTIC_APM_SERVER_URL=http://apm-server:8200",
-                "ELASTIC_APM_SERVICE_NAME=opbeans-ruby",
+                "ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
+                "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
                 "DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans-ruby",
                 "REDIS_URL=redis://redis:6379",
                 "ELASTICSEARCH_URL=http://elasticsearch:9200",
@@ -1036,6 +1063,7 @@ class OpbeansRuby(Service):
 
 
 class OpbeansRum(Service):
+    # OpbeansRum is not really an Opbeans service, so we inherit from Service
     SERVICE_PORT = 9222
 
     def _content(self):
@@ -1662,13 +1690,9 @@ class OpbeansServiceTest(ServiceTest):
                             max-file: '5'
                     environment:
                         - DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans
-                        - ELASTIC_APM_APP_NAME=opbeans-python
                         - ELASTIC_APM_SERVICE_NAME=opbeans-python
-                        - ELASTIC_APM_SERVER=http://apm-server:8200
                         - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                         - ELASTIC_APM_FLUSH_INTERVAL=5
-                        - ELASTIC_APM_TRACES_SEND_FREQ=5
-                        - ELASTIC_APM_TRANSACTION_SEND_FREQ=5
                         - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
                         - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.5
                         - ELASTIC_APM_SOURCE_LINES_ERROR_APP_FRAMES
@@ -2079,6 +2103,14 @@ class LocalSetup(object):
             help='use oss container images',
             dest='oss',
             default=False,
+        )
+
+        parser.add_argument(
+            '--opbeans-apm-server-url',
+            action='store',
+            help='server_url to use for Opbeans services',
+            dest='opbeans_apm_server_url',
+            default='http://apm-server:8200',
         )
 
         self.store_options(parser)
