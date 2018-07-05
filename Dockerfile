@@ -1,4 +1,4 @@
-FROM python:3
+FROM python:3.6
 
 # install latest Google Chrome & Chromedriver
 RUN curl -SLO https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
