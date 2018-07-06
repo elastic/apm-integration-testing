@@ -1,4 +1,4 @@
-PyYAML==3.12
+PyYAML==3.13
 attrs==17.3.0
 backports-abc==0.5
 certifi==2017.11.5
