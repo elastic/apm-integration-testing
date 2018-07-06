@@ -55,7 +55,7 @@ else:
 PACKAGE_NAME = 'localmanager'
 __version__ = "4.0.0"
 
-DEFAULT_STACK_VERSION = "6.3.0"
+DEFAULT_STACK_VERSION = "6.3.2"
 
 
 #
@@ -1569,7 +1569,7 @@ class OpbeansServiceTest(ServiceTest):
                       redis:
                         condition: service_healthy
                       apm-server:
-                        condition: service_healthy""") # noqa: 501
+                        condition: service_healthy""")  # noqa: 501
         )
 
     def test_opbeans_java(self):
@@ -1617,7 +1617,7 @@ class OpbeansServiceTest(ServiceTest):
                     healthcheck:
                       test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-java:3002/"]
                       interval: 5s
-                      retries: 12""") # noqa: 501
+                      retries: 12""")  # noqa: 501
         )
 
     def test_opbeans_node(self):
@@ -1887,7 +1887,7 @@ class LocalSetup(object):
         '6.0': '6.0.1',
         '6.1': '6.1.3',
         '6.2': '6.2.5',
-        '6.3': '6.3.0',
+        '6.3': '6.3.2',
         '6.4': '6.4.0',
         'master': '7.0.0-alpha1'
     }
