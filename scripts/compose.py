@@ -467,6 +467,7 @@ class Logstash(DockerLoadableService, Service):
         return dict(
             depends_on={"elasticsearch": {"condition": "service_healthy"}},
             environment={"ELASTICSEARCH_URL": "http://elasticsearch:9200"},
+            healthcheck=curl_healthcheck(9600, "logstash", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT), "9600"],
             volumes=["./docker/logstash/pipeline/:/usr/share/logstash/pipeline/"]
         )
@@ -1491,13 +1492,18 @@ class LogstashServiceTest(ServiceTest):
             depends_on:
                 elasticsearch: {condition: service_healthy}
             environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200'}
+            healthcheck:
+                test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://logstash:9600/"]
+                interval: 5s
+                retries: 12
             image: docker.elastic.co/logstash/logstash:6.3.0
             labels: [co.elatic.apm.stack-version=6.3.0]
             logging:
                 driver: json-file
                 options: {max-file: '5', max-size: 2m}
             ports: ['127.0.0.1:5044:5044', '9600']
-            volumes: ['./docker/logstash/pipeline/:/usr/share/logstash/pipeline/']""")
+            volumes: ['./docker/logstash/pipeline/:/usr/share/logstash/pipeline/']""")  # noqa: 501
+
         )
 
 
