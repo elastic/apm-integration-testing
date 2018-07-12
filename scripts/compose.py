@@ -169,7 +169,8 @@ class Service(object):
         if hasattr(self, "SERVICE_PORT"):
             self.port = options.get(self.option_name() + "_port", self.SERVICE_PORT)
 
-        self._version = options.get("version", DEFAULT_STACK_VERSION)
+        # version is service specific or stack or default
+        self._version = options.get(self.option_name() + "_version") or options.get("version", DEFAULT_STACK_VERSION)
 
     def default_container_name(self):
         return "_".join(("localtesting", self.version, self.name()))
@@ -248,6 +249,12 @@ class Service(object):
                 dest=cls.option_name() + '_port',
                 help="service port"
             )
+        parser.add_argument(
+            '--' + cls.name() + '-version',
+            type=str,
+            dest=cls.option_name() + '_version',
+            help="stack version override"
+        )
 
     def image_download_url(self):
         pass
@@ -265,7 +272,7 @@ class DockerLoadableService(object):
         if self.options.get("release"):
             return
 
-        version = self.options["version"]
+        version = self.version
         image = self.docker_name
         if self.options.get("oss"):
             image += "-oss"
@@ -1300,6 +1307,12 @@ class ApmServerServiceTest(ServiceTest):
         self.assertTrue(
             "127.0.0.1:{}:8200".format(custom_port) in apm_server["ports"], apm_server["ports"]
         )
+
+    def test_apm_server_custom_version(self):
+        apm_server = ApmServer(version="6.3.100", apm_server_version="6.12.0", release=True).render()["apm-server"]
+        self.assertEqual(apm_server["image"], "docker.elastic.co/apm/apm-server:6.12.0")
+        self.assertEqual(apm_server["image"], "docker.elastic.co/apm/apm-server:6.12.0")
+        self.assertEqual(apm_server["labels"], ["co.elatic.apm.stack-version=6.12.0"])
 
 
 class ElasticsearchServiceTest(ServiceTest):
@@ -2762,6 +2775,34 @@ class LocalTest(unittest.TestCase):
         mock_load_images.assert_called_once_with(
             {
                 "https://snapshots.elastic.co/docker/apm-server-7.0.10-alpha1-SNAPSHOT.tar.gz",
+                "https://snapshots.elastic.co/docker/elasticsearch-7.0.10-alpha1-SNAPSHOT.tar.gz",
+                "https://snapshots.elastic.co/docker/kibana-7.0.10-alpha1-SNAPSHOT.tar.gz",
+            },
+            image_cache_dir)
+
+    @mock.patch(__name__ + '.load_images')
+    def test_start_master_custom_apm_server_version(self, mock_load_images):
+        docker_compose_yml = stringIO()
+        image_cache_dir = "/foo"
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
+            setup = LocalSetup(
+                argv=["start", "master", "--docker-compose-path", "-", "--image-cache-dir", image_cache_dir,
+                      "--apm-server-version", "6.3.15"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        self.assertEqual(
+            "docker.elastic.co/apm/apm-server:6.3.15-SNAPSHOT",
+            got["services"]["apm-server"]["image"]
+        )
+        self.assertEqual(
+            "docker.elastic.co/elasticsearch/elasticsearch:7.0.10-alpha1-SNAPSHOT",
+            got["services"]["elasticsearch"]["image"]
+        )
+        mock_load_images.assert_called_once_with(
+            {
+                "https://snapshots.elastic.co/docker/apm-server-6.3.15-SNAPSHOT.tar.gz",
                 "https://snapshots.elastic.co/docker/elasticsearch-7.0.10-alpha1-SNAPSHOT.tar.gz",
                 "https://snapshots.elastic.co/docker/kibana-7.0.10-alpha1-SNAPSHOT.tar.gz",
             },
