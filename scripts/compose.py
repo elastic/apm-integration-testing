@@ -169,8 +169,16 @@ class Service(object):
         if hasattr(self, "SERVICE_PORT"):
             self.port = options.get(self.option_name() + "_port", self.SERVICE_PORT)
 
+        self._bc = options.get(self.option_name() + "_bc") or options.get("bc")
+        self._oss = options.get(self.option_name() + "_oss") or options.get("oss")
+        self._release = options.get(self.option_name() + "_release") or options.get("release")
+
         # version is service specific or stack or default
         self._version = options.get(self.option_name() + "_version") or options.get("version", DEFAULT_STACK_VERSION)
+
+    @property
+    def bc(self):
+        return self._bc
 
     def default_container_name(self):
         return "_".join(("localtesting", self.version, self.name()))
@@ -178,11 +186,11 @@ class Service(object):
     def default_image(self, version_override=None):
         """default container image path constructor"""
         image = "/".join((self.docker_registry, self.docker_path, self.docker_name))
-        if self.options.get("oss"):
+        if self.oss:
             image += "-oss"
         image += ":" + (version_override or self.version)
         # no command line option for setting snapshot, snapshot == no bc and not release
-        if self.options.get("snapshot") or not (any((self.options.get("bc"), self.options.get("release")))):
+        if self.options.get("snapshot") or not (any((self.options.get("bc"), self.release))):
             image += "-SNAPSHOT"
         return image
 
@@ -214,10 +222,18 @@ class Service(object):
     def option_name(cls):
         return cls.name().replace("-", "_")
 
+    @property
+    def oss(self):
+        return self._oss
+
     @staticmethod
     def publish_port(external, internal, expose=False):
         addr = "" if expose else "127.0.0.1:"
         return addr + ":".join((str(external), str(internal)))
+
+    @property
+    def release(self):
+        return self._release
 
     def render(self):
         content = self._content()
@@ -249,12 +265,20 @@ class Service(object):
                 dest=cls.option_name() + '_port',
                 help="service port"
             )
-        parser.add_argument(
-            '--' + cls.name() + '-version',
-            type=str,
-            dest=cls.option_name() + '_version',
-            help="stack version override"
-        )
+        for image_detail_key in ("bc", "version"):
+            parser.add_argument(
+                "--" + cls.name() + "-" + image_detail_key,
+                type=str,
+                dest=cls.option_name() + "_" + image_detail_key,
+                help="stack {} override".format(image_detail_key),
+            )
+        for image_detail_key in ("oss", "release"):
+            parser.add_argument(
+                "--" + cls.name() + "-" + image_detail_key,
+                action="store_true",
+                dest=cls.option_name() + "_" + image_detail_key,
+                help="stack {} override".format(image_detail_key),
+            )
 
     def image_download_url(self):
         pass
@@ -269,16 +293,16 @@ class DockerLoadableService(object):
 
     def image_download_url(self):
         # Elastic releases are public
-        if self.options.get("release"):
+        if self.release:
             return
 
         version = self.version
         image = self.docker_name
-        if self.options.get("oss"):
+        if self.oss:
             image += "-oss"
-        if self.options.get("bc"):
+        if self.bc:
             return "https://staging.elastic.co/{version}-{sha}/docker/{image}-{version}.tar.gz".format(
-                sha=self.options["bc"],
+                sha=self.bc,
                 image=image,
                 version=version,
             )
@@ -384,12 +408,12 @@ class Elasticsearch(DockerLoadableService, Service):
 
     def __init__(self, **options):
         super(Elasticsearch, self).__init__(**options)
-        if not self.options.get("oss") and not self.at_least_version("6.3"):
+        if not self.oss and not self.at_least_version("6.3"):
             self.docker_name = self.name() + "-platinum"
 
     def _content(self):
         environment = self.environment + ["path.data=/usr/share/elasticsearch/data/" + self.version]
-        if not self.options.get("oss"):
+        if not self.oss:
             environment.append("xpack.security.enabled=false")
             environment.append("xpack.license.self_generated.type=trial")
             if self.at_least_version("6.3"):
@@ -446,10 +470,10 @@ class Kibana(DockerLoadableService, Service):
 
     def __init__(self, **options):
         super(Kibana, self).__init__(**options)
-        if not self.at_least_version("6.3") and not self.options.get("oss"):
+        if not self.at_least_version("6.3") and not self.oss:
             self.docker_name = self.name() + "-x-pack"
         self.environment = self.default_environment.copy()
-        if not self.options.get("oss"):
+        if not self.oss:
             self.environment["XPACK_MONITORING_ENABLED"] = "true"
             if self.at_least_version("6.3"):
                 self.environment["XPACK_XPACK_MAIN_TELEMETRY_ENABLED"] = "false"
@@ -2781,17 +2805,18 @@ class LocalTest(unittest.TestCase):
             image_cache_dir)
 
     @mock.patch(__name__ + '.load_images')
-    def test_start_master_custom_apm_server_version(self, mock_load_images):
+    def test_start_master_custom_images(self, mock_load_images):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
             setup = LocalSetup(
                 argv=["start", "master", "--docker-compose-path", "-", "--image-cache-dir", image_cache_dir,
-                      "--apm-server-version", "6.3.15"])
+                      "--apm-server-version", "6.3.15", "--kibana-oss"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
         got = yaml.load(docker_compose_yml)
+
         self.assertEqual(
             "docker.elastic.co/apm/apm-server:6.3.15-SNAPSHOT",
             got["services"]["apm-server"]["image"]
@@ -2800,11 +2825,15 @@ class LocalTest(unittest.TestCase):
             "docker.elastic.co/elasticsearch/elasticsearch:7.0.10-alpha1-SNAPSHOT",
             got["services"]["elasticsearch"]["image"]
         )
+        self.assertEqual(
+            "docker.elastic.co/kibana/kibana-oss:7.0.10-alpha1-SNAPSHOT",
+            got["services"]["kibana"]["image"]
+        )
         mock_load_images.assert_called_once_with(
             {
                 "https://snapshots.elastic.co/docker/apm-server-6.3.15-SNAPSHOT.tar.gz",
                 "https://snapshots.elastic.co/docker/elasticsearch-7.0.10-alpha1-SNAPSHOT.tar.gz",
-                "https://snapshots.elastic.co/docker/kibana-7.0.10-alpha1-SNAPSHOT.tar.gz",
+                "https://snapshots.elastic.co/docker/kibana-oss-7.0.10-alpha1-SNAPSHOT.tar.gz",
             },
             image_cache_dir)
 
