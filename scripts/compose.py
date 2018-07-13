@@ -172,6 +172,7 @@ class Service(object):
         self._bc = options.get(self.option_name() + "_bc") or options.get("bc")
         self._oss = options.get(self.option_name() + "_oss") or options.get("oss")
         self._release = options.get(self.option_name() + "_release") or options.get("release")
+        self._snapshot = options.get(self.option_name() + "_snapshot") or options.get("snapshot")
 
         # version is service specific or stack or default
         self._version = options.get(self.option_name() + "_version") or options.get("version", DEFAULT_STACK_VERSION)
@@ -190,7 +191,7 @@ class Service(object):
             image += "-oss"
         image += ":" + (version_override or self.version)
         # no command line option for setting snapshot, snapshot == no bc and not release
-        if self.options.get("snapshot") or not (any((self.options.get("bc"), self.release))):
+        if self.snapshot or not (any((self.bc, self.release))):
             image += "-SNAPSHOT"
         return image
 
@@ -235,6 +236,10 @@ class Service(object):
     def release(self):
         return self._release
 
+    @property
+    def snapshot(self):
+        return self._snapshot
+
     def render(self):
         content = self._content()
         content.update(dict(
@@ -272,7 +277,7 @@ class Service(object):
                 dest=cls.option_name() + "_" + image_detail_key,
                 help="stack {} override".format(image_detail_key),
             )
-        for image_detail_key in ("oss", "release"):
+        for image_detail_key in ("oss", "release", "snapshot"):
             parser.add_argument(
                 "--" + cls.name() + "-" + image_detail_key,
                 action="store_true",
