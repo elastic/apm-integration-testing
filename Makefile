@@ -43,13 +43,13 @@ env-%: venv
 test: test-all
 
 test-agent-%-version: venv
-	pytest tests/agent/test_$*.py -v -m version $(JUNIT_OPT)/agent-$*-version-junit.xml
+	pytest tests/agent/test_$*.py -v -s -m version $(JUNIT_OPT)/agent-$*-version-junit.xml
 
 test-agent-%: venv
-	pytest tests/agent/test_$*.py -v $(JUNIT_OPT)/agent-$*-junit.xml
+	pytest tests/agent/test_$*.py -v -s $(JUNIT_OPT)/agent-$*-junit.xml
 
 test-compose: venv
-	pytest scripts/compose.py -v $(JUNIT_OPT)/compose-junit.xml
+	pytest scripts/compose.py -v -s $(JUNIT_OPT)/compose-junit.xml
 
 test-compose-2:
 	virtualenv --python=python2.7 venv2
@@ -57,13 +57,13 @@ test-compose-2:
 	./venv2/bin/pytest --noconftest scripts/compose.py
 
 test-kibana: venv
-	pytest tests/kibana/test_integration.py -v $(JUNIT_OPT)/kibana-junit.xml
+	pytest tests/kibana/test_integration.py -v -s $(JUNIT_OPT)/kibana-junit.xml
 
 test-server: venv
-	pytest tests/server/ -v $(JUNIT_OPT)/server-junit.xml
+	pytest tests/server/ -v -s $(JUNIT_OPT)/server-junit.xml
 
 test-all: venv test-compose lint
-	pytest -v $(JUNIT_OPT)/all-junit.xml
+	pytest -v -s $(JUNIT_OPT)/all-junit.xml
 
 docker-test-%:
 	TARGET=test-$* $(MAKE) dockerized-test
