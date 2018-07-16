@@ -45,6 +45,8 @@ class Concurrent:
                 self.agent = "ruby"
             elif self.app_name in ("gonethttpapp"):
                 self.agent = "go"
+            elif self.app_name in ("springapp"):
+                self.agent = "java"
             else:
                 raise Exception(
                     "Missing agent for app {}".format(app_name))
@@ -197,7 +199,7 @@ class Concurrent:
             except KeyError:
                 # The Go agent doesn't support reporting framework:
                 #   https://github.com/elastic/apm-agent-go/issues/69
-                assert agent == 'go'
+                assert agent == 'go' or agent == 'java'
 
             search = context['request']['url']['search']
             lang = lookup(context, 'service', 'language', 'name')
@@ -214,6 +216,10 @@ class Concurrent:
                 assert framework in ("Ruby on Rails"), context
             elif agent == 'go':
                 assert lang == "go", context
+                assert transaction['type'] == 'request'
+                assert search == 'q=1', context
+            elif agent == 'java':
+                assert lang == "Java", context
                 assert transaction['type'] == 'request'
                 assert search == 'q=1', context
             else:

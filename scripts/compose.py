@@ -778,9 +778,27 @@ class AgentRubyRails(Service):
         )
 
 
+class AgentJavaSpring(Service):
+    SERVICE_PORT = 8090
+
+    def _content(self):
+        return dict(
+            build={"context": "docker/java/spring", "dockerfile": "Dockerfile"},
+            container_name="javaspring",
+            image=None,
+            labels=None,
+            logging=None,
+            environment={
+                "ELASTIC_APM_SERVICE_NAME": "springapp",
+                "ELASTIC_APM_SERVER_URL": "http://apm-server:8200",
+            },
+            ports=[self.publish_port(self.port, self.SERVICE_PORT)],
+        )
+
 #
 # Opbeans Services
 #
+
 
 class OpbeansService(Service):
     DEFAULT_APM_SERVER_URL = "http://apm-server:8200"
@@ -1276,6 +1294,23 @@ class AgentServiceTest(ServiceTest):
             """)  # noqa: 501
         )
 
+    def test_agent_java_spring(self):
+        agent = AgentJavaSpring().render()
+        self.assertDictEqual(
+            agent, yaml.load("""
+                agent-java-spring:
+                    build:
+                        dockerfile: Dockerfile
+                        context: docker/java/spring
+                    container_name: javaspring
+                    environment:
+                        ELASTIC_APM_SERVICE_NAME: springapp
+                        ELASTIC_APM_SERVER_URL: http://apm-server:8200
+                    ports:
+                        - 127.0.0.1:8090:8090
+            """)
+        )
+
 
 class ApmServerServiceTest(ServiceTest):
     def test_default_buildcandidate(self):
@@ -1647,7 +1682,7 @@ class OpbeansServiceTest(ServiceTest):
                       redis:
                         condition: service_healthy
                       apm-server:
-                        condition: service_healthy""") # noqa: 501
+                        condition: service_healthy""")  # noqa: 501
         )
 
     def test_opbeans_java(self):
@@ -1695,7 +1730,7 @@ class OpbeansServiceTest(ServiceTest):
                     healthcheck:
                       test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-java:3002/"]
                       interval: 5s
-                      retries: 12""") # noqa: 501
+                      retries: 12""")  # noqa: 501
         )
 
     def test_opbeans_node(self):
