@@ -44,6 +44,13 @@ def rails(apm_server):
                  apm_server)
 
 
+@pytest.fixture(scope="session")
+def java_spring(apm_server):
+    return Agent(default.from_env('JAVA_SPRING_SERVICE_NAME'),
+                 default.from_env('JAVA_SPRING_URL'),
+                 apm_server)
+
+
 class Agent:
     def __init__(self, app_name, url, apm_server):
         self.app_name = app_name

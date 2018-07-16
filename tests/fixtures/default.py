@@ -19,6 +19,8 @@ GO_NETHTTP_SERVICE_NAME = "gonethttpapp"
 GO_NETHTTP_URL = "http://localhost:8080"
 RAILS_SERVICE_NAME = "railsapp"
 RAILS_URL = "http://localhost:8020"
+JAVA_SPRING_SERVICE_NAME = "springapp"
+JAVA_SPRING_URL = "http://localhost:8090"
 
 
 def from_env(var):
