@@ -1,4 +1,4 @@
 APM_SERVER:
   - master
   - '6.3'
-  - '6.2'
+  - '6.2;--release'

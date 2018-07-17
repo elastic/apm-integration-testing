@@ -9,7 +9,7 @@ fi
 
 version_type=${1%;*}
 version=${1#*;}
-stack_version=$2
+stack_args=${2//;/ }
 
 # use latest release by default
 node_js_pkg="elastic-apm-node@${version}"
@@ -21,6 +21,6 @@ srcdir=`dirname $0`
 test -z "$srcdir" && srcdir=.
 . ${srcdir}/common.sh
 
-DEFAULT_COMPOSE_ARGS="$2 --no-kibana --with-agent-nodejs-express --nodejs-agent-package='${node_js_pkg}' --force-build"
+DEFAULT_COMPOSE_ARGS="${stack_args} --no-kibana --with-agent-nodejs-express --nodejs-agent-package='${node_js_pkg}' --force-build"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
 runTests env-agent-nodejs docker-test-agent-nodejs-version
