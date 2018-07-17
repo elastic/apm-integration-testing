@@ -406,8 +406,11 @@ class ApmServer(DockerLoadableService, Service):
 
 
 class Elasticsearch(DockerLoadableService, Service):
-    environment = ["cluster.name=docker-cluster", "bootstrap.memory_lock=true", "discovery.type=single-node",
-                   "\"ES_JAVA_OPTS=-Xms1g -Xmx1g\""]
+    default_environment = ["cluster.name=docker-cluster", "bootstrap.memory_lock=true", "discovery.type=single-node"]
+    default_es_java_opts = {
+        "-Xms": "1g",
+        "-Xmx": "1g",
+    }
 
     SERVICE_PORT = 9200
 
@@ -416,15 +419,25 @@ class Elasticsearch(DockerLoadableService, Service):
         if not self.oss and not self.at_least_version("6.3"):
             self.docker_name = self.name() + "-platinum"
 
-    def _content(self):
-        environment = self.environment + ["path.data=/usr/share/elasticsearch/data/" + self.version]
+        # construct elasticsearch environment variables
+        # TODO: add command line option for java options (gr)
+        es_java_opts = dict(self.default_es_java_opts)
+        if self.at_least_version("6.4"):
+            # per https://github.com/elastic/elasticsearch/pull/32138/files
+            es_java_opts["-XX:UseAVX"] = "=2"
+
+        java_opts_env = "ES_JAVA_OPTS=" + " ".join(["{}{}".format(k, v) for k, v in es_java_opts.items()])
+        self.environment = self.default_environment + [
+                java_opts_env, "path.data=/usr/share/elasticsearch/data/" + self.version]
         if not self.oss:
-            environment.append("xpack.security.enabled=false")
-            environment.append("xpack.license.self_generated.type=trial")
+            self.environment.append("xpack.security.enabled=false")
+            self.environment.append("xpack.license.self_generated.type=trial")
             if self.at_least_version("6.3"):
-                environment.append("xpack.monitoring.collection.enabled=true")
+                self.environment.append("xpack.monitoring.collection.enabled=true")
+
+    def _content(self):
         return dict(
-            environment=environment,
+            environment=self.environment,
             healthcheck={
                 "interval": "20",
                 "retries": 10,
@@ -2593,7 +2606,7 @@ class LocalTest(unittest.TestCase):
 
             elasticsearch:
                 container_name: localtesting_6.2.10_elasticsearch
-                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, discovery.type=single-node, '"ES_JAVA_OPTS=-Xms1g -Xmx1g"', path.data=/usr/share/elasticsearch/data/6.2.10, xpack.security.enabled=false, xpack.license.self_generated.type=trial]
+                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, discovery.type=single-node, 'ES_JAVA_OPTS=-Xms1g -Xmx1g', path.data=/usr/share/elasticsearch/data/6.2.10, xpack.security.enabled=false, xpack.license.self_generated.type=trial]
                 healthcheck:
                     interval: '20'
                     retries: 10
@@ -2678,7 +2691,7 @@ class LocalTest(unittest.TestCase):
 
             elasticsearch:
                 container_name: localtesting_6.3.10_elasticsearch
-                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, discovery.type=single-node, '"ES_JAVA_OPTS=-Xms1g -Xmx1g"', path.data=/usr/share/elasticsearch/data/6.3.10, xpack.security.enabled=false, xpack.license.self_generated.type=trial, xpack.monitoring.collection.enabled=true]
+                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, discovery.type=single-node, 'ES_JAVA_OPTS=-Xms1g -Xmx1g', path.data=/usr/share/elasticsearch/data/6.3.10, xpack.security.enabled=false, xpack.license.self_generated.type=trial, xpack.monitoring.collection.enabled=true]
                 healthcheck:
                     interval: '20'
                     retries: 10
@@ -2763,7 +2776,7 @@ class LocalTest(unittest.TestCase):
 
             elasticsearch:
                 container_name: localtesting_7.0.10-alpha1_elasticsearch
-                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, discovery.type=single-node, '"ES_JAVA_OPTS=-Xms1g -Xmx1g"', path.data=/usr/share/elasticsearch/data/7.0.10-alpha1, xpack.security.enabled=false, xpack.license.self_generated.type=trial, xpack.monitoring.collection.enabled=true]
+                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, discovery.type=single-node, 'ES_JAVA_OPTS=-Xms1g -Xmx1g -XX:UseAVX=2', path.data=/usr/share/elasticsearch/data/7.0.10-alpha1, xpack.security.enabled=false, xpack.license.self_generated.type=trial, xpack.monitoring.collection.enabled=true]
                 healthcheck:
                     interval: '20'
                     retries: 10
