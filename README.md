@@ -144,10 +144,10 @@ Those scripts shut down any existing testing containers and start a fresh new en
 
 Various combinations of versions of agents and the Elastic Stack are tested together to ensure compatibility.
 The matrix is defined using [apm_server.yml](https://github.com/elastic/apm-integration-testing/blob/master/tests/versions/apm_server.yml) for one axis and then a per-agent specification for the other axis.
+Certain exclusions are defined on a per agent basis.
 For example, [the nodejs matrix](https://apm-ci.elastic.co/view/All/job/elastic+apm-integration-testing+master+multijob-nodejs-agent-versions/) is defined in [nodejs.yml](https://github.com/elastic/apm-integration-testing/blob/master/tests/versions/nodejs.yml).
 When those tests run, `scripts/ci/versions_nodejs.sh` is invoked with the product of those files, eg `scripts/ci/versions_nodejs.sh 'github;master' '6.3'`.
 The Elastic Stack version argument accepts an optional list of semi-colon separated arguments that will be passed to `scripts/compose.py` when building the test stack.
-Specific combinations are excluded using [nodejs_exclude](https://github.com/elastic/apm-integration-testing/blob/master/tests/versions/nodejs_exclude.yml)
 
 ### Agent Development
 

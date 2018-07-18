@@ -5,3 +5,5 @@ PYTHON_AGENT:
   - 'github;master'
   - 'release;latest' 
   - 'release;2.0'
+
+exclude: []
