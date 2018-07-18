@@ -4,20 +4,30 @@ This repo contains tools for end to end (eg agent -> apm server -> elasticsearch
 
 [![Build Status](https://apm-ci.elastic.co/view/All/job/elastic+apm-integration-testing+master+push/badge/icon?style=plastic)](https://apm-ci.elastic.co/job/elastic+apm-integration-testing+master+push/)
 
-## Installation Requirements
+## Prerequisites
 
 The basic requirements for starting a local environment are:
 
-- docker
-- python (python3 preferred)
+- Docker
+- Python (version 3 preferred)
 
-This repo is tested with python 3 but best effort is made to make starting/stopping environments work with python 2.7.
+This repo is tested with Python 3 but best effort is made to make starting/stopping environments work with Python 2.7.
 
-On a Mac with Homebrew and Homebrew Cask:
+### Docker
 
-```sh
-brew cask install docker
-```
+[Installation instructions](https://www.docker.com/community-edition)
+
+### Python 3
+
+- Windows: [Installation instructions](https://www.python.org/downloads/windows/)
+- Mac (using [Homebrew](https://brew.sh/)):
+  ```sh
+  brew install python
+  ```
+- Debian/Ubuntu
+  ```sh
+  sudo apt-get install python3
+  ```
 
 ## Running Local Enviroments
 
