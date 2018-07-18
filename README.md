@@ -24,7 +24,7 @@ This repo is tested with Python 3 but best effort is made to make starting/stopp
   ```sh
   brew install python
   ```
-- Linux
+- Debian/Ubuntu
   ```sh
   sudo apt-get install python3
   ```
