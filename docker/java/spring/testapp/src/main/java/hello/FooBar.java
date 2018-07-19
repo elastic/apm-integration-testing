@@ -10,8 +10,7 @@ public class FooBar {
     }
 
     public String bar() {
-        ElasticApm.currentSpan().createSpan();
-
+        Span sp = ElasticApm.currentSpan().createSpan();
         sp.setName("extra");
         sp.setType("extra");
         extra();

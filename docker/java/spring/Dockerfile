@@ -19,6 +19,6 @@ WORKDIR /app
 
 EXPOSE 8090
 
-CMD ["java", "-javaagent:../agent/apm-agent.jar", "-Delastic.apm.service_name=my-service", "-Delastic.apm.application_packages=hello", "-jar","target/hello-spring-0.1.jar"]
+CMD ["java", "-javaagent:../agent/apm-agent.jar", "-Delastic.apm.service_name=springapp", "-Delastic.apm.application_packages=hello", "-Delastic.apm.ignore_urls=/healthcheck", "-jar","target/hello-spring-0.1.jar"]
 
 

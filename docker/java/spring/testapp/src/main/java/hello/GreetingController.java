@@ -30,12 +30,18 @@ public class GreetingController {
     @GetMapping("/bar")
     @ResponseBody
     public String bar() {
-        ElasticApm.currentSpan().createSpan();
+        Span sp = ElasticApm.currentSpan().createSpan();
         sp.setName("bar");
         sp.setType("just a regular bar");
         String bar = new FooBar().bar();
         sp.end();
         return bar;
+    }
+    
+    @GetMapping("/healthcheck")
+    @ResponseBody
+    public String healthcheck() {
+        return "OK";
     }
 
 }
