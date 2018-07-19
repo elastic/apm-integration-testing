@@ -8,12 +8,12 @@ COPY testapp /app
 WORKDIR /agent
 
 RUN curl -L https://github.com/elastic/apm-agent-java/archive/master.tar.gz | tar --strip-components=1 --exclude=demo/db.sql.bz2 -xzv \
-    && mvn package -DskipTests \
+    && mvn --batch-mode package -DskipTests \
     && export JAVA_AGENT_BUILT_VERSION=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:1.3.1:exec) \
     && mv elastic-apm-agent/target/elastic-apm-agent-${JAVA_AGENT_BUILT_VERSION}.jar apm-agent.jar \
-    && mvn install:install-file -Dfile=apm-agent-api/target/apm-agent-api-${JAVA_AGENT_BUILT_VERSION}.jar -DgroupId=co.elastic.apm -DartifactId=apm-agent-api -Dversion=${JAVA_AGENT_BUILT_VERSION} -Dpackaging=jar \
+    && mvn --batch-mode install:install-file -Dfile=apm-agent-api/target/apm-agent-api-${JAVA_AGENT_BUILT_VERSION}.jar -DgroupId=co.elastic.apm -DartifactId=apm-agent-api -Dversion=${JAVA_AGENT_BUILT_VERSION} -Dpackaging=jar \
     && cd /app \
-    && mvn -DAGENT_API_VERSION=${JAVA_AGENT_BUILT_VERSION} package
+    && mvn --batch-mode -DAGENT_API_VERSION=${JAVA_AGENT_BUILT_VERSION} package
 
 WORKDIR /app
 
