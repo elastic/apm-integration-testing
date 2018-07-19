@@ -1116,13 +1116,30 @@ class OpbeansRum(Service):
     # OpbeansRum is not really an Opbeans service, so we inherit from Service
     SERVICE_PORT = 9222
 
+    @classmethod
+    def add_arguments(cls, parser):
+        super(OpbeansRum, cls).add_arguments(parser)
+        parser.add_argument(
+            '--opbeans-rum-backend-service',
+            default='opbeans-node',
+        )
+        parser.add_argument(
+            '--opbeans-rum-backend-port',
+            default='3000',
+        )
+
+    def __init__(self, **options):
+        super(OpbeansRum, self).__init__(**options)
+        self.backend_service = options.get('opbeans_rum_backend_service', 'opbeans-node')
+        self.backend_port = options.get('opbeans_rum_backend_port', '3000')
+
     def _content(self):
         content = dict(
             build={"context": "docker/opbeans/rum", "dockerfile": "Dockerfile"},
             cap_add=["SYS_ADMIN"],
-            depends_on={'opbeans-node': {'condition': 'service_healthy'}},
+            depends_on={self.backend_service: {'condition': 'service_healthy'}},
             environment=[
-                "OPBEANS_BASE_URL=http://opbeans-node:3000",
+                "OPBEANS_BASE_URL=http://{}:{}".format(self.backend_service, self.backend_port),
             ],
             image=None,
             labels=None,
