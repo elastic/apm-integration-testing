@@ -792,6 +792,7 @@ class AgentJavaSpring(Service):
                 "ELASTIC_APM_SERVICE_NAME": "springapp",
                 "ELASTIC_APM_SERVER_URL": "http://apm-server:8200",
             },
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "javaspring"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
@@ -1306,6 +1307,11 @@ class AgentServiceTest(ServiceTest):
                     environment:
                         ELASTIC_APM_SERVICE_NAME: springapp
                         ELASTIC_APM_SERVER_URL: http://apm-server:8200
+                    healthcheck:
+                        interval: 5s
+                        retries: 12
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output",
+                        "/dev/null", "http://javaspring:8090/healthcheck"]
                     ports:
                         - 127.0.0.1:8090:8090
             """)

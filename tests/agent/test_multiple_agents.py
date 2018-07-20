@@ -55,12 +55,12 @@ def test_conc_req_all_agents(es, apm_server, flask, django, express, rails, go_n
     java_spring_f = Concurrent.Endpoint(java_spring.foo.url,
                                         java_spring.app_name,
                                         ["foo"],
-                                        "GET /foo",
+                                        "GreetingController#foo",
                                         events_no=500)
     java_spring_b = Concurrent.Endpoint(java_spring.bar.url,
                                         java_spring.app_name,
                                         ["bar", "extra"],
-                                        "GET /bar",
+                                        "GreetingController#bar",
                                         events_no=500)
 
     Concurrent(es, [

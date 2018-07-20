@@ -3,7 +3,6 @@ import copy
 import os
 import logging
 import time
-
 from tornado import ioloop, httpclient
 
 import timeout_decorator
@@ -93,7 +92,7 @@ class Concurrent:
             ioloop.IOLoop.instance().stop()
 
     def load_test(self):
-        http_client = httpclient.AsyncHTTPClient(max_clients=4)
+        http_client = httpclient.AsyncHTTPClient(max_clients=1)
         for endpoint in self.endpoints:
             for _ in range(endpoint.events_no):
                 self.num_reqs += 1
@@ -171,7 +170,7 @@ class Concurrent:
 
             timestamp = datetime.strptime(lookup(hit, '_source', '@timestamp'),
                                           '%Y-%m-%dT%H:%M:%S.%fZ')
-            assert datetime.utcnow() - timedelta(minutes=it) < timestamp < datetime.utcnow(), \
+            assert datetime.utcnow() - timedelta(minutes=it) < timestamp < datetime.utcnow() + timedelta(seconds=1), \
                 "{} is too far of {} ".format(timestamp, datetime.utcnow())
 
             assert transaction['result'] == 'HTTP 2xx', transaction['result']
@@ -199,7 +198,7 @@ class Concurrent:
             except KeyError:
                 # The Go agent doesn't support reporting framework:
                 #   https://github.com/elastic/apm-agent-go/issues/69
-                assert agent == 'go' or agent == 'java'
+                assert agent in ('go', 'java')
 
             search = context['request']['url']['search']
             lang = lookup(context, 'service', 'language', 'name')
