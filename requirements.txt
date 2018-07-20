@@ -25,7 +25,7 @@ selenium==3.8.0
 singledispatch==3.4.0.3
 six==1.11.0
 timeout-decorator==0.4.0
-tornado==4.5.2
+tornado==5.1
 urllib3==1.22
 virtualenv==16.0.0
 waiting==1.4.1
