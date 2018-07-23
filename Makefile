@@ -88,6 +88,7 @@ dockerized-test:
 	  -e EXPRESS_URL="http://expressapp:8010" \
 	  -e FLASK_URL="http://flaskapp:8001" \
 	  -e GO_NETHTTP_URL="http://gonethttpapp:8080" \
+	  -e JAVA_SPRING_URL="http://javaspring:8090" \
 	  -e RAILS_URL="http://railsapp:8020" \
 	  -e PYTHONDONTWRITEBYTECODE=1 \
 	  -v "$(PWD)/$(JUNIT_RESULTS_DIR)":"/app/$(JUNIT_RESULTS_DIR)" \
