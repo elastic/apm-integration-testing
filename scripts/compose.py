@@ -1054,7 +1054,7 @@ class OpbeansPython(OpbeansService):
                 "ELASTIC_APM_SOURCE_LINES_SPAN_LIBRARY_FRAMES",
                 "REDIS_URL=redis://redis:6379",
                 "ELASTICSEARCH_URL=http://elasticsearch:9200",
-                "OPBEANS_SERVER_URL=http://opbeans-python:8000",
+                "OPBEANS_SERVER_URL=http://opbeans-python:3000",
                 "PYTHON_AGENT_BRANCH=" + self.agent_branch,
                 "PYTHON_AGENT_REPO=" + self.agent_repo,
                 "PYTHON_AGENT_VERSION",
@@ -1063,7 +1063,7 @@ class OpbeansPython(OpbeansService):
             image=None,
             labels=None,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "opbeans-python", path="/"),
-            ports=[self.publish_port(self.port, self.SERVICE_PORT)],
+            ports=[self.publish_port(self.port, 3000)],
             volumes=[
                 "{}:/local-install".format(self.local_repo),
             ]
@@ -1801,7 +1801,7 @@ class OpbeansServiceTest(ServiceTest):
                         context: docker/opbeans/python
                     container_name: localtesting_6.2.4_opbeans-python
                     ports:
-                        - "127.0.0.1:8000:8000"
+                        - "127.0.0.1:8000:3000"
                     logging:
                         driver: 'json-file'
                         options:
@@ -1820,7 +1820,7 @@ class OpbeansServiceTest(ServiceTest):
                         - ELASTIC_APM_SOURCE_LINES_SPAN_LIBRARY_FRAMES
                         - REDIS_URL=redis://redis:6379
                         - ELASTICSEARCH_URL=http://elasticsearch:9200
-                        - OPBEANS_SERVER_URL=http://opbeans-python:8000
+                        - OPBEANS_SERVER_URL=http://opbeans-python:3000
                         - PYTHON_AGENT_BRANCH=2.x
                         - PYTHON_AGENT_REPO=elastic/apm-agent-python
                         - PYTHON_AGENT_VERSION
