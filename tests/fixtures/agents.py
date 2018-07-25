@@ -45,6 +45,13 @@ def rails(apm_server):
 
 
 @pytest.fixture(scope="session")
+def rum(apm_server):
+    return Agent(default.from_env('RUM_SERVICE_NAME'),
+                 default.from_env('RUM_URL'),
+                 apm_server)
+
+
+@pytest.fixture(scope="session")
 def java_spring(apm_server):
     return Agent(default.from_env('JAVA_SPRING_SERVICE_NAME'),
                  default.from_env('JAVA_SPRING_URL'),

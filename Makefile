@@ -90,6 +90,7 @@ dockerized-test:
 	  -e GO_NETHTTP_URL="http://gonethttpapp:8080" \
 	  -e JAVA_SPRING_URL="http://javaspring:8090" \
 	  -e RAILS_URL="http://railsapp:8020" \
+	  -e RUM_URL="http://rum:8000" \
 	  -e PYTHONDONTWRITEBYTECODE=1 \
 	  -v "$(PWD)/$(JUNIT_RESULTS_DIR)":"/app/$(JUNIT_RESULTS_DIR)" \
 	  --rm \

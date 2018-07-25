@@ -24,14 +24,18 @@ def check_request_response(req, endpoint):
     assert req.status_code == endpoint.status_code
 
 
-def check_elasticsearch_transaction(elasticsearch, expected_count):
-    q = {'query': {'term': {'processor.name': 'transaction'}}}
+def check_elasticsearch_transaction(elasticsearch,
+                                    expected_count,
+                                    query=None):
+    if query is None:
+        query = {'query': {'term': {'processor.name': 'transaction'}}}
+
     actual_count = 0
     retries = 0
     max_retries = 3
     while actual_count != expected_count and retries < max_retries:
         try:
-            actual_count = elasticsearch.fetch(q)['hits']['total']
+            actual_count = elasticsearch.fetch(query)['hits']['total']
             retries += 1
         except TimeoutError:
             retries = max_retries

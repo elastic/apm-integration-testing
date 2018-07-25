@@ -168,7 +168,7 @@ For example, to test an update to the python agent from user `elasticcontributor
 ```bash
 # start test deps: apm-server, elasticsearch, and the two python test applications
 # the test applications will use elasticcontributor's newfeature1 apm agent
-./script/compose.py start master --no-kibana --with-agent-python-django --with-agent-python-flask --python-agent-package=git+https://github.com/elasticcontributor/apm-agent-python.git@newfeature1 --force-build
+./scripts/compose.py start master --no-kibana --with-agent-python-django --with-agent-python-flask --python-agent-package=git+https://github.com/elasticcontributor/apm-agent-python.git@newfeature1 --force-build
 
 # wait for healthiness
 docker-compose ps

@@ -615,6 +615,50 @@ class Zookeeper(Service):
 #
 # Agent Integration Test Services
 #
+class AgentRUMJS(Service):
+    SERVICE_PORT = 8000
+    DEFAULT_AGENT_BRANCH = "master"
+    DEFAULT_AGENT_REPO = "elastic/apm-agent-js-base"
+
+    def __init__(self, **options):
+        super(AgentRUMJS, self).__init__(**options)
+        self.agent_branch = options.get("rum_agent_branch", self.DEFAULT_AGENT_BRANCH)
+        self.agent_repo = options.get("rum_agent_repo", self.DEFAULT_AGENT_REPO)
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(AgentRUMJS, cls).add_arguments(parser)
+        parser.add_argument(
+            '--rum-agent-repo',
+            default=cls.DEFAULT_AGENT_REPO,
+        )
+        parser.add_argument(
+            '--rum-agent-branch',
+            default=cls.DEFAULT_AGENT_BRANCH,
+        )
+
+    def _content(self):
+        return dict(
+            build=dict(
+                context="docker/rum",
+                dockerfile="Dockerfile",
+                args=[
+                    "RUM_AGENT_BRANCH=" + self.agent_branch,
+                    "RUM_AGENT_REPO=" + self.agent_repo,
+                ]
+            ),
+            container_name="rum",
+            image=None,
+            labels=None,
+            logging=None,
+            environment={
+                "ELASTIC_APM_SERVICE_NAME": "rum",
+                "ELASTIC_APM_SERVER_URL": "http://apm-server:8200"
+            },
+            ports=[self.publish_port(self.port, self.SERVICE_PORT)],
+        )
+
+
 class AgentGoNetHttp(Service):
     SERVICE_PORT = 8080
 
