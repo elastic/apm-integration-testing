@@ -994,8 +994,8 @@ class OpbeansNode(OpbeansService):
             depends_on=depends_on,
             image=None,
             labels=None,
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "opbeans-node", path="/"),
-            ports=[self.publish_port(self.port, self.SERVICE_PORT)],
+            healthcheck=curl_healthcheck(3000, "opbeans-node", path="/"),
+            ports=[self.publish_port(self.port, 3000)],
             volumes=[
                 "{}:/local-install".format(self.local_repo),
                 "./docker/opbeans/node/sourcemaps:/sourcemaps",
@@ -1062,7 +1062,7 @@ class OpbeansPython(OpbeansService):
             depends_on=depends_on,
             image=None,
             labels=None,
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "opbeans-python", path="/"),
+            healthcheck=curl_healthcheck(3000, "opbeans-python", path="/"),
             ports=[self.publish_port(self.port, 3000)],
             volumes=[
                 "{}:/local-install".format(self.local_repo),
@@ -1836,7 +1836,7 @@ class OpbeansServiceTest(ServiceTest):
                     volumes:
                         - .:/local-install
                     healthcheck:
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-python:8000/"]
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-python:3000/"]
                         interval: 5s
                         retries: 12
             """)  # noqa: 501
