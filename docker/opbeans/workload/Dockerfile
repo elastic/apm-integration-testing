@@ -1,9 +1,10 @@
-FROM node:carbon
+FROM python:3.7
 
 WORKDIR /app
+COPY requirements.txt /app/
+RUN pip install -r requirements.txt
 
-ADD . /app
+COPY molotov_scenarios.py entrypoint.py /app/
 
-RUN npm install && npm install foreman
-
-CMD ["./node_modules/.bin/nf", "start"]
+CMD ["honcho", "start"]
+ENTRYPOINT ["/usr/bin/python3", "/app/entrypoint.py"]

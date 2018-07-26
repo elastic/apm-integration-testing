@@ -7,7 +7,8 @@ from urllib.parse import urljoin
 from aiohttp import FormData
 from molotov import scenario
 
-SERVER_URL = os.environ.get('OPBEANS_SERVER_URL', 'http://localhost:8000')
+SERVER_URL = os.environ.get('OPBEANS_BASE_URL', 'http://localhost:8000')
+SERVICE_NAME = os.environ.get('OPBEANS_NAME', 'default')
 
 
 @scenario(weight=10)
@@ -109,33 +110,63 @@ async def scenario_orders_post(session):
         assert resp.status == 200, resp.status
 
 
-@scenario(weight=1)
-async def scenario_orders_post_csv(session):
-    customer_id = random.randint(1, 1000)
-    lines = []
-    for i in range(0, random.randint(1, 5)):
-        lines.append(','.join(map(str, [
-            random.randint(1, 6), random.randint(1, 4)
-        ])))
-    data = FormData()
-    data.add_field('customer', str(customer_id))
-    data.add_field(
-        'file',
-        io.BytesIO('\n'.join(lines).encode('utf8')),
-        filename='data.csv',
-        content_type='text/plain'
-    )
-    async with session.post(join(SERVER_URL, 'api', 'orders', 'csv'), data=data) as resp:
-        assert resp.status == 200, resp.status
+if SERVICE_NAME == 'opbeans-python':
+    @scenario(weight=8)
+    async def scenario_oopsie(session):
+        async with session.get(join(SERVER_URL, 'oopsie')) as resp:
+            assert resp.status == 500
+
+    @scenario(weight=1)
+    async def scenario_orders_post_csv(session):
+        customer_id = random.randint(1, 1000)
+        lines = []
+        for i in range(0, random.randint(1, 5)):
+            lines.append(','.join(map(str, [
+                random.randint(1, 6), random.randint(1, 4)
+            ])))
+        data = FormData()
+        data.add_field('customer', str(customer_id))
+        data.add_field(
+            'file',
+            io.BytesIO('\n'.join(lines).encode('utf8')),
+            filename='data.csv',
+            content_type='text/plain'
+        )
+        async with session.post(join(SERVER_URL, 'api', 'orders', 'csv'), data=data) as resp:
+            assert resp.status == 200, resp.status
 
 
-@scenario(weight=8)
-async def scenario_oopsie(session):
-    async with session.get(join(SERVER_URL, 'oopsie')) as resp:
-        assert resp.status == 500
+if SERVICE_NAME == 'opbeans-node':
+    @scenario(weight=2)
+    async def scenario_log_error(session):
+        async with session.get(join(SERVER_URL, 'log-error')) as resp:
+            assert resp.status == 500
+
+
+    @scenario(weight=2)
+    async def scenario_log_message(session):
+        async with session.get(join(SERVER_URL, 'log-message')) as resp:
+            assert resp.status == 500
+
+
+    @scenario(weight=1)
+    async def scenario_is_it_coffee_time_typo(session):
+        async with session.get(join(SERVER_URL, 'is-it-coffee-time')) as resp:
+            assert resp.status == 500
+
+
+    @scenario(weight=1)
+    async def scenario_throw_error(session):
+        async with session.get(join(SERVER_URL, 'throw-error')) as resp:
+            assert resp.status == 500
+
+
+    @scenario(weight=1)
+    async def scenario_throw_error_async(session):
+        async with session.get(join(SERVER_URL, 'throw-async-error')) as resp:
+            assert resp.status == 200
 
 
 def join(base_url, *fragments):
         path = '/'.join(fragments)
-        print(urljoin(base_url, path))
         return urljoin(base_url, path)

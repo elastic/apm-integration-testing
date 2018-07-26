@@ -1,6 +1,0 @@
-aiohttp==2.3.6
-aiomeasures==0.5.14
-async-timeout==2.0.0
-molotov==1.4
-multidict==3.3.2
-yarl==0.15.0

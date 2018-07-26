@@ -1048,7 +1048,7 @@ class OpbeansNode(OpbeansService):
                 "ELASTIC_APM_JS_SERVER_URL={}".format(self.apm_js_server_url),
                 "ELASTIC_APM_APP_NAME=opbeans-node",
                 "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
-                "ELASTIC_APM_LOG_LEVEL=debug",
+                "ELASTIC_APM_LOG_LEVEL=info",
                 "ELASTIC_APM_SOURCE_LINES_ERROR_APP_FRAMES",
                 "ELASTIC_APM_SOURCE_LINES_SPAN_APP_FRAMES=5",
                 "ELASTIC_APM_SOURCE_LINES_ERROR_LIBRARY_FRAMES",
@@ -1240,6 +1240,46 @@ class OpbeansRum(Service):
             labels=None,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "opbeans-rum", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
+        )
+        return content
+
+
+class OpbeansLoadGenerator(Service):
+    @classmethod
+    def add_arguments(cls, parser):
+        super(OpbeansLoadGenerator, cls).add_arguments(parser)
+        for service_class in OpbeansService.__subclasses__():
+            parser.add_argument(
+                '--no-%s-loadgen' % service_class.name(),
+                action='store_true',
+                default=False,
+                help='Disable load generator for {}'.format(service_class.name())
+            )
+
+    def __init__(self, **options):
+        super(OpbeansLoadGenerator, self).__init__(**options)
+        self.loadgen_services = []
+        # create load for opbeans services (identified via the disable_opbeans_XYZ flag)
+        # unless the no_opbeans_XYZ_flag is set
+        for flag, value in options.items():
+            if not value and flag.startswith('disable_opbeans_'):
+                service_name = flag[len('disable_'):]
+                if not options.get('no_{}_loadgen'.format(service_name)) and service_name != 'opbeans_load_generator':
+                    self.loadgen_services.append(service_name.replace('_', '-'))
+
+    @staticmethod
+    def enabled():
+        return True
+
+    def _content(self):
+        content = dict(
+            build={"context": "docker/opbeans/workload", "dockerfile": "Dockerfile"},
+            depends_on={service: {'condition': 'service_healthy'} for service in self.loadgen_services},
+            environment=[
+                "OPBEANS_URLS={}".format(','.join('http://{}:3000'.format(s) for s in self.loadgen_services)),
+            ],
+            image=None,
+            labels=None,
         )
         return content
 
@@ -1853,7 +1893,7 @@ class OpbeansServiceTest(ServiceTest):
                         - ELASTIC_APM_JS_SERVER_URL=http://apm-server:8200
                         - ELASTIC_APM_APP_NAME=opbeans-node
                         - ELASTIC_APM_SERVICE_NAME=opbeans-node
-                        - ELASTIC_APM_LOG_LEVEL=debug
+                        - ELASTIC_APM_LOG_LEVEL=info
                         - ELASTIC_APM_SOURCE_LINES_ERROR_APP_FRAMES
                         - ELASTIC_APM_SOURCE_LINES_SPAN_APP_FRAMES=5
                         - ELASTIC_APM_SOURCE_LINES_ERROR_LIBRARY_FRAMES
@@ -2029,6 +2069,20 @@ class OpbeansServiceTest(ServiceTest):
                          test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-rum:9222/"]
                          interval: 5s
                          retries: 12""")  # noqa: 501
+        )
+
+    def test_opbeans_loadgen(self):
+        opbeans_load_gen = OpbeansLoadGenerator(disable_opbeans_python=False, disable_opbeans_node=False, no_opbeans_node_loadgen=True).render()
+        assert opbeans_load_gen == yaml.load("""
+            opbeans-load-generator:
+                build: {context: docker/opbeans/workload, dockerfile: Dockerfile}
+                container_name: localtesting_6.3.1_opbeans-load-generator
+                depends_on:
+                    opbeans-python: {condition: service_healthy}
+                environment: ['OPBEANS_URLS=http://opbeans-python:3000']
+                logging:
+                    driver: json-file
+                    options: {max-file: '5', max-size: 2m}"""
         )
 
 
@@ -2812,6 +2866,14 @@ class LocalTest(unittest.TestCase):
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
                 ports: ['127.0.0.1:5601:5601']
+            opbeans-load-generator:
+                build: {context: docker/opbeans/workload, dockerfile: Dockerfile}
+                container_name: localtesting_6.2.10_opbeans-load-generator
+                depends_on: {}
+                environment: ['OPBEANS_URLS=']
+                logging:
+                    driver: json-file
+                    options: {max-file: '5', max-size: 2m}
         networks:
             default: {name: apm-integration-testing}
         volumes:
@@ -2899,6 +2961,15 @@ class LocalTest(unittest.TestCase):
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
                 ports: ['127.0.0.1:5601:5601']
+
+            opbeans-load-generator:
+                build: {context: docker/opbeans/workload, dockerfile: Dockerfile}
+                container_name: localtesting_6.3.10_opbeans-load-generator
+                depends_on: {}
+                environment: ['OPBEANS_URLS=']
+                logging:
+                    driver: json-file
+                    options: {max-file: '5', max-size: 2m}
         networks:
             default: {name: apm-integration-testing}
         volumes:
@@ -2986,6 +3057,15 @@ class LocalTest(unittest.TestCase):
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
                 ports: ['127.0.0.1:5601:5601']
+            
+            opbeans-load-generator:
+                build: {context: docker/opbeans/workload, dockerfile: Dockerfile}
+                container_name: localtesting_7.0.10-alpha1_opbeans-load-generator
+                depends_on: {}
+                environment: ['OPBEANS_URLS=']
+                logging:
+                    driver: json-file
+                    options: {max-file: '5', max-size: 2m}
         networks:
             default: {name: apm-integration-testing}
         volumes:

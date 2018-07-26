@@ -1,6 +1,7 @@
 FROM opbeans/opbeans-node:latest
 
 ENV NODE_ENV=production
+
 RUN npm install pm2 -g
 
 COPY entrypoint.sh /app/entrypoint.sh
