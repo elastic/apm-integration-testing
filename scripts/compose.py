@@ -859,7 +859,7 @@ class OpbeansGo(OpbeansService):
                 "ELASTIC_APM_SAMPLE_RATE=1",
                 "ELASTICSEARCH_URL=http://elasticsearch:9200",
                 "OPBEANS_CACHE=redis://redis:6379",
-                "OPBEANS_PORT={:d}".format(self.SERVICE_PORT),
+                "OPBEANS_PORT=3000",
                 "PGHOST=postgres",
                 "PGPORT=5432",
                 "PGUSER=postgres",
@@ -869,7 +869,7 @@ class OpbeansGo(OpbeansService):
             depends_on=depends_on,
             image=None,
             labels=None,
-            ports=[self.publish_port(self.port, self.SERVICE_PORT)],
+            ports=[self.publish_port(self.port, 3000)],
         )
         return content
 
@@ -1660,7 +1660,7 @@ class OpbeansServiceTest(ServiceTest):
                         - GO_AGENT_REPO=elastic/apm-agent-go
                     container_name: localtesting_6.3.10_opbeans-go
                     ports:
-                      - "127.0.0.1:3003:3003"
+                      - "127.0.0.1:3003:3000"
                     environment:
                       - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                       - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
@@ -1669,7 +1669,7 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTIC_APM_SAMPLE_RATE=1
                       - ELASTICSEARCH_URL=http://elasticsearch:9200
                       - OPBEANS_CACHE=redis://redis:6379
-                      - OPBEANS_PORT=3003
+                      - OPBEANS_PORT=3000
                       - PGHOST=postgres
                       - PGPORT=5432
                       - PGUSER=postgres
