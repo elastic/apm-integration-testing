@@ -55,7 +55,7 @@ else:
 PACKAGE_NAME = 'localmanager'
 __version__ = "4.0.0"
 
-DEFAULT_STACK_VERSION = "6.3.1"
+DEFAULT_STACK_VERSION = "6.3.3"
 
 
 #
@@ -2006,8 +2006,9 @@ class LocalSetup(object):
         '6.0': '6.0.1',
         '6.1': '6.1.3',
         '6.2': '6.2.4',
-        '6.3': '6.3.1',
+        '6.3': '6.3.3',
         '6.4': '6.4.0',
+        '6.5': '6.5.0',
         'master': '7.0.0-alpha1'
     }
 
