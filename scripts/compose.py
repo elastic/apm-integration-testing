@@ -803,10 +803,12 @@ class AgentJavaSpring(Service):
 
 class OpbeansService(Service):
     DEFAULT_APM_SERVER_URL = "http://apm-server:8200"
+    DEFAULT_APM_JS_SERVER_URL = "http://apm-server:8200"
 
     def __init__(self, **options):
         super(OpbeansService, self).__init__(**options)
         self.apm_server_url = options.get("opbeans_apm_server_url", self.DEFAULT_APM_SERVER_URL)
+        self.apm_js_server_url = options.get("opbeans_apm_js_server_url", self.DEFAULT_APM_JS_SERVER_URL)
 
     @classmethod
     def add_arguments(cls, parser):
@@ -853,7 +855,7 @@ class OpbeansGo(OpbeansService):
             ),
             environment=[
                 "ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
-                "ELASTIC_APM_JS_SERVER_URL=http://localhost:8200",
+                "ELASTIC_APM_JS_SERVER_URL={}".format(self.apm_js_server_url),
                 "ELASTIC_APM_FLUSH_INTERVAL=5",
                 "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
                 "ELASTIC_APM_SAMPLE_RATE=1",
@@ -972,6 +974,7 @@ class OpbeansNode(OpbeansService):
             build={"context": "docker/opbeans/node", "dockerfile": "Dockerfile"},
             environment=[
                 "ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
+                "ELASTIC_APM_JS_SERVER_URL={}".format(self.apm_js_server_url),
                 "ELASTIC_APM_APP_NAME=opbeans-node",
                 "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
                 "ELASTIC_APM_LOG_LEVEL=debug",
@@ -1045,6 +1048,7 @@ class OpbeansPython(OpbeansService):
                 "DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans",
                 "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
                 "ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
+                "ELASTIC_APM_JS_SERVER_URL={}".format(self.apm_js_server_url),
                 "ELASTIC_APM_FLUSH_INTERVAL=5",
                 "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
                 "ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.5",
@@ -1663,7 +1667,7 @@ class OpbeansServiceTest(ServiceTest):
                       - "127.0.0.1:3003:3003"
                     environment:
                       - ELASTIC_APM_SERVER_URL=http://apm-server:8200
-                      - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
+                      - ELASTIC_APM_JS_SERVER_URL=http://apm-server:8200
                       - ELASTIC_APM_FLUSH_INTERVAL=5
                       - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
                       - ELASTIC_APM_SAMPLE_RATE=1
@@ -1757,6 +1761,7 @@ class OpbeansServiceTest(ServiceTest):
                             max-file: '5'
                     environment:
                         - ELASTIC_APM_SERVER_URL=http://apm-server:8200
+                        - ELASTIC_APM_JS_SERVER_URL=http://apm-server:8200
                         - ELASTIC_APM_APP_NAME=opbeans-node
                         - ELASTIC_APM_SERVICE_NAME=opbeans-node
                         - ELASTIC_APM_LOG_LEVEL=debug
@@ -1811,6 +1816,7 @@ class OpbeansServiceTest(ServiceTest):
                         - DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans
                         - ELASTIC_APM_SERVICE_NAME=opbeans-python
                         - ELASTIC_APM_SERVER_URL=http://apm-server:8200
+                        - ELASTIC_APM_JS_SERVER_URL=http://apm-server:8200
                         - ELASTIC_APM_FLUSH_INTERVAL=5
                         - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
                         - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.5
@@ -2229,6 +2235,14 @@ class LocalSetup(object):
             action='store',
             help='server_url to use for Opbeans services',
             dest='opbeans_apm_server_url',
+            default='http://apm-server:8200',
+        )
+
+        parser.add_argument(
+            '--opbeans-apm-js-server-url',
+            action='store',
+            help='server_url to use for Opbeans frontend service',
+            dest='opbeans_apm_js_server_url',
             default='http://apm-server:8200',
         )
 
