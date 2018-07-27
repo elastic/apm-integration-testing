@@ -270,20 +270,6 @@ class Service(object):
                 dest=cls.option_name() + '_port',
                 help="service port"
             )
-        for image_detail_key in ("bc", "version"):
-            parser.add_argument(
-                "--" + cls.name() + "-" + image_detail_key,
-                type=str,
-                dest=cls.option_name() + "_" + image_detail_key,
-                help="stack {} override".format(image_detail_key),
-            )
-        for image_detail_key in ("oss", "release", "snapshot"):
-            parser.add_argument(
-                "--" + cls.name() + "-" + image_detail_key,
-                action="store_true",
-                dest=cls.option_name() + "_" + image_detail_key,
-                help="stack {} override".format(image_detail_key),
-            )
 
     def image_download_url(self):
         pass
@@ -293,7 +279,7 @@ class Service(object):
         pass
 
 
-class DockerLoadableService(object):
+class StackService(object):
     """Mix in for Elastic services that have public docker images built but not available in a registry [yet]"""
 
     def image_download_url(self):
@@ -317,11 +303,30 @@ class DockerLoadableService(object):
             version=version,
         )
 
+    @classmethod
+    def add_arguments(cls, parser):
+        super(StackService, cls).add_arguments(parser)
+        for image_detail_key in ("bc", "version"):
+            parser.add_argument(
+                "--" + cls.name() + "-" + image_detail_key,
+                type=str,
+                dest=cls.option_name() + "_" + image_detail_key,
+                help="stack {} override".format(image_detail_key),
+            )
+        for image_detail_key in ("oss", "release", "snapshot"):
+            parser.add_argument(
+                "--" + cls.name() + "-" + image_detail_key,
+                action="store_true",
+                dest=cls.option_name() + "_" + image_detail_key,
+                help="stack {} override".format(image_detail_key),
+            )
 
 #
 # Elastic Services
 #
-class ApmServer(DockerLoadableService, Service):
+
+
+class ApmServer(StackService, Service):
     docker_path = "apm"
 
     SERVICE_PORT = 8200
@@ -405,7 +410,7 @@ class ApmServer(DockerLoadableService, Service):
         return True
 
 
-class Elasticsearch(DockerLoadableService, Service):
+class Elasticsearch(StackService, Service):
     default_environment = ["cluster.name=docker-cluster", "bootstrap.memory_lock=true", "discovery.type=single-node"]
     default_es_java_opts = {
         "-Xms": "1g",
@@ -456,7 +461,7 @@ class Elasticsearch(DockerLoadableService, Service):
         return True
 
 
-class Filebeat(DockerLoadableService, Service):
+class Filebeat(StackService, Service):
     docker_path = "beats"
 
     def __init__(self, **options):
@@ -481,7 +486,7 @@ class Filebeat(DockerLoadableService, Service):
         )
 
 
-class Kibana(DockerLoadableService, Service):
+class Kibana(StackService, Service):
     default_environment = {"SERVER_NAME": "kibana.example.org", "ELASTICSEARCH_URL": "http://elasticsearch:9200"}
 
     SERVICE_PORT = 5601
@@ -509,7 +514,7 @@ class Kibana(DockerLoadableService, Service):
         return True
 
 
-class Logstash(DockerLoadableService, Service):
+class Logstash(StackService, Service):
     SERVICE_PORT = 5044
 
     def _content(self):
@@ -522,7 +527,7 @@ class Logstash(DockerLoadableService, Service):
         )
 
 
-class Metricbeat(DockerLoadableService, Service):
+class Metricbeat(StackService, Service):
     docker_path = "beats"
 
     def _content(self):
