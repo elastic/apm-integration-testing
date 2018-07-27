@@ -931,14 +931,14 @@ class OpbeansJava(OpbeansService):
                 "DATABASE_DRIVER=org.postgresql.Driver",
                 "REDIS_URL=redis://redis:6379",
                 "ELASTICSEARCH_URL=http://elasticsearch:9200",
-                "OPBEANS_SERVER_PORT={:d}".format(self.SERVICE_PORT),
+                "OPBEANS_SERVER_PORT=3000",
                 "JAVA_AGENT_VERSION",
             ],
             depends_on=depends_on,
             image=None,
             labels=None,
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "opbeans-java", path="/"),
-            ports=[self.publish_port(self.port, self.SERVICE_PORT)],
+            healthcheck=curl_healthcheck(3000, "opbeans-java", path="/"),
+            ports=[self.publish_port(self.port, 3000)],
             volumes=[
                 "{}:/local-install".format(self.local_repo),
             ]
@@ -1709,7 +1709,7 @@ class OpbeansServiceTest(ServiceTest):
                         - JAVA_AGENT_REPO=elastic/apm-agent-java
                     container_name: localtesting_6.3.10_opbeans-java
                     ports:
-                      - "127.0.0.1:3002:3002"
+                      - "127.0.0.1:3002:3000"
                     environment:
                       - ELASTIC_APM_SERVICE_NAME=opbeans-java
                       - ELASTIC_APM_APPLICATION_PACKAGES=co.elastic.apm.opbeans
@@ -1722,7 +1722,7 @@ class OpbeansServiceTest(ServiceTest):
                       - DATABASE_DRIVER=org.postgresql.Driver
                       - REDIS_URL=redis://redis:6379
                       - ELASTICSEARCH_URL=http://elasticsearch:9200
-                      - OPBEANS_SERVER_PORT=3002
+                      - OPBEANS_SERVER_PORT=3000
                       - JAVA_AGENT_VERSION
                     logging:
                       driver: 'json-file'
@@ -1739,7 +1739,7 @@ class OpbeansServiceTest(ServiceTest):
                     volumes:
                       - .:/local-install
                     healthcheck:
-                      test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-java:3002/"]
+                      test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-java:3000/"]
                       interval: 5s
                       retries: 12""")  # noqa: 501
         )
