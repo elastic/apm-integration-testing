@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from webium import BasePage, Find
 from webium.driver import close_driver, get_driver
 
+import pytest
 import webium.settings
 
 
@@ -29,6 +30,7 @@ class KibanaPage(BasePage):
         return get_driver().current_url[len(self.url):]
 
 
+@pytest.mark.skip(reason="disabled while kibana snapshot is troubled")
 def test_sidebar(kibana):
     home_page = KibanaPage(kibana.url, '/')
     home_page.open()
