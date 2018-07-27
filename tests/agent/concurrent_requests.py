@@ -92,7 +92,7 @@ class Concurrent:
             ioloop.IOLoop.instance().stop()
 
     def load_test(self):
-        http_client = httpclient.AsyncHTTPClient(max_clients=1)
+        http_client = httpclient.AsyncHTTPClient(max_clients=4)
         for endpoint in self.endpoints:
             for _ in range(endpoint.events_no):
                 self.num_reqs += 1
