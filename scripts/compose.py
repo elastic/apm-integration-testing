@@ -1120,10 +1120,10 @@ class OpbeansRuby(OpbeansService):
                 "DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans-ruby",
                 "REDIS_URL=redis://redis:6379",
                 "ELASTICSEARCH_URL=http://elasticsearch:9200",
-                "OPBEANS_SERVER_URL=http://opbeans-ruby:{:d}".format(self.SERVICE_PORT),
+                "OPBEANS_SERVER_URL=http://opbeans-ruby:3000",
                 "RAILS_ENV=production",
                 "RAILS_LOG_TO_STDOUT=1",
-                "PORT={:d}".format(self.SERVICE_PORT),
+                "PORT=3000",
                 "RUBY_AGENT_BRANCH=" + self.agent_branch,
                 "RUBY_AGENT_REPO=" + self.agent_repo,
                 "RUBY_AGENT_VERSION",
@@ -1131,8 +1131,9 @@ class OpbeansRuby(OpbeansService):
             depends_on=depends_on,
             image=None,
             labels=None,
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "opbeans-ruby", path="/"),
-            ports=[self.publish_port(self.port, self.SERVICE_PORT)],
+            # lots of retries as the ruby app can take a long time to boot
+            healthcheck=curl_healthcheck(3000, "opbeans-ruby", path="/", retries=100),
+            ports=[self.publish_port(self.port, 3000)],
             volumes=[
                 "{}:/local-install".format(self.local_repo),
             ]
@@ -1881,17 +1882,17 @@ class OpbeansServiceTest(ServiceTest):
                       context: docker/opbeans/ruby
                     container_name: localtesting_6.3.10_opbeans-ruby
                     ports:
-                      - "127.0.0.1:3001:3001"
+                      - "127.0.0.1:3001:3000"
                     environment:
                       - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                       - ELASTIC_APM_SERVICE_NAME=opbeans-ruby
                       - DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans-ruby
                       - REDIS_URL=redis://redis:6379
                       - ELASTICSEARCH_URL=http://elasticsearch:9200
-                      - OPBEANS_SERVER_URL=http://opbeans-ruby:3001
+                      - OPBEANS_SERVER_URL=http://opbeans-ruby:3000
                       - RAILS_ENV=production
                       - RAILS_LOG_TO_STDOUT=1
-                      - PORT=3001
+                      - PORT=3000
                       - RUBY_AGENT_BRANCH=master
                       - RUBY_AGENT_REPO=elastic/apm-agent-ruby
                       - RUBY_AGENT_VERSION
@@ -1912,9 +1913,9 @@ class OpbeansServiceTest(ServiceTest):
                     volumes:
                       - .:/local-install
                     healthcheck:
-                      test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-ruby:3001/"]
+                      test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-ruby:3000/"]
                       interval: 5s
-                      retries: 12""")  # noqa: 501
+                      retries: 100""")  # noqa: 501
 
         )
 
