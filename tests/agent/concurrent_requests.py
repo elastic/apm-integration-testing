@@ -169,7 +169,7 @@ class Concurrent:
 
             timestamp = datetime.strptime(lookup(hit, '_source', '@timestamp'), '%Y-%m-%dT%H:%M:%S.%fZ')
             assert first_req < timestamp < last_req + slack, \
-                "transaction time {} outside of expected in range {} - {}".format(timestamp, first_req, last_req)
+                "transaction time {} outside of expected range {} - {}".format(timestamp, first_req, last_req)
             assert transaction['result'] == 'HTTP 2xx', transaction['result']
 
             context = lookup(hit, '_source', 'context')
