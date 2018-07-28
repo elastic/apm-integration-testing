@@ -8,4 +8,5 @@ FROM alpine:latest
 RUN apk add --update curl && rm -rf /var/cache/apk/*
 COPY --from=0 /go/src/testapp/testapp /
 EXPOSE 8080
+ENV ELASTIC_APM_IGNORE_URLS /healthcheck
 CMD ["/testapp"]
