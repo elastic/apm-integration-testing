@@ -92,7 +92,7 @@ class Concurrent:
             ioloop.IOLoop.instance().stop()
 
     def load_test(self):
-        http_client = httpclient.AsyncHTTPClient(max_clients=1)
+        http_client = httpclient.AsyncHTTPClient(max_clients=4)
         for endpoint in self.endpoints:
             for _ in range(endpoint.events_no):
                 self.num_reqs += 1
@@ -145,7 +145,9 @@ class Concurrent:
         assert spans_count == spans_sum, err.format(
             "spans all endpoints", spans_count, spans_sum)
 
-    def check_content(self, it):
+    def check_content(self, it, first_req, last_req, slack=None):
+        # amount of slack time to give from request to capture within application
+        slack = timedelta(seconds=2) if slack is None else slack
         for ep in self.endpoints:
             q = self.elasticsearch.term_q([
                 {'context.service.name': ep.app_name},
@@ -159,20 +161,15 @@ class Concurrent:
 
             # check the first existing transaction for every endpoint
             hit = lookup(rs, 'hits', 'hits')[0]
-
-            assert hit['_source']['processor'] == {'name': 'transaction',
-                                                   'event': 'transaction'}
+            assert hit['_source']['processor'] == {'name': 'transaction', 'event': 'transaction'}
 
             transaction = lookup(hit, '_source', 'transaction')
-
             duration = lookup(transaction, 'duration', 'us')
             assert not anomaly(duration), duration
 
-            timestamp = datetime.strptime(lookup(hit, '_source', '@timestamp'),
-                                          '%Y-%m-%dT%H:%M:%S.%fZ')
-            assert datetime.utcnow() - timedelta(minutes=it) < timestamp < datetime.utcnow() + timedelta(seconds=1), \
-                "{} is too far of {} ".format(timestamp, datetime.utcnow())
-
+            timestamp = datetime.strptime(lookup(hit, '_source', '@timestamp'), '%Y-%m-%dT%H:%M:%S.%fZ')
+            assert first_req < timestamp < last_req + slack, \
+                "transaction time {} outside of expected range {} - {}".format(timestamp, first_req, last_req)
             assert transaction['result'] == 'HTTP 2xx', transaction['result']
 
             context = lookup(hit, '_source', 'context')
@@ -267,10 +264,13 @@ class Concurrent:
         self.logger.info("Testing started..")
         self.elasticsearch.clean()
 
+        start_load = datetime.utcnow()
         for it in range(1, self.iters + 1):
             self.logger.info("Sending batch {} / {}".format(it, self.iters))
             self.load_test()
             self.check_counts(it)
-            self.check_content(it)
+            # wait until counts are solid
+            end_load = datetime.utcnow()
+            self.check_content(it, start_load, end_load)
             self.logger.info("So far so good...")
         self.logger.info("ALL DONE")
