@@ -621,15 +621,16 @@ class AgentGoNetHttp(Service):
         return dict(
             build={"context": "docker/go/nethttp", "dockerfile": "Dockerfile"},
             container_name="gonethttpapp",
-            image=None,
-            labels=None,
-            logging=None,
             environment={
                 "ELASTIC_APM_SERVICE_NAME": "gonethttpapp",
                 "ELASTIC_APM_SERVER_URL": "http://apm-server:8200",
                 "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
                 "ELASTIC_APM_FLUSH_INTERVAL": "500ms",
             },
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "gonethttpapp"),
+            image=None,
+            labels=None,
+            logging=None,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
@@ -1199,9 +1200,13 @@ class AgentServiceTest(ServiceTest):
                         ELASTIC_APM_SERVER_URL: http://apm-server:8200
                         ELASTIC_APM_TRANSACTION_IGNORE_NAMES: healthcheck
                         ELASTIC_APM_FLUSH_INTERVAL: 500ms
+                    healthcheck:
+                        interval: 5s
+                        retries: 12
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://gonethttpapp:8080/healthcheck"]
                     ports:
                         - 127.0.0.1:8080:8080
-            """)
+            """)  # noqa: 501
         )
 
     def test_agent_nodejs_express(self):
