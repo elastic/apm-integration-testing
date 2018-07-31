@@ -590,7 +590,7 @@ class Elasticsearch(StackService, Service):
 
         java_opts_env = "ES_JAVA_OPTS=" + " ".join(["-{}{}".format(k, v) for k, v in sorted(es_java_opts.items())])
         self.environment = self.default_environment + [
-            java_opts_env, "path.data=/usr/share/elasticsearch/data/" + self.version]
+            java_opts_env, "path.data=/usr/share/elasticsearch/data/"]
         if not self.oss:
             self.environment.append("xpack.security.enabled=false")
             self.environment.append("xpack.license.self_generated.type=trial")
