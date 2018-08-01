@@ -351,6 +351,7 @@ class ApmServer(StackService, Service):
             ("setup.template.settings.index.number_of_shards", "1"),
             ("setup.template.settings.index.refresh_interval", "1ms"),
             ("xpack.monitoring.elasticsearch", "true"),
+            ("xpack.monitoring.enabled", "true")
         ]
 
         self.apm_server_monitor_port = options.get("apm_server_monitor_port", self.DEFAULT_MONITOR_PORT)
@@ -395,7 +396,7 @@ class ApmServer(StackService, Service):
         return dict(
             cap_add=["CHOWN", "DAC_OVERRIDE", "SETGID", "SETUID"],
             cap_drop=["ALL"],
-            command=["apm-server", "-e"] + command_args,
+            command=["apm-server", "-e", "--httpprof", ":{}".format(self.apm_server_monitor_port)] + command_args,
             depends_on={"elasticsearch": {"condition": "service_healthy"}},
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "apm-server"),
             labels=["co.elatic.apm.stack-version=" + self.version],
@@ -2667,12 +2668,13 @@ class LocalTest(unittest.TestCase):
             apm-server:
                 cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
                 cap_drop: [ALL]
-                command: [apm-server, -e, -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
+                command: [apm-server, -e, --httpprof, ':6060', -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
                     -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
                     -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
                     -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
-                    -E, xpack.monitoring.elasticsearch=true, -E, output.elasticsearch.enabled=true, -E, 'output.elasticsearch.hosts=[elasticsearch:9200]']
+                    -E, xpack.monitoring.elasticsearch=true, -E, xpack.monitoring.enabled=true,
+                    -E, output.elasticsearch.enabled=true, -E, 'output.elasticsearch.hosts=[elasticsearch:9200]']
                 container_name: localtesting_6.2.10_apm-server
                 depends_on:
                     elasticsearch: {condition: service_healthy}
@@ -2752,12 +2754,13 @@ class LocalTest(unittest.TestCase):
             apm-server:
                 cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
                 cap_drop: [ALL]
-                command: [apm-server, -e, -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
+                command: [apm-server, -e, --httpprof, ':6060', -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
                     -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
                     -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
                     -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
-                    -E, xpack.monitoring.elasticsearch=true, -E, output.elasticsearch.enabled=true, -E, 'output.elasticsearch.hosts=[elasticsearch:9200]']
+                    -E, xpack.monitoring.elasticsearch=true, -E, xpack.monitoring.enabled=true,
+                    -E, output.elasticsearch.enabled=true, -E, 'output.elasticsearch.hosts=[elasticsearch:9200]']
                 container_name: localtesting_6.3.10_apm-server
                 depends_on:
                     elasticsearch: {condition: service_healthy}
@@ -2837,12 +2840,13 @@ class LocalTest(unittest.TestCase):
             apm-server:
                 cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
                 cap_drop: [ALL]
-                command: [apm-server, -e, -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
+                command: [apm-server, -e, --httpprof, ':6060', -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
                     -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
                     -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
                     -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
-                    -E, xpack.monitoring.elasticsearch=true, -E, output.elasticsearch.enabled=true, -E, 'output.elasticsearch.hosts=[elasticsearch:9200]']
+                    -E, xpack.monitoring.elasticsearch=true, -E, xpack.monitoring.enabled=true,
+                    -E, output.elasticsearch.enabled=true, -E, 'output.elasticsearch.hosts=[elasticsearch:9200]']
                 container_name: localtesting_7.0.10-alpha1_apm-server
                 depends_on:
                     elasticsearch: {condition: service_healthy}
