@@ -321,11 +321,10 @@ class StackService(object):
                 help="stack {} override".format(image_detail_key),
             )
 
+
 #
 # Elastic Services
 #
-
-
 class ApmServer(StackService, Service):
     docker_path = "apm"
 
@@ -353,6 +352,14 @@ class ApmServer(StackService, Service):
             ("xpack.monitoring.elasticsearch", "true"),
             ("xpack.monitoring.enabled", "true")
         ]
+        self.depends_on = {"elasticsearch": {"condition": "service_healthy"}}
+
+        if not self.options.get("disable_kibana", False):
+            self.depends_on["kibana"] = {"condition": "service_healthy"}
+            if options.get("apm_server_dashboards", True):
+                self.apm_server_command_args.append(
+                    ("setup.dashboards.enabled", "true")
+                )
 
         self.apm_server_monitor_port = options.get("apm_server_monitor_port", self.DEFAULT_MONITOR_PORT)
         self.apm_server_output = options.get("apm_server_output", self.DEFAULT_OUTPUT)
@@ -388,16 +395,23 @@ class ApmServer(StackService, Service):
             default='elasticsearch',
             help='apm-server output'
         )
+        parser.add_argument(
+            "--no-apm-server-dashboards",
+            action="store_false",
+            dest="apm_server_dashboards",
+            help="apm-server output",
+        )
 
     def _content(self):
         command_args = []
         for param, value in self.apm_server_command_args:
             command_args.extend(["-E", param + "=" + value])
+
         return dict(
             cap_add=["CHOWN", "DAC_OVERRIDE", "SETGID", "SETUID"],
             cap_drop=["ALL"],
             command=["apm-server", "-e", "--httpprof", ":{}".format(self.apm_server_monitor_port)] + command_args,
-            depends_on={"elasticsearch": {"condition": "service_healthy"}},
+            depends_on=self.depends_on,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "apm-server"),
             labels=["co.elatic.apm.stack-version=" + self.version],
             ports=[
@@ -462,7 +476,18 @@ class Elasticsearch(StackService, Service):
         return True
 
 
-class Filebeat(StackService, Service):
+class BeatMixin(object):
+    def __init__(self, **options):
+        self.command = self.DEFAULT_COMMAND
+        self.depends_on = {"elasticsearch": {"condition": "service_healthy"}}
+        if not options.get("disable_kibana", False):
+            self.command += " -E setup.dashboards.enabled=true"
+            self.depends_on["kibana"] = {"condition": "service_healthy"}
+        super(BeatMixin, self).__init__(**options)
+
+
+class Filebeat(BeatMixin, StackService, Service):
+    DEFAULT_COMMAND = "filebeat -e --strict.perms=false"
     docker_path = "beats"
 
     def __init__(self, **options):
@@ -472,11 +497,8 @@ class Filebeat(StackService, Service):
 
     def _content(self):
         return dict(
-            command="filebeat -e --strict.perms=false",
-            depends_on={
-                "elasticsearch": {"condition": "service_healthy"},
-                "kibana": {"condition": "service_healthy"},
-            },
+            command=self.command,
+            depends_on=self.depends_on,
             labels=None,
             user="root",
             volumes=[
@@ -528,16 +550,14 @@ class Logstash(StackService, Service):
         )
 
 
-class Metricbeat(StackService, Service):
+class Metricbeat(BeatMixin, StackService, Service):
+    DEFAULT_COMMAND = "metricbeat -e --strict.perms=false"
     docker_path = "beats"
 
     def _content(self):
         return dict(
-            command="metricbeat -e --strict.perms=false",
-            depends_on={
-                "elasticsearch": {"condition": "service_healthy"},
-                "kibana": {"condition": "service_healthy"},
-            },
+            command=self.command,
+            depends_on=self.depends_on,
             labels=None,
             user="root",
             volumes=[
@@ -1429,6 +1449,19 @@ class ApmServerServiceTest(ServiceTest):
         self.assertEqual(apm_server["image"], "docker.elastic.co/apm/apm-server:6.12.0")
         self.assertEqual(apm_server["labels"], ["co.elatic.apm.stack-version=6.12.0"])
 
+    def test_dashboards(self):
+        apm_server = ApmServer(version="6.3.100", apm_server_dashboards=False).render()["apm-server"]
+        self.assertFalse(
+            any(e.startswith("setup.dashboards.enabled=") for e in apm_server["command"]),
+            "setup.dashboards.enabled while apm_server_dashboards=False"
+        )
+
+        apm_server = ApmServer(version="6.3.100", disable_kibana=True).render()["apm-server"]
+        self.assertFalse(
+            any(e.startswith("setup.dashboards.enabled=") for e in apm_server["command"]),
+            "setup.dashboards.enabled while disable_kibana=True"
+        )
+
 
 class ElasticsearchServiceTest(ServiceTest):
     def test_6_2_release(self):
@@ -1476,7 +1509,7 @@ class FilebeatServiceTest(ServiceTest):
                     image: docker.elastic.co/beats/filebeat:6.0.4
                     container_name: localtesting_6.0.4_filebeat
                     user: root
-                    command: filebeat -e --strict.perms=false
+                    command: filebeat -e --strict.perms=false -E setup.dashboards.enabled=true
                     logging:
                         driver: 'json-file'
                         options:
@@ -1501,7 +1534,7 @@ class FilebeatServiceTest(ServiceTest):
                     image: docker.elastic.co/beats/filebeat:6.1.1
                     container_name: localtesting_6.1.1_filebeat
                     user: root
-                    command: filebeat -e --strict.perms=false
+                    command: filebeat -e --strict.perms=false -E setup.dashboards.enabled=true
                     logging:
                         driver: 'json-file'
                         options:
@@ -1644,7 +1677,7 @@ class MetricbeatServiceTest(ServiceTest):
                     image: docker.elastic.co/beats/metricbeat:6.2.4
                     container_name: localtesting_6.2.4_metricbeat
                     user: root
-                    command: metricbeat -e --strict.perms=false
+                    command: metricbeat -e --strict.perms=false -E setup.dashboards.enabled=true
                     logging:
                         driver: 'json-file'
                         options:
@@ -2683,11 +2716,12 @@ class LocalTest(unittest.TestCase):
                     -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
                     -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
-                    -E, xpack.monitoring.elasticsearch=true, -E, xpack.monitoring.enabled=true,
+                    -E, xpack.monitoring.elasticsearch=true, -E, xpack.monitoring.enabled=true, -E, setup.dashboards.enabled=true,
                     -E, output.elasticsearch.enabled=true, -E, 'output.elasticsearch.hosts=[elasticsearch:9200]']
                 container_name: localtesting_6.2.10_apm-server
                 depends_on:
                     elasticsearch: {condition: service_healthy}
+                    kibana: {condition: service_healthy}
                 healthcheck:
                     interval: 5s
                     retries: 12
@@ -2769,11 +2803,12 @@ class LocalTest(unittest.TestCase):
                     -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
                     -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
-                    -E, xpack.monitoring.elasticsearch=true, -E, xpack.monitoring.enabled=true,
+                    -E, xpack.monitoring.elasticsearch=true, -E, xpack.monitoring.enabled=true, -E, setup.dashboards.enabled=true,
                     -E, output.elasticsearch.enabled=true, -E, 'output.elasticsearch.hosts=[elasticsearch:9200]']
                 container_name: localtesting_6.3.10_apm-server
                 depends_on:
                     elasticsearch: {condition: service_healthy}
+                    kibana: {condition: service_healthy}
                 healthcheck:
                     interval: 5s
                     retries: 12
@@ -2855,11 +2890,12 @@ class LocalTest(unittest.TestCase):
                     -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
                     -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
-                    -E, xpack.monitoring.elasticsearch=true, -E, xpack.monitoring.enabled=true,
+                    -E, xpack.monitoring.elasticsearch=true, -E, xpack.monitoring.enabled=true, -E, setup.dashboards.enabled=true,
                     -E, output.elasticsearch.enabled=true, -E, 'output.elasticsearch.hosts=[elasticsearch:9200]']
                 container_name: localtesting_7.0.10-alpha1_apm-server
                 depends_on:
                     elasticsearch: {condition: service_healthy}
+                    kibana: {condition: service_healthy}
                 healthcheck:
                     interval: 5s
                     retries: 12

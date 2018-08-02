@@ -3,8 +3,6 @@ setup.template.settings:
   index.codec: best_compression
   index.number_of_replicas: 0
 
-setup.dashboards.enabled: true
-
 setup.kibana:
   host: "kibana:5601"
 

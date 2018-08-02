@@ -1,13 +1,7 @@
-metricbeat.config.modules:
-  path: /dev/null
-  reload.enabled: false
-
 setup.template.settings:
   index.number_of_shards: 1
   index.codec: best_compression
   index.number_of_replicas: 0
-
-setup.dashboards.enabled: true
 
 setup.kibana:
   host: "kibana:5601"
@@ -22,6 +16,10 @@ xpack.monitoring.enabled: true
 ###################################################################################################
 ## modules
 ###################################################################################################
+metricbeat.config.modules:
+  path: /dev/null
+  reload.enabled: false
+
 metricbeat.modules:
 - module: golang
   metricsets: ["expvar","heap"]
