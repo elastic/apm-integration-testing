@@ -14,6 +14,10 @@ output.elasticsearch:
 logging.json: true
 logging.metrics.enabled: false
 
+xpack.monitoring.enabled: true
+###################################################################################################
+## autodiscover
+###################################################################################################
 filebeat.autodiscover:
   providers:
     - type: docker
