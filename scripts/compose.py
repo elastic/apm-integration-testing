@@ -2219,6 +2219,14 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
+            "--build-parallel",
+            action="store_true",
+            help="build images in parallel",
+            dest="build_parallel",
+            default=False,
+        )
+
+        parser.add_argument(
             '--force-build',
             action='store_true',
             help='force build of any images without docker cache',
@@ -2419,6 +2427,8 @@ class LocalSetup(object):
                 docker_compose_build = ["docker-compose", "-f", docker_compose_path.name, "build", "--pull"]
                 if args["force_build"]:
                     docker_compose_build.append("--no-cache")
+                if args["build_parallel"]:
+                    docker_compose_build.append("--parallel")
                 subprocess.call(docker_compose_build)
 
             # really start
