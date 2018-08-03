@@ -4,7 +4,8 @@ backports-abc==0.5
 certifi==2017.11.5
 chardet==3.0.4
 coverage==4.5.1
-docker-compose==1.21.1
+# for build --parallel
+-e git://github.com/docker/compose@473703d0d9e0f81520dd41aa30da67d7868f877a#egg=docker-compose
 docker-compose-wait==1.0.0
 elasticsearch==6.0.0
 flake8==3.5.0

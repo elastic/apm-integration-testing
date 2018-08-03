@@ -11,7 +11,7 @@ version_state=${1%;*}
 version=${1#*;}
 stack_args=${2//;/ }
 
-export COMPOSE_ARGS="${stack_args} --with-agent-ruby-rails --ruby-agent-version=${version} --ruby-agent-version-state=${version_state} --force-build"
+export COMPOSE_ARGS="${stack_args} --with-agent-ruby-rails --ruby-agent-version=${version} --ruby-agent-version-state=${version_state} --force-build --build-parallel"
 srcdir=`dirname $0`
 test -z "$srcdir" && srcdir=.
 ${srcdir}/ruby.sh
