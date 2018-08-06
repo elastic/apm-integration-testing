@@ -399,7 +399,7 @@ class ApmServer(StackService, Service):
             "--no-apm-server-dashboards",
             action="store_false",
             dest="apm_server_dashboards",
-            help="apm-server output",
+            help="skip loading apm-server dashboards (setup.dashboards.enabled=false)",
         )
 
     def _content(self):
