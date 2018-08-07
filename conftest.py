@@ -10,3 +10,4 @@ from tests.fixtures.agents import express
 from tests.fixtures.agents import rails
 from tests.fixtures.agents import go_nethttp
 from tests.fixtures.agents import java_spring
+from tests.fixtures.agents import rum
