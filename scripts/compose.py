@@ -1273,12 +1273,11 @@ class OpbeansLoadGenerator(Service):
 
     def _content(self):
         content = dict(
-            build={"context": "docker/opbeans/workload", "dockerfile": "Dockerfile"},
+            image="opbeans/opbeans-loadgen:latest",
             depends_on={service: {'condition': 'service_healthy'} for service in self.loadgen_services},
             environment=[
                 "OPBEANS_URLS={}".format(','.join('http://{}:3000'.format(s) for s in self.loadgen_services)),
             ],
-            image=None,
             labels=None,
         )
         return content
