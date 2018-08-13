@@ -2463,12 +2463,10 @@ class LocalSetup(object):
         all_opbeans = args.get('run_all_opbeans')
         any_opbeans = all_opbeans or any(v and k.startswith('enable_opbeans_') for k, v in args.items())
         for service in self.services:
-            if args.get("enable_" + service.option_name()) \
-                    or (all_opbeans and (
-                        issubclass(service, OpbeansService) or
-                        service is OpbeansRum
-                    )) \
-                    or (any_opbeans and service.name() in ('postgres', 'redis')):
+            service_enabled = args.get("enable_" + service.option_name())
+            is_opbeans_service = issubclass(service, OpbeansService) or service is OpbeansRum
+            is_opbeans_sidecar = service.name() in ('postgres', 'redis')
+            if service_enabled or (all_opbeans and is_opbeans_service) or (any_opbeans and is_opbeans_sidecar):
                 selections.add(service(**args))
 
         # `docker load` images if necessary
