@@ -1259,17 +1259,14 @@ class OpbeansLoadGenerator(Service):
     def __init__(self, **options):
         super(OpbeansLoadGenerator, self).__init__(**options)
         self.loadgen_services = []
-        # create load for opbeans services (identified via the disable_opbeans_XYZ flag)
-        # unless the no_opbeans_XYZ_flag is set
+        # create load for opbeans services
+        run_all_opbeans = options.get('run_all_opbeans')
+        excluded = ('opbeans_load_generator', 'opbeans_rum')
         for flag, value in options.items():
-            if not value and flag.startswith('disable_opbeans_'):
-                service_name = flag[len('disable_'):]
-                if not options.get('no_{}_loadgen'.format(service_name)) and service_name != 'opbeans_load_generator':
+            if (value or run_all_opbeans) and flag.startswith('enable_opbeans_'):
+                service_name = flag[len('enable_'):]
+                if not options.get('no_{}_loadgen'.format(service_name)) and service_name not in excluded:
                     self.loadgen_services.append(service_name.replace('_', '-'))
-
-    @staticmethod
-    def enabled():
-        return True
 
     def _content(self):
         content = dict(
@@ -2071,10 +2068,15 @@ class OpbeansServiceTest(ServiceTest):
         )
 
     def test_opbeans_loadgen(self):
-        opbeans_load_gen = OpbeansLoadGenerator(disable_opbeans_python=False, disable_opbeans_node=False, no_opbeans_node_loadgen=True).render()
+        opbeans_load_gen = OpbeansLoadGenerator(
+            version="6.3.1",
+            enable_opbeans_python=True,
+            enable_opbeans_node=True,
+            no_opbeans_node_loadgen=True,
+        ).render()
         assert opbeans_load_gen == yaml.load("""
             opbeans-load-generator:
-                build: {context: docker/opbeans/workload, dockerfile: Dockerfile}
+                image: opbeans/opbeans-loadgen:latest
                 container_name: localtesting_6.3.1_opbeans-load-generator
                 depends_on:
                     opbeans-python: {condition: service_healthy}
@@ -2519,7 +2521,7 @@ class LocalSetup(object):
         for service in self.services:
             service_enabled = args.get("enable_" + service.option_name())
             is_opbeans_service = issubclass(service, OpbeansService) or service is OpbeansRum
-            is_opbeans_sidecar = service.name() in ('postgres', 'redis')
+            is_opbeans_sidecar = service.name() in ('postgres', 'redis', 'opbeans-load-generator')
             if service_enabled or (all_opbeans and is_opbeans_service) or (any_opbeans and is_opbeans_sidecar):
                 selections.add(service(**args))
 
@@ -2865,14 +2867,6 @@ class LocalTest(unittest.TestCase):
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
                 ports: ['127.0.0.1:5601:5601']
-            opbeans-load-generator:
-                build: {context: docker/opbeans/workload, dockerfile: Dockerfile}
-                container_name: localtesting_6.2.10_opbeans-load-generator
-                depends_on: {}
-                environment: ['OPBEANS_URLS=']
-                logging:
-                    driver: json-file
-                    options: {max-file: '5', max-size: 2m}
         networks:
             default: {name: apm-integration-testing}
         volumes:
@@ -2961,14 +2955,6 @@ class LocalTest(unittest.TestCase):
                     options: {max-file: '5', max-size: 2m}
                 ports: ['127.0.0.1:5601:5601']
 
-            opbeans-load-generator:
-                build: {context: docker/opbeans/workload, dockerfile: Dockerfile}
-                container_name: localtesting_6.3.10_opbeans-load-generator
-                depends_on: {}
-                environment: ['OPBEANS_URLS=']
-                logging:
-                    driver: json-file
-                    options: {max-file: '5', max-size: 2m}
         networks:
             default: {name: apm-integration-testing}
         volumes:
@@ -3056,15 +3042,6 @@ class LocalTest(unittest.TestCase):
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
                 ports: ['127.0.0.1:5601:5601']
-            
-            opbeans-load-generator:
-                build: {context: docker/opbeans/workload, dockerfile: Dockerfile}
-                container_name: localtesting_7.0.10-alpha1_opbeans-load-generator
-                depends_on: {}
-                environment: ['OPBEANS_URLS=']
-                logging:
-                    driver: json-file
-                    options: {max-file: '5', max-size: 2m}
         networks:
             default: {name: apm-integration-testing}
         volumes:
