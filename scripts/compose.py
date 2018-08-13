@@ -354,7 +354,7 @@ class ApmServer(StackService, Service):
         ]
         self.depends_on = {"elasticsearch": {"condition": "service_healthy"}}
 
-        if not self.options.get("disable_kibana", False):
+        if self.options.get("enable_kibana", True):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
             if options.get("apm_server_dashboards", True):
                 self.apm_server_command_args.append(
@@ -480,7 +480,7 @@ class BeatMixin(object):
     def __init__(self, **options):
         self.command = self.DEFAULT_COMMAND
         self.depends_on = {"elasticsearch": {"condition": "service_healthy"}}
-        if not options.get("disable_kibana", False):
+        if options.get("enable_kibana", True):
             self.command += " -E setup.dashboards.enabled=true"
             self.depends_on["kibana"] = {"condition": "service_healthy"}
         super(BeatMixin, self).__init__(**options)
@@ -758,7 +758,7 @@ class AgentPython(Service):
         cls._arguments_added = True
 
     def _content(self):
-        raise NotImplemented
+        raise NotImplementedError()
 
 
 class AgentPythonDjango(AgentPython):
@@ -912,7 +912,7 @@ class OpbeansGo(OpbeansService):
             "redis": {"condition": "service_healthy"},
         }
 
-        if not self.options.get("disable_apm_server", False):
+        if self.options.get("enable_apm_server", True):
             depends_on["apm-server"] = {"condition": "service_healthy"}
 
         content = dict(
@@ -975,7 +975,7 @@ class OpbeansJava(OpbeansService):
             "postgres": {"condition": "service_healthy"},
         }
 
-        if not self.options.get("disable_apm_server", False):
+        if self.options.get("enable_apm_server", True):
             depends_on["apm-server"] = {"condition": "service_healthy"}
 
         content = dict(
@@ -1038,7 +1038,7 @@ class OpbeansNode(OpbeansService):
             "redis": {"condition": "service_healthy"},
         }
 
-        if not self.options.get("disable_apm_server", False):
+        if self.options.get("enable_apm_server", True):
             depends_on["apm-server"] = {"condition": "service_healthy"}
 
         content = dict(
@@ -1110,7 +1110,7 @@ class OpbeansPython(OpbeansService):
             "redis": {"condition": "service_healthy"},
         }
 
-        if not self.options.get("disable_apm_server", False):
+        if self.options.get("enable_apm_server", True):
             depends_on["apm-server"] = {"condition": "service_healthy"}
 
         content = dict(
@@ -1175,7 +1175,7 @@ class OpbeansRuby(OpbeansService):
             "redis": {"condition": "service_healthy"},
         }
 
-        if not self.options.get("disable_apm_server", False):
+        if self.options.get("enable_apm_server", True):
             depends_on["apm-server"] = {"condition": "service_healthy"}
 
         content = dict(
@@ -1500,10 +1500,10 @@ class ApmServerServiceTest(ServiceTest):
             "setup.dashboards.enabled while apm_server_dashboards=False"
         )
 
-        apm_server = ApmServer(version="6.3.100", disable_kibana=True).render()["apm-server"]
+        apm_server = ApmServer(version="6.3.100", enable_kibana=False).render()["apm-server"]
         self.assertFalse(
             any(e.startswith("setup.dashboards.enabled=") for e in apm_server["command"]),
-            "setup.dashboards.enabled while disable_kibana=True"
+            "setup.dashboards.enabled while enable_kibana=False"
         )
 
 
@@ -2216,27 +2216,23 @@ class LocalSetup(object):
         )
         parser.add_argument("stack-version", action='store', help=help_text)
 
-        # Add a --no-x / --with-x argument for each service, depending on default enabled/disabled
-        # Slightly hackish: if we have an `--all` argument, use `--no-x` for all opbeans services
-        has_all = '--all' in argv
-        has_opbeans = has_all or any(o.startswith("--with-opbeans-") for o in argv)
+        # Add a --no-x / --with-x argument for each service
         for service in services:
-            if service.enabled() or \
-                    (has_all and service.name().startswith('opbeans')) or \
-                    (has_opbeans and service.name() in ('postgres', 'redis')):
-                action = 'store_true'
-                arg_prefix = '--no-'
-                help_prefix = 'Disable '
-            else:
-                action = 'store_false'
-                arg_prefix = '--with-'
-                help_prefix = 'Enable '
+            enabled_group = parser.add_mutually_exclusive_group()
+            enabled_group.add_argument(
+                '--with-' + service.name(),
+                action='store_true',
+                dest='enable_' + service.option_name(),
+                help='Enable ' + service.name(),
+                default=service.enabled(),
+            )
 
-            parser.add_argument(
-                arg_prefix + service.name(),
-                action=action,
-                dest='disable_' + service.option_name(),
-                help=help_prefix + service.name()
+            enabled_group.add_argument(
+                '--no-' + service.name(),
+                action='store_false',
+                dest='enable_' + service.option_name(),
+                help='Disable ' + service.name(),
+                default=service.enabled(),
             )
             service.add_arguments(parser)
 
@@ -2464,8 +2460,15 @@ class LocalSetup(object):
             args["version"] = self.SUPPORTED_VERSIONS.get(args["stack-version"], args["stack-version"])
 
         selections = set()
+        all_opbeans = args.get('run_all_opbeans')
+        any_opbeans = all_opbeans or any(v and k.startswith('enable_opbeans_') for k, v in args.items())
         for service in self.services:
-            if not args.get("disable_" + service.option_name()):
+            if args.get("enable_" + service.option_name()) \
+                    or (all_opbeans and (
+                        issubclass(service, OpbeansService) or
+                        service is OpbeansRum
+                    )) \
+                    or (any_opbeans and service.name() in ('postgres', 'redis')):
                 selections.add(service(**args))
 
         # `docker load` images if necessary
