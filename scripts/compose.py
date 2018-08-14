@@ -1273,7 +1273,7 @@ class OpbeansLoadGenerator(Service):
             image="opbeans/opbeans-loadgen:latest",
             depends_on={service: {'condition': 'service_healthy'} for service in self.loadgen_services},
             environment=[
-                "OPBEANS_URLS={}".format(','.join('http://{}:3000'.format(s) for s in self.loadgen_services)),
+                "OPBEANS_URLS={}".format(','.join('{0}:http://{0}:3000'.format(s) for s in self.loadgen_services)),
             ],
             labels=None,
         )
@@ -2080,11 +2080,10 @@ class OpbeansServiceTest(ServiceTest):
                 container_name: localtesting_6.3.1_opbeans-load-generator
                 depends_on:
                     opbeans-python: {condition: service_healthy}
-                environment: ['OPBEANS_URLS=http://opbeans-python:3000']
+                environment: ['OPBEANS_URLS=opbeans-python:http://opbeans-python:3000']
                 logging:
                     driver: json-file
-                    options: {max-file: '5', max-size: 2m}"""
-        )
+                    options: {max-file: '5', max-size: 2m}""")
 
 
 class PostgresServiceTest(ServiceTest):
