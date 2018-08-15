@@ -74,6 +74,13 @@ Start `opbeans-*` services and their dependencies along with apm-server, elastic
     ./scripts/compose.py start --all master
 
 
+This will also start the `opbeans-load-generator` service which, by default,
+will generate random requests to all started backend Opbeans services.
+To disable load generation for a specific service, use the `--no-opbeans-XYZ-loadgen` flag.
+
+Opbeans RUM does not need a load generation service,
+as it is itself generating load using a headless chrome instance.
+
 ### Uploading Sourcemaps
 
 The frontend app packaged with opbeans-node runs in a production build, which means the source code is minified. The APM server needs the corresponding sourcemap to unminify the code.
