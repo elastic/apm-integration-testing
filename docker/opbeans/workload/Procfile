@@ -1,2 +1,0 @@
-opbeans-python: npm run workload-python
-opbeans-node: npm run workload-node

@@ -156,6 +156,10 @@ def parse_version(version):
 class Service(object):
     """encapsulate docker-compose service definition"""
 
+    # is this a side car service for opbeans. If yes, it will automatically
+    # start if any opbeans service starts
+    opbeans_side_car = False
+
     def __init__(self, **options):
         self.options = options
 
@@ -591,6 +595,7 @@ class Kafka(Service):
 
 class Postgres(Service):
     SERVICE_PORT = 5432
+    opbeans_side_car = True
 
     def _content(self):
         return dict(
@@ -606,6 +611,7 @@ class Postgres(Service):
 
 class Redis(Service):
     SERVICE_PORT = 6379
+    opbeans_side_car = True
 
     def _content(self):
         return dict(
@@ -1048,7 +1054,7 @@ class OpbeansNode(OpbeansService):
                 "ELASTIC_APM_JS_SERVER_URL={}".format(self.apm_js_server_url),
                 "ELASTIC_APM_APP_NAME=opbeans-node",
                 "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
-                "ELASTIC_APM_LOG_LEVEL=debug",
+                "ELASTIC_APM_LOG_LEVEL=info",
                 "ELASTIC_APM_SOURCE_LINES_ERROR_APP_FRAMES",
                 "ELASTIC_APM_SOURCE_LINES_SPAN_APP_FRAMES=5",
                 "ELASTIC_APM_SOURCE_LINES_ERROR_LIBRARY_FRAMES",
@@ -1240,6 +1246,44 @@ class OpbeansRum(Service):
             labels=None,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "opbeans-rum", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
+        )
+        return content
+
+
+class OpbeansLoadGenerator(Service):
+    opbeans_side_car = True
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(OpbeansLoadGenerator, cls).add_arguments(parser)
+        for service_class in OpbeansService.__subclasses__():
+            parser.add_argument(
+                '--no-%s-loadgen' % service_class.name(),
+                action='store_true',
+                default=False,
+                help='Disable load generator for {}'.format(service_class.name())
+            )
+
+    def __init__(self, **options):
+        super(OpbeansLoadGenerator, self).__init__(**options)
+        self.loadgen_services = []
+        # create load for opbeans services
+        run_all_opbeans = options.get('run_all_opbeans')
+        excluded = ('opbeans_load_generator', 'opbeans_rum')
+        for flag, value in options.items():
+            if (value or run_all_opbeans) and flag.startswith('enable_opbeans_'):
+                service_name = flag[len('enable_'):]
+                if not options.get('no_{}_loadgen'.format(service_name)) and service_name not in excluded:
+                    self.loadgen_services.append(service_name.replace('_', '-'))
+
+    def _content(self):
+        content = dict(
+            image="opbeans/opbeans-loadgen:latest",
+            depends_on={service: {'condition': 'service_healthy'} for service in self.loadgen_services},
+            environment=[
+                "OPBEANS_URLS={}".format(','.join('{0}:http://{0}:3000'.format(s) for s in self.loadgen_services)),
+            ],
+            labels=None,
         )
         return content
 
@@ -1853,7 +1897,7 @@ class OpbeansServiceTest(ServiceTest):
                         - ELASTIC_APM_JS_SERVER_URL=http://apm-server:8200
                         - ELASTIC_APM_APP_NAME=opbeans-node
                         - ELASTIC_APM_SERVICE_NAME=opbeans-node
-                        - ELASTIC_APM_LOG_LEVEL=debug
+                        - ELASTIC_APM_LOG_LEVEL=info
                         - ELASTIC_APM_SOURCE_LINES_ERROR_APP_FRAMES
                         - ELASTIC_APM_SOURCE_LINES_SPAN_APP_FRAMES=5
                         - ELASTIC_APM_SOURCE_LINES_ERROR_LIBRARY_FRAMES
@@ -2030,6 +2074,24 @@ class OpbeansServiceTest(ServiceTest):
                          interval: 5s
                          retries: 12""")  # noqa: 501
         )
+
+    def test_opbeans_loadgen(self):
+        opbeans_load_gen = OpbeansLoadGenerator(
+            version="6.3.1",
+            enable_opbeans_python=True,
+            enable_opbeans_node=True,
+            no_opbeans_node_loadgen=True,
+        ).render()
+        assert opbeans_load_gen == yaml.load("""
+            opbeans-load-generator:
+                image: opbeans/opbeans-loadgen:latest
+                container_name: localtesting_6.3.1_opbeans-load-generator
+                depends_on:
+                    opbeans-python: {condition: service_healthy}
+                environment: ['OPBEANS_URLS=opbeans-python:http://opbeans-python:3000']
+                logging:
+                    driver: json-file
+                    options: {max-file: '5', max-size: 2m}""")
 
 
 class PostgresServiceTest(ServiceTest):
@@ -2219,22 +2281,23 @@ class LocalSetup(object):
 
         # Add a --no-x / --with-x argument for each service
         for service in services:
-            enabled_group = parser.add_mutually_exclusive_group()
-            enabled_group.add_argument(
-                '--with-' + service.name(),
-                action='store_true',
-                dest='enable_' + service.option_name(),
-                help='Enable ' + service.name(),
-                default=service.enabled(),
-            )
+            if not service.opbeans_side_car:
+                enabled_group = parser.add_mutually_exclusive_group()
+                enabled_group.add_argument(
+                    '--with-' + service.name(),
+                    action='store_true',
+                    dest='enable_' + service.option_name(),
+                    help='Enable ' + service.name(),
+                    default=service.enabled(),
+                )
 
-            enabled_group.add_argument(
-                '--no-' + service.name(),
-                action='store_false',
-                dest='enable_' + service.option_name(),
-                help='Disable ' + service.name(),
-                default=service.enabled(),
-            )
+                enabled_group.add_argument(
+                    '--no-' + service.name(),
+                    action='store_false',
+                    dest='enable_' + service.option_name(),
+                    help='Disable ' + service.name(),
+                    default=service.enabled(),
+                )
             service.add_arguments(parser)
 
         # Add build candidate argument
@@ -2466,7 +2529,7 @@ class LocalSetup(object):
         for service in self.services:
             service_enabled = args.get("enable_" + service.option_name())
             is_opbeans_service = issubclass(service, OpbeansService) or service is OpbeansRum
-            is_opbeans_sidecar = service.name() in ('postgres', 'redis')
+            is_opbeans_sidecar = service.name() in ('postgres', 'redis', 'opbeans-load-generator')
             if service_enabled or (all_opbeans and is_opbeans_service) or (any_opbeans and is_opbeans_sidecar):
                 selections.add(service(**args))
 
@@ -2899,6 +2962,7 @@ class LocalTest(unittest.TestCase):
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
                 ports: ['127.0.0.1:5601:5601']
+
         networks:
             default: {name: apm-integration-testing}
         volumes:
