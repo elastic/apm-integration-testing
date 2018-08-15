@@ -156,6 +156,10 @@ def parse_version(version):
 class Service(object):
     """encapsulate docker-compose service definition"""
 
+    # is this a side car service for opbeans. If yes, it will automatically
+    # start if any opbeans service starts
+    opbeans_side_car = False
+
     def __init__(self, **options):
         self.options = options
 
@@ -591,6 +595,7 @@ class Kafka(Service):
 
 class Postgres(Service):
     SERVICE_PORT = 5432
+    opbeans_side_car = True
 
     def _content(self):
         return dict(
@@ -606,6 +611,7 @@ class Postgres(Service):
 
 class Redis(Service):
     SERVICE_PORT = 6379
+    opbeans_side_car = True
 
     def _content(self):
         return dict(
@@ -1245,6 +1251,8 @@ class OpbeansRum(Service):
 
 
 class OpbeansLoadGenerator(Service):
+    opbeans_side_car = True
+
     @classmethod
     def add_arguments(cls, parser):
         super(OpbeansLoadGenerator, cls).add_arguments(parser)
@@ -2273,22 +2281,23 @@ class LocalSetup(object):
 
         # Add a --no-x / --with-x argument for each service
         for service in services:
-            enabled_group = parser.add_mutually_exclusive_group()
-            enabled_group.add_argument(
-                '--with-' + service.name(),
-                action='store_true',
-                dest='enable_' + service.option_name(),
-                help='Enable ' + service.name(),
-                default=service.enabled(),
-            )
+            if not service.opbeans_side_car:
+                enabled_group = parser.add_mutually_exclusive_group()
+                enabled_group.add_argument(
+                    '--with-' + service.name(),
+                    action='store_true',
+                    dest='enable_' + service.option_name(),
+                    help='Enable ' + service.name(),
+                    default=service.enabled(),
+                )
 
-            enabled_group.add_argument(
-                '--no-' + service.name(),
-                action='store_false',
-                dest='enable_' + service.option_name(),
-                help='Disable ' + service.name(),
-                default=service.enabled(),
-            )
+                enabled_group.add_argument(
+                    '--no-' + service.name(),
+                    action='store_false',
+                    dest='enable_' + service.option_name(),
+                    help='Disable ' + service.name(),
+                    default=service.enabled(),
+                )
             service.add_arguments(parser)
 
         # Add build candidate argument
