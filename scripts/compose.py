@@ -265,21 +265,15 @@ class StackService(object):
 
     def image_download_url(self):
         # Elastic releases are public
-        if self.release:
+        if not self.bc:
             return
 
         version = self.version
         image = self.docker_name
         if self.oss:
             image += "-oss"
-        if self.bc:
-            return "https://staging.elastic.co/{version}-{sha}/docker/{image}-{version}.tar.gz".format(
-                sha=self.bc,
-                image=image,
-                version=version,
-            )
-
-        return "https://snapshots.elastic.co/docker/{image}-{version}-SNAPSHOT.tar.gz".format(
+        return "https://staging.elastic.co/{version}-{sha}/docker/{image}-{version}.tar.gz".format(
+            sha=self.bc,
             image=image,
             version=version,
         )
@@ -1676,14 +1670,18 @@ class LocalSetup(object):
             print("Starting stack services..\n")
 
             # always build if possible, should be quick for rebuilds
-            if any("build" in service for service in compose["services"].values()):
+            build_services = [name for name, service in compose["services"].items() if 'build' in service]
+            if build_services:
                 docker_compose_build = ["docker-compose", "-f", docker_compose_path.name, "build", "--pull"]
                 if args["force_build"]:
                     docker_compose_build.append("--no-cache")
                 if args["build_parallel"]:
                     docker_compose_build.append("--parallel")
-                subprocess.call(docker_compose_build)
+                subprocess.call(docker_compose_build + build_services)
 
+            # pull any images
+            image_services = [name for name, service in compose["services"].items() if 'image' in service]
+            subprocess.call(["docker-compose", "-f", docker_compose_path.name, "pull"] + image_services)
             # really start
             docker_compose_up = ["docker-compose", "-f", docker_compose_path.name, "up", "-d"]
             subprocess.call(docker_compose_up)
