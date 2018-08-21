@@ -408,8 +408,7 @@ class LocalTest(unittest.TestCase):
         registry = discover_services()
         self.assertIn(ApmServer, registry)
 
-    @mock.patch(compose.__name__ + '.load_images')
-    def test_start_6_2_default(self, mock_load_images):
+    def test_start_6_2_default(self):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.2': '6.2.10'}):
@@ -487,16 +486,8 @@ class LocalTest(unittest.TestCase):
             pgdata: {driver: local}
         """)  # noqa: 501
         self.assertDictEqual(got, want)
-        mock_load_images.assert_called_once_with(
-            {
-                "https://snapshots.elastic.co/docker/apm-server-6.2.10-SNAPSHOT.tar.gz",
-                "https://snapshots.elastic.co/docker/elasticsearch-platinum-6.2.10-SNAPSHOT.tar.gz",
-                "https://snapshots.elastic.co/docker/kibana-x-pack-6.2.10-SNAPSHOT.tar.gz",
-            },
-            image_cache_dir)
 
-    @mock.patch(compose.__name__ + '.load_images')
-    def test_start_6_3_default(self, mock_load_images):
+    def test_start_6_3_default(self):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.3': '6.3.10'}):
@@ -575,16 +566,8 @@ class LocalTest(unittest.TestCase):
             pgdata: {driver: local}
         """)  # noqa: 501
         self.assertDictEqual(got, want)
-        mock_load_images.assert_called_once_with(
-            {
-                "https://snapshots.elastic.co/docker/apm-server-6.3.10-SNAPSHOT.tar.gz",
-                "https://snapshots.elastic.co/docker/elasticsearch-6.3.10-SNAPSHOT.tar.gz",
-                "https://snapshots.elastic.co/docker/kibana-6.3.10-SNAPSHOT.tar.gz",
-            },
-            image_cache_dir)
 
-    @mock.patch(compose.__name__ + '.load_images')
-    def test_start_master_default(self, mock_load_images):
+    def test_start_master_default(self):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
@@ -662,66 +645,6 @@ class LocalTest(unittest.TestCase):
             pgdata: {driver: local}
         """)  # noqa: 501
         self.assertDictEqual(got, want)
-        mock_load_images.assert_called_once_with(
-            {
-                "https://snapshots.elastic.co/docker/apm-server-7.0.10-alpha1-SNAPSHOT.tar.gz",
-                "https://snapshots.elastic.co/docker/elasticsearch-7.0.10-alpha1-SNAPSHOT.tar.gz",
-                "https://snapshots.elastic.co/docker/kibana-7.0.10-alpha1-SNAPSHOT.tar.gz",
-            },
-            image_cache_dir)
-
-    @mock.patch(compose.__name__ + '.load_images')
-    def test_start_master_custom_images(self, mock_load_images):
-        docker_compose_yml = stringIO()
-        image_cache_dir = "/foo"
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
-            setup = LocalSetup(
-                argv=["start", "master", "--docker-compose-path", "-", "--image-cache-dir", image_cache_dir,
-                      "--apm-server-version", "6.3.15", "--kibana-oss"])
-            setup.set_docker_compose_path(docker_compose_yml)
-            setup()
-        docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
-
-        self.assertEqual(
-            "docker.elastic.co/apm/apm-server:6.3.15-SNAPSHOT",
-            got["services"]["apm-server"]["image"]
-        )
-        self.assertEqual(
-            "docker.elastic.co/elasticsearch/elasticsearch:7.0.10-alpha1-SNAPSHOT",
-            got["services"]["elasticsearch"]["image"]
-        )
-        self.assertEqual(
-            "docker.elastic.co/kibana/kibana-oss:7.0.10-alpha1-SNAPSHOT",
-            got["services"]["kibana"]["image"]
-        )
-        mock_load_images.assert_called_once_with(
-            {
-                "https://snapshots.elastic.co/docker/apm-server-6.3.15-SNAPSHOT.tar.gz",
-                "https://snapshots.elastic.co/docker/elasticsearch-7.0.10-alpha1-SNAPSHOT.tar.gz",
-                "https://snapshots.elastic.co/docker/kibana-oss-7.0.10-alpha1-SNAPSHOT.tar.gz",
-            },
-            image_cache_dir)
-
-    @mock.patch(compose.__name__ + '.load_images')
-    def test_start_master_with_logstash_and_metricbeat(self, mock_load_images):
-        docker_compose_yml = stringIO()
-        image_cache_dir = "/foo"
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
-            setup = LocalSetup(
-                argv=["start", "master", "--docker-compose-path", "-", "--image-cache-dir", image_cache_dir,
-                      "--with-logstash", "--with-metricbeat"])
-            setup.set_docker_compose_path(docker_compose_yml)
-            setup()
-        mock_load_images.assert_called_once_with(
-            {
-                "https://snapshots.elastic.co/docker/apm-server-7.0.10-alpha1-SNAPSHOT.tar.gz",
-                "https://snapshots.elastic.co/docker/elasticsearch-7.0.10-alpha1-SNAPSHOT.tar.gz",
-                "https://snapshots.elastic.co/docker/kibana-7.0.10-alpha1-SNAPSHOT.tar.gz",
-                "https://snapshots.elastic.co/docker/logstash-7.0.10-alpha1-SNAPSHOT.tar.gz",
-                "https://snapshots.elastic.co/docker/metricbeat-7.0.10-alpha1-SNAPSHOT.tar.gz",
-            },
-            image_cache_dir)
 
     @mock.patch(compose.__name__ + '.load_images')
     def test_start_all(self, _ignore_load_images):
@@ -810,26 +733,11 @@ class LocalTest(unittest.TestCase):
         Case = collections.namedtuple("Case", ("service", "expected", "args"))
         common_args = (("image_cache_dir", ".images"),)
         cases = [
-            # pre-6.3
-            Case(ApmServer, "https://snapshots.elastic.co/docker/apm-server-6.2.10-SNAPSHOT.tar.gz",
-                 dict(version="6.2.10")),
-            Case(Elasticsearch, "https://snapshots.elastic.co/docker/elasticsearch-platinum-6.2.10-SNAPSHOT.tar.gz",
-                 dict(version="6.2.10")),
-            Case(Kibana, "https://snapshots.elastic.co/docker/kibana-x-pack-6.2.10-SNAPSHOT.tar.gz",
-                 dict(version="6.2.10")),
             # post-6.3
-            Case(ApmServer, "https://snapshots.elastic.co/docker/apm-server-6.3.10-SNAPSHOT.tar.gz",
-                 dict(version="6.3.10")),
             Case(Elasticsearch, "https://staging.elastic.co/6.3.10-be84d930/docker/elasticsearch-6.3.10.tar.gz",
                  dict(bc="be84d930", version="6.3.10")),
             Case(Elasticsearch, "https://staging.elastic.co/6.3.10-be84d930/docker/elasticsearch-oss-6.3.10.tar.gz",
                  dict(bc="be84d930", oss=True, version="6.3.10")),
-            Case(Elasticsearch, "https://snapshots.elastic.co/docker/elasticsearch-6.3.10-SNAPSHOT.tar.gz",
-                 dict(version="6.3.10")),
-            Case(Elasticsearch, "https://snapshots.elastic.co/docker/elasticsearch-oss-6.3.10-SNAPSHOT.tar.gz",
-                 dict(oss=True, version="6.3.10")),
-            Case(Kibana, "https://snapshots.elastic.co/docker/kibana-6.3.10-SNAPSHOT.tar.gz",
-                 dict(version="6.3.10")),
         ]
         for case in cases:
             args = dict(common_args)
