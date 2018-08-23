@@ -328,6 +328,7 @@ class ApmServer(StackService, Service):
             ("xpack.monitoring.enabled", "true")
         ]
         self.depends_on = {"elasticsearch": {"condition": "service_healthy"}}
+        self.build = self.options.get("apm_server_build")
 
         if self.options.get("enable_kibana", True):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
@@ -365,6 +366,10 @@ class ApmServer(StackService, Service):
     def add_arguments(cls, parser):
         super(ApmServer, cls).add_arguments(parser)
         parser.add_argument(
+            '--apm-server-build',
+            help='build apm-server from a git repo[@branch], eg https://github.com/elastic/apm-server.git@v2'
+        )
+        parser.add_argument(
             '--apm-server-output',
             choices=cls.OUTPUTS,
             default='elasticsearch',
@@ -382,7 +387,7 @@ class ApmServer(StackService, Service):
         for param, value in self.apm_server_command_args:
             command_args.extend(["-E", param + "=" + value])
 
-        return dict(
+        content = dict(
             cap_add=["CHOWN", "DAC_OVERRIDE", "SETGID", "SETUID"],
             cap_drop=["ALL"],
             command=["apm-server", "-e", "--httpprof", ":{}".format(self.apm_server_monitor_port)] + command_args,
@@ -394,6 +399,24 @@ class ApmServer(StackService, Service):
                 self.publish_port(self.apm_server_monitor_port, self.DEFAULT_MONITOR_PORT),
             ]
         )
+
+        if self.build:
+            build_spec_parts = self.build.split("@", 1)
+            repo = build_spec_parts[0]
+            branch = build_spec_parts[1] if len(build_spec_parts) > 1 else "master"
+            content.update({
+                "build": {
+                    "context": "docker/apm-server",
+                    "args": {
+                        "apm_server_base_image": self.default_image(),
+                        "apm_server_branch": branch,
+                        "apm_server_repo": repo,
+                    }
+                },
+                "image": None,
+            })
+
+        return content
 
     @staticmethod
     def enabled():

@@ -1,4 +1,3 @@
-apm-server
 *.pyc
 **/*.pyc
 .cache
