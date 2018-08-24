@@ -514,6 +514,7 @@ class Kibana(StackService, Service):
 
     def __init__(self, **options):
         super(Kibana, self).__init__(**options)
+        self.kibana_with_canvas = options.get("kibana_with_canvas")
         if not self.at_least_version("6.3") and not self.oss:
             self.docker_name = self.name() + "-x-pack"
         self.environment = self.default_environment.copy()
@@ -522,13 +523,35 @@ class Kibana(StackService, Service):
             if self.at_least_version("6.3"):
                 self.environment["XPACK_XPACK_MAIN_TELEMETRY_ENABLED"] = "false"
 
+    @classmethod
+    def add_arguments(cls, parser):
+        super(Kibana, cls).add_arguments(parser)
+        parser.add_argument(
+            "--kibana-with-canvas",
+            const="2174",
+            nargs="?",
+            help="build custom kibana image with canvas",
+        )
+
     def _content(self):
-        return dict(
+        content = dict(
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/", interval="5s", retries=20),
             depends_on={"elasticsearch": {"condition": "service_healthy"}},
             environment=self.environment,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
+        if self.kibana_with_canvas:
+            content.update({
+                "build": {
+                    "context": "docker/kibana",
+                    "args": {
+                        "kibana_base_image": self.default_image(),
+                        "kibana_canvas_version": self.kibana_with_canvas,
+                    }
+                },
+                "image": None,
+            })
+        return content
 
     @staticmethod
     def enabled():
