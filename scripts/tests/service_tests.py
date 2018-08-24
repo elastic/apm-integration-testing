@@ -247,6 +247,24 @@ class ApmServerServiceTest(ServiceTest):
         for o in kafka_options:
             self.assertTrue(o in apm_server["command"], "{} not set while output=kafka".format(o))
 
+    def test_apm_server_build_branch(self):
+        apm_server = ApmServer(version="6.3.100", apm_server_build="foo.git@bar", release=True).render()["apm-server"]
+        self.assertIsNone(apm_server.get("image"))
+        self.assertDictEqual(apm_server["build"], {
+            'args': {'apm_server_base_image': 'docker.elastic.co/apm/apm-server:6.3.100',
+                     'apm_server_branch': 'bar',
+                     'apm_server_repo': 'foo.git'},
+            'context': 'docker/apm-server'})
+
+    def test_apm_server_build_branch_default(self):
+        apm_server = ApmServer(version="6.3.100", apm_server_build="foo.git", release=True).render()["apm-server"]
+        self.assertIsNone(apm_server.get("image"))
+        self.assertDictEqual(apm_server["build"], {
+            'args': {'apm_server_base_image': 'docker.elastic.co/apm/apm-server:6.3.100',
+                     'apm_server_branch': 'master',
+                     'apm_server_repo': 'foo.git'},
+            'context': 'docker/apm-server'})
+
     def test_apm_server_custom_port(self):
         custom_port = "8203"
         apm_server = ApmServer(version="6.3.100", apm_server_port=custom_port).render()["apm-server"]
