@@ -392,7 +392,7 @@ class ApmServer(StackService, Service):
             cap_drop=["ALL"],
             command=["apm-server", "-e", "--httpprof", ":{}".format(self.apm_server_monitor_port)] + command_args,
             depends_on=self.depends_on,
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "apm-server"),
+            healthcheck=curl_healthcheck(self.SERVICE_PORT),
             labels=["co.elatic.apm.stack-version=" + self.version],
             ports=[
                 self.publish_port(self.port, self.SERVICE_PORT),
