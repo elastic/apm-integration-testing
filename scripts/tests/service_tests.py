@@ -403,6 +403,14 @@ class KafkaServiceTest(ServiceTest):
 
 
 class KibanaServiceTest(ServiceTest):
+    def test_canvas(self):
+        kibana = Kibana(version="6.4.0", release=True, kibana_with_canvas="0.1.2").render()["kibana"]
+        self.assertIsNone(kibana.get("image"))
+        self.assertDictEqual(kibana["build"], {
+            'args': {'kibana_base_image': 'docker.elastic.co/kibana/kibana:6.4.0',
+                     'kibana_canvas_version': '0.1.2'},
+            'context': 'docker/kibana'})
+
     def test_6_2_release(self):
         kibana = Kibana(version="6.2.4", release=True).render()
         self.assertEqual(
