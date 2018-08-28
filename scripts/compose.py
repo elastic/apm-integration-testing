@@ -526,11 +526,15 @@ class Kibana(StackService, Service):
     @classmethod
     def add_arguments(cls, parser):
         super(Kibana, cls).add_arguments(parser)
+        canvas_default_version = "0.1.2174"
         parser.add_argument(
             "--kibana-with-canvas",
-            const="2174",
+            const=canvas_default_version,
             nargs="?",
-            help="build custom kibana image with canvas",
+            help=(
+                "build custom kibana image with canvas, "
+                "override default version {!r} by providing an argument.".format(canvas_default_version)
+            ),
         )
 
     def _content(self):
