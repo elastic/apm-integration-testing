@@ -22,11 +22,12 @@ frontend http
 backend servers
     mode http
     balance roundrobin
+    option httpchk HEAD /healthcheck HTTP/1.0
 EOF
 
 for ((i=1; i<=$backends; i++)); do
 cat >> $config <<EOF
-    server apm-server-${i} apm-server-${i}:8200
+    server apm-server-${i} apm-server-${i}:8200 check fall 3 rise 2
 EOF
 done
 
