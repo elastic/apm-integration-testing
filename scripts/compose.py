@@ -303,7 +303,7 @@ class StackService(object):
 class ApmServer(StackService, Service):
     docker_path = "apm"
 
-    SERVICE_PORT = 8200
+    SERVICE_PORT = "8200"
     DEFAULT_MONITOR_PORT = "6060"
     DEFAULT_OUTPUT = "elasticsearch"
     OUTPUTS = {"elasticsearch", "kafka", "logstash"}
@@ -362,6 +362,8 @@ class ApmServer(StackService, Service):
                     ("output.logstash.hosts", "[\"logstash:5044\"]"),
                 ])
 
+        self.apm_server_count = options.get("apm_server_count", 1)
+
     @classmethod
     def add_arguments(cls, parser):
         super(ApmServer, cls).add_arguments(parser)
@@ -374,6 +376,12 @@ class ApmServer(StackService, Service):
             choices=cls.OUTPUTS,
             default='elasticsearch',
             help='apm-server output'
+        )
+        parser.add_argument(
+            '--apm-server-count',
+            type=int,
+            default=1,
+            help="apm-server count. >1 adds a load balancer service to round robin traffic between servers.",
         )
         parser.add_argument(
             "--no-apm-server-dashboards",
@@ -392,7 +400,7 @@ class ApmServer(StackService, Service):
             cap_drop=["ALL"],
             command=["apm-server", "-e", "--httpprof", ":{}".format(self.apm_server_monitor_port)] + command_args,
             depends_on=self.depends_on,
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "apm-server"),
+            healthcheck=curl_healthcheck(self.SERVICE_PORT),
             labels=["co.elatic.apm.stack-version=" + self.version],
             ports=[
                 self.publish_port(self.port, self.SERVICE_PORT),
@@ -421,6 +429,39 @@ class ApmServer(StackService, Service):
     @staticmethod
     def enabled():
         return True
+
+    def render(self):
+        """hack up render to support multiple apm servers behind a load balancer"""
+        ren = super(ApmServer, self).render()
+        if self.apm_server_count == 1:
+            return ren
+
+        # save a single server for use as backend template
+        single = ren[self.name()]
+        single["ports"] = [p.rsplit(":", 1)[-1] for p in single["ports"]]
+
+        # render proxy + backends
+        ren = self.render_proxy()
+        # individualize each backend instance
+        for i in range(1, self.apm_server_count+1):
+            backend = dict(single)
+            backend["container_name"] = backend["container_name"] + "-" + str(i)
+            ren.update({"-".join([self.name(), str(i)]): backend})
+        return ren
+
+    def render_proxy(self):
+        condition = {"condition": "service_healthy"}
+        content = dict(
+            build={"context": "docker/apm-server/haproxy"},
+            container_name=self.default_container_name() + "-load-balancer",
+            depends_on={"apm-server-{}".format(i): condition for i in range(1, self.apm_server_count + 1)},
+            environment={"APM_SERVER_COUNT": self.apm_server_count},
+            healthcheck={"test": ["CMD", "haproxy", "-c", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]},
+            ports=[
+                self.publish_port(self.port, self.SERVICE_PORT),
+            ],
+        )
+        return {self.name(): content}
 
 
 class Elasticsearch(StackService, Service):
