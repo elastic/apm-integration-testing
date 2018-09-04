@@ -1325,10 +1325,17 @@ class OpbeansLoadGenerator(Service):
                 default=False,
                 help='Disable load generator for {}'.format(service_class.name())
             )
+            parser.add_argument(
+                '--%s-loadgen-rpm' % service_class.name(),
+                action='store',
+                default=100,
+                help='RPM of load that should be generated for {}'.format(service_class.name())
+            )
 
     def __init__(self, **options):
         super(OpbeansLoadGenerator, self).__init__(**options)
         self.loadgen_services = []
+        self.loadgen_rpms = {}
         # create load for opbeans services
         run_all_opbeans = options.get('run_all_opbeans')
         excluded = ('opbeans_load_generator', 'opbeans_rum')
@@ -1337,6 +1344,9 @@ class OpbeansLoadGenerator(Service):
                 service_name = flag[len('enable_'):]
                 if not options.get('no_{}_loadgen'.format(service_name)) and service_name not in excluded:
                     self.loadgen_services.append(service_name.replace('_', '-'))
+                    rpm = options.get('{}_loadgen_rpm'.format(service_name))
+                    if rpm:
+                        self.loadgen_rpms[service_name.replace('_', '-')] = rpm
 
     def _content(self):
         content = dict(
@@ -1344,6 +1354,7 @@ class OpbeansLoadGenerator(Service):
             depends_on={service: {'condition': 'service_healthy'} for service in self.loadgen_services},
             environment=[
                 "OPBEANS_URLS={}".format(','.join('{0}:http://{0}:3000'.format(s) for s in self.loadgen_services)),
+                "OPBEANS_RPMS={}".format(','.join('{}:{}'.format(k, v) for k, v in self.loadgen_rpms.items()))
             ],
             labels=None,
         )
