@@ -735,6 +735,33 @@ class LocalTest(unittest.TestCase):
         )
         self.assertEqual("docker.elastic.co/kibana/kibana:{}-SNAPSHOT".format(version), services["kibana"]["image"])
 
+    @mock.patch(compose.__name__ + '.load_images')
+    def test_start_bc(self, mock_load_images):
+        docker_compose_yml = stringIO()
+        image_cache_dir = "/foo"
+        version = "6.9.5"
+        bc = "abcd1234"
+        self.assertNotIn(version, LocalSetup.SUPPORTED_VERSIONS)
+        setup = LocalSetup(
+            argv=["start", version, "--bc" , bc, "--docker-compose-path", "-", "--image-cache-dir", image_cache_dir])
+        setup.set_docker_compose_path(docker_compose_yml)
+        setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        services = got["services"]
+        self.assertEqual(
+            "docker.elastic.co/elasticsearch/elasticsearch:{}".format(version),
+            services["elasticsearch"]["image"]
+        )
+        self.assertEqual("docker.elastic.co/kibana/kibana:{}".format(version), services["kibana"]["image"])
+        mock_load_images.assert_called_once_with(
+            {
+                'https://staging.elastic.co/6.9.5-abcd1234/docker/apm-server-6.9.5.tar.gz',
+                'https://staging.elastic.co/6.9.5-abcd1234/docker/elasticsearch-6.9.5.tar.gz',
+                'https://staging.elastic.co/6.9.5-abcd1234/docker/kibana-6.9.5.tar.gz'
+            },
+            image_cache_dir)
+
     def test_docker_download_image_url(self):
         Case = collections.namedtuple("Case", ("service", "expected", "args"))
         common_args = (("image_cache_dir", ".images"),)
