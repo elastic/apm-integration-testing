@@ -265,7 +265,7 @@ class StackService(object):
 
     def image_download_url(self):
         # Elastic releases are public
-        if not self.bc:
+        if self.release or not self.bc:
             return
 
         version = self.version
