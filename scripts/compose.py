@@ -1740,12 +1740,14 @@ class LocalSetup(object):
             if service_enabled or (all_opbeans and is_opbeans_service) or (any_opbeans and is_opbeans_sidecar):
                 selections.add(service(**args))
 
-        # `docker load` images if necessary
-        # need should mostly go away once snapshot builds are available a docker registry
-        if not args["skip_download"]:
-            images_to_load = {service.image_download_url() for service in selections} - {None}
-            if images_to_load:
-                load_images(images_to_load, args["image_cache_dir"])
+        # `docker load` images if necessary, usually only for build candidates
+        services_to_load = {}
+        for service in selections:
+            download_url = service.image_download_url()
+            if download_url:
+                services_to_load[service.name()] = download_url
+        if not args["skip_download"] and services_to_load:
+            load_images(set(services_to_load.values()), args["image_cache_dir"])
 
         # generate docker-compose.yml
         services = {}
@@ -1782,8 +1784,10 @@ class LocalSetup(object):
                 subprocess.call(docker_compose_build + build_services)
 
             # pull any images
-            image_services = [name for name, service in compose["services"].items() if 'image' in service]
-            subprocess.call(["docker-compose", "-f", docker_compose_path.name, "pull"] + image_services)
+            image_services = [name for name, service in compose["services"].items() if
+                              'image' in service and name not in services_to_load]
+            if image_services:
+                subprocess.call(["docker-compose", "-f", docker_compose_path.name, "pull"] + image_services)
             # really start
             docker_compose_up = ["docker-compose", "-f", docker_compose_path.name, "up", "-d"]
             subprocess.call(docker_compose_up)
