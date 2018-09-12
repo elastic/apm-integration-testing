@@ -33,15 +33,15 @@ This repo is tested with Python 3 but best effort is made to make starting/stopp
 
 ### Starting an Environment
 
-`scripts/compose.py` provides a handy cli for starting a testing environment using docker-compose.
-`make venv` creates a virtual environment with all of the python-based dependencies needed to run `scripts/compose.py` - it requires `virtualenv` in your `PATH`.
-Activate the virtualenv with `source venv/bin/activate` and use `scripts/compose.py --help` for information on subcommands and arguments.
+`./scripts/compose.py` provides a handy cli for starting a testing environment using docker-compose.
+`make venv` creates a virtual environment with all of the python-based dependencies needed to run `./scripts/compose.py` - it requires `virtualenv` in your `PATH`.
+Activate the virtualenv with `source venv/bin/activate` and use `./scripts/compose.py --help` for information on subcommands and arguments.
 
 ### Stopping an Environment
 
 All services:
 ```
-compose.py stop
+./scripts/compose.py stop
 
 # OR
 
