@@ -1339,7 +1339,7 @@ class OpbeansLoadGenerator(Service):
         self.loadgen_rpms = {}
         # create load for opbeans services
         run_all_opbeans = options.get('run_all_opbeans')
-        excluded = ('opbeans_load_generator', 'opbeans_rum')
+        excluded = ('opbeans_load_generator', 'opbeans_rum', 'opbeans_node')
         for flag, value in options.items():
             if (value or run_all_opbeans) and flag.startswith('enable_opbeans_'):
                 service_name = flag[len('enable_'):]
