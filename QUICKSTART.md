@@ -69,13 +69,13 @@ If you want to see what services are available to start, you can run: `./scripts
 So when new agents are added we don't have to update these instructions.
 
 
-**Bonus**:  With either the `all` or individual methods above, you can also pass a `--with-metricbeat` flag, which will also set up metricbeat.  One side note here is that you will need to then probably need to set a default index pattern
+**Bonus**:  With either the `all` or individual methods above, you can also pass `--with-metricbeat` or `--with-filebeat` flags, which will also set up appropriate containers and dashboards.  One side note here is that you will probably need to set a default index pattern.
 
 #### Status
 
 Each app gets its own port.  You can actually hit them with your browser.  They all have a similar look & feel.
 
-You can check the status of your APM cluster with `/scripts/compose.py status`, which basically calls :
+You can check the status of your APM cluster with `./scripts/compose.py status`, which basically calls :
 
 `docker ps --format 'table {{.Names}}\t{{.Ports}}'...`
 
