@@ -127,7 +127,7 @@ class OpbeansServiceTest(ServiceTest):
                     volumes:
                       - .:/local-install
                     healthcheck:
-                      test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-java:3000/"]
+                      test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-java:3000/"]
                       interval: 5s
                       retries: 12""")  # noqa: 501
         )
@@ -177,7 +177,7 @@ class OpbeansServiceTest(ServiceTest):
                         apm-server:
                             condition: service_healthy
                     healthcheck:
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-node:3000/"]
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-node:3000/"]
                         interval: 5s
                         retries: 12
                     volumes:
@@ -231,7 +231,7 @@ class OpbeansServiceTest(ServiceTest):
                     volumes:
                         - .:/local-install
                     healthcheck:
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-python:3000/"]
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-python:3000/"]
                         interval: 5s
                         retries: 12
             """)  # noqa: 501
@@ -296,7 +296,7 @@ class OpbeansServiceTest(ServiceTest):
                     volumes:
                       - .:/local-install
                     healthcheck:
-                      test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-ruby:3000/"]
+                      test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-ruby:3000/"]
                       interval: 5s
                       retries: 100""")  # noqa: 501
 
@@ -326,7 +326,7 @@ class OpbeansServiceTest(ServiceTest):
                          opbeans-node:
                              condition: service_healthy
                      healthcheck:
-                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-rum:9222/"]
+                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-rum:9222/"]
                          interval: 5s
                          retries: 12""")  # noqa: 501
         )
@@ -444,7 +444,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: 5s
                     retries: 12
-                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
                 image: docker.elastic.co/apm/apm-server:6.2.10-SNAPSHOT
                 labels: [co.elatic.apm.stack-version=6.2.10]
                 logging:
@@ -478,7 +478,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: 5s
                     retries: 20
-                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --silent, --output, /dev/null, 'http://kibana:5601/']
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
                 image: docker.elastic.co/kibana/kibana-x-pack:6.2.10-SNAPSHOT
                 labels: [co.elatic.apm.stack-version=6.2.10]
                 logging:
@@ -523,7 +523,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: 5s
                     retries: 12
-                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
                 image: docker.elastic.co/apm/apm-server:6.3.10-SNAPSHOT
                 labels: [co.elatic.apm.stack-version=6.3.10]
                 logging:
@@ -557,7 +557,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: 5s
                     retries: 20
-                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --silent, --output, /dev/null, 'http://kibana:5601/']
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
                 image: docker.elastic.co/kibana/kibana:6.3.10-SNAPSHOT
                 labels: [co.elatic.apm.stack-version=6.3.10]
                 logging:
@@ -603,7 +603,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: 5s
                     retries: 12
-                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
                 image: docker.elastic.co/apm/apm-server:7.0.10-alpha1-SNAPSHOT
                 labels: [co.elatic.apm.stack-version=7.0.10-alpha1]
                 logging:
@@ -637,7 +637,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: 5s
                     retries: 20
-                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --silent, --output, /dev/null, 'http://kibana:5601/']
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
                 image: docker.elastic.co/kibana/kibana:7.0.10-alpha1-SNAPSHOT
                 labels: [co.elatic.apm.stack-version=7.0.10-alpha1]
                 logging:

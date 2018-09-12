@@ -114,7 +114,8 @@ def curl_healthcheck(port, host="localhost", path="/healthcheck",
     return {
                 "interval": interval,
                 "retries": retries,
-                "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null",
+                "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent",
+                         "--output", "/dev/null",
                          "http://{}:{}{}".format(host, port, path)]
             }
 
@@ -580,7 +581,7 @@ class Kibana(StackService, Service):
 
     def _content(self):
         content = dict(
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/", interval="5s", retries=20),
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/api/status", interval="5s", retries=20),
             depends_on={"elasticsearch": {"condition": "service_healthy"}},
             environment=self.environment,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
