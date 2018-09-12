@@ -123,7 +123,7 @@ Then to start them up you just run `ssh gcptunnel`.
 
 All services:
 ```
-compose.py stop
+./scripts/compose.py stop
 
 # OR
 
