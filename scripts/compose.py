@@ -114,7 +114,8 @@ def curl_healthcheck(port, host="localhost", path="/healthcheck",
     return {
                 "interval": interval,
                 "retries": retries,
-                "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null",
+                "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent",
+                         "--output", "/dev/null",
                          "http://{}:{}{}".format(host, port, path)]
             }
 
