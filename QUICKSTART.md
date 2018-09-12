@@ -81,7 +81,7 @@ You can check the status of your APM cluster with `/scripts/compose.py status`, 
 
 Here is a tablular view, excluding non-essentials:
 
-|NAMES                                       | Link                                   |
+|Container Name                              | Link                                   |
 |--------------------------------------------|----------------------------------------|
 |`localtesting_6.4.0_opbeans-rum`            |[opbeans-rum](http://localhost:9222) (note - this needs chrome)   |
 |`localtesting_6.4.0_opbeans-java`           |[opbeans-java](http://localhost:3002)   |
@@ -95,9 +95,9 @@ Here is a tablular view, excluding non-essentials:
 
 You can attach your own APM agent to the APM server if you wish`.`
 
-### Notes for cloud instances
+### Note for Cloud Instances
 
-If you want to run this on a cloud server, you will need to set up port forwards to access any of it.  The easiest way to do this is through your `~/.ssh/config` file.  My section for my cloud box looks like this:
+If you want to run this on a cloud server (GCP, AWS), you will need to set up port forwarding to access them, and the easiest way to do this is through your `~/.ssh/config` file.  My section for my cloud box looks like this:
 
 ```
 Host gcptunnel
