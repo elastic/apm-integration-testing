@@ -69,33 +69,31 @@ If you want to see what services are available to start, you can run: `./scripts
 So when new agents are added we don't have to update these instructions.
 
 
-Bonus:  With either the `all` or individual methods above, you can also pass a `--with-metricbeat` flag, which will also set up metricbeat.  One side note here is that you will need to then probably need to set a default index pattern
+**Bonus**:  With either the `all` or individual methods above, you can also pass a `--with-metricbeat` flag, which will also set up metricbeat.  One side note here is that you will need to then probably need to set a default index pattern
 
 #### Status
 
 Each app gets its own port.  You can actually hit them with your browser.  They all have a similar look & feel.
 
-You can check the status of your APM cluster with `/scripts/compose.py status`, which basically calls 
+You can check the status of your APM cluster with `/scripts/compose.py status`, which basically calls :
 
-You can see the default ports by running `docker ps --format 'table {{.Names}}\t{{.Ports}}'...`
+`docker ps --format 'table {{.Names}}\t{{.Ports}}'...`
 
-Here is a table view:
+Here is a tablular view, excluding non-essentials:
 
 |NAMES                                       | Link                                   |
 |--------------------------------------------|----------------------------------------|
-|localtesting_6.4.0_opbeans-load-generator   |                                        |
-|localtesting_6.4.0_opbeans-rum              |[opbeans-rum](http://localhost:9222)    |
-|localtesting_6.4.0_opbeans-java             |[opbeans-java](http://localhost:3002)   |
-|localtesting_6.4.0_opbeans-go               |[opbeans-go](http://localhost:3003)     |
-|localtesting_6.4.0_opbeans-node             |[opbeans-node](http://localhost:3000)   |
-|localtesting_6.4.0_opbeans-ruby             |[opbeans-ruby](http://localhost:3001)   |
-|localtesting_6.4.0_opbeans-python           |[opbeans-python](http://localhost:8000) |
-|localtesting_6.4.0_apm-server               |                                        |
-|localtesting_6.4.0_kibana                   |[kibana](http://localhost:5601)         |
-|localtesting_6.4.0_elasticsearch            |                                        |
-|localtesting_6.4.0_postgres                 |                                        |
-|localtesting_6.4.0_redis                    |                                        |
+|`localtesting_6.4.0_opbeans-rum`            |[opbeans-rum](http://localhost:9222) (note - this needs chrome)   |
+|`localtesting_6.4.0_opbeans-java`           |[opbeans-java](http://localhost:3002)   |
+|`localtesting_6.4.0_opbeans-go`             |[opbeans-go](http://localhost:3003)     |
+|`localtesting_6.4.0_opbeans-node`           |[opbeans-node](http://localhost:3000)   |
+|`localtesting_6.4.0_opbeans-ruby`           |[opbeans-ruby](http://localhost:3001)   |
+|`localtesting_6.4.0_opbeans-python`         |[opbeans-python](http://localhost:8000) |
+|`localtesting_6.4.0_kibana`                 |[kibana](http://localhost:5601)         |
+|`localtesting_6.4.0_elasticsearch`          |[elasticsearch](http://localhost:9200)  |
+|`localtesting_6.4.0_apm-server`             |[APM Server](http://localhost:6060)     |
 
+You can attach your own APM agent to the APM server if you wish`.`
 
 ### Notes for cloud instances
 
