@@ -127,7 +127,7 @@ class OpbeansServiceTest(ServiceTest):
                     volumes:
                       - .:/local-install
                     healthcheck:
-                      test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-java:3000/"]
+                      test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-java:3000/"]
                       interval: 5s
                       retries: 12""")  # noqa: 501
         )
@@ -177,7 +177,7 @@ class OpbeansServiceTest(ServiceTest):
                         apm-server:
                             condition: service_healthy
                     healthcheck:
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-node:3000/"]
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-node:3000/"]
                         interval: 5s
                         retries: 12
                     volumes:
@@ -231,7 +231,7 @@ class OpbeansServiceTest(ServiceTest):
                     volumes:
                         - .:/local-install
                     healthcheck:
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-python:3000/"]
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-python:3000/"]
                         interval: 5s
                         retries: 12
             """)  # noqa: 501
@@ -296,7 +296,7 @@ class OpbeansServiceTest(ServiceTest):
                     volumes:
                       - .:/local-install
                     healthcheck:
-                      test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-ruby:3000/"]
+                      test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-ruby:3000/"]
                       interval: 5s
                       retries: 100""")  # noqa: 501
 
@@ -326,7 +326,7 @@ class OpbeansServiceTest(ServiceTest):
                          opbeans-node:
                              condition: service_healthy
                      healthcheck:
-                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://opbeans-rum:9222/"]
+                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-rum:9222/"]
                          interval: 5s
                          retries: 12""")  # noqa: 501
         )

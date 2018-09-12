@@ -35,7 +35,7 @@ class AgentServiceTest(ServiceTest):
                     healthcheck:
                         interval: 5s
                         retries: 12
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://gonethttpapp:8080/healthcheck"]
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://gonethttpapp:8080/healthcheck"]
                     ports:
                         - 127.0.0.1:8080:8080
             """)  # noqa: 501
@@ -58,7 +58,7 @@ class AgentServiceTest(ServiceTest):
                     healthcheck:
                         interval: 5s
                         retries: 12
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://expressapp:8010/healthcheck"]
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://expressapp:8010/healthcheck"]
                     ports:
                         - 127.0.0.1:8010:8010
             """)  # noqa: 501
@@ -85,7 +85,7 @@ class AgentServiceTest(ServiceTest):
                     healthcheck:
                         interval: 5s
                         retries: 12
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://djangoapp:8003/healthcheck"]
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://djangoapp:8003/healthcheck"]
                     ports:
                         - 127.0.0.1:8003:8003
             """)  # noqa: 501
@@ -108,7 +108,7 @@ class AgentServiceTest(ServiceTest):
                     healthcheck:
                         interval: 5s
                         retries: 12
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://flaskapp:8001/healthcheck"]
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://flaskapp:8001/healthcheck"]
                     ports:
                         - 127.0.0.1:8001:8001
             """)  # noqa: 501
@@ -135,7 +135,7 @@ class AgentServiceTest(ServiceTest):
                     healthcheck:
                         interval: 10s
                         retries: 60
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://railsapp:8020/healthcheck"]
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://railsapp:8020/healthcheck"]
                     ports:
                         - 127.0.0.1:8020:8020
             """)  # noqa: 501
@@ -156,7 +156,7 @@ class AgentServiceTest(ServiceTest):
                     healthcheck:
                         interval: 5s
                         retries: 12
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output",
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output",
                         "/dev/null", "http://javaspring:8090/healthcheck"]
                     ports:
                         - 127.0.0.1:8090:8090
@@ -438,7 +438,7 @@ class KibanaServiceTest(ServiceTest):
                             max-size: '2m'
                             max-file: '5'
                     healthcheck:
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://kibana:5601/"]
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://kibana:5601/api/status"]
                         interval: 5s
                         retries: 20
                     depends_on:
@@ -468,7 +468,7 @@ class KibanaServiceTest(ServiceTest):
                             max-size: '2m'
                             max-file: '5'
                     healthcheck:
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://kibana:5601/"]
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://kibana:5601/api/status"]
                         interval: 5s
                         retries: 20
                     depends_on:
@@ -499,7 +499,7 @@ class LogstashServiceTest(ServiceTest):
                 elasticsearch: {condition: service_healthy}
             environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200'}
             healthcheck:
-                test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--silent", "--output", "/dev/null", "http://logstash:9600/"]
+                test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://logstash:9600/"]
                 interval: 5s
                 retries: 12
             image: docker.elastic.co/logstash/logstash:6.3.0
