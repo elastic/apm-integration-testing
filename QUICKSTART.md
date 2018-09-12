@@ -35,24 +35,25 @@ This repo is tested with Python 3 but best effort is made to make starting/stopp
 
 ### Starting an Environment
 
-The tool that we use to start and stop the environment is `scripts/compose.py`.  This provides a handy cli for starting an APM environment using docker-compose. 
+The tool that we use to start and stop the environment is `./scripts/compose.py`.  This provides a handy cli for starting an APM environment using docker-compose. 
 
 #### TL;DR
 
 Start an env by running:
-`./scripts/compose.py start --all 6.4`
+`./scripts/compose.py start --all 6.4 --release`
 
-This will start a complete environment, which includes all of the sample apps and hits them each with a load generator.  Once that is done (and everything has started up) you can navigate to [Your local Kibana Instance](http://localhost:5601/app/apm#/)
+This will start a complete 6.4 environment, which includes all of the sample apps and hits them each with a load generator.  Once that is done (and everything has started up) you can navigate to [Your local Kibana Instance](http://localhost:5601/app/apm#/)
 
 #### Details
 
-If you don't want to start everything (for example, on a laptop with limited resources, trying to run zoom at the same time) you can pick and choose which services you run.  Say, for example, that you want to run node, java, and rum.  You could use this command:
+If you don't want to start everything (for example, on a laptop with limited resources while trying to run zoom at the same time) you can pick and choose which services you run.  Say, for example, that you want to run node, java, and rum.  You could use this command:
 ```console
-scripts/compose.py start \
+./scripts/compose.py start \
     --release \
     --with-opbeans-node \
     --with-opbeans-rum \
-    --with-opbeans-java
+    --with-opbeans-java \
+    6.4
 ```
 
 There are many other configuration options, but this is a quickstart.  See the [README](/README.md).
