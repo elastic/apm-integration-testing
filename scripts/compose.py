@@ -597,6 +597,8 @@ class Elasticsearch(StackService, Service):
         if not self.oss and not self.at_least_version("6.3"):
             self.docker_name = self.name() + "-platinum"
 
+        self.secure = bool(self.options.get("secure"))
+
         # construct elasticsearch environment variables
         es_java_opts = {}
         if "elasticsearch_heap" in options:
@@ -616,7 +618,11 @@ class Elasticsearch(StackService, Service):
         self.environment = self.default_environment + [
             java_opts_env, "path.data=/usr/share/elasticsearch/data/" + data_dir]
         if not self.oss:
-            self.environment.append("xpack.security.enabled=false")
+            xpack_security_enabled = "false"
+            if self.secure:
+                xpack_security_enabled = "true"
+                self.environment.append("xpack.security.authc.realms.file1.type=file")
+            self.environment.append("xpack.security.enabled=" + xpack_security_enabled)
             self.environment.append("xpack.license.self_generated.type=trial")
             if self.at_least_version("6.3"):
                 self.environment.append("xpack.monitoring.collection.enabled=true")
@@ -1822,6 +1828,13 @@ class LocalSetup(object):
             help='server_url to use for Opbeans frontend service',
             dest='opbeans_apm_js_server_url',
             default='http://apm-server:8200',
+        )
+
+        parser.add_argument(
+            '--secure',
+            action="store_true",
+            dest="secure",
+            help="enable xpack security throughout the stack",
         )
 
         self.store_options(parser)
