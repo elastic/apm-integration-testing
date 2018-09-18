@@ -656,6 +656,13 @@ class Elasticsearch(StackService, Service):
         )
 
     def _content(self):
+        volumes = ["esdata:/usr/share/elasticsearch/data"]
+        if self.secure:
+            volumes.extend([
+                "./docker/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml",
+                "./docker/elasticsearch/users:/usr/share/elasticsearch/config/users",
+                "./docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles",
+            ])
         return dict(
             environment=self.environment,
             healthcheck={
@@ -667,7 +674,7 @@ class Elasticsearch(StackService, Service):
             ulimits={
                 "memlock": {"hard": -1, "soft": -1},
             },
-            volumes=["esdata:/usr/share/elasticsearch/data"]
+            volumes=volumes,
         )
 
     @staticmethod
