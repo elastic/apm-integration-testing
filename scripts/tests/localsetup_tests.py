@@ -464,7 +464,6 @@ class LocalTest(unittest.TestCase):
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
-                mem_limit: 5g
                 ports: ['127.0.0.1:9200:9200']
                 ulimits:
                     memlock: {hard: -1, soft: -1}
@@ -543,7 +542,6 @@ class LocalTest(unittest.TestCase):
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
-                mem_limit: 5g
                 ports: ['127.0.0.1:9200:9200']
                 ulimits:
                     memlock: {hard: -1, soft: -1}
@@ -623,7 +621,6 @@ class LocalTest(unittest.TestCase):
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
-                mem_limit: 5g
                 ports: ['127.0.0.1:9200:9200']
                 ulimits:
                     memlock: {hard: -1, soft: -1}
