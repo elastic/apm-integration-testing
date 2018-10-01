@@ -468,8 +468,8 @@ class ApmServer(StackService, Service):
 class Elasticsearch(StackService, Service):
     default_environment = ["cluster.name=docker-cluster", "bootstrap.memory_lock=true", "discovery.type=single-node"]
     default_es_java_opts = {
-        "-Xms": "5g",
-        "-Xmx": "5g",
+        "-Xms": "1g",
+        "-Xmx": "1g",
     }
 
     SERVICE_PORT = 9200
