@@ -503,7 +503,6 @@ class Elasticsearch(StackService, Service):
                 "retries": 10,
                 "test": ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -vq '\"status\":\"red\"'"],
             },
-            mem_limit="5g",
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
             ulimits={
                 "memlock": {"hard": -1, "soft": -1},
