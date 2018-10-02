@@ -336,6 +336,16 @@ class ElasticsearchServiceTest(ServiceTest):
             "xpack.license.self_generated.type=trial" in elasticsearch["environment"], "xpack.license type"
         )
 
+    def test_heap(self):
+        elasticsearch = Elasticsearch(version="6.3.100", elasticsearch_heap="5m").render()["elasticsearch"]
+        java_opts = [e for e in elasticsearch["environment"] if e.startswith("ES_JAVA_OPTS=")]
+        self.assertListEqual(["ES_JAVA_OPTS=-Xms5m -Xmx5m"], java_opts)
+
+    def test_java_opts(self):
+        elasticsearch = Elasticsearch(
+            version="6.3.100", elasticsearch_java_opts={"XX:+UseConcMarkSweepGC": ""}).render()["elasticsearch"]
+        java_opts = [e for e in elasticsearch["environment"] if e.startswith("ES_JAVA_OPTS=")]
+        self.assertListEqual(["ES_JAVA_OPTS=-XX:+UseConcMarkSweepGC"], java_opts)
 
 class FilebeatServiceTest(ServiceTest):
     def test_filebeat_pre_6_1(self):

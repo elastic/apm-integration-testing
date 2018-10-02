@@ -467,10 +467,7 @@ class ApmServer(StackService, Service):
 
 class Elasticsearch(StackService, Service):
     default_environment = ["cluster.name=docker-cluster", "bootstrap.memory_lock=true", "discovery.type=single-node"]
-    default_es_java_opts = {
-        "-Xms": "1g",
-        "-Xmx": "1g",
-    }
+    default_heap_size = "1g"
 
     SERVICE_PORT = 9200
 
@@ -480,13 +477,18 @@ class Elasticsearch(StackService, Service):
             self.docker_name = self.name() + "-platinum"
 
         # construct elasticsearch environment variables
-        # TODO: add command line option for java options (gr)
-        es_java_opts = dict(self.default_es_java_opts)
+        es_java_opts = {}
+        if "elasticsearch_heap" in options:
+            es_java_opts.update({
+                "Xms": options["elasticsearch_heap"],
+                "Xmx": options["elasticsearch_heap"],
+            })
+        es_java_opts.update(dict(options.get("elasticsearch_java_opts", {}) or {}))
         if self.at_least_version("6.4"):
             # per https://github.com/elastic/elasticsearch/pull/32138/files
-            es_java_opts["-XX:UseAVX"] = "=2"
+            es_java_opts["XX:UseAVX"] = "=2"
 
-        java_opts_env = "ES_JAVA_OPTS=" + " ".join(["{}{}".format(k, v) for k, v in es_java_opts.items()])
+        java_opts_env = "ES_JAVA_OPTS=" + " ".join(["-{}{}".format(k, v) for k, v in sorted(es_java_opts.items())])
         self.environment = self.default_environment + [
                 java_opts_env, "path.data=/usr/share/elasticsearch/data/" + self.version]
         if not self.oss:
@@ -494,6 +496,29 @@ class Elasticsearch(StackService, Service):
             self.environment.append("xpack.license.self_generated.type=trial")
             if self.at_least_version("6.3"):
                 self.environment.append("xpack.monitoring.collection.enabled=true")
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(Elasticsearch, cls).add_arguments(parser)
+        parser.add_argument(
+            "--elasticsearch-heap",
+            default=Elasticsearch.default_heap_size,
+            help="min/max elasticsearch heap size, for -Xms -Xmx jvm options."
+        )
+
+        class storeDict(argparse.Action):
+            def __call__(self, parser, namespace, value, option_string=None):
+                items = getattr(namespace, self.dest)
+                items.update(dict([value.split("=", 1)]))
+
+        # this is a dict to enable deduplication
+        # eg --elasticsearch-java-opts a==z --elasticsearch-java-opts a==b will add only -a=b to ES_JAVA_OPTS
+        parser.add_argument(
+            "--elasticsearch-java-opts",
+            action=storeDict,
+            default={},
+            help="additional entries for ES_JAVA_OPTS, multiple allowed, separate key/value with =."
+        )
 
     def _content(self):
         return dict(

@@ -611,7 +611,7 @@ class LocalTest(unittest.TestCase):
 
             elasticsearch:
                 container_name: localtesting_7.0.10-alpha1_elasticsearch
-                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, discovery.type=single-node, 'ES_JAVA_OPTS=-Xms1g -Xmx1g -XX:UseAVX=2', path.data=/usr/share/elasticsearch/data/7.0.10-alpha1, xpack.security.enabled=false, xpack.license.self_generated.type=trial, xpack.monitoring.collection.enabled=true]
+                environment: [cluster.name=docker-cluster, bootstrap.memory_lock=true, discovery.type=single-node, 'ES_JAVA_OPTS=-XX:UseAVX=2 -Xms1g -Xmx1g', path.data=/usr/share/elasticsearch/data/7.0.10-alpha1, xpack.security.enabled=false, xpack.license.self_generated.type=trial, xpack.monitoring.collection.enabled=true]
                 healthcheck:
                     interval: '20'
                     retries: 10
