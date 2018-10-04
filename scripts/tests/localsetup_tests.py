@@ -409,6 +409,7 @@ class RedisServiceTest(ServiceTest):
 #
 class LocalTest(unittest.TestCase):
     maxDiff = None
+    common_setup_args = ["start", "--docker-compose-path", "-", "--no-apm-server-self-instrument"]
 
     def test_service_registry(self):
         registry = discover_services()
@@ -418,8 +419,7 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.2': '6.2.10'}):
-            setup = LocalSetup(
-                argv=["start", "6.2", "--docker-compose-path", "-", "--image-cache-dir", image_cache_dir])
+            setup = LocalSetup(argv=self.common_setup_args + ["6.2", "--image-cache-dir", image_cache_dir])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -496,8 +496,7 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.3': '6.3.10'}):
-            setup = LocalSetup(
-                argv=["start", "6.3", "--docker-compose-path", "-", "--image-cache-dir", image_cache_dir])
+            setup = LocalSetup(argv=self.common_setup_args + ["6.3", "--image-cache-dir", image_cache_dir])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -575,8 +574,7 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
-            setup = LocalSetup(
-                argv=["start", "master", "--docker-compose-path", "-", "--image-cache-dir", image_cache_dir])
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--image-cache-dir", image_cache_dir])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -652,9 +650,7 @@ class LocalTest(unittest.TestCase):
     @mock.patch(compose.__name__ + '.load_images')
     def test_start_all(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        setup = LocalSetup(
-            argv=["start", "master", "--all",
-                  "--docker-compose-path", "-"])
+        setup = LocalSetup(argv=self.common_setup_args + ["master", "--all"])
         setup.set_docker_compose_path(docker_compose_yml)
         setup()
         docker_compose_yml.seek(0)
@@ -666,9 +662,7 @@ class LocalTest(unittest.TestCase):
     @mock.patch(compose.__name__ + '.load_images')
     def test_start_one_opbeans(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        setup = LocalSetup(
-            argv=["start", "master", "--with-opbeans-node",
-                  "--docker-compose-path", "-"])
+        setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-node"])
         setup.set_docker_compose_path(docker_compose_yml)
         setup()
         docker_compose_yml.seek(0)
@@ -680,9 +674,7 @@ class LocalTest(unittest.TestCase):
     @mock.patch(compose.__name__ + '.load_images')
     def test_start_opbeans_no_apm_server(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        setup = LocalSetup(
-            argv=["start", "master", "--all", "--no-apm-server",
-                  "--docker-compose-path", "-"])
+        setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--no-apm-server"])
         setup.set_docker_compose_path(docker_compose_yml)
         setup()
         docker_compose_yml.seek(0)
@@ -701,8 +693,7 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml = stringIO()
         version = "1.2.3"
         self.assertNotIn(version, LocalSetup.SUPPORTED_VERSIONS)
-        setup = LocalSetup(
-            argv=["start", version, "--docker-compose-path", "-", "--release"])
+        setup = LocalSetup(argv=self.common_setup_args + [version, "--release"])
         setup.set_docker_compose_path(docker_compose_yml)
         setup()
         docker_compose_yml.seek(0)
@@ -719,8 +710,7 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml = stringIO()
         version = "6.9.5"
         self.assertNotIn(version, LocalSetup.SUPPORTED_VERSIONS)
-        setup = LocalSetup(
-            argv=["start", version, "--docker-compose-path", "-"])
+        setup = LocalSetup(argv=self.common_setup_args + [version])
         setup.set_docker_compose_path(docker_compose_yml)
         setup()
         docker_compose_yml.seek(0)
@@ -739,8 +729,7 @@ class LocalTest(unittest.TestCase):
         version = "6.9.5"
         bc = "abcd1234"
         self.assertNotIn(version, LocalSetup.SUPPORTED_VERSIONS)
-        setup = LocalSetup(
-            argv=["start", version, "--bc" , bc, "--docker-compose-path", "-", "--image-cache-dir", image_cache_dir])
+        setup = LocalSetup(argv=self.common_setup_args + [version, "--bc" , bc, "--image-cache-dir", image_cache_dir])
         setup.set_docker_compose_path(docker_compose_yml)
         setup()
         docker_compose_yml.seek(0)
@@ -768,7 +757,7 @@ class LocalTest(unittest.TestCase):
         bc = "abcd1234"
         self.assertNotIn(version, LocalSetup.SUPPORTED_VERSIONS)
         setup = LocalSetup(
-            argv=["start", version, "--bc" , bc, "--docker-compose-path", "-", "--image-cache-dir", image_cache_dir,
+            argv=self.common_setup_args + [version, "--bc" , bc, "--image-cache-dir", image_cache_dir,
                   "--apm-server-version", apm_server_version, "--apm-server-release"])
         setup.set_docker_compose_path(docker_compose_yml)
         setup()

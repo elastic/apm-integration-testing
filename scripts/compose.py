@@ -328,6 +328,8 @@ class ApmServer(StackService, Service):
             ("xpack.monitoring.elasticsearch", "true"),
             ("xpack.monitoring.enabled", "true")
         ]
+        if options.get("apm_server_self_instrument"):
+            self.apm_server_command_args.append(("apm-server.instrumentation.enabled", "true"))
         self.depends_on = {"elasticsearch": {"condition": "service_healthy"}}
         self.build = self.options.get("apm_server_build")
 
@@ -377,6 +379,12 @@ class ApmServer(StackService, Service):
             choices=cls.OUTPUTS,
             default='elasticsearch',
             help='apm-server output'
+        )
+        parser.add_argument(
+            "--no-apm-server-self-instrument",
+            action="store_false",
+            dest="apm_server_self_instrument",
+            help='enable apm-server self instrumentation.'
         )
         parser.add_argument(
             '--apm-server-count',
