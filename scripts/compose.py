@@ -381,8 +381,9 @@ class ApmServer(StackService, Service):
             help='apm-server output'
         )
         parser.add_argument(
-            "--apm-server-self-instrument",
-            action="store_true",
+            "--no-apm-server-self-instrument",
+            action="store_false",
+            dest="apm_server_self_instrument",
             help='enable apm-server self instrumentation.'
         )
         parser.add_argument(
