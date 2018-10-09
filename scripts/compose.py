@@ -112,12 +112,12 @@ DEFAULT_HEALTHCHECK_RETRIES = 12
 def curl_healthcheck(port, host="localhost", path="/healthcheck",
                      interval=DEFAULT_HEALTHCHECK_INTERVAL, retries=DEFAULT_HEALTHCHECK_RETRIES):
     return {
-                "interval": interval,
-                "retries": retries,
-                "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent",
-                         "--output", "/dev/null",
-                         "http://{}:{}{}".format(host, port, path)]
-            }
+        "interval": interval,
+        "retries": retries,
+        "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent",
+                 "--output", "/dev/null",
+                 "http://{}:{}{}".format(host, port, path)]
+    }
 
 
 def parse_version(version):
@@ -330,7 +330,8 @@ class ApmServer(StackService, Service):
         ]
         if options.get("apm_server_self_instrument"):
             self.apm_server_command_args.append(("apm-server.instrumentation.enabled", "true"))
-        self.depends_on = {"elasticsearch": {"condition": "service_healthy"}}
+        self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if options.get(
+            "enable_elasticsearch", True) else {}
         self.build = self.options.get("apm_server_build")
 
         if self.options.get("enable_kibana", True):
@@ -452,7 +453,7 @@ class ApmServer(StackService, Service):
         # render proxy + backends
         ren = self.render_proxy()
         # individualize each backend instance
-        for i in range(1, self.apm_server_count+1):
+        for i in range(1, self.apm_server_count + 1):
             backend = dict(single)
             backend["container_name"] = backend["container_name"] + "-" + str(i)
             ren.update({"-".join([self.name(), str(i)]): backend})
@@ -498,7 +499,7 @@ class Elasticsearch(StackService, Service):
 
         java_opts_env = "ES_JAVA_OPTS=" + " ".join(["-{}{}".format(k, v) for k, v in sorted(es_java_opts.items())])
         self.environment = self.default_environment + [
-                java_opts_env, "path.data=/usr/share/elasticsearch/data/" + self.version]
+            java_opts_env, "path.data=/usr/share/elasticsearch/data/" + self.version]
         if not self.oss:
             self.environment.append("xpack.security.enabled=false")
             self.environment.append("xpack.license.self_generated.type=trial")
@@ -551,7 +552,8 @@ class Elasticsearch(StackService, Service):
 class BeatMixin(object):
     def __init__(self, **options):
         self.command = self.DEFAULT_COMMAND
-        self.depends_on = {"elasticsearch": {"condition": "service_healthy"}}
+        self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if options.get(
+            "enable_elasticsearch", True) else {}
         if options.get("enable_kibana", True):
             self.command += " -E setup.dashboards.enabled=true"
             self.depends_on["kibana"] = {"condition": "service_healthy"}
@@ -599,7 +601,8 @@ class Kibana(StackService, Service):
     def _content(self):
         return dict(
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/api/status", interval="5s", retries=20),
-            depends_on={"elasticsearch": {"condition": "service_healthy"}},
+            depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
+                "enable_elasticsearch", True) else {},
             environment=self.environment,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
@@ -614,7 +617,8 @@ class Logstash(StackService, Service):
 
     def _content(self):
         return dict(
-            depends_on={"elasticsearch": {"condition": "service_healthy"}},
+            depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
+                "enable_elasticsearch", True) else {},
             environment={"ELASTICSEARCH_URL": "http://elasticsearch:9200"},
             healthcheck=curl_healthcheck(9600, "logstash", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT), "9600"],
@@ -941,6 +945,7 @@ class AgentJavaSpring(Service):
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
+
 #
 # Opbeans Services
 #
@@ -981,13 +986,14 @@ class OpbeansGo(OpbeansService):
 
     def _content(self):
         depends_on = {
-            "elasticsearch": {"condition": "service_healthy"},
             "postgres": {"condition": "service_healthy"},
             "redis": {"condition": "service_healthy"},
         }
 
         if self.options.get("enable_apm_server", True):
             depends_on["apm-server"] = {"condition": "service_healthy"}
+        if self.options.get("enable_elasticsearch", True):
+            depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
         content = dict(
             build=dict(
@@ -1045,12 +1051,13 @@ class OpbeansJava(OpbeansService):
 
     def _content(self):
         depends_on = {
-            "elasticsearch": {"condition": "service_healthy"},
             "postgres": {"condition": "service_healthy"},
         }
 
         if self.options.get("enable_apm_server", True):
             depends_on["apm-server"] = {"condition": "service_healthy"}
+        if self.options.get("enable_elasticsearch", True):
+            depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
         content = dict(
             build=dict(
@@ -1179,13 +1186,14 @@ class OpbeansPython(OpbeansService):
 
     def _content(self):
         depends_on = {
-            "elasticsearch": {"condition": "service_healthy"},
             "postgres": {"condition": "service_healthy"},
             "redis": {"condition": "service_healthy"},
         }
 
         if self.options.get("enable_apm_server", True):
             depends_on["apm-server"] = {"condition": "service_healthy"}
+        if self.options.get("enable_elasticsearch", True):
+            depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
         content = dict(
             build={"context": "docker/opbeans/python", "dockerfile": "Dockerfile"},
@@ -1244,13 +1252,14 @@ class OpbeansRuby(OpbeansService):
 
     def _content(self):
         depends_on = {
-            "elasticsearch": {"condition": "service_healthy"},
             "postgres": {"condition": "service_healthy"},
             "redis": {"condition": "service_healthy"},
         }
 
         if self.options.get("enable_apm_server", True):
             depends_on["apm-server"] = {"condition": "service_healthy"}
+        if self.options.get("enable_elasticsearch", True):
+            depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
         content = dict(
             build={"context": "docker/opbeans/ruby", "dockerfile": "Dockerfile"},

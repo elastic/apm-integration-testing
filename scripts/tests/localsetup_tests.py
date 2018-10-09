@@ -648,6 +648,18 @@ class LocalTest(unittest.TestCase):
         self.assertDictEqual(got, want)
 
     @mock.patch(compose.__name__ + '.load_images')
+    def test_start_no_elasticesarch(self, _ignore_load_images):
+        docker_compose_yml = stringIO()
+        setup = LocalSetup(argv=self.common_setup_args + ["master", "--no-elasticsearch"])
+        setup.set_docker_compose_path(docker_compose_yml)
+        setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        services = got["services"]
+        self.assertNotIn("elasticsearch", services)
+        self.assertNotIn("elasticsearch", services["apm-server"]["depends_on"])
+
+    @mock.patch(compose.__name__ + '.load_images')
     def test_start_all(self, _ignore_load_images):
         docker_compose_yml = stringIO()
         setup = LocalSetup(argv=self.common_setup_args + ["master", "--all"])

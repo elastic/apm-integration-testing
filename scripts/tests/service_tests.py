@@ -347,6 +347,7 @@ class ElasticsearchServiceTest(ServiceTest):
         java_opts = [e for e in elasticsearch["environment"] if e.startswith("ES_JAVA_OPTS=")]
         self.assertListEqual(["ES_JAVA_OPTS=-XX:+UseConcMarkSweepGC"], java_opts)
 
+
 class FilebeatServiceTest(ServiceTest):
     def test_filebeat_pre_6_1(self):
         filebeat = Filebeat(version="6.0.4", release=True).render()
