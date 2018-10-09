@@ -1632,43 +1632,33 @@ class LocalSetup(object):
     @staticmethod
     def init_sourcemap_parser(parser):
         parser.add_argument(
-            '--sourcemap-file',
-            action='store',
-            dest='sourcemap_file',
-            help='path to the sourcemap to upload. Defaults to first map found in node/sourcemaps directory',
-            default=''
+            "--opbeans-apm-server-url",
+            action="store",
+            help="server_url to use for Opbeans services",
+            dest="opbeans_apm_server_url",
+            default="http://apm-server:8200",
         )
 
         parser.add_argument(
-            '--server-url',
-            action='store',
-            dest='server_url',
-            help='URL of the apm-server. Defaults to running apm-server container, if any',
-            default=''
+            "--opbeans-frontend-sourcemap",
+            help="path to the sourcemap. Defaults to first map found in docker/opbeans/node/sourcemaps directory",
         )
 
         parser.add_argument(
-            '--service-name',
-            action='store',
-            dest='service_name',
+            "--opbeans-frontend-service-name",
+            default="client",
             help='Name of the frontend app. Defaults to "opbeans-react"',
-            default='opbeans-react'
         )
 
         parser.add_argument(
-            '--service-version',
-            action='store',
-            dest='service_version',
+            "--opbeans-frontend-service-version",
+            default="1.0.0",
             help='Version of the frontend app. Defaults to the BUILDDATE env variable of the "opbeans-node" container',
-            default=''
         )
 
         parser.add_argument(
-            '--bundle-path',
-            action='store',
-            dest='bundle_path',
+            "--opbeans-frontend-bundle-path",
             help='Bundle path in minified files. Defaults to "http://opbeans-node:3000/static/js/" + name of sourcemap',
-            default=''
         )
 
         parser.add_argument(
@@ -1818,18 +1808,11 @@ class LocalSetup(object):
         subprocess.call(['docker-compose', 'stop'])
 
     def upload_sourcemaps_handler(self):
-        server_url = self.args.server_url
-        sourcemap_file = self.args.sourcemap_file
-        bundle_path = self.args.bundle_path
-        service_version = self.args.service_version
-        if not server_url:
-            cmd = 'docker ps --filter "name=apm-server" -q | xargs docker port | grep "8200/tcp"'
-            try:
-                port_desc = subprocess.check_output(cmd, shell=True).decode('utf8').strip()
-            except subprocess.CalledProcessError:
-                print("No running apm-server found. Start it, or provide a server url with --server-url")
-                sys.exit(1)
-            server_url = 'http://' + port_desc.split(' -> ')[1]
+        service_name = self.args.opbeans_frontend_service_name
+        sourcemap_file = self.args.opbeans_frontend_sourcemap
+        bundle_path = self.args.opbeans_frontend_bundle_path
+        service_version = self.args.opbeans_frontend_service_version
+
         if sourcemap_file:
             sourcemap_file = os.path.expanduser(sourcemap_file)
             if not os.path.exists(sourcemap_file):
@@ -1837,10 +1820,11 @@ class LocalSetup(object):
                 sys.exit(1)
         else:
             try:
-                sourcemap_file = glob.glob('./node/sourcemaps/*.map')[0]
+                g = os.path.abspath(os.path.join(os.path.dirname(__file__), '../docker/opbeans/node/sourcemaps/*.map'))
+                sourcemap_file = glob.glob(g)[0]
             except IndexError:
                 print(
-                    'No source map found in ./node/sourcemaps.\n'
+                    'No source map found in {} '.format(g) +
                     'Start the opbeans-node container, it will create one automatically.'
                 )
                 sys.exit(1)
@@ -1862,23 +1846,25 @@ class LocalSetup(object):
             auth_header = '-H "Authorization: Bearer {}" '.format(self.args.secret_token)
         else:
             auth_header = ''
-        print("Uploading {} to {}".format(sourcemap_file, server_url))
+        print("Uploading {} for {} version {}".format(sourcemap_file, service_name, service_version))
         cmd = (
-            'curl -X POST '
+            'curl -sS -X POST '
             '-F service_name="{service_name}" '
             '-F service_version="{service_version}" '
             '-F bundle_filepath="{bundle_path}" '
-            '-F sourcemap=@{sourcemap_file} '
+            '-F sourcemap=@/tmp/sourcemap '
             '{auth_header}'
             '{server_url}/v1/client-side/sourcemaps'
         ).format(
-            service_name=self.args.service_name,
+            service_name=service_name,
             service_version=service_version,
             bundle_path=bundle_path,
             sourcemap_file=sourcemap_file,
             auth_header=auth_header,
-            server_url=server_url,
+            server_url=self.args.opbeans_apm_server_url,
         )
+        cmd = "docker run --rm --network apm-integration-testing " + \
+            "-v {}:/tmp/sourcemap centos:7 ".format(sourcemap_file) + cmd
         subprocess.check_output(cmd, shell=True).decode('utf8').strip()
 
     @staticmethod
