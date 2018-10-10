@@ -21,7 +21,7 @@ else
   fi
 fi
 
-export COMPOSE_ARGS="${stack_args} --no-kibana --with-agent-python-django --with-agent-python-flask --python-agent-package='${python_pkg}' --force-build --build-parallel"
+export COMPOSE_ARGS="${stack_args} --no-apm-server-dashboards --no-apm-server-self-instrument --no-kibana --with-agent-python-django --with-agent-python-flask --python-agent-package='${python_pkg}' --force-build --build-parallel"
 srcdir=`dirname $0`
 test -z "$srcdir" && srcdir=.
 ${srcdir}/python.sh
