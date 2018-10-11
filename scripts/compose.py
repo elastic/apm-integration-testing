@@ -1791,7 +1791,7 @@ class LocalSetup(object):
             # pull any images
             image_services = [name for name, service in compose["services"].items() if
                               'image' in service and name not in services_to_load]
-            if image_services:
+            if image_services and not args["skip_download"]:
                 subprocess.call(["docker-compose", "-f", docker_compose_path.name, "pull"] + image_services)
             # really start
             docker_compose_up = ["docker-compose", "-f", docker_compose_path.name, "up", "-d"]
