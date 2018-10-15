@@ -12,6 +12,6 @@ if [ ! -z "${APM_AGENT_NODEJS_PKG}" ]; then
   export BUILD_OPTS="${BUILD_OPTS} --nodejs-agent-package='${APM_AGENT_NODEJS_PKG}'"
 fi
 
-DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION:-'master'} ${BUILD_OPTS} --no-apm-server-dashboards --no-kibana --with-agent-nodejs-express --force-build"
+DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION:-'master'} ${BUILD_OPTS} --no-apm-server-self-instrument --no-apm-server-dashboards --no-kibana --with-agent-nodejs-express --force-build"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
 runTests env-agent-nodejs docker-test-agent-nodejs
