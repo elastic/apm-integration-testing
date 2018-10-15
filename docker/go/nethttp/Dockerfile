@@ -1,7 +1,11 @@
 FROM golang:1.10
 WORKDIR /go/src/testapp
 COPY main.go /go/src/testapp
-RUN go get github.com/elastic/apm-agent-go
+ARG go_agent_package=master
+RUN go get github.com/elastic/apm-agent-go &&\
+  cd $GOPATH/src/github.com/elastic/apm-agent-go &&\
+  git checkout -b ${go_agent_package} &&\
+  cd -
 RUN CGO_ENABLED=0 go build
 
 FROM alpine:latest

@@ -112,12 +112,12 @@ DEFAULT_HEALTHCHECK_RETRIES = 12
 def curl_healthcheck(port, host="localhost", path="/healthcheck",
                      interval=DEFAULT_HEALTHCHECK_INTERVAL, retries=DEFAULT_HEALTHCHECK_RETRIES):
     return {
-                "interval": interval,
-                "retries": retries,
-                "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent",
-                         "--output", "/dev/null",
-                         "http://{}:{}{}".format(host, port, path)]
-            }
+        "interval": interval,
+        "retries": retries,
+        "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent",
+                 "--output", "/dev/null",
+                 "http://{}:{}{}".format(host, port, path)]
+    }
 
 
 def parse_version(version):
@@ -328,7 +328,10 @@ class ApmServer(StackService, Service):
             ("xpack.monitoring.elasticsearch", "true"),
             ("xpack.monitoring.enabled", "true")
         ]
-        self.depends_on = {"elasticsearch": {"condition": "service_healthy"}}
+        if options.get("apm_server_self_instrument"):
+            self.apm_server_command_args.append(("apm-server.instrumentation.enabled", "true"))
+        self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if options.get(
+            "enable_elasticsearch", True) else {}
         self.build = self.options.get("apm_server_build")
 
         if self.options.get("enable_kibana", True):
@@ -377,6 +380,12 @@ class ApmServer(StackService, Service):
             choices=cls.OUTPUTS,
             default='elasticsearch',
             help='apm-server output'
+        )
+        parser.add_argument(
+            "--no-apm-server-self-instrument",
+            action="store_false",
+            dest="apm_server_self_instrument",
+            help='enable apm-server self instrumentation.'
         )
         parser.add_argument(
             '--apm-server-count',
@@ -444,7 +453,7 @@ class ApmServer(StackService, Service):
         # render proxy + backends
         ren = self.render_proxy()
         # individualize each backend instance
-        for i in range(1, self.apm_server_count+1):
+        for i in range(1, self.apm_server_count + 1):
             backend = dict(single)
             backend["container_name"] = backend["container_name"] + "-" + str(i)
             ren.update({"-".join([self.name(), str(i)]): backend})
@@ -467,10 +476,7 @@ class ApmServer(StackService, Service):
 
 class Elasticsearch(StackService, Service):
     default_environment = ["cluster.name=docker-cluster", "bootstrap.memory_lock=true", "discovery.type=single-node"]
-    default_es_java_opts = {
-        "-Xms": "1g",
-        "-Xmx": "1g",
-    }
+    default_heap_size = "1g"
 
     SERVICE_PORT = 9200
 
@@ -480,20 +486,48 @@ class Elasticsearch(StackService, Service):
             self.docker_name = self.name() + "-platinum"
 
         # construct elasticsearch environment variables
-        # TODO: add command line option for java options (gr)
-        es_java_opts = dict(self.default_es_java_opts)
+        es_java_opts = {}
+        if "elasticsearch_heap" in options:
+            es_java_opts.update({
+                "Xms": options["elasticsearch_heap"],
+                "Xmx": options["elasticsearch_heap"],
+            })
+        es_java_opts.update(dict(options.get("elasticsearch_java_opts", {}) or {}))
         if self.at_least_version("6.4"):
             # per https://github.com/elastic/elasticsearch/pull/32138/files
-            es_java_opts["-XX:UseAVX"] = "=2"
+            es_java_opts["XX:UseAVX"] = "=2"
 
-        java_opts_env = "ES_JAVA_OPTS=" + " ".join(["{}{}".format(k, v) for k, v in es_java_opts.items()])
+        java_opts_env = "ES_JAVA_OPTS=" + " ".join(["-{}{}".format(k, v) for k, v in sorted(es_java_opts.items())])
         self.environment = self.default_environment + [
-                java_opts_env, "path.data=/usr/share/elasticsearch/data/" + self.version]
+            java_opts_env, "path.data=/usr/share/elasticsearch/data/" + self.version]
         if not self.oss:
             self.environment.append("xpack.security.enabled=false")
             self.environment.append("xpack.license.self_generated.type=trial")
             if self.at_least_version("6.3"):
                 self.environment.append("xpack.monitoring.collection.enabled=true")
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(Elasticsearch, cls).add_arguments(parser)
+        parser.add_argument(
+            "--elasticsearch-heap",
+            default=Elasticsearch.default_heap_size,
+            help="min/max elasticsearch heap size, for -Xms -Xmx jvm options."
+        )
+
+        class storeDict(argparse.Action):
+            def __call__(self, parser, namespace, value, option_string=None):
+                items = getattr(namespace, self.dest)
+                items.update(dict([value.split("=", 1)]))
+
+        # this is a dict to enable deduplication
+        # eg --elasticsearch-java-opts a==z --elasticsearch-java-opts a==b will add only -a=b to ES_JAVA_OPTS
+        parser.add_argument(
+            "--elasticsearch-java-opts",
+            action=storeDict,
+            default={},
+            help="additional entries for ES_JAVA_OPTS, multiple allowed, separate key/value with =."
+        )
 
     def _content(self):
         return dict(
@@ -503,7 +537,6 @@ class Elasticsearch(StackService, Service):
                 "retries": 10,
                 "test": ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -vq '\"status\":\"red\"'"],
             },
-            mem_limit="5g",
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
             ulimits={
                 "memlock": {"hard": -1, "soft": -1},
@@ -519,7 +552,8 @@ class Elasticsearch(StackService, Service):
 class BeatMixin(object):
     def __init__(self, **options):
         self.command = self.DEFAULT_COMMAND
-        self.depends_on = {"elasticsearch": {"condition": "service_healthy"}}
+        self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if options.get(
+            "enable_elasticsearch", True) else {}
         if options.get("enable_kibana", True):
             self.command += " -E setup.dashboards.enabled=true"
             self.depends_on["kibana"] = {"condition": "service_healthy"}
@@ -567,7 +601,8 @@ class Kibana(StackService, Service):
     def _content(self):
         return dict(
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/api/status", interval="5s", retries=20),
-            depends_on={"elasticsearch": {"condition": "service_healthy"}},
+            depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
+                "enable_elasticsearch", True) else {},
             environment=self.environment,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
@@ -582,7 +617,8 @@ class Logstash(StackService, Service):
 
     def _content(self):
         return dict(
-            depends_on={"elasticsearch": {"condition": "service_healthy"}},
+            depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
+                "enable_elasticsearch", True) else {},
             environment={"ELASTICSEARCH_URL": "http://elasticsearch:9200"},
             healthcheck=curl_healthcheck(9600, "logstash", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT), "9600"],
@@ -723,10 +759,30 @@ class AgentRUMJS(Service):
 
 class AgentGoNetHttp(Service):
     SERVICE_PORT = 8080
+    DEFAULT_AGENT_PACKAGE = "master"
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(AgentGoNetHttp, cls).add_arguments(parser)
+        parser.add_argument(
+            "--go-agent-package",
+            default=cls.DEFAULT_AGENT_PACKAGE,
+            help='Use Go agent version (master, 0.5, v.0.5.2, ...)',
+        )
+    
+    def __init__(self, **options):
+        super(AgentGoNetHttp, self).__init__(**options)
+        self.agent_package = options.get("go_agent_package", self.DEFAULT_AGENT_PACKAGE)
 
     def _content(self):
         return dict(
-            build={"context": "docker/go/nethttp", "dockerfile": "Dockerfile"},
+            build={
+                "context": "docker/go/nethttp", 
+                "dockerfile": "Dockerfile",
+                "args": {
+                    "go_agent_package": self.agent_package,
+                },
+            },
             container_name="gonethttpapp",
             environment={
                 "ELASTIC_APM_SERVICE_NAME": "gonethttpapp",
@@ -757,6 +813,7 @@ class AgentNodejsExpress(Service):
         parser.add_argument(
             '--nodejs-agent-package',
             default=cls.DEFAULT_AGENT_PACKAGE,
+            help='Use Node.js agent version (github;master, github;1.x, github;v3.0.0, release;latest, ...)',
         )
 
     def _content(self):
@@ -795,6 +852,7 @@ class AgentPython(Service):
         parser.add_argument(
             '--python-agent-package',
             default=cls.DEFAULT_AGENT_PACKAGE,
+            help='Use Python agent version (github;master, github;1.x, github;v3.0.0, release;latest, ...)',
         )
         # prevent calling again
         cls._arguments_added = True
@@ -857,10 +915,12 @@ class AgentRubyRails(Service):
         parser.add_argument(
             "--ruby-agent-version",
             default=cls.DEFAULT_AGENT_VERSION,
+            help='Use Ruby agent version (master, 1.x, latest, ...)',
         )
         parser.add_argument(
             "--ruby-agent-version-state",
             default=cls.DEFAULT_AGENT_VERSION_STATE,
+            help='Use Ruby agent version state (github or release)',
         )
 
     def __init__(self, **options):
@@ -893,10 +953,30 @@ class AgentRubyRails(Service):
 
 class AgentJavaSpring(Service):
     SERVICE_PORT = 8090
+    DEFAULT_AGENT_PACKAGE = "master"
+    
+    @classmethod
+    def add_arguments(cls, parser):
+        super(AgentJavaSpring, cls).add_arguments(parser)
+        parser.add_argument(
+            "--java-agent-package",
+            default=cls.DEFAULT_AGENT_PACKAGE,
+            help='Use Java agent version (master, 0.5, v.0.7.1, ...)',
+        )
+    
+    def __init__(self, **options):
+        super(AgentJavaSpring, self).__init__(**options)
+        self.agent_version = options.get("java_agent_package", self.DEFAULT_AGENT_PACKAGE)
 
     def _content(self):
         return dict(
-            build={"context": "docker/java/spring", "dockerfile": "Dockerfile"},
+            build={
+                "context": "docker/java/spring", 
+                "dockerfile": "Dockerfile",
+                "args": {
+                    "java_agent_package": self.agent_version,
+                }
+            },
             container_name="javaspring",
             image=None,
             labels=None,
@@ -908,6 +988,7 @@ class AgentJavaSpring(Service):
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "javaspring"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
+
 
 #
 # Opbeans Services
@@ -949,13 +1030,14 @@ class OpbeansGo(OpbeansService):
 
     def _content(self):
         depends_on = {
-            "elasticsearch": {"condition": "service_healthy"},
             "postgres": {"condition": "service_healthy"},
             "redis": {"condition": "service_healthy"},
         }
 
         if self.options.get("enable_apm_server", True):
             depends_on["apm-server"] = {"condition": "service_healthy"}
+        if self.options.get("enable_elasticsearch", True):
+            depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
         content = dict(
             build=dict(
@@ -1013,12 +1095,13 @@ class OpbeansJava(OpbeansService):
 
     def _content(self):
         depends_on = {
-            "elasticsearch": {"condition": "service_healthy"},
             "postgres": {"condition": "service_healthy"},
         }
 
         if self.options.get("enable_apm_server", True):
             depends_on["apm-server"] = {"condition": "service_healthy"}
+        if self.options.get("enable_elasticsearch", True):
+            depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
         content = dict(
             build=dict(
@@ -1147,13 +1230,14 @@ class OpbeansPython(OpbeansService):
 
     def _content(self):
         depends_on = {
-            "elasticsearch": {"condition": "service_healthy"},
             "postgres": {"condition": "service_healthy"},
             "redis": {"condition": "service_healthy"},
         }
 
         if self.options.get("enable_apm_server", True):
             depends_on["apm-server"] = {"condition": "service_healthy"}
+        if self.options.get("enable_elasticsearch", True):
+            depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
         content = dict(
             build={"context": "docker/opbeans/python", "dockerfile": "Dockerfile"},
@@ -1212,13 +1296,14 @@ class OpbeansRuby(OpbeansService):
 
     def _content(self):
         depends_on = {
-            "elasticsearch": {"condition": "service_healthy"},
             "postgres": {"condition": "service_healthy"},
             "redis": {"condition": "service_healthy"},
         }
 
         if self.options.get("enable_apm_server", True):
             depends_on["apm-server"] = {"condition": "service_healthy"}
+        if self.options.get("enable_elasticsearch", True):
+            depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
         content = dict(
             build={"context": "docker/opbeans/ruby", "dockerfile": "Dockerfile"},
@@ -1591,43 +1676,33 @@ class LocalSetup(object):
     @staticmethod
     def init_sourcemap_parser(parser):
         parser.add_argument(
-            '--sourcemap-file',
-            action='store',
-            dest='sourcemap_file',
-            help='path to the sourcemap to upload. Defaults to first map found in node/sourcemaps directory',
-            default=''
+            "--opbeans-apm-server-url",
+            action="store",
+            help="server_url to use for Opbeans services",
+            dest="opbeans_apm_server_url",
+            default="http://apm-server:8200",
         )
 
         parser.add_argument(
-            '--server-url',
-            action='store',
-            dest='server_url',
-            help='URL of the apm-server. Defaults to running apm-server container, if any',
-            default=''
+            "--opbeans-frontend-sourcemap",
+            help="path to the sourcemap. Defaults to first map found in docker/opbeans/node/sourcemaps directory",
         )
 
         parser.add_argument(
-            '--service-name',
-            action='store',
-            dest='service_name',
+            "--opbeans-frontend-service-name",
+            default="client",
             help='Name of the frontend app. Defaults to "opbeans-react"',
-            default='opbeans-react'
         )
 
         parser.add_argument(
-            '--service-version',
-            action='store',
-            dest='service_version',
+            "--opbeans-frontend-service-version",
+            default="1.0.0",
             help='Version of the frontend app. Defaults to the BUILDDATE env variable of the "opbeans-node" container',
-            default=''
         )
 
         parser.add_argument(
-            '--bundle-path',
-            action='store',
-            dest='bundle_path',
+            "--opbeans-frontend-bundle-path",
             help='Bundle path in minified files. Defaults to "http://opbeans-node:3000/static/js/" + name of sourcemap',
-            default=''
         )
 
         parser.add_argument(
@@ -1760,7 +1835,7 @@ class LocalSetup(object):
             # pull any images
             image_services = [name for name, service in compose["services"].items() if
                               'image' in service and name not in services_to_load]
-            if image_services:
+            if image_services and not args["skip_download"]:
                 subprocess.call(["docker-compose", "-f", docker_compose_path.name, "pull"] + image_services)
             # really start
             docker_compose_up = ["docker-compose", "-f", docker_compose_path.name, "up", "-d"]
@@ -1777,18 +1852,11 @@ class LocalSetup(object):
         subprocess.call(['docker-compose', 'stop'])
 
     def upload_sourcemaps_handler(self):
-        server_url = self.args.server_url
-        sourcemap_file = self.args.sourcemap_file
-        bundle_path = self.args.bundle_path
-        service_version = self.args.service_version
-        if not server_url:
-            cmd = 'docker ps --filter "name=apm-server" -q | xargs docker port | grep "8200/tcp"'
-            try:
-                port_desc = subprocess.check_output(cmd, shell=True).decode('utf8').strip()
-            except subprocess.CalledProcessError:
-                print("No running apm-server found. Start it, or provide a server url with --server-url")
-                sys.exit(1)
-            server_url = 'http://' + port_desc.split(' -> ')[1]
+        service_name = self.args.opbeans_frontend_service_name
+        sourcemap_file = self.args.opbeans_frontend_sourcemap
+        bundle_path = self.args.opbeans_frontend_bundle_path
+        service_version = self.args.opbeans_frontend_service_version
+
         if sourcemap_file:
             sourcemap_file = os.path.expanduser(sourcemap_file)
             if not os.path.exists(sourcemap_file):
@@ -1796,10 +1864,11 @@ class LocalSetup(object):
                 sys.exit(1)
         else:
             try:
-                sourcemap_file = glob.glob('./node/sourcemaps/*.map')[0]
+                g = os.path.abspath(os.path.join(os.path.dirname(__file__), '../docker/opbeans/node/sourcemaps/*.map'))
+                sourcemap_file = glob.glob(g)[0]
             except IndexError:
                 print(
-                    'No source map found in ./node/sourcemaps.\n'
+                    'No source map found in {} '.format(g) +
                     'Start the opbeans-node container, it will create one automatically.'
                 )
                 sys.exit(1)
@@ -1821,23 +1890,25 @@ class LocalSetup(object):
             auth_header = '-H "Authorization: Bearer {}" '.format(self.args.secret_token)
         else:
             auth_header = ''
-        print("Uploading {} to {}".format(sourcemap_file, server_url))
+        print("Uploading {} for {} version {}".format(sourcemap_file, service_name, service_version))
         cmd = (
-            'curl -X POST '
+            'curl -sS -X POST '
             '-F service_name="{service_name}" '
             '-F service_version="{service_version}" '
             '-F bundle_filepath="{bundle_path}" '
-            '-F sourcemap=@{sourcemap_file} '
+            '-F sourcemap=@/tmp/sourcemap '
             '{auth_header}'
             '{server_url}/v1/client-side/sourcemaps'
         ).format(
-            service_name=self.args.service_name,
+            service_name=service_name,
             service_version=service_version,
             bundle_path=bundle_path,
             sourcemap_file=sourcemap_file,
             auth_header=auth_header,
-            server_url=server_url,
+            server_url=self.args.opbeans_apm_server_url,
         )
+        cmd = "docker run --rm --network apm-integration-testing " + \
+            "-v {}:/tmp/sourcemap centos:7 ".format(sourcemap_file) + cmd
         subprocess.check_output(cmd, shell=True).decode('utf8').strip()
 
     @staticmethod
