@@ -769,7 +769,7 @@ class AgentGoNetHttp(Service):
             default=cls.DEFAULT_AGENT_PACKAGE,
             help='Use Go agent version (master, 0.5, v.0.5.2, ...)',
         )
-    
+
     def __init__(self, **options):
         super(AgentGoNetHttp, self).__init__(**options)
         self.agent_package = options.get("go_agent_package", self.DEFAULT_AGENT_PACKAGE)
@@ -777,7 +777,7 @@ class AgentGoNetHttp(Service):
     def _content(self):
         return dict(
             build={
-                "context": "docker/go/nethttp", 
+                "context": "docker/go/nethttp",
                 "dockerfile": "Dockerfile",
                 "args": {
                     "go_agent_package": self.agent_package,
@@ -954,7 +954,7 @@ class AgentRubyRails(Service):
 class AgentJavaSpring(Service):
     SERVICE_PORT = 8090
     DEFAULT_AGENT_PACKAGE = "master"
-    
+
     @classmethod
     def add_arguments(cls, parser):
         super(AgentJavaSpring, cls).add_arguments(parser)
@@ -963,7 +963,7 @@ class AgentJavaSpring(Service):
             default=cls.DEFAULT_AGENT_PACKAGE,
             help='Use Java agent version (master, 0.5, v.0.7.1, ...)',
         )
-    
+
     def __init__(self, **options):
         super(AgentJavaSpring, self).__init__(**options)
         self.agent_version = options.get("java_agent_package", self.DEFAULT_AGENT_PACKAGE)
@@ -971,7 +971,7 @@ class AgentJavaSpring(Service):
     def _content(self):
         return dict(
             build={
-                "context": "docker/java/spring", 
+                "context": "docker/java/spring",
                 "dockerfile": "Dockerfile",
                 "args": {
                     "java_agent_package": self.agent_version,
