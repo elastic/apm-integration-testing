@@ -1758,6 +1758,13 @@ class LocalSetup(object):
         services = {}
         for service in selections:
             services.update(service.render())
+
+        # expose a list of enabled opbeans services to all opbeans services. This allows them to talk amongst each other
+        # and have a jolly good distributed time
+        enabled_opbeans_services = [k for k in services.keys() if k.startswith("opbeans-") and not k in ("opbeans-rum", "opbeans-load-generator")]
+        for s in enabled_opbeans_services:
+            services[s]["environment"].append("OPBEANS_SERVICES=" + ",".join(enabled_opbeans_services))
+
         compose = dict(
             version="2.1",
             services=services,
