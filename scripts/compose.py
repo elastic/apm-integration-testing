@@ -1761,7 +1761,8 @@ class LocalSetup(object):
 
         # expose a list of enabled opbeans services to all opbeans services. This allows them to talk amongst each other
         # and have a jolly good distributed time
-        enabled_opbeans_services = [k for k in services.keys() if k.startswith("opbeans-") and not k in ("opbeans-rum", "opbeans-load-generator")]
+        enabled_opbeans_services = [k for k in services.keys()
+                                    if k.startswith("opbeans-") and k not in ("opbeans-rum", "opbeans-load-generator")]
         enabled_opbeans_services_str = ",".join(enabled_opbeans_services)
         for s in enabled_opbeans_services:
             if isinstance(services[s]["environment"], dict):
