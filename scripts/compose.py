@@ -765,10 +765,11 @@ class AgentGoNetHttp(Service):
             build={"context": "docker/go/nethttp", "dockerfile": "Dockerfile"},
             container_name="gonethttpapp",
             environment={
-                "ELASTIC_APM_SERVICE_NAME": "gonethttpapp",
-                "ELASTIC_APM_SERVER_URL": "http://apm-server:8200",
-                "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
+                "ELASTIC_APM_API_REQUEST_TIME": "3s",
                 "ELASTIC_APM_FLUSH_INTERVAL": "500ms",
+                "ELASTIC_APM_SERVER_URL": "http://apm-server:8200",
+                "ELASTIC_APM_SERVICE_NAME": "gonethttpapp",
+                "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "gonethttpapp"),
             image=None,
@@ -912,6 +913,7 @@ class AgentRubyRails(Service):
             container_name="railsapp",
             environment={
                 "APM_SERVER_URL": "http://apm-server:8200",
+                "ELASTIC_APM_API_REQUEST_TIME": "3s",
                 "ELASTIC_APM_SERVER_URL": "http://apm-server:8200",
                 "ELASTIC_APM_SERVICE_NAME": "railsapp",
                 "RAILS_PORT": self.SERVICE_PORT,
@@ -938,8 +940,9 @@ class AgentJavaSpring(Service):
             labels=None,
             logging=None,
             environment={
-                "ELASTIC_APM_SERVICE_NAME": "springapp",
+                "ELASTIC_APM_API_REQUEST_TIME": "3s",
                 "ELASTIC_APM_SERVER_URL": "http://apm-server:8200",
+                "ELASTIC_APM_SERVICE_NAME": "springapp",
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "javaspring"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
