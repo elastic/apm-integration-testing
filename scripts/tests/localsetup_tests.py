@@ -68,6 +68,7 @@ class OpbeansServiceTest(ServiceTest):
                       - PGUSER=postgres
                       - PGPASSWORD=verysecure
                       - PGSSLMODE=disable
+                      - OPBEANS_DT_PROBABILITY=0.50
                     logging:
                       driver: 'json-file'
                       options:
@@ -112,6 +113,7 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTICSEARCH_URL=http://elasticsearch:9200
                       - OPBEANS_SERVER_PORT=3000
                       - JAVA_AGENT_VERSION
+                      - OPBEANS_DT_PROBABILITY=0.50
                     logging:
                       driver: 'json-file'
                       options:
@@ -169,6 +171,7 @@ class OpbeansServiceTest(ServiceTest):
                         - PGUSER=postgres
                         - REDIS_URL=redis://redis:6379
                         - NODE_AGENT_BRANCH=1.x
+                        - OPBEANS_DT_PROBABILITY=0.50
                     depends_on:
                         redis:
                             condition: service_healthy
@@ -219,6 +222,7 @@ class OpbeansServiceTest(ServiceTest):
                         - PYTHON_AGENT_BRANCH=2.x
                         - PYTHON_AGENT_REPO=elastic/apm-agent-python
                         - PYTHON_AGENT_VERSION
+                        - OPBEANS_DT_PROBABILITY=0.50
                     depends_on:
                         apm-server:
                             condition: service_healthy
@@ -279,6 +283,7 @@ class OpbeansServiceTest(ServiceTest):
                       - RUBY_AGENT_BRANCH=master
                       - RUBY_AGENT_REPO=elastic/apm-agent-ruby
                       - RUBY_AGENT_VERSION
+                      - OPBEANS_DT_PROBABILITY=0.50
                     logging:
                       driver: 'json-file'
                       options:
