@@ -959,6 +959,7 @@ class OpbeansService(Service):
         super(OpbeansService, self).__init__(**options)
         self.apm_server_url = options.get("opbeans_apm_server_url", self.DEFAULT_APM_SERVER_URL)
         self.apm_js_server_url = options.get("opbeans_apm_js_server_url", self.DEFAULT_APM_JS_SERVER_URL)
+        self.opbeans_dt_probability = options.get("opbeans_dt_probability", 0.5)
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1018,6 +1019,7 @@ class OpbeansGo(OpbeansService):
                 "PGUSER=postgres",
                 "PGPASSWORD=verysecure",
                 "PGSSLMODE=disable",
+                "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
             ],
             depends_on=depends_on,
             image=None,
@@ -1082,6 +1084,7 @@ class OpbeansJava(OpbeansService):
                 "ELASTICSEARCH_URL=http://elasticsearch:9200",
                 "OPBEANS_SERVER_PORT=3000",
                 "JAVA_AGENT_VERSION",
+                "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
             ],
             depends_on=depends_on,
             image=None,
@@ -1145,6 +1148,7 @@ class OpbeansNode(OpbeansService):
                 "PGUSER=postgres",
                 "REDIS_URL=redis://redis:6379",
                 "NODE_AGENT_BRANCH=1.x",
+                "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
             ],
             depends_on=depends_on,
             image=None,
@@ -1215,6 +1219,7 @@ class OpbeansPython(OpbeansService):
                 "PYTHON_AGENT_BRANCH=" + self.agent_branch,
                 "PYTHON_AGENT_REPO=" + self.agent_repo,
                 "PYTHON_AGENT_VERSION",
+                "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
             ],
             depends_on=depends_on,
             image=None,
@@ -1276,6 +1281,7 @@ class OpbeansRuby(OpbeansService):
                 "RUBY_AGENT_BRANCH=" + self.agent_branch,
                 "RUBY_AGENT_REPO=" + self.agent_repo,
                 "RUBY_AGENT_VERSION",
+                "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
             ],
             depends_on=depends_on,
             image=None,
@@ -1522,6 +1528,14 @@ class LocalSetup(object):
                 )
             service.add_arguments(parser)
 
+        parser.add_argument(
+            '--opbeans-dt-probability',
+            action="store",
+            type=float,
+            default=0.5,
+            help="Set probability of Opbeans Distributed Ping Pong. 0 disables it."
+        )
+
         # Add build candidate argument
         build_type_group = parser.add_mutually_exclusive_group()
         build_type_group.add_argument(
@@ -1758,6 +1772,18 @@ class LocalSetup(object):
         services = {}
         for service in selections:
             services.update(service.render())
+
+        # expose a list of enabled opbeans services to all opbeans services. This allows them to talk amongst each other
+        # and have a jolly good distributed time
+        enabled_opbeans_services = [k for k in services.keys()
+                                    if k.startswith("opbeans-") and k not in ("opbeans-rum", "opbeans-load-generator")]
+        enabled_opbeans_services_str = ",".join(enabled_opbeans_services)
+        for s in enabled_opbeans_services:
+            if isinstance(services[s]["environment"], dict):
+                services[s]["environment"]["OPBEANS_SERVICES"] = enabled_opbeans_services_str
+            else:
+                services[s]["environment"].append("OPBEANS_SERVICES=" + enabled_opbeans_services_str)
+
         compose = dict(
             version="2.1",
             services=services,
