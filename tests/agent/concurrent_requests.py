@@ -238,8 +238,9 @@ class Concurrent:
                 span_app_name = lookup(span_context, 'service', 'name')
                 assert span_app_name == ep.app_name, span_context
 
-                span_start = lookup(span, 'start', 'us')
-                assert not anomaly(span_start), span_start
+                if 'start' in span:
+                    span_start = lookup(span, 'start', 'us')
+                    assert not anomaly(span_start), span_start
 
                 span_duration = lookup(span, 'duration', 'us')
                 assert not anomaly(span_duration), span_duration
