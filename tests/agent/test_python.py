@@ -49,6 +49,12 @@ def test_req_django(django):
 
 @pytest.mark.version
 @pytest.mark.django
+def test_django_error(django):
+    utils.check_agent_error(django.oof, django.apm_server.elasticsearch)
+
+
+@pytest.mark.version
+@pytest.mark.django
 def test_concurrent_req_django(django):
     foo = Concurrent.Endpoint(django.foo.url,
                               django.app_name,
