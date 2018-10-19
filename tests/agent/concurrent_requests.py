@@ -165,7 +165,7 @@ class Concurrent:
 
             transaction = lookup(hit, '_source', 'transaction')
             duration = lookup(transaction, 'duration', 'us')
-            assert not anomaly(duration), duration
+            assert not anomaly(duration), (hit, duration)
 
             timestamp = datetime.strptime(lookup(hit, '_source', '@timestamp'), '%Y-%m-%dT%H:%M:%S.%fZ')
             assert first_req < timestamp < last_req + slack, \
@@ -243,7 +243,7 @@ class Concurrent:
                     assert not anomaly(span_start), span_start
 
                 span_duration = lookup(span, 'duration', 'us')
-                assert not anomaly(span_duration), span_duration
+                assert not anomaly(span_duration), (hit, span_duration)
 
                 assert span_duration < duration * 10, \
                     "span duration {} is more than 10X bigger than transaction duration{}".format(
