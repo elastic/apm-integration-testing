@@ -9,7 +9,7 @@ elif [[ $NODE_AGENT_VERSION ]]; then
     echo "Installing ${NODE_AGENT_VERSION} from npm"
     npm install elastic-apm-node@"${NODE_AGENT_VERSION}"
 elif [[ $NODE_AGENT_BRANCH ]]; then
-    if [ -z ${NODE_AGENT_REPO+x} ]; then
+    if [[ -z ${NODE_AGENT_REPO} ]]; then
         NODE_AGENT_REPO="elastic/apm-agent-nodejs"
     fi
     echo "Installing ${NODE_AGENT_REPO}:${NODE_AGENT_BRANCH} from Github"
