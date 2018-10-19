@@ -70,8 +70,11 @@ docker-test-%:
 
 dockerized-test:
 	@echo waiting for services to be healthy
-	docker-compose-wait
-
+	docker-compose-wait || (docker ps -a && exit 1)
+	
+	@echo containers summary
+	docker ps -a
+	
 	@echo running make $(TARGET) inside a container
 	docker build --pull -t apm-integration-testing .
 
