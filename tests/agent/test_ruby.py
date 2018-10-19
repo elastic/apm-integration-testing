@@ -11,6 +11,12 @@ def test_req_rails(rails):
 
 
 @pytest.mark.version
+def test_rails_error(rails):
+    utils.check_agent_error(
+        rails.oof, rails.apm_server.elasticsearch)
+
+
+@pytest.mark.version
 def test_conc_req_rails(es, apm_server, rails):
     foo = Concurrent.Endpoint(rails.foo.url,
                               rails.app_name,

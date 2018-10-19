@@ -11,6 +11,10 @@ class ApplicationController < ActionController::API
     render json: bar_span()
   end
 
+  def oof
+    raise RuntimeError, "oof"
+  end
+
   private
 
   def bar_span
