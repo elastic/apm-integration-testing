@@ -22,3 +22,7 @@ Each integration testing app implements the following API:
   - return status: 200 OK
   - return body: OK
   - traced: no
+
+* `/oof`
+  - return status: 500 Internal Server Error
+  - traced: yes
