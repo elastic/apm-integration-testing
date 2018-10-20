@@ -9,7 +9,6 @@ def test_request_express(express):
         express.foo, express.apm_server.elasticsearch)
 
 
-@pytest.mark.skip(reason="need agent dev input")
 @pytest.mark.version
 def test_express_error(express):
     utils.check_agent_error(

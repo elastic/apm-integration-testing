@@ -48,13 +48,13 @@ function extra_route () {
     span.end()
 }
 
+app.get("/oof", function(req, res, next) {
+    next(new Error("oof"));
+});
+
 app.use(function (err, req, res, next) {
   console.error(err.stack)
   res.status(500).send('Something broke!')
-});
-
-app.get("/oof", function(req, res, next) {
-    next(new Error("oof"));
 });
 
 var server = app.listen(process.env.EXPRESS_PORT, '0.0.0.0', function () {
