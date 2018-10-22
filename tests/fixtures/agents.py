@@ -65,4 +65,5 @@ class Agent:
         self.port = urlparse(url).port
         self.foo = Endpoint(self.url, "foo")
         self.bar = Endpoint(self.url, "bar")
+        self.oof = Endpoint(self.url, "oof", status_code=500)
         self.apm_server = apm_server

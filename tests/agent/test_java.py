@@ -7,7 +7,13 @@ from tests.agent.concurrent_requests import Concurrent
 @pytest.mark.java_spring
 def test_req_java_spring(java_spring):
     utils.check_agent_transaction(
-        java_spring.foo, java_spring.apm_server.elasticsearch, ct=2)
+        java_spring.foo, java_spring.apm_server.elasticsearch)
+
+
+@pytest.mark.java_spring
+def test_java_spring_error(java_spring):
+    utils.check_agent_error(
+        java_spring.oof, java_spring.apm_server.elasticsearch)
 
 
 @pytest.mark.java_spring

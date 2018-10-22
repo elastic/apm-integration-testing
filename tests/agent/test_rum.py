@@ -10,4 +10,4 @@ def test_rum(rum):
 
     r = requests.get(endpoint.url)
     utils.check_request_response(r, endpoint)
-    utils.check_elasticsearch_transaction(elasticsearch, 1, {'query': {'term': {'processor.event': 'transaction'}}})
+    utils.check_elasticsearch_content(elasticsearch, 1, query={'query': {'term': {'processor.event': 'transaction'}}})

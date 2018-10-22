@@ -6,7 +6,14 @@ def check_agent_transaction(endpoint, elasticsearch, ct=2):
     elasticsearch.clean()
     r = requests.get(endpoint.url)
     check_request_response(r, endpoint)
-    check_elasticsearch_transaction(elasticsearch, ct)
+    check_elasticsearch_content(elasticsearch, ct)
+
+
+def check_agent_error(endpoint, elasticsearch, ct=1):
+    elasticsearch.clean()
+    r = requests.get(endpoint.url)
+    assert r.status_code == endpoint.status_code
+    check_elasticsearch_content(elasticsearch, ct, processor='error')
 
 
 def check_server_transaction(endpoint, elasticsearch, json, headers=None, ct=2):
@@ -15,7 +22,7 @@ def check_server_transaction(endpoint, elasticsearch, json, headers=None, ct=2):
         headers = {'Content-Type': 'application/json'}
     r = requests.post(endpoint.url, json=json, headers=headers)
     check_request_response(r, endpoint)
-    check_elasticsearch_transaction(elasticsearch, ct)
+    check_elasticsearch_content(elasticsearch, ct)
 
 
 def check_request_response(req, endpoint):
@@ -24,11 +31,12 @@ def check_request_response(req, endpoint):
     assert req.status_code == endpoint.status_code
 
 
-def check_elasticsearch_transaction(elasticsearch,
-                                    expected_count,
-                                    query=None):
+def check_elasticsearch_content(elasticsearch,
+                                expected_count,
+                                processor='transaction',
+                                query=None):
     if query is None:
-        query = {'query': {'term': {'processor.name': 'transaction'}}}
+        query = {'query': {'term': {'processor.name': processor}}}
 
     actual_count = 0
     retries = 0

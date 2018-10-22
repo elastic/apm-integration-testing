@@ -21,4 +21,8 @@ public class FooBar {
     private static String extra() {
         return "extra";
     }
+
+    public void oof() {
+        throw new RuntimeException("oof");
+    }
 }

@@ -13,6 +13,7 @@ func main() {
 	mux.HandleFunc("/healthcheck", healthcheckHandler)
 	mux.HandleFunc("/foo", fooHandler)
 	mux.HandleFunc("/bar", barHandler)
+	mux.HandleFunc("/oof", oofHandler)
 	http.ListenAndServe(":8080", apmhttp.Wrap(mux))
 }
 
@@ -30,6 +31,11 @@ func fooHandler(w http.ResponseWriter, req *http.Request) {
 
 func barHandler(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte(bar(req)))
+}
+
+func oofHandler(w http.ResponseWriter, req *http.Request) {
+	w.WriteHeader(http.StatusInternalServerError)
+	panic("oof")
 }
 
 func foo(req *http.Request) string {

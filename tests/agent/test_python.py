@@ -7,8 +7,14 @@ from tests.agent.concurrent_requests import Concurrent
 @pytest.mark.version
 @pytest.mark.flask
 def test_req_flask(flask):
-    utils.check_agent_transaction(
-        flask.foo, flask.apm_server.elasticsearch, ct=2)
+    utils.check_agent_transaction(flask.foo, flask.apm_server.elasticsearch)
+
+
+@pytest.mark.version
+@pytest.mark.flask
+def test_flask_error(flask):
+    # one from exception handler, one from logging handler
+    utils.check_agent_error(flask.oof, flask.apm_server.elasticsearch, ct=2)
 
 
 @pytest.mark.version
@@ -40,6 +46,12 @@ def test_concurrent_req_flask_foobar(flask):
 @pytest.mark.django
 def test_req_django(django):
     utils.check_agent_transaction(django.foo, django.apm_server.elasticsearch)
+
+
+@pytest.mark.version
+@pytest.mark.django
+def test_django_error(django):
+    utils.check_agent_error(django.oof, django.apm_server.elasticsearch)
 
 
 @pytest.mark.version
