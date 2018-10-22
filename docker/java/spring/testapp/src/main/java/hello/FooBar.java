@@ -23,6 +23,6 @@ public class FooBar {
     }
 
     public void oof() {
-        throw new Error("oof");
+        throw new RuntimeException("oof");
     }
 }
