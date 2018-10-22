@@ -13,6 +13,7 @@ def test_req_flask(flask):
 @pytest.mark.version
 @pytest.mark.flask
 def test_flask_error(flask):
+    # one from exception handler, one from logging handler
     utils.check_agent_error(flask.oof, flask.apm_server.elasticsearch, ct=2)
 
 
