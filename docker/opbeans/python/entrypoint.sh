@@ -17,4 +17,5 @@ else
     pip install -U elastic-apm
 fi
 rm -f celerybeat.pid
+python manage.py migrate
 exec "$@"
