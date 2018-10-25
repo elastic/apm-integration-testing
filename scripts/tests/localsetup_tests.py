@@ -130,7 +130,7 @@ class OpbeansServiceTest(ServiceTest):
                     healthcheck:
                       test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-java:3000/"]
                       interval: 5s
-                      retries: 12""")  # noqa: 501
+                      retries: 36""")  # noqa: 501
         )
 
     def test_opbeans_node(self):

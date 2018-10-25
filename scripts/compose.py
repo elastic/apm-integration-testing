@@ -1105,7 +1105,7 @@ class OpbeansJava(OpbeansService):
             depends_on=depends_on,
             image=None,
             labels=None,
-            healthcheck=curl_healthcheck(3000, "opbeans-java", path="/"),
+            healthcheck=curl_healthcheck(3000, "opbeans-java", path="/", retries=36),
             ports=[self.publish_port(self.port, 3000)],
         )
         if self.agent_local_repo:
