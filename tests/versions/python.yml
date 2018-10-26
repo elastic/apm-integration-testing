@@ -6,4 +6,10 @@ PYTHON_AGENT:
   - 'release;latest' 
   - 'release;2.0'
 
-exclude: []
+exclude:
+  - PYTHON_AGENT: 'github;master'
+    APM_SERVER: '6.4' 
+  - PYTHON_AGENT: 'github;master'
+    APM_SERVER: '6.3' 
+  - PYTHON_AGENT: 'github;master'
+    APM_SERVER: '6.2;--release' 
