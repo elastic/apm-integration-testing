@@ -152,8 +152,6 @@ class OpbeansServiceTest(ServiceTest):
                     environment:
                         - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                         - ELASTIC_APM_JS_SERVER_URL=http://apm-server:8200
-                        - ELASTIC_APM_APP_NAME=opbeans-node
-                        - ELASTIC_APM_SERVICE_NAME=opbeans-node
                         - ELASTIC_APM_LOG_LEVEL=info
                         - ELASTIC_APM_SOURCE_LINES_ERROR_APP_FRAMES
                         - ELASTIC_APM_SOURCE_LINES_SPAN_APP_FRAMES=5
