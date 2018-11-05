@@ -131,6 +131,16 @@ def parse_version(version):
     return res
 
 
+def opbeans_agent_content(func):
+    def add_content(self):
+        content = func(self)
+        secret_token = self.options.get("opbeans_apm_server_secret_token")
+        if secret_token is not None:
+            content["environment"].append("ELASTIC_APM_SECRET_TOKEN=" + secret_token)
+        return content
+    return add_content
+
+
 class Service(object):
     """encapsulate docker-compose service definition"""
 
@@ -1007,6 +1017,7 @@ class OpbeansGo(OpbeansService):
     DEFAULT_AGENT_REPO = "elastic/apm-agent-go"
     DEFAULT_SERVICE_NAME = "opbeans-go"
 
+    @opbeans_agent_content
     def _content(self):
         depends_on = {
             "postgres": {"condition": "service_healthy"},
@@ -1067,6 +1078,7 @@ class OpbeansJava(OpbeansService):
         super(OpbeansJava, self).__init__(**options)
         self.service_name = options.get("opbeans_java_service_name", self.DEFAULT_SERVICE_NAME)
 
+    @opbeans_agent_content
     def _content(self):
         depends_on = {
             "postgres": {"condition": "service_healthy"},
@@ -1124,6 +1136,7 @@ class OpbeansNode(OpbeansService):
         super(OpbeansNode, self).__init__(**options)
         self.service_name = options.get("opbeans_node_service_name", self.DEFAULT_SERVICE_NAME)
 
+    @opbeans_agent_content
     def _content(self):
         depends_on = {
             "postgres": {"condition": "service_healthy"},
@@ -1188,6 +1201,7 @@ class OpbeansPython(OpbeansService):
             default=cls.DEFAULT_LOCAL_REPO,
         )
 
+    @opbeans_agent_content
     def _content(self):
         depends_on = {
             "postgres": {"condition": "service_healthy"},
@@ -1241,6 +1255,7 @@ class OpbeansRuby(OpbeansService):
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = "opbeans-ruby"
 
+    @opbeans_agent_content
     def _content(self):
         depends_on = {
             "postgres": {"condition": "service_healthy"},
@@ -1608,6 +1623,11 @@ class LocalSetup(object):
             help='use oss container images',
             dest='oss',
             default=False,
+        )
+
+        parser.add_argument(
+            '--opbeans-apm-server-secret-token',
+            help='server tokn to use for Opbeans services',
         )
 
         parser.add_argument(

@@ -16,7 +16,7 @@ from ..compose import (ApmServer, Kibana, Elasticsearch)
 
 from ..compose import (Postgres, Redis)
 
-from ..compose import LocalSetup, discover_services, parse_version
+from ..compose import LocalSetup, discover_services, parse_version, OpbeansService
 
 from .service_tests import ServiceTest
 
@@ -37,6 +37,10 @@ if sys.version_info[0] == 3:
     stringIO = io.StringIO
 else:
     stringIO = io.BytesIO
+
+
+def opbeans_services():
+    return (cls for cls in discover_services() if issubclass(cls, OpbeansService))
 
 
 class OpbeansServiceTest(ServiceTest):
@@ -335,6 +339,15 @@ class OpbeansServiceTest(ServiceTest):
                          interval: 5s
                          retries: 12""")  # noqa: 501
         )
+
+    def test_opbeans_secret_token(self):
+        for cls in opbeans_services():
+            services = cls(version="6.5.0", opbeans_apm_server_secret_token="supersecret").render()
+            opbeans_service = list(services.values())[0]
+            secret_token = [e for e in opbeans_service["environment"] if e.startswith("ELASTIC_APM_SECRET_TOKEN=")]
+            self.assertEqual(["ELASTIC_APM_SECRET_TOKEN=supersecret"], secret_token, cls.__name__)
+        if cls is None:
+            self.fail("no opbeans services tested")
 
     def test_opbeans_loadgen(self):
         opbeans_load_gen = OpbeansLoadGenerator(
