@@ -157,23 +157,23 @@ Jenkins runs the scripts from `scripts/ci/` and is viewable at https://apm-ci.el
 
 Those scripts shut down any existing testing containers and start a fresh new environment before running tests unless the `REUSE_CONTAINERS` environment variable is set.
 
-These are the script available to execute
+These are the scripts available to execute:
 
-* *all.sh:* runs all test on apm-server and every agent type.
-* *common.sh:* common scripts variables and functions, it does not execute anything.
-* *go.sh:* runs Go tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
-* *java.sh:* runs Java tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
-* *kibana.sh:* runs kibana agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
-* *nodejs.sh:* runs Nodejs agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
-* *python.sh:* runs Python agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
-* *ruby.sh:* runs Ruby agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
-* *server.sh:* runs APM Server tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
+* `all.sh:` runs all test on apm-server and every agent type.
+* `common.sh:` common scripts variables and functions, it does not execute anything.
+* `go.sh:` runs Go tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
+* `java.sh:` runs Java tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
+* `kibana.sh:` runs kibana agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
+* `nodejs.sh:` runs Nodejs agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
+* `python.sh:` runs Python agent tests, you can choose the versions to run see the [environment variables](environment-variables) configuration.
+* `ruby.sh:` runs Ruby agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
+* `server.sh:` runs APM Server tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 
-#### Environment variables
+#### Environment Variables
 
 It is possible to configure some options and versions to run by defining environment variables before to launch the scripts
 
-* `COMPOSE_ARGS`: replaces completly the default arguments compose.py used by scripts, see the compose.py help to know which ones you can use.
+* `COMPOSE_ARGS`: replaces completely the default arguments compose.py used by scripts, see the compose.py help to know which ones you can use.
 * `BUILD_OPTS`: aggregates arguments to default arguments passing to compose.py see the compose.py help to know which ones you can use.
 * `ELASTIC_STACK_VERSION`: selects the Elastic Stack version to use on tests, by default is is used the master branch. You can choose any branch or tag from the Github repo.
 * `APM_SERVER_BRANCH`: selects the APM Server version to use on tests, by default it uses the master branch. You can choose any branch or tag from the Github repo.
