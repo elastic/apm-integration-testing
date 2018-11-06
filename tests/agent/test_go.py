@@ -8,7 +8,14 @@ from tests.agent.concurrent_requests import Concurrent
 @pytest.mark.go_nethttp
 def test_req_go_nethttp(go_nethttp):
     utils.check_agent_transaction(
-        go_nethttp.foo, go_nethttp.apm_server.elasticsearch, ct=2)
+        go_nethttp.foo, go_nethttp.apm_server.elasticsearch)
+
+
+@pytest.mark.version
+@pytest.mark.go_nethttp
+def test_go_nethttp_error(go_nethttp):
+    utils.check_agent_error(
+        go_nethttp.oof, go_nethttp.apm_server.elasticsearch)
 
 
 @pytest.mark.version

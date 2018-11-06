@@ -55,6 +55,7 @@ class OpbeansServiceTest(ServiceTest):
                     ports:
                       - "127.0.0.1:3003:3000"
                     environment:
+                      - ELASTIC_APM_SERVICE_NAME=opbeans-go
                       - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                       - ELASTIC_APM_JS_SERVER_URL=http://apm-server:8200
                       - ELASTIC_APM_FLUSH_INTERVAL=5
@@ -68,6 +69,7 @@ class OpbeansServiceTest(ServiceTest):
                       - PGUSER=postgres
                       - PGPASSWORD=verysecure
                       - PGSSLMODE=disable
+                      - OPBEANS_DT_PROBABILITY=0.50
                     logging:
                       driver: 'json-file'
                       options:
@@ -112,6 +114,7 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTICSEARCH_URL=http://elasticsearch:9200
                       - OPBEANS_SERVER_PORT=3000
                       - JAVA_AGENT_VERSION
+                      - OPBEANS_DT_PROBABILITY=0.50
                     logging:
                       driver: 'json-file'
                       options:
@@ -124,12 +127,10 @@ class OpbeansServiceTest(ServiceTest):
                         condition: service_healthy
                       apm-server:
                         condition: service_healthy
-                    volumes:
-                      - .:/local-install
                     healthcheck:
                       test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-java:3000/"]
                       interval: 5s
-                      retries: 12""")  # noqa: 501
+                      retries: 36""")  # noqa: 501
         )
 
     def test_opbeans_node(self):
@@ -151,8 +152,6 @@ class OpbeansServiceTest(ServiceTest):
                     environment:
                         - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                         - ELASTIC_APM_JS_SERVER_URL=http://apm-server:8200
-                        - ELASTIC_APM_APP_NAME=opbeans-node
-                        - ELASTIC_APM_SERVICE_NAME=opbeans-node
                         - ELASTIC_APM_LOG_LEVEL=info
                         - ELASTIC_APM_SOURCE_LINES_ERROR_APP_FRAMES
                         - ELASTIC_APM_SOURCE_LINES_SPAN_APP_FRAMES=5
@@ -168,7 +167,9 @@ class OpbeansServiceTest(ServiceTest):
                         - PGPORT=5432
                         - PGUSER=postgres
                         - REDIS_URL=redis://redis:6379
-                        - NODE_AGENT_BRANCH=1.x
+                        - NODE_AGENT_BRANCH=
+                        - NODE_AGENT_REPO=
+                        - OPBEANS_DT_PROBABILITY=0.50
                     depends_on:
                         redis:
                             condition: service_healthy
@@ -181,7 +182,6 @@ class OpbeansServiceTest(ServiceTest):
                         interval: 5s
                         retries: 12
                     volumes:
-                        - .:/local-install
                         - ./docker/opbeans/node/sourcemaps:/sourcemaps""")  # noqa: 501
         )
 
@@ -216,9 +216,10 @@ class OpbeansServiceTest(ServiceTest):
                         - REDIS_URL=redis://redis:6379
                         - ELASTICSEARCH_URL=http://elasticsearch:9200
                         - OPBEANS_SERVER_URL=http://opbeans-python:3000
-                        - PYTHON_AGENT_BRANCH=2.x
-                        - PYTHON_AGENT_REPO=elastic/apm-agent-python
+                        - PYTHON_AGENT_BRANCH=
+                        - PYTHON_AGENT_REPO=
                         - PYTHON_AGENT_VERSION
+                        - OPBEANS_DT_PROBABILITY=0.50
                     depends_on:
                         apm-server:
                             condition: service_healthy
@@ -228,8 +229,6 @@ class OpbeansServiceTest(ServiceTest):
                             condition: service_healthy
                         redis:
                             condition: service_healthy
-                    volumes:
-                        - .:/local-install
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-python:3000/"]
                         interval: 5s
@@ -238,22 +237,29 @@ class OpbeansServiceTest(ServiceTest):
         )
 
     def test_opbeans_python_branch(self):
-        opbeans_python_6_1 = OpbeansPython(version="6.1").render()["opbeans-python"]
+        opbeans_python_6_1 = OpbeansPython(version="6.1", opbeans_python_agent_branch="1.x").render()["opbeans-python"]
         branch = [e for e in opbeans_python_6_1["environment"] if e.startswith("PYTHON_AGENT_BRANCH")]
         self.assertEqual(branch, ["PYTHON_AGENT_BRANCH=1.x"])
 
-        opbeans_python_master = OpbeansPython(version="7.0.0-alpha1").render()["opbeans-python"]
+        opbeans_python_master = OpbeansPython(version="7.0.0-alpha1", opbeans_python_agent_branch="2.x").render()["opbeans-python"]
         branch = [e for e in opbeans_python_master["environment"] if e.startswith("PYTHON_AGENT_BRANCH")]
         self.assertEqual(branch, ["PYTHON_AGENT_BRANCH=2.x"])
 
     def test_opbeans_python_repo(self):
         agent_repo_default = OpbeansPython().render()["opbeans-python"]
         branch = [e for e in agent_repo_default["environment"] if e.startswith("PYTHON_AGENT_REPO")]
-        self.assertEqual(branch, ["PYTHON_AGENT_REPO=elastic/apm-agent-python"])
+        self.assertEqual(branch, ["PYTHON_AGENT_REPO="])
 
-        agent_repo_override = OpbeansPython(opbeans_agent_repo="myrepo").render()["opbeans-python"]
+        agent_repo_override = OpbeansPython(opbeans_python_agent_repo="myrepo").render()["opbeans-python"]
         branch = [e for e in agent_repo_override["environment"] if e.startswith("PYTHON_AGENT_REPO")]
         self.assertEqual(branch, ["PYTHON_AGENT_REPO=myrepo"])
+
+    def test_opbeans_python_local_repo(self):
+        agent_repo_default = OpbeansPython().render()["opbeans-python"]
+        assert "volumes" not in agent_repo_default
+
+        agent_repo_override = OpbeansPython(opbeans_python_agent_local_repo=".").render()["opbeans-python"]
+        assert "volumes" in agent_repo_override, agent_repo_override
 
     def test_opbeans_ruby(self):
         opbeans_ruby = OpbeansRuby(version="6.3.10").render()
@@ -276,9 +282,10 @@ class OpbeansServiceTest(ServiceTest):
                       - RAILS_ENV=production
                       - RAILS_LOG_TO_STDOUT=1
                       - PORT=3000
-                      - RUBY_AGENT_BRANCH=master
-                      - RUBY_AGENT_REPO=elastic/apm-agent-ruby
+                      - RUBY_AGENT_BRANCH=
+                      - RUBY_AGENT_REPO=
                       - RUBY_AGENT_VERSION
+                      - OPBEANS_DT_PROBABILITY=0.50
                     logging:
                       driver: 'json-file'
                       options:
@@ -293,8 +300,6 @@ class OpbeansServiceTest(ServiceTest):
                         condition: service_healthy
                       apm-server:
                         condition: service_healthy
-                    volumes:
-                      - .:/local-install
                     healthcheck:
                       test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-ruby:3000/"]
                       interval: 5s

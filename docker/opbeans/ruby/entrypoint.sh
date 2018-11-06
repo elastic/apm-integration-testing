@@ -9,7 +9,7 @@ elif [[ $RUBY_AGENT_VERSION ]]; then
     gem install elastic-apm -v $RUBY_AGENT_VERSION
 elif [[ $RUBY_AGENT_BRANCH ]]; then
     gem install specific_install
-    if [ -z ${RUBY_AGENT_REPO+x} ]; then
+    if [[ -z ${RUBY_AGENT_REPO} ]]; then
         RUBY_AGENT_REPO="elastic/apm-agent-ruby"
     fi
     echo "Installing ${RUBY_AGENT_REPO}:${RUBY_AGENT_BRANCH} from Github"

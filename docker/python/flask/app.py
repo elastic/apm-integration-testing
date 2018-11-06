@@ -60,6 +60,11 @@ def extra():
     return "extra"
 
 
+@app.route('/oof')
+def oof_route():
+    raise Exception('oof')
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ['FLASK_PORT']))
 

@@ -3,4 +3,5 @@ Rails.application.routes.draw do
   get 'healthcheck', to:'application#healthcheck'
   get 'foo', to: 'application#foo'
   get 'bar', to: 'application#bar'
+  get 'oof', to: 'application#oof'
 end

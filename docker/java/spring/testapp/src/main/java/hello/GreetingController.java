@@ -38,6 +38,13 @@ public class GreetingController {
         return bar;
     }
     
+    @GetMapping("/oof")
+    @ResponseBody
+    public String oof() {
+        new FooBar().oof();
+        return "oof";
+    }
+
     @GetMapping("/healthcheck")
     @ResponseBody
     public String healthcheck() {

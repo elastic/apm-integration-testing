@@ -30,10 +30,11 @@ class AgentServiceTest(ServiceTest):
                         context: docker/go/nethttp
                     container_name: gonethttpapp
                     environment:
-                        ELASTIC_APM_SERVICE_NAME: gonethttpapp
-                        ELASTIC_APM_SERVER_URL: http://apm-server:8200
-                        ELASTIC_APM_TRANSACTION_IGNORE_NAMES: healthcheck
+                        ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_FLUSH_INTERVAL: 500ms
+                        ELASTIC_APM_SERVER_URL: http://apm-server:8200
+                        ELASTIC_APM_SERVICE_NAME: gonethttpapp
+                        ELASTIC_APM_TRANSACTION_IGNORE_NAMES: healthcheck
                     healthcheck:
                         interval: 5s
                         retries: 12
@@ -128,6 +129,7 @@ class AgentServiceTest(ServiceTest):
                     command: bash -c "bundle install && RAILS_ENV=production bundle exec rails s -b 0.0.0.0 -p 8020"
                     environment:
                         APM_SERVER_URL: http://apm-server:8200
+                        ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_SERVER_URL: http://apm-server:8200
                         ELASTIC_APM_SERVICE_NAME: railsapp
                         RAILS_SERVICE_NAME: railsapp
@@ -155,8 +157,9 @@ class AgentServiceTest(ServiceTest):
                         context: docker/java/spring
                     container_name: javaspring
                     environment:
-                        ELASTIC_APM_SERVICE_NAME: springapp
+                        ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_SERVER_URL: http://apm-server:8200
+                        ELASTIC_APM_SERVICE_NAME: springapp
                     healthcheck:
                         interval: 5s
                         retries: 12

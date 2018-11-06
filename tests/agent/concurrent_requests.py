@@ -88,7 +88,7 @@ class Concurrent:
 
         self.num_reqs -= 1
         if self.num_reqs == 0:
-            self.logger.info("Stopping tornado I/O loop")
+            self.logger.debug("Stopping tornado I/O loop")
             ioloop.IOLoop.instance().stop()
 
     def load_test(self):
@@ -99,7 +99,7 @@ class Concurrent:
                 http_client.fetch(endpoint.url, self.handle, method='GET',
                                   connect_timeout=90, request_timeout=120)
 
-        self.logger.info("Starting tornado I/O loop")
+        self.logger.debug("Starting tornado I/O loop")
         ioloop.IOLoop.instance().start()
 
     def check_counts(self, it, max_wait=60, backoff=.5):
@@ -165,7 +165,7 @@ class Concurrent:
 
             transaction = lookup(hit, '_source', 'transaction')
             duration = lookup(transaction, 'duration', 'us')
-            assert not anomaly(duration), duration
+            assert not anomaly(duration), (hit, duration)
 
             timestamp = datetime.strptime(lookup(hit, '_source', '@timestamp'), '%Y-%m-%dT%H:%M:%S.%fZ')
             assert first_req < timestamp < last_req + slack, \
@@ -238,11 +238,12 @@ class Concurrent:
                 span_app_name = lookup(span_context, 'service', 'name')
                 assert span_app_name == ep.app_name, span_context
 
-                span_start = lookup(span, 'start', 'us')
-                assert not anomaly(span_start), span_start
+                if 'start' in span:
+                    span_start = lookup(span, 'start', 'us')
+                    assert not anomaly(span_start), span_start
 
                 span_duration = lookup(span, 'duration', 'us')
-                assert not anomaly(span_duration), span_duration
+                assert not anomaly(span_duration), (hit, span_duration)
 
                 assert span_duration < duration * 10, \
                     "span duration {} is more than 10X bigger than transaction duration{}".format(
@@ -261,16 +262,16 @@ class Concurrent:
                             frame.get(attr) for frame in stacktrace), stacktrace[0].keys()
 
     def run(self):
-        self.logger.info("Testing started..")
+        self.logger.debug("Testing started..")
         self.elasticsearch.clean()
 
         start_load = datetime.utcnow()
         for it in range(1, self.iters + 1):
-            self.logger.info("Sending batch {} / {}".format(it, self.iters))
+            self.logger.debug("Sending batch {} / {}".format(it, self.iters))
             self.load_test()
             self.check_counts(it)
             # wait until counts are solid
             end_load = datetime.utcnow()
             self.check_content(it, start_load, end_load)
-            self.logger.info("So far so good...")
-        self.logger.info("ALL DONE")
+            self.logger.debug("So far so good...")
+        self.logger.debug("All done")

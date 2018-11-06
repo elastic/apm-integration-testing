@@ -785,10 +785,11 @@ class AgentGoNetHttp(Service):
             },
             container_name="gonethttpapp",
             environment={
-                "ELASTIC_APM_SERVICE_NAME": "gonethttpapp",
-                "ELASTIC_APM_SERVER_URL": "http://apm-server:8200",
-                "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
+                "ELASTIC_APM_API_REQUEST_TIME": "3s",
                 "ELASTIC_APM_FLUSH_INTERVAL": "500ms",
+                "ELASTIC_APM_SERVER_URL": "http://apm-server:8200",
+                "ELASTIC_APM_SERVICE_NAME": "gonethttpapp",
+                "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "gonethttpapp"),
             image=None,
@@ -936,6 +937,7 @@ class AgentRubyRails(Service):
             container_name="railsapp",
             environment={
                 "APM_SERVER_URL": "http://apm-server:8200",
+                "ELASTIC_APM_API_REQUEST_TIME": "3s",
                 "ELASTIC_APM_SERVER_URL": "http://apm-server:8200",
                 "ELASTIC_APM_SERVICE_NAME": "railsapp",
                 "RAILS_PORT": self.SERVICE_PORT,
@@ -982,8 +984,9 @@ class AgentJavaSpring(Service):
             labels=None,
             logging=None,
             environment={
-                "ELASTIC_APM_SERVICE_NAME": "springapp",
+                "ELASTIC_APM_API_REQUEST_TIME": "3s",
                 "ELASTIC_APM_SERVER_URL": "http://apm-server:8200",
+                "ELASTIC_APM_SERVICE_NAME": "springapp",
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "javaspring"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
@@ -1003,6 +1006,12 @@ class OpbeansService(Service):
         super(OpbeansService, self).__init__(**options)
         self.apm_server_url = options.get("opbeans_apm_server_url", self.DEFAULT_APM_SERVER_URL)
         self.apm_js_server_url = options.get("opbeans_apm_js_server_url", self.DEFAULT_APM_JS_SERVER_URL)
+        self.opbeans_dt_probability = options.get("opbeans_dt_probability", 0.5)
+        if hasattr(self, "DEFAULT_SERVICE_NAME"):
+            self.service_name = options.get(self.option_name() + "_service_name", self.DEFAULT_SERVICE_NAME)
+        self.agent_branch = options.get(self.option_name() + "_agent_branch") or ""
+        self.agent_repo = options.get(self.option_name() + "_agent_repo") or ""
+        self.agent_local_repo = options.get(self.option_name() + "_agent_local_repo")
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1014,7 +1023,25 @@ class OpbeansService(Service):
                 '--' + cls.name() + '-service-name',
                 default=cls.DEFAULT_SERVICE_NAME,
                 dest=cls.option_name() + '_service_name',
-                help="service name"
+                help=cls.name() + " service name"
+            )
+            parser.add_argument(
+                '--' + cls.name() + '-agent-branch',
+                default=None,
+                dest=cls.option_name() + '_agent_branch',
+                help=cls.name() + " branch for agent"
+            )
+            parser.add_argument(
+                '--' + cls.name() + '-agent-repo',
+                default=None,
+                dest=cls.option_name() + '_agent_repo',
+                help=cls.name() + " github repo for agent (in form org/repo)"
+            )
+            parser.add_argument(
+                '--' + cls.name() + '-agent-local-repo',
+                default=None,
+                dest=cls.option_name() + '_agent_local_repo',
+                help=cls.name() + " local repo path for agent"
             )
 
 
@@ -1022,11 +1049,7 @@ class OpbeansGo(OpbeansService):
     SERVICE_PORT = 3003
     DEFAULT_AGENT_BRANCH = "master"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-go"
-
-    def __init__(self, **options):
-        super(OpbeansGo, self).__init__(**options)
-        self.agent_branch = options.get("opbeans_agent_branch", self.DEFAULT_AGENT_BRANCH)
-        self.agent_repo = options.get("opbeans_agent_repo", self.DEFAULT_AGENT_REPO)
+    DEFAULT_SERVICE_NAME = "opbeans-go"
 
     def _content(self):
         depends_on = {
@@ -1044,11 +1067,12 @@ class OpbeansGo(OpbeansService):
                 context="docker/opbeans/go",
                 dockerfile="Dockerfile",
                 args=[
-                    "GO_AGENT_BRANCH=" + self.agent_branch,
-                    "GO_AGENT_REPO=" + self.agent_repo,
+                    "GO_AGENT_BRANCH=" + (self.agent_branch or self.DEFAULT_AGENT_BRANCH),
+                    "GO_AGENT_REPO=" + (self.agent_repo or self.DEFAULT_AGENT_REPO),
                 ]
             ),
             environment=[
+                "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
                 "ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
                 "ELASTIC_APM_JS_SERVER_URL={}".format(self.apm_js_server_url),
                 "ELASTIC_APM_FLUSH_INTERVAL=5",
@@ -1062,6 +1086,7 @@ class OpbeansGo(OpbeansService):
                 "PGUSER=postgres",
                 "PGPASSWORD=verysecure",
                 "PGSSLMODE=disable",
+                "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
             ],
             depends_on=depends_on,
             image=None,
@@ -1081,16 +1106,9 @@ class OpbeansJava(OpbeansService):
     @classmethod
     def add_arguments(cls, parser):
         super(OpbeansJava, cls).add_arguments(parser)
-        parser.add_argument(
-            '--opbeans-java-local-repo',
-            default=cls.DEFAULT_LOCAL_REPO,
-        )
 
     def __init__(self, **options):
         super(OpbeansJava, self).__init__(**options)
-        self.local_repo = options.get("opbeans_java_local_repo", self.DEFAULT_LOCAL_REPO)
-        self.agent_branch = options.get("opbeans_agent_branch", self.DEFAULT_AGENT_BRANCH)
-        self.agent_repo = options.get("opbeans_agent_repo", self.DEFAULT_AGENT_REPO)
         self.service_name = options.get("opbeans_java_service_name", self.DEFAULT_SERVICE_NAME)
 
     def _content(self):
@@ -1108,8 +1126,8 @@ class OpbeansJava(OpbeansService):
                 context="docker/opbeans/java",
                 dockerfile="Dockerfile",
                 args=[
-                    "JAVA_AGENT_BRANCH=" + self.agent_branch,
-                    "JAVA_AGENT_REPO=" + self.agent_repo,
+                    "JAVA_AGENT_BRANCH=" + (self.agent_branch or self.DEFAULT_AGENT_BRANCH),
+                    "JAVA_AGENT_REPO=" + (self.agent_repo or self.DEFAULT_AGENT_REPO),
                 ]
             ),
             environment=[
@@ -1126,16 +1144,18 @@ class OpbeansJava(OpbeansService):
                 "ELASTICSEARCH_URL=http://elasticsearch:9200",
                 "OPBEANS_SERVER_PORT=3000",
                 "JAVA_AGENT_VERSION",
+                "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
             ],
             depends_on=depends_on,
             image=None,
             labels=None,
-            healthcheck=curl_healthcheck(3000, "opbeans-java", path="/"),
+            healthcheck=curl_healthcheck(3000, "opbeans-java", path="/", retries=36),
             ports=[self.publish_port(self.port, 3000)],
-            volumes=[
-                "{}:/local-install".format(self.local_repo),
-            ]
         )
+        if self.agent_local_repo:
+            content["volumes"] = [
+                "{}:/local-install".format(self.agent_local_repo),
+            ]
         return content
 
 
@@ -1144,17 +1164,8 @@ class OpbeansNode(OpbeansService):
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = "opbeans-node"
 
-    @classmethod
-    def add_arguments(cls, parser):
-        super(OpbeansNode, cls).add_arguments(parser)
-        parser.add_argument(
-            '--opbeans-node-local-repo',
-            default=cls.DEFAULT_LOCAL_REPO,
-        )
-
     def __init__(self, **options):
         super(OpbeansNode, self).__init__(**options)
-        self.local_repo = options.get("opbeans_node_local_repo", self.DEFAULT_LOCAL_REPO)
         self.service_name = options.get("opbeans_node_service_name", self.DEFAULT_SERVICE_NAME)
 
     def _content(self):
@@ -1171,8 +1182,6 @@ class OpbeansNode(OpbeansService):
             environment=[
                 "ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
                 "ELASTIC_APM_JS_SERVER_URL={}".format(self.apm_js_server_url),
-                "ELASTIC_APM_APP_NAME=opbeans-node",
-                "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
                 "ELASTIC_APM_LOG_LEVEL=info",
                 "ELASTIC_APM_SOURCE_LINES_ERROR_APP_FRAMES",
                 "ELASTIC_APM_SOURCE_LINES_SPAN_APP_FRAMES=5",
@@ -1188,7 +1197,9 @@ class OpbeansNode(OpbeansService):
                 "PGPORT=5432",
                 "PGUSER=postgres",
                 "REDIS_URL=redis://redis:6379",
-                "NODE_AGENT_BRANCH=1.x",
+                "NODE_AGENT_BRANCH=" + self.agent_branch,
+                "NODE_AGENT_REPO=" + self.agent_repo,
+                "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
             ],
             depends_on=depends_on,
             image=None,
@@ -1196,10 +1207,13 @@ class OpbeansNode(OpbeansService):
             healthcheck=curl_healthcheck(3000, "opbeans-node", path="/"),
             ports=[self.publish_port(self.port, 3000)],
             volumes=[
-                "{}:/local-install".format(self.local_repo),
                 "./docker/opbeans/node/sourcemaps:/sourcemaps",
             ]
         )
+        if self.agent_local_repo:
+            content["volumes"].append(
+                "{}:/local-install".format(self.agent_local_repo),
+            )
         return content
 
 
@@ -1217,16 +1231,6 @@ class OpbeansPython(OpbeansService):
             '--opbeans-python-local-repo',
             default=cls.DEFAULT_LOCAL_REPO,
         )
-
-    def __init__(self, **options):
-        super(OpbeansPython, self).__init__(**options)
-        self.local_repo = options.get("opbeans_python_local_repo", self.DEFAULT_LOCAL_REPO)
-        if self.version.split(".", 3)[0:2] < ["6", "2"]:
-            self.agent_branch = "1.x"
-        else:
-            self.agent_branch = self.DEFAULT_AGENT_BRANCH
-        self.agent_repo = options.get("opbeans_agent_repo", self.DEFAULT_AGENT_REPO)
-        self.service_name = options.get("opbeans_python_service_name", self.DEFAULT_SERVICE_NAME)
 
     def _content(self):
         depends_on = {
@@ -1259,16 +1263,18 @@ class OpbeansPython(OpbeansService):
                 "PYTHON_AGENT_BRANCH=" + self.agent_branch,
                 "PYTHON_AGENT_REPO=" + self.agent_repo,
                 "PYTHON_AGENT_VERSION",
+                "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
             ],
             depends_on=depends_on,
             image=None,
             labels=None,
             healthcheck=curl_healthcheck(3000, "opbeans-python", path="/"),
             ports=[self.publish_port(self.port, 3000)],
-            volumes=[
-                "{}:/local-install".format(self.local_repo),
-            ]
         )
+        if self.agent_local_repo:
+            content["volumes"] = [
+                "{}:/local-install".format(self.agent_local_repo),
+            ]
         return content
 
 
@@ -1278,21 +1284,6 @@ class OpbeansRuby(OpbeansService):
     DEFAULT_AGENT_REPO = "elastic/apm-agent-ruby"
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = "opbeans-ruby"
-
-    @classmethod
-    def add_arguments(cls, parser):
-        super(OpbeansRuby, cls).add_arguments(parser)
-        parser.add_argument(
-            '--opbeans-ruby-local-repo',
-            default=cls.DEFAULT_LOCAL_REPO,
-        )
-
-    def __init__(self, **options):
-        super(OpbeansRuby, self).__init__(**options)
-        self.local_repo = options.get("opbeans_ruby_local_repo", self.DEFAULT_LOCAL_REPO)
-        self.agent_branch = options.get("opbeans_agent_branch", self.DEFAULT_AGENT_BRANCH)
-        self.agent_repo = options.get("opbeans_agent_repo", self.DEFAULT_AGENT_REPO)
-        self.service_name = options.get("opbeans_ruby_service_name", self.DEFAULT_SERVICE_NAME)
 
     def _content(self):
         depends_on = {
@@ -1320,6 +1311,7 @@ class OpbeansRuby(OpbeansService):
                 "RUBY_AGENT_BRANCH=" + self.agent_branch,
                 "RUBY_AGENT_REPO=" + self.agent_repo,
                 "RUBY_AGENT_VERSION",
+                "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
             ],
             depends_on=depends_on,
             image=None,
@@ -1327,10 +1319,11 @@ class OpbeansRuby(OpbeansService):
             # lots of retries as the ruby app can take a long time to boot
             healthcheck=curl_healthcheck(3000, "opbeans-ruby", path="/", retries=100),
             ports=[self.publish_port(self.port, 3000)],
-            volumes=[
-                "{}:/local-install".format(self.local_repo),
-            ]
         )
+        if self.agent_local_repo:
+            content["volumes"] = [
+                "{}:/local-install".format(self.agent_local_repo),
+            ]
         return content
 
 
@@ -1430,7 +1423,7 @@ class LocalSetup(object):
         '6.1': '6.1.3',
         '6.2': '6.2.4',
         '6.3': '6.3.3',
-        '6.4': '6.4.0',
+        '6.4': '6.4.2',
         '6.5': '6.5.0',
         'master': '7.0.0-alpha1'
     }
@@ -1565,6 +1558,14 @@ class LocalSetup(object):
                     default=service.enabled(),
                 )
             service.add_arguments(parser)
+
+        parser.add_argument(
+            '--opbeans-dt-probability',
+            action="store",
+            type=float,
+            default=0.5,
+            help="Set probability of Opbeans Distributed Ping Pong. 0 disables it."
+        )
 
         # Add build candidate argument
         build_type_group = parser.add_mutually_exclusive_group()
@@ -1802,6 +1803,18 @@ class LocalSetup(object):
         services = {}
         for service in selections:
             services.update(service.render())
+
+        # expose a list of enabled opbeans services to all opbeans services. This allows them to talk amongst each other
+        # and have a jolly good distributed time
+        enabled_opbeans_services = [k for k in services.keys()
+                                    if k.startswith("opbeans-") and k not in ("opbeans-rum", "opbeans-load-generator")]
+        enabled_opbeans_services_str = ",".join(enabled_opbeans_services)
+        for s in enabled_opbeans_services:
+            if isinstance(services[s]["environment"], dict):
+                services[s]["environment"]["OPBEANS_SERVICES"] = enabled_opbeans_services_str
+            else:
+                services[s]["environment"].append("OPBEANS_SERVICES=" + enabled_opbeans_services_str)
+
         compose = dict(
             version="2.1",
             services=services,
