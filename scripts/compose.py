@@ -356,16 +356,19 @@ class ApmServer(StackService, Service):
 
         self.apm_server_monitor_port = options.get("apm_server_monitor_port", self.DEFAULT_MONITOR_PORT)
         self.apm_server_output = options.get("apm_server_output", self.DEFAULT_OUTPUT)
+        es_urls = self.options.get("apm_server_elasticsearch_urls")
+        if not es_urls:
+            es_urls = ["elasticsearch:9200"]
         if self.apm_server_output == "elasticsearch":
             self.apm_server_command_args.extend([
                 ("output.elasticsearch.enabled", "true"),
-                ("output.elasticsearch.hosts", "[elasticsearch:9200]"),
+                ("output.elasticsearch.hosts", json.dumps(es_urls)),
             ])
         else:
             self.apm_server_command_args.extend([
                 ("output.elasticsearch.enabled", "false"),
-                ("output.elasticsearch.hosts", "[elasticsearch:9200]"),
-                ("xpack.monitoring.elasticsearch.hosts", "[\"elasticsearch:9200\"]"),
+                ("output.elasticsearch.hosts", json.dumps(es_urls)),
+                ("xpack.monitoring.elasticsearch.hosts", json.dumps(es_urls)),
             ])
             if self.apm_server_output == "kafka":
                 self.apm_server_command_args.extend([
@@ -405,6 +408,12 @@ class ApmServer(StackService, Service):
             type=int,
             default=1,
             help="apm-server count. >1 adds a load balancer service to round robin traffic between servers.",
+        )
+        parser.add_argument(
+            '--apm-server-elasticsearch-url',
+            action="append",
+            dest="apm_server_elasticsearch_urls",
+            help="apm-server elasticsearch output url(s).",
         )
         parser.add_argument(
             '--apm-server-secret-token',
