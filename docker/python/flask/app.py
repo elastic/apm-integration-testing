@@ -18,7 +18,7 @@ app.config['ELASTIC_APM'] = {
     'FLUSH_INTERVAL': 1, # 2.x
     'MAX_EVENT_QUEUE_LENGTH': 1, # 1.x
     'MAX_QUEUE_SIZE': 1, # 2.x
-    'SECRET_TOKEN': '1234',
+    'SECRET_TOKEN': os.getenv('APM_SERVER_SECRET_TOKEN', '1234'),
     'TRANSACTIONS_IGNORE_PATTERNS': ['.*healthcheck']
 }
 apm = ElasticAPM(app, logging=True)

@@ -30,7 +30,6 @@ class AgentServiceTest(ServiceTest):
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_FLUSH_INTERVAL: 500ms
-                        ELASTIC_APM_SERVER_URL: http://apm-server:8200
                         ELASTIC_APM_SERVICE_NAME: gonethttpapp
                         ELASTIC_APM_TRANSACTION_IGNORE_NAMES: healthcheck
                     healthcheck:
@@ -53,7 +52,6 @@ class AgentServiceTest(ServiceTest):
                     container_name: expressapp
                     command: bash -c "npm install elastic-apm-node && node app.js"
                     environment:
-                        APM_SERVER_URL: http://apm-server:8200
                         EXPRESS_SERVICE_NAME: expressapp
                         EXPRESS_PORT: "8010"
                     healthcheck:
@@ -80,7 +78,6 @@ class AgentServiceTest(ServiceTest):
                     command: bash -c "pip install -U elastic-apm && python testapp/manage.py runserver 0.0.0.0:8003"
                     container_name: djangoapp
                     environment:
-                        APM_SERVER_URL: http://apm-server:8200
                         DJANGO_SERVICE_NAME: djangoapp
                         DJANGO_PORT: 8003
                     healthcheck:
@@ -103,7 +100,6 @@ class AgentServiceTest(ServiceTest):
                     command: bash -c "pip install -U elastic-apm && gunicorn app:app"
                     container_name: flaskapp
                     environment:
-                        APM_SERVER_URL: http://apm-server:8200
                         FLASK_SERVICE_NAME: flaskapp
                         GUNICORN_CMD_ARGS: "-w 4 -b 0.0.0.0:8001"
                     healthcheck:
