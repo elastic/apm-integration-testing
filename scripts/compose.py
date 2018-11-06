@@ -351,6 +351,9 @@ class ApmServer(StackService, Service):
                     ("setup.dashboards.enabled", "true")
                 )
 
+        if self.options.get("apm-server-secret-token"):
+            self.apm_server_command_args.append(("apm-server.secret_token", self.options["apm_server_secret_token"]))
+
         self.apm_server_monitor_port = options.get("apm_server_monitor_port", self.DEFAULT_MONITOR_PORT)
         self.apm_server_output = options.get("apm_server_output", self.DEFAULT_OUTPUT)
         if self.apm_server_output == "elasticsearch":
@@ -402,6 +405,10 @@ class ApmServer(StackService, Service):
             type=int,
             default=1,
             help="apm-server count. >1 adds a load balancer service to round robin traffic between servers.",
+        )
+        parser.add_argument(
+            '--apm-server-secret-token',
+            help="apm-server secret token.",
         )
         parser.add_argument(
             "--no-apm-server-dashboards",
