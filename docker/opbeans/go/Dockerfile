@@ -1,8 +1,24 @@
-FROM opbeans/opbeans-go:latest
+# Stage 0: clone opbeans-go and apm-agent-go, and build.
+#
+# GO_AGENT_REPO and GO_AGENT_BRANCH parameterise the Go agent
+# repo and branch (or commit) to use.
+FROM golang:1.10
+WORKDIR /go/src/github.com/elastic/opbeans-go
+RUN git clone https://github.com/elastic/opbeans-go.git .
+RUN rm -fr vendor/go.elastic.co/apm
+ARG GO_AGENT_REPO=elastic/apm-agent-go
+ARG GO_AGENT_BRANCH=master
+RUN git clone https://github.com/${GO_AGENT_REPO}.git /go/src/go.elastic.co/apm
+RUN (cd /go/src/go.elastic.co/apm && git checkout ${GO_AGENT_BRANCH})
+RUN go get -v
 
-ENV OPBEANS_CACHE=inmem
-ENV OPBEANS_PORT=3000
-EXPOSE $OPBEANS_PORT
+# Stage 1: copy static assets from opbeans/opbeans-frontend and
+# opbeans-go from stage 0 into a minimal image.
+FROM gcr.io/distroless/base
+COPY --from=opbeans/opbeans-frontend:latest /app/build /opbeans-frontend
+COPY --from=0 /go/bin/opbeans-go /
+COPY --from=0 /go/src/github.com/elastic/opbeans-go/db /
+EXPOSE 3000
 
 HEALTHCHECK \
   --interval=10s --retries=10 --timeout=3s \
