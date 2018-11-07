@@ -154,7 +154,6 @@ class Service(object):
     # is this a side car service for opbeans. If yes, it will automatically
     # start if any opbeans service starts
     opbeans_side_car = False
-    _service_arguments_added = False
 
     def __init__(self, **options):
         self.options = options
@@ -270,24 +269,6 @@ class Service(object):
                 dest=cls.option_name() + '_port',
                 help="service port"
             )
-
-        # why doesn't cls work here
-        if Service._service_arguments_added:
-            return
-
-        # one argument to define all integration testing apm-server urls
-        parser.add_argument(
-            "--agent-apm-server-secret-token",
-            help="apm server secret token for agent integration test applications."
-        )
-        parser.add_argument(
-            "--agent-apm-server-url",
-            default=DEFAULT_APM_SERVER_URL,
-            help="apm server url for agent integration test applications."
-        )
-
-        # prevent calling again
-        Service._service_arguments_added = True
 
     def image_download_url(self):
         pass
@@ -821,7 +802,7 @@ class AgentRUMJS(Service):
             logging=None,
             environment={
                 "ELASTIC_APM_SERVICE_NAME": "rum",
-                "ELASTIC_APM_SERVER_URL": self.options.get("agent_apm_server_url", DEFAULT_APM_SERVER_URL),
+                "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
             },
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
@@ -831,8 +812,8 @@ class AgentGoNetHttp(Service):
     SERVICE_PORT = 8080
 
     @add_agent_environment([
-        ("agent_apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
-        ("agent_apm_server_url", "ELASTIC_APM_SERVER_URL"),
+        ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
+        ("apm_server_url", "ELASTIC_APM_SERVER_URL"),
     ])
     def _content(self):
         return dict(
@@ -870,8 +851,8 @@ class AgentNodejsExpress(Service):
         )
 
     @add_agent_environment([
-        ("agent_apm_server_secret_token", "APM_SERVER_SECRET_TOKEN"),
-        ("agent_apm_server_url", "APM_SERVER_URL"),
+        ("apm_server_secret_token", "APM_SECRET_TOKEN"),
+        ("apm_server_url", "APM_SERVER_URL"),
     ])
     def _content(self):
         return dict(
@@ -920,8 +901,8 @@ class AgentPythonDjango(AgentPython):
     SERVICE_PORT = 8003
 
     @add_agent_environment([
-        ("agent_apm_server_secret_token", "APM_SERVER_SECRET_TOKEN"),
-        ("agent_apm_server_url", "APM_SERVER_URL"),
+        ("apm_server_secret_token", "APM_SERVER_SECRET_TOKEN"),
+        ("apm_server_url", "APM_SERVER_URL"),
     ])
     def _content(self):
         return dict(
@@ -945,8 +926,8 @@ class AgentPythonFlask(AgentPython):
     SERVICE_PORT = 8001
 
     @add_agent_environment([
-        ("agent_apm_server_secret_token", "APM_SERVER_SECRET_TOKEN"),
-        ("agent_apm_server_url", "APM_SERVER_URL"),
+        ("apm_server_secret_token", "APM_SERVER_SECRET_TOKEN"),
+        ("apm_server_url", "APM_SERVER_URL"),
     ])
     def _content(self):
         return dict(
@@ -987,6 +968,9 @@ class AgentRubyRails(Service):
         self.agent_version = options.get("ruby_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_version_state = options.get("ruby_agent_version_state", self.DEFAULT_AGENT_VERSION_STATE)
 
+    @add_agent_environment([
+        ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
+    ])
     def _content(self):
         return dict(
             build={"context": "docker/ruby/rails", "dockerfile": "Dockerfile"},
@@ -994,9 +978,9 @@ class AgentRubyRails(Service):
                 self.SERVICE_PORT),
             container_name="railsapp",
             environment={
-                "APM_SERVER_URL": self.options.get("agent_apm_server_url", DEFAULT_APM_SERVER_URL),
+                "APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
                 "ELASTIC_APM_API_REQUEST_TIME": "3s",
-                "ELASTIC_APM_SERVER_URL": self.options.get("agent_apm_server_url", DEFAULT_APM_SERVER_URL),
+                "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
                 "ELASTIC_APM_SERVICE_NAME": "railsapp",
                 "RAILS_PORT": self.SERVICE_PORT,
                 "RAILS_SERVICE_NAME": "railsapp",
@@ -1014,6 +998,10 @@ class AgentRubyRails(Service):
 class AgentJavaSpring(Service):
     SERVICE_PORT = 8090
 
+    @add_agent_environment([
+        ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
+        ("apm_server_url", "ELASTIC_APM_SERVER_URL"),
+    ])
     def _content(self):
         return dict(
             build={"context": "docker/java/spring", "dockerfile": "Dockerfile"},
@@ -1023,7 +1011,6 @@ class AgentJavaSpring(Service):
             logging=None,
             environment={
                 "ELASTIC_APM_API_REQUEST_TIME": "3s",
-                "ELASTIC_APM_SERVER_URL": self.options.get("agent_apm_server_url", DEFAULT_APM_SERVER_URL),
                 "ELASTIC_APM_SERVICE_NAME": "springapp",
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "javaspring"),
@@ -1039,7 +1026,7 @@ class AgentJavaSpring(Service):
 class OpbeansService(Service):
     def __init__(self, **options):
         super(OpbeansService, self).__init__(**options)
-        self.apm_server_url = options.get("opbeans_apm_server_url", DEFAULT_APM_SERVER_URL)
+        self.apm_server_url = options.get("apm_server_url", DEFAULT_APM_SERVER_URL)
         self.apm_js_server_url = options.get("opbeans_apm_js_server_url", DEFAULT_APM_SERVER_URL)
         self.opbeans_dt_probability = options.get("opbeans_dt_probability", 0.5)
         if hasattr(self, "DEFAULT_SERVICE_NAME"):
@@ -1087,7 +1074,7 @@ class OpbeansGo(OpbeansService):
     DEFAULT_SERVICE_NAME = "opbeans-go"
 
     @add_agent_environment([
-        ("opbeans_apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
+        ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
     ])
     def _content(self):
         depends_on = {
@@ -1150,7 +1137,7 @@ class OpbeansJava(OpbeansService):
         self.service_name = options.get("opbeans_java_service_name", self.DEFAULT_SERVICE_NAME)
 
     @add_agent_environment([
-        ("opbeans_apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
+        ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
     ])
     def _content(self):
         depends_on = {
@@ -1210,7 +1197,7 @@ class OpbeansNode(OpbeansService):
         self.service_name = options.get("opbeans_node_service_name", self.DEFAULT_SERVICE_NAME)
 
     @add_agent_environment([
-        ("opbeans_apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
+        ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
     ])
     def _content(self):
         depends_on = {
@@ -1277,7 +1264,7 @@ class OpbeansPython(OpbeansService):
         )
 
     @add_agent_environment([
-        ("opbeans_apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
+        ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
     ])
     def _content(self):
         depends_on = {
@@ -1333,7 +1320,7 @@ class OpbeansRuby(OpbeansService):
     DEFAULT_SERVICE_NAME = "opbeans-ruby"
 
     @add_agent_environment([
-        ("opbeans_apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
+        ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
     ])
     def _content(self):
         depends_on = {
@@ -1705,16 +1692,10 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
-            '--opbeans-apm-server-secret-token',
-            help='server tokn to use for Opbeans services',
-        )
-
-        parser.add_argument(
-            '--opbeans-apm-server-url',
-            action='store',
-            help='server_url to use for Opbeans services',
-            dest='opbeans_apm_server_url',
-            default='http://apm-server:8200',
+            "--apm-server-url",
+            action="store",
+            help="apm server url to use for all clients",
+            default=DEFAULT_APM_SERVER_URL,
         )
 
         parser.add_argument(
@@ -1732,10 +1713,9 @@ class LocalSetup(object):
     @staticmethod
     def init_sourcemap_parser(parser):
         parser.add_argument(
-            "--opbeans-apm-server-url",
+            "--apm-server-url",
             action="store",
             help="server_url to use for Opbeans services",
-            dest="opbeans_apm_server_url",
             default=DEFAULT_APM_SERVER_URL,
         )
 
@@ -1973,7 +1953,7 @@ class LocalSetup(object):
             bundle_path=bundle_path,
             sourcemap_file=sourcemap_file,
             auth_header=auth_header,
-            server_url=self.args.opbeans_apm_server_url,
+            server_url=self.args.apm_server_url,
         )
         cmd = "docker run --rm --network apm-integration-testing " + \
             "-v {}:/tmp/sourcemap centos:7 ".format(sourcemap_file) + cmd

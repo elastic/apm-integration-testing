@@ -342,7 +342,7 @@ class OpbeansServiceTest(ServiceTest):
 
     def test_opbeans_secret_token(self):
         for cls in opbeans_services():
-            services = cls(version="6.5.0", opbeans_apm_server_secret_token="supersecret").render()
+            services = cls(version="6.5.0", apm_server_secret_token="supersecret").render()
             opbeans_service = list(services.values())[0]
             secret_token = [e for e in opbeans_service["environment"] if e.startswith("ELASTIC_APM_SECRET_TOKEN=")]
             self.assertEqual(["ELASTIC_APM_SECRET_TOKEN=supersecret"], secret_token, cls.__name__)
