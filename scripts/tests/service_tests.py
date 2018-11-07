@@ -73,7 +73,7 @@ class AgentServiceTest(ServiceTest):
 
         # test overrides
         agent = AgentNodejsExpress(apm_server_url="http://foo").render()["agent-nodejs-express"]
-        self.assertEqual("http://foo", agent["environment"]["APM_SERVER_URL"], agent)
+        self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"], agent)
 
     def test_agent_python_django(self):
         agent = AgentPythonDjango().render()

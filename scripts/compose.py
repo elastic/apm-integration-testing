@@ -851,8 +851,8 @@ class AgentNodejsExpress(Service):
         )
 
     @add_agent_environment([
-        ("apm_server_secret_token", "APM_SECRET_TOKEN"),
-        ("apm_server_url", "APM_SERVER_URL"),
+        ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
+        ("apm_server_url", "ELASTIC_APM_SERVER_URL"),
     ])
     def _content(self):
         return dict(
