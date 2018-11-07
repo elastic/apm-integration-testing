@@ -351,19 +351,35 @@ class ApmServer(StackService, Service):
                     ("setup.dashboards.enabled", "true")
                 )
 
+        if self.options.get("apm-server-secret-token"):
+            self.apm_server_command_args.append(("apm-server.secret_token", self.options["apm_server_secret_token"]))
+
         self.apm_server_monitor_port = options.get("apm_server_monitor_port", self.DEFAULT_MONITOR_PORT)
         self.apm_server_output = options.get("apm_server_output", self.DEFAULT_OUTPUT)
+
+        es_urls = self.options.get("apm_server_elasticsearch_urls")
+        if not es_urls:
+            es_urls = ["elasticsearch:9200"]
+
+        def add_es_config(args, prefix="output"):
+            """add elasticsearch configuration options."""
+            args.append((prefix+".elasticsearch.hosts", json.dumps(es_urls)))
+            for cfg in ("username", "password"):
+                es_opt = "apm_server_elasticsearch_{}".format(cfg)
+                if self.options.get(es_opt):
+                    args.append((prefix + ".elasticsearch.{}".format(cfg), self.options[es_opt]))
+
+        add_es_config(self.apm_server_command_args)
+
         if self.apm_server_output == "elasticsearch":
             self.apm_server_command_args.extend([
                 ("output.elasticsearch.enabled", "true"),
-                ("output.elasticsearch.hosts", "[elasticsearch:9200]"),
             ])
         else:
             self.apm_server_command_args.extend([
                 ("output.elasticsearch.enabled", "false"),
-                ("output.elasticsearch.hosts", "[elasticsearch:9200]"),
-                ("xpack.monitoring.elasticsearch.hosts", "[\"elasticsearch:9200\"]"),
             ])
+            add_es_config(self.apm_server_command_args, prefix="xpack.monitoring")
             if self.apm_server_output == "kafka":
                 self.apm_server_command_args.extend([
                     ("output.kafka.enabled", "true"),
@@ -402,6 +418,24 @@ class ApmServer(StackService, Service):
             type=int,
             default=1,
             help="apm-server count. >1 adds a load balancer service to round robin traffic between servers.",
+        )
+        parser.add_argument(
+            '--apm-server-elasticsearch-url',
+            action="append",
+            dest="apm_server_elasticsearch_urls",
+            help="apm-server elasticsearch output url(s).",
+        )
+        parser.add_argument(
+            '--apm-server-elasticsearch-username',
+            help="apm-server elasticsearch output username.",
+        )
+        parser.add_argument(
+            '--apm-server-elasticsearch-password',
+            help="apm-server elasticsearch output password.",
+        )
+        parser.add_argument(
+            '--apm-server-secret-token',
+            help="apm-server secret token.",
         )
         parser.add_argument(
             "--no-apm-server-dashboards",

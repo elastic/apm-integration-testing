@@ -215,22 +215,53 @@ class ApmServerServiceTest(ServiceTest):
             "output.elasticsearch.enabled not true while output=elasticsearch"
         )
 
+    def test_elasticsearch_output_overrides(self):
+        apm_server = ApmServer(version="6.3.100", apm_server_output="elasticsearch",
+                               apm_server_elasticsearch_urls=["foo:123", "bar:456"],
+                               apm_server_elasticsearch_username="apmuser",
+                               apm_server_elasticsearch_password="secretpassword",
+                               ).render()["apm-server"]
+        self.assertFalse(
+            any(e.startswith("xpack.monitoring.elasticsearch.hosts=") for e in apm_server["command"]),
+            "xpack.monitoring.elasticsearch.hosts while output=elasticsearch and overrides set"
+        )
+        elasticsearch_options = [
+            "output.elasticsearch.hosts=[\"foo:123\", \"bar:456\"]",
+            "output.elasticsearch.username=apmuser",
+            "output.elasticsearch.password=secretpassword",
+        ]
+        for o in elasticsearch_options:
+            self.assertTrue(o in apm_server["command"],
+                            "{} not set while output=elasticsearch and overrides set: ".format(o) + " ".join(
+                                apm_server["command"]))
+
+
     def test_logstash_output(self):
         apm_server = ApmServer(version="6.3.100", apm_server_output="logstash").render()["apm-server"]
-        self.assertTrue(
-            "xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in apm_server["command"],
-            "xpack.monitoring.elasticsearch.hosts not set while output=logstash"
-        )
-        self.assertTrue(
-            any(e == "output.elasticsearch.enabled=false" for e in apm_server["command"]),
-            "output.elasticsearch.enabled not false while output=elasticsearch"
-        )
-        logstash_options = [
+        options = [
+            "output.elasticsearch.enabled=false",
             "output.logstash.enabled=true",
             "output.logstash.hosts=[\"logstash:5044\"]",
+            "xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
         ]
-        for o in logstash_options:
+        for o in options:
             self.assertTrue(o in apm_server["command"], "{} not set while output=logstash".format(o))
+
+    def test_logstash_output_overrides(self):
+        apm_server = ApmServer(version="6.3.100", apm_server_output="logstash",
+                               apm_server_elasticsearch_urls=["foo:123", "bar:456"],
+                               apm_server_elasticsearch_username="apmuser",
+                               apm_server_elasticsearch_password="secretpassword",
+                               ).render()["apm-server"]
+        options = [
+            "xpack.monitoring.elasticsearch.hosts=[\"foo:123\", \"bar:456\"]",
+            "xpack.monitoring.elasticsearch.username=apmuser",
+            "xpack.monitoring.elasticsearch.password=secretpassword",
+        ]
+        for o in options:
+            self.assertTrue(o in apm_server["command"],
+                            "{} not set while output=logstash and overrides set: ".format(o) + " ".join(
+                                apm_server["command"]))
 
     def test_kafka_output(self):
         apm_server = ApmServer(version="6.3.100", apm_server_output="kafka").render()["apm-server"]
