@@ -838,6 +838,7 @@ class AgentNodejsExpress(Service):
         parser.add_argument(
             '--nodejs-agent-package',
             default=cls.DEFAULT_AGENT_PACKAGE,
+            help='Use Node.js agent version (github;master, github;1.x, github;v3.0.0, release;latest, ...)',
         )
 
     def _content(self):
@@ -876,6 +877,7 @@ class AgentPython(Service):
         parser.add_argument(
             '--python-agent-package',
             default=cls.DEFAULT_AGENT_PACKAGE,
+            help='Use Python agent version (github;master, github;1.x, github;v3.0.0, release;latest, ...)',
         )
         # prevent calling again
         cls._arguments_added = True
@@ -938,10 +940,12 @@ class AgentRubyRails(Service):
         parser.add_argument(
             "--ruby-agent-version",
             default=cls.DEFAULT_AGENT_VERSION,
+            help='Use Ruby agent version (master, 1.x, latest, ...)',
         )
         parser.add_argument(
             "--ruby-agent-version-state",
             default=cls.DEFAULT_AGENT_VERSION_STATE,
+            help='Use Ruby agent version state (github or release)',
         )
 
     def __init__(self, **options):
