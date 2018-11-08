@@ -24,6 +24,8 @@ class AgentServiceTest(ServiceTest):
             agent, yaml.load("""
                 agent-go-net-http:
                     build:
+                        args:
+                            go_agent_package: master
                         dockerfile: Dockerfile
                         context: docker/go/nethttp
                     container_name: gonethttpapp
