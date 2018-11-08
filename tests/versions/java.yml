@@ -1,0 +1,5 @@
+JAVA_AGENT:
+  - 'github;master'
+  - 'github;v0.6.2'
+  - 'github;v0.7.0'
+  - 'release;0.7'
