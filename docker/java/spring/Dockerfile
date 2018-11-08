@@ -1,5 +1,7 @@
 FROM maven:3.5.3-jdk-10
 
+ARG java_agent_package=master
+
 RUN mkdir /agent \
     && mkdir /app
 
@@ -7,7 +9,10 @@ COPY testapp /app
 
 WORKDIR /agent
 
-RUN curl -L https://github.com/elastic/apm-agent-java/archive/master.tar.gz | tar --strip-components=1 --exclude=demo/db.sql.bz2 -xzv \
+RUN git clone https://github.com/elastic/apm-agent-java.git \
+    && cd apm-agent-java \
+    && git fetch origin '+refs/pull/*:refs/remotes/origin/pr/*' \
+    && git checkout -b ${java_agent_package}  \
     && mvn --batch-mode package -DskipTests \
     && export JAVA_AGENT_BUILT_VERSION=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:1.3.1:exec) \
     && mv elastic-apm-agent/target/elastic-apm-agent-${JAVA_AGENT_BUILT_VERSION}.jar apm-agent.jar \
