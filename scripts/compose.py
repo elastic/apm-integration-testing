@@ -803,20 +803,20 @@ class AgentRUMJS(Service):
 
 class AgentGoNetHttp(Service):
     SERVICE_PORT = 8080
-    DEFAULT_AGENT_PACKAGE = "master"
+    DEFAULT_AGENT_VERSION = "master"
 
     @classmethod
     def add_arguments(cls, parser):
         super(AgentGoNetHttp, cls).add_arguments(parser)
         parser.add_argument(
-            "--go-agent-package",
-            default=cls.DEFAULT_AGENT_PACKAGE,
-            help='Use Go agent version (master, 0.5, v.0.5.2, ...)',
+            "--go-agent-version",
+            default=cls.DEFAULT_AGENT_VERSION,
+            help='Use Go agent version (master, 0.5, v0.5.2, ...)',
         )
 
     def __init__(self, **options):
         super(AgentGoNetHttp, self).__init__(**options)
-        self.agent_package = options.get("go_agent_package", self.DEFAULT_AGENT_PACKAGE)
+        self.agent_version = options.get("go_agent_version", self.DEFAULT_AGENT_VERSION)
 
     def _content(self):
         return dict(
@@ -824,7 +824,7 @@ class AgentGoNetHttp(Service):
                 "context": "docker/go/nethttp",
                 "dockerfile": "Dockerfile",
                 "args": {
-                    "go_agent_package": self.agent_package,
+                    "GO_AGENT_BRANCH": self.agent_version,
                 },
             },
             container_name="gonethttpapp",

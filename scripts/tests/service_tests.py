@@ -25,7 +25,7 @@ class AgentServiceTest(ServiceTest):
                 agent-go-net-http:
                     build:
                         args:
-                            go_agent_package: master
+                            GO_AGENT_BRANCH: master
                         dockerfile: Dockerfile
                         context: docker/go/nethttp
                     container_name: gonethttpapp

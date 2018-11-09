@@ -1,12 +1,13 @@
 FROM golang:1.10
 WORKDIR /go/src/testapp
 COPY main.go /go/src/testapp
-ARG go_agent_package=master
-RUN go get github.com/elastic/apm-agent-go &&\
-  cd $GOPATH/src/github.com/elastic/apm-agent-go &&\
-  git fetch origin '+refs/pull/*:refs/remotes/origin/pr/*' &&\
-  git checkout -b ${go_agent_package} &&\
-  cd -
+ARG GO_AGENT_REPO=elastic/apm-agent-go
+ARG GO_AGENT_BRANCH=master
+RUN git clone https://github.com/${GO_AGENT_REPO}.git /go/src/go.elastic.co/apm
+RUN (cd /go/src/go.elastic.co/apm \
+  && git fetch origin '+refs/pull/*:refs/remotes/origin/pr/*' \
+  && git checkout ${GO_AGENT_BRANCH})
+RUN go get -v
 RUN CGO_ENABLED=0 go build
 
 FROM alpine:latest
