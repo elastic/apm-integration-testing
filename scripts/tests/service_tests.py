@@ -30,7 +30,6 @@ class AgentServiceTest(ServiceTest):
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_FLUSH_INTERVAL: 500ms
-                        ELASTIC_APM_SERVER_URL: http://apm-server:8200
                         ELASTIC_APM_SERVICE_NAME: gonethttpapp
                         ELASTIC_APM_TRANSACTION_IGNORE_NAMES: healthcheck
                     healthcheck:
@@ -41,6 +40,10 @@ class AgentServiceTest(ServiceTest):
                         - 127.0.0.1:8080:8080
             """)  # noqa: 501
         )
+
+        # test overrides
+        agent = AgentGoNetHttp(apm_server_url="http://foo").render()["agent-go-net-http"]
+        self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"], agent)
 
     def test_agent_nodejs_express(self):
         agent = AgentNodejsExpress().render()
@@ -53,7 +56,6 @@ class AgentServiceTest(ServiceTest):
                     container_name: expressapp
                     command: bash -c "npm install elastic-apm-node && node app.js"
                     environment:
-                        APM_SERVER_URL: http://apm-server:8200
                         EXPRESS_SERVICE_NAME: expressapp
                         EXPRESS_PORT: "8010"
                     healthcheck:
@@ -69,6 +71,10 @@ class AgentServiceTest(ServiceTest):
         self.assertEqual('bash -c "npm install elastic/apm-agent-nodejs#test && node app.js"',
                          vagent["agent-nodejs-express"]["command"])
 
+        # test overrides
+        agent = AgentNodejsExpress(apm_server_url="http://foo").render()["agent-nodejs-express"]
+        self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"], agent)
+
     def test_agent_python_django(self):
         agent = AgentPythonDjango().render()
         self.assertDictEqual(
@@ -80,7 +86,6 @@ class AgentServiceTest(ServiceTest):
                     command: bash -c "pip install -U elastic-apm && python testapp/manage.py runserver 0.0.0.0:8003"
                     container_name: djangoapp
                     environment:
-                        APM_SERVER_URL: http://apm-server:8200
                         DJANGO_SERVICE_NAME: djangoapp
                         DJANGO_PORT: 8003
                     healthcheck:
@@ -91,6 +96,10 @@ class AgentServiceTest(ServiceTest):
                         - 127.0.0.1:8003:8003
             """)  # noqa: 501
         )
+
+        # test overrides
+        agent = AgentPythonDjango(apm_server_url="http://foo").render()["agent-python-django"]
+        self.assertEqual("http://foo", agent["environment"]["APM_SERVER_URL"], agent)
 
     def test_agent_python_flask(self):
         agent = AgentPythonFlask(version="6.2.4").render()
@@ -103,7 +112,6 @@ class AgentServiceTest(ServiceTest):
                     command: bash -c "pip install -U elastic-apm && gunicorn app:app"
                     container_name: flaskapp
                     environment:
-                        APM_SERVER_URL: http://apm-server:8200
                         FLASK_SERVICE_NAME: flaskapp
                         GUNICORN_CMD_ARGS: "-w 4 -b 0.0.0.0:8001"
                     healthcheck:
@@ -114,6 +122,10 @@ class AgentServiceTest(ServiceTest):
                         - 127.0.0.1:8001:8001
             """)  # noqa: 501
         )
+
+        # test overrides
+        agent = AgentPythonFlask(apm_server_url="http://foo").render()["agent-python-flask"]
+        self.assertEqual("http://foo", agent["environment"]["APM_SERVER_URL"])
 
     def test_agent_ruby_rails(self):
         agent = AgentRubyRails().render()
@@ -143,6 +155,10 @@ class AgentServiceTest(ServiceTest):
             """)  # noqa: 501
         )
 
+        # test overrides
+        agent = AgentRubyRails(apm_server_url="http://foo").render()["agent-ruby-rails"]
+        self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"], agent)
+
     def test_agent_java_spring(self):
         agent = AgentJavaSpring().render()
         self.assertDictEqual(
@@ -154,7 +170,6 @@ class AgentServiceTest(ServiceTest):
                     container_name: javaspring
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
-                        ELASTIC_APM_SERVER_URL: http://apm-server:8200
                         ELASTIC_APM_SERVICE_NAME: springapp
                     healthcheck:
                         interval: 5s
@@ -165,6 +180,10 @@ class AgentServiceTest(ServiceTest):
                         - 127.0.0.1:8090:8090
             """)
         )
+
+        # test overrides
+        agent = AgentJavaSpring(apm_server_url="http://foo").render()["agent-java-spring"]
+        self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"])
 
 
 class ApmServerServiceTest(ServiceTest):
