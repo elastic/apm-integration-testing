@@ -23,7 +23,7 @@ RUN cd /agent/apm-agent-java \
     && cd /app \
     && mvn --batch-mode -DAGENT_API_VERSION=${JAVA_AGENT_BUILT_VERSION} package
 
-FROM openjdk:10-jre
+FROM openjdk:10-jre-slim
 COPY --from=0 /app /app
 COPY --from=0 /agent/apm-agent.jar  /app
 WORKDIR /app
