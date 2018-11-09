@@ -150,7 +150,7 @@ class AgentServiceTest(ServiceTest):
                 agent-java-spring:
                     build:
                         args:
-                            java_agent_package: master
+                            JAVA_AGENT_BRANCH: master
                         dockerfile: Dockerfile
                         context: docker/java/spring
                     container_name: javaspring
