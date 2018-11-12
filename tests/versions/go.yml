@@ -1,5 +1,2 @@
 GO_AGENT:
   - 'github;master'
-  - 'github;v0.4.0'
-  - 'github;v0.5.2'
-  - 'release;0.5'
