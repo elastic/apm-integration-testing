@@ -382,6 +382,11 @@ class ApmServer(StackService, Service):
             self.apm_server_command_args.extend([
                 ("output.elasticsearch.enabled", "true"),
             ])
+            if options.get("apm_server_enable_pipeline", True) and self.at_least_version("6.5"):
+                self.apm_server_command_args.extend([
+                    ("output.elasticsearch.pipelines", "[{pipeline: 'apm_user_agent'}]"),
+                    ("apm-server.register.ingest.pipeline.enabled", "true"),
+                ])
         else:
             self.apm_server_command_args.extend([
                 ("output.elasticsearch.enabled", "false"),
@@ -415,10 +420,16 @@ class ApmServer(StackService, Service):
             help='apm-server output'
         )
         parser.add_argument(
+            "--no-apm-server-pipeline",
+            action="store_false",
+            dest="apm_server_enable_pipeline",
+            help='disable apm-server pipelines.'
+        )
+        parser.add_argument(
             "--no-apm-server-self-instrument",
             action="store_false",
             dest="apm_server_self_instrument",
-            help='enable apm-server self instrumentation.'
+            help='disable apm-server self instrumentation.'
         )
         parser.add_argument(
             '--apm-server-count',
