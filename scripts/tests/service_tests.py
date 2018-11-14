@@ -167,6 +167,8 @@ class AgentServiceTest(ServiceTest):
             agent, yaml.load("""
                 agent-java-spring:
                     build:
+                        args:
+                            JAVA_AGENT_BRANCH: master
                         dockerfile: Dockerfile
                         context: docker/java/spring
                     container_name: javaspring
