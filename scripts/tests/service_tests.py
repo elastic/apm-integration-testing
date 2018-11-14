@@ -258,7 +258,6 @@ class ApmServerServiceTest(ServiceTest):
                             "{} not set while output=elasticsearch and overrides set: ".format(o) + " ".join(
                                 apm_server["command"]))
 
-
     def test_logstash_output(self):
         apm_server = ApmServer(version="6.3.100", apm_server_output="logstash").render()["apm-server"]
         options = [
@@ -303,6 +302,31 @@ class ApmServerServiceTest(ServiceTest):
         ]
         for o in kafka_options:
             self.assertTrue(o in apm_server["command"], "{} not set while output=kafka".format(o))
+
+    def test_pipeline(self):
+        apm_server = ApmServer(version="6.5.10").render()["apm-server"]
+        self.assertTrue(
+            any(e.startswith("output.elasticsearch.pipelines") for e in apm_server["command"]),
+            "output.elasticsearch.pipelines should be set by default in version >= 6.5"
+        )
+
+        apm_server = ApmServer(version="6.5.10", apm_server_enable_pipeline=False).render()["apm-server"]
+        self.assertFalse(
+            any(e.startswith("output.elasticsearch.pipelines") for e in apm_server["command"]),
+            "output.elasticsearch.pipelines set while apm_server_enable_pipeline=False"
+        )
+
+        apm_server = ApmServer(version="6.5.10", apm_server_output="logstash").render()["apm-server"]
+        self.assertFalse(
+            any(e.startswith("output.elasticsearch.pipelines") for e in apm_server["command"]),
+            "output.elasticsearch.pipelines set while output is not elasticsearch"
+        )
+
+        apm_server = ApmServer(version="6.4.10", apm_server_enable_pipeline=True).render()["apm-server"]
+        self.assertFalse(
+            any(e.startswith("output.elasticsearch.pipelines") for e in apm_server["command"]),
+            "output.elasticsearch.pipelines set while apm_server_enable_pipeline=False in version < 6.5"
+        )
 
     def test_apm_server_build_branch(self):
         apm_server = ApmServer(version="6.3.100", apm_server_build="foo.git@bar", release=True).render()["apm-server"]
