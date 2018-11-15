@@ -18,12 +18,17 @@ def es():
             self.es.indices.delete(self.index)
             self.es.indices.refresh()
 
-        def term_q(self, terms):
-            t = []
-            for idx in range(len(terms)):
-                for k in terms[idx]:
-                    t.append({"term": {k: {"value": terms[idx][k]}}})
-            return {"query": {"bool": {"must": t}}}
+        def term_q(self, terms, exclude_terms=None):
+            def make_terms(terms):
+                t = []
+                for idx in range(len(terms)):
+                    for k in terms[idx]:
+                        t.append({"term": {k: {"value": terms[idx][k]}}})
+                return t
+            bool_q = {"must": make_terms(terms)}
+            if exclude_terms:
+                bool_q["must_not"] = make_terms(exclude_terms)
+            return {"query": {"bool": bool_q}}
 
         @timeout_decorator.timeout(10)
         def fetch(self, q):

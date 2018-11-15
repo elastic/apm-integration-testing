@@ -36,7 +36,20 @@ def check_elasticsearch_content(elasticsearch,
                                 processor='transaction',
                                 query=None):
     if query is None:
-        query = {'query': {'term': {'processor.name': processor}}}
+        query = {
+          'query': {
+            'bool': {
+              'must': {
+                'term': {'processor.name': processor},
+              },
+              # apm-server sends itself transactions,
+              # we exclude them from results by default.
+              'must_not': {
+                'term': {'context.service.name': 'apm-server'},
+              }
+            }
+          }
+        }
 
     actual_count = 0
     retries = 0

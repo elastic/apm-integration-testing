@@ -109,9 +109,9 @@ class Concurrent:
         def assert_count(terms, cnt):
             """wait a bit for doc count to reach expectation"""
             rs = {'count': -1}
+            q = self.elasticsearch.term_q(terms, exclude_terms=[{"context.service.name": "apm-server"}])
             while rs['count'] < cnt:
-                rs = self.es.count(index=self.index,
-                                   body=self.elasticsearch.term_q(terms))
+                rs = self.es.count(index=self.index, body=q)
                 time.sleep(backoff)
             assert rs['count'] == cnt, err.format(terms, cnt, rs)
 
