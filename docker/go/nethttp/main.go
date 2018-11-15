@@ -3,8 +3,8 @@ package main
 import (
 	"net/http"
 
-	"github.com/elastic/apm-agent-go"
-	"github.com/elastic/apm-agent-go/module/apmhttp"
+	"go.elastic.co/apm"
+	"go.elastic.co/apm/module/apmhttp"
 )
 
 func main() {
@@ -39,7 +39,7 @@ func oofHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func foo(req *http.Request) string {
-	span, _ := elasticapm.StartSpan(req.Context(), "foo", "app")
+	span, _ := apm.StartSpan(req.Context(), "foo", "app")
 	if span != nil {
 		defer span.End()
 	}
@@ -47,7 +47,7 @@ func foo(req *http.Request) string {
 }
 
 func bar(req *http.Request) string {
-	span, ctx := elasticapm.StartSpan(req.Context(), "bar", "app")
+	span, ctx := apm.StartSpan(req.Context(), "bar", "app")
 	if span != nil {
 		req = req.WithContext(ctx)
 		defer span.End()
@@ -57,7 +57,7 @@ func bar(req *http.Request) string {
 }
 
 func extra(req *http.Request) string {
-	span, _ := elasticapm.StartSpan(req.Context(), "extra", "app")
+	span, _ := apm.StartSpan(req.Context(), "extra", "app")
 	if span != nil {
 		defer span.End()
 	}
