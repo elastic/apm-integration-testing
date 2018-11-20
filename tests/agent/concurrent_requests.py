@@ -98,7 +98,8 @@ class Concurrent:
         for endpoint in self.endpoints:
             for _ in range(endpoint.events_no):
                 if self.num_errors[endpoint.url] > endpoint.max_num_errors:
-                    raise Exception("Too many request errors {}, the max number allowed is {}", self.num_errors, endpoint.max_num_errors)
+                    raise Exception("Too many request errors {}, the max number allowed is {}",
+                                    self.num_errors, endpoint.max_num_errors)
                 self.num_reqs += 1
                 http_client.fetch(endpoint.url, self.handle, method='GET',
                                   connect_timeout=90, request_timeout=120)
