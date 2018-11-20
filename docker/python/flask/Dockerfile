@@ -1,6 +1,6 @@
 FROM python:3
 
-RUN pip install -U Flask blinker gunicorn
+RUN pip install -q -U Flask blinker gunicorn
 
 RUN mkdir -p /app
 COPY app.py /app

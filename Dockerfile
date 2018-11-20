@@ -9,7 +9,7 @@ RUN curl -SLO https://dl.google.com/linux/direct/google-chrome-stable_current_am
 	rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+RUN pip install -q -r requirements.txt
 
 RUN useradd -U -m -s /bin/bash -d /app tester
 

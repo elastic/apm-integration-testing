@@ -17,8 +17,8 @@ all: test
 # The tests are written in Python. Make a virtualenv to handle the dependencies.
 # make doesn't play nicely with custom VENV, intended only for CI usage
 venv: requirements.txt
-	test -d $(VENV) || virtualenv --python=$(PYTHON3) $(VENV);\
-	pip install -r requirements.txt;\
+	test -d $(VENV) || virtualenv -q --python=$(PYTHON3) $(VENV);\
+	pip install -q -r requirements.txt;\
 	touch $(VENV);\
 
 lint: venv
