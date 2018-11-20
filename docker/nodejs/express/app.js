@@ -4,7 +4,7 @@ var apm = require('elastic-apm-node').start({
   serviceName: process.env.EXPRESS_SERVICE_NAME,
   flushInterval: 1,
   maxQueueSize: 1,
-  api_request_time: "50ms",
+  apiRequestTime: "50ms",
   ignoreUrls: ['/healthcheck']
 })
 
