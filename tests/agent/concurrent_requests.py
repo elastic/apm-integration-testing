@@ -26,12 +26,13 @@ def anomaly(x):
 class Concurrent:
     class Endpoint:
         def __init__(self, url, app_name, span_names, transaction_name,
-                     events_no=1000):
+                     events_no=1000, max_num_errors=10):
             self.url = url
             self.app_name = app_name
             self.span_names = span_names
             self.transaction_name = transaction_name
             self.events_no = events_no
+            self.max_num_errors = max_num_errors
             self.no_per_event = {
                 "span": len(span_names),
                 "transaction": 1
@@ -82,8 +83,9 @@ class Concurrent:
     def handle(self, r):
         if r.code != 200:
             ioloop.IOLoop.instance().stop()
-            message = "Bad response, aborting: {} - {} ({})".format(r.code, r.error, r.request_time)
+            message = "Bad response, aborting: {} - {} {} ({})".format(r.code, r.request.url, r.error, r.request_time)
             self.logger.error(message)
+            self.num_errors[r.request.url] += 1
             raise Exception(message)
 
         self.num_reqs -= 1
@@ -95,6 +97,8 @@ class Concurrent:
         http_client = httpclient.AsyncHTTPClient(max_clients=4)
         for endpoint in self.endpoints:
             for _ in range(endpoint.events_no):
+                if self.num_errors[endpoint.url] > endpoint.max_num_errors:
+                    raise Exception("Too many request errors {}, the max number allowed is {}", self.num_errors, endpoint.max_num_errors)
                 self.num_reqs += 1
                 http_client.fetch(endpoint.url, self.handle, method='GET',
                                   connect_timeout=90, request_timeout=120)
