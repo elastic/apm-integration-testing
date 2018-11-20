@@ -5,6 +5,7 @@
 **/tmp
 *.py[cod]
 *.pyc
+.git
 .cache
 .coverage
 /.idea
