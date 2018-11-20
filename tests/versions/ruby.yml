@@ -6,4 +6,16 @@ RUBY_AGENT:
   - 'github;1.x'
   - 'release;latest'
 
-exclude: []
+exclude:
+  - RUBY_AGENT: 'release;latest'
+    APM_SERVER: '6.4'
+  - RUBY_AGENT: 'release;latest'
+    APM_SERVER: '6.3'
+  - RUBY_AGENT: 'release;latest'
+    APM_SERVER: '6.2;--release'
+  - RUBY_AGENT: 'github;master'
+    APM_SERVER: '6.4'
+  - RUBY_AGENT: 'github;master'
+    APM_SERVER: '6.3'
+  - RUBY_AGENT: 'github;master'
+    APM_SERVER: '6.2;--release'

@@ -24,13 +24,14 @@ class AgentServiceTest(ServiceTest):
             agent, yaml.load("""
                 agent-go-net-http:
                     build:
+                        args:
+                            GO_AGENT_BRANCH: master
                         dockerfile: Dockerfile
                         context: docker/go/nethttp
                     container_name: gonethttpapp
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_FLUSH_INTERVAL: 500ms
-                        ELASTIC_APM_SERVER_URL: http://apm-server:8200
                         ELASTIC_APM_SERVICE_NAME: gonethttpapp
                         ELASTIC_APM_TRANSACTION_IGNORE_NAMES: healthcheck
                     healthcheck:
@@ -41,6 +42,10 @@ class AgentServiceTest(ServiceTest):
                         - 127.0.0.1:8080:8080
             """)  # noqa: 501
         )
+
+        # test overrides
+        agent = AgentGoNetHttp(apm_server_url="http://foo").render()["agent-go-net-http"]
+        self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"], agent)
 
     def test_agent_nodejs_express(self):
         agent = AgentNodejsExpress().render()
@@ -53,7 +58,6 @@ class AgentServiceTest(ServiceTest):
                     container_name: expressapp
                     command: bash -c "npm install elastic-apm-node && node app.js"
                     environment:
-                        APM_SERVER_URL: http://apm-server:8200
                         EXPRESS_SERVICE_NAME: expressapp
                         EXPRESS_PORT: "8010"
                     healthcheck:
@@ -69,6 +73,10 @@ class AgentServiceTest(ServiceTest):
         self.assertEqual('bash -c "npm install elastic/apm-agent-nodejs#test && node app.js"',
                          vagent["agent-nodejs-express"]["command"])
 
+        # test overrides
+        agent = AgentNodejsExpress(apm_server_url="http://foo").render()["agent-nodejs-express"]
+        self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"], agent)
+
     def test_agent_python_django(self):
         agent = AgentPythonDjango().render()
         self.assertDictEqual(
@@ -77,10 +85,9 @@ class AgentServiceTest(ServiceTest):
                     build:
                         dockerfile: Dockerfile
                         context: docker/python/django
-                    command: bash -c "pip install -U elastic-apm && python testapp/manage.py runserver 0.0.0.0:8003"
+                    command: bash -c "pip install -q -U elastic-apm && python testapp/manage.py runserver 0.0.0.0:8003"
                     container_name: djangoapp
                     environment:
-                        APM_SERVER_URL: http://apm-server:8200
                         DJANGO_SERVICE_NAME: djangoapp
                         DJANGO_PORT: 8003
                     healthcheck:
@@ -92,6 +99,10 @@ class AgentServiceTest(ServiceTest):
             """)  # noqa: 501
         )
 
+        # test overrides
+        agent = AgentPythonDjango(apm_server_url="http://foo").render()["agent-python-django"]
+        self.assertEqual("http://foo", agent["environment"]["APM_SERVER_URL"], agent)
+
     def test_agent_python_flask(self):
         agent = AgentPythonFlask(version="6.2.4").render()
         self.assertDictEqual(
@@ -100,10 +111,9 @@ class AgentServiceTest(ServiceTest):
                     build:
                         dockerfile: Dockerfile
                         context: docker/python/flask
-                    command: bash -c "pip install -U elastic-apm && gunicorn app:app"
+                    command: bash -c "pip install -q -U elastic-apm && gunicorn app:app"
                     container_name: flaskapp
                     environment:
-                        APM_SERVER_URL: http://apm-server:8200
                         FLASK_SERVICE_NAME: flaskapp
                         GUNICORN_CMD_ARGS: "-w 4 -b 0.0.0.0:8001"
                     healthcheck:
@@ -114,6 +124,10 @@ class AgentServiceTest(ServiceTest):
                         - 127.0.0.1:8001:8001
             """)  # noqa: 501
         )
+
+        # test overrides
+        agent = AgentPythonFlask(apm_server_url="http://foo").render()["agent-python-flask"]
+        self.assertEqual("http://foo", agent["environment"]["APM_SERVER_URL"])
 
     def test_agent_ruby_rails(self):
         agent = AgentRubyRails().render()
@@ -143,18 +157,23 @@ class AgentServiceTest(ServiceTest):
             """)  # noqa: 501
         )
 
+        # test overrides
+        agent = AgentRubyRails(apm_server_url="http://foo").render()["agent-ruby-rails"]
+        self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"], agent)
+
     def test_agent_java_spring(self):
         agent = AgentJavaSpring().render()
         self.assertDictEqual(
             agent, yaml.load("""
                 agent-java-spring:
                     build:
+                        args:
+                            JAVA_AGENT_BRANCH: master
                         dockerfile: Dockerfile
                         context: docker/java/spring
                     container_name: javaspring
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
-                        ELASTIC_APM_SERVER_URL: http://apm-server:8200
                         ELASTIC_APM_SERVICE_NAME: springapp
                     healthcheck:
                         interval: 5s
@@ -165,6 +184,10 @@ class AgentServiceTest(ServiceTest):
                         - 127.0.0.1:8090:8090
             """)
         )
+
+        # test overrides
+        agent = AgentJavaSpring(apm_server_url="http://foo").render()["agent-java-spring"]
+        self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"])
 
 
 class ApmServerServiceTest(ServiceTest):
@@ -235,7 +258,6 @@ class ApmServerServiceTest(ServiceTest):
                             "{} not set while output=elasticsearch and overrides set: ".format(o) + " ".join(
                                 apm_server["command"]))
 
-
     def test_logstash_output(self):
         apm_server = ApmServer(version="6.3.100", apm_server_output="logstash").render()["apm-server"]
         options = [
@@ -280,6 +302,31 @@ class ApmServerServiceTest(ServiceTest):
         ]
         for o in kafka_options:
             self.assertTrue(o in apm_server["command"], "{} not set while output=kafka".format(o))
+
+    def test_pipeline(self):
+        apm_server = ApmServer(version="6.5.10").render()["apm-server"]
+        self.assertTrue(
+            any(e.startswith("output.elasticsearch.pipelines") for e in apm_server["command"]),
+            "output.elasticsearch.pipelines should be set by default in version >= 6.5"
+        )
+
+        apm_server = ApmServer(version="6.5.10", apm_server_enable_pipeline=False).render()["apm-server"]
+        self.assertFalse(
+            any(e.startswith("output.elasticsearch.pipelines") for e in apm_server["command"]),
+            "output.elasticsearch.pipelines set while apm_server_enable_pipeline=False"
+        )
+
+        apm_server = ApmServer(version="6.5.10", apm_server_output="logstash").render()["apm-server"]
+        self.assertFalse(
+            any(e.startswith("output.elasticsearch.pipelines") for e in apm_server["command"]),
+            "output.elasticsearch.pipelines set while output is not elasticsearch"
+        )
+
+        apm_server = ApmServer(version="6.4.10", apm_server_enable_pipeline=True).render()["apm-server"]
+        self.assertFalse(
+            any(e.startswith("output.elasticsearch.pipelines") for e in apm_server["command"]),
+            "output.elasticsearch.pipelines set while apm_server_enable_pipeline=False in version < 6.5"
+        )
 
     def test_apm_server_build_branch(self):
         apm_server = ApmServer(version="6.3.100", apm_server_build="foo.git@bar", release=True).render()["apm-server"]
