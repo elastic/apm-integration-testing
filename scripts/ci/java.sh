@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
+# for details about how it works see https://github.com/elastic/apm-integration-testing#continuous-integration
 
 srcdir=`dirname $0`
 test -z "$srcdir" && srcdir=.
 . ${srcdir}/common.sh
 
-# see https://github.com/elastic/apm-integration-testing#environment-variables
 if [ -n "${APM_AGENT_JAVA_VERSION}" ]; then
   APM_AGENT_JAVA_VERSION=${APM_AGENT_JAVA_VERSION/'github;'/''}
   APM_AGENT_JAVA_VERSION=${APM_AGENT_JAVA_VERSION/'release;'/''}
