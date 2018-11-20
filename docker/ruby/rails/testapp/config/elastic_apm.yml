@@ -1,1 +1,2 @@
 flush_interval: 1
+api_request_time: 50ms

@@ -39,6 +39,7 @@ RUN apt-get -qq update \
   && rm -fr /var/lib/apt/lists/* 
 WORKDIR /app
 EXPOSE 8090
+ENV ELASTIC_APM_API_REQUEST_TIME 50ms
 CMD ["java", "-javaagent:/app/apm-agent.jar", "-Delastic.apm.service_name=springapp", "-Delastic.apm.application_packages=hello", "-Delastic.apm.ignore_urls=/healthcheck", "-jar","/app/target/hello-spring-0.1.jar"]
 
 
