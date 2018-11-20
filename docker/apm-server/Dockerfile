@@ -4,7 +4,7 @@ ARG go_version=1.10
 FROM golang:${go_version} AS build
 
 # install make update prerequisites
-RUN apt-get update && apt-get install -y python-virtualenv
+RUN apt-get -qq update && apt-get -qq install -y python-virtualenv
 
 ARG apm_server_branch=master
 ARG apm_server_repo=https://github.com/elastic/apm-server.git

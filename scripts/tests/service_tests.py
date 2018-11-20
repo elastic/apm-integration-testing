@@ -85,7 +85,7 @@ class AgentServiceTest(ServiceTest):
                     build:
                         dockerfile: Dockerfile
                         context: docker/python/django
-                    command: bash -c "pip install -U elastic-apm && python testapp/manage.py runserver 0.0.0.0:8003"
+                    command: bash -c "pip install -q -U elastic-apm && python testapp/manage.py runserver 0.0.0.0:8003"
                     container_name: djangoapp
                     environment:
                         DJANGO_SERVICE_NAME: djangoapp
@@ -111,7 +111,7 @@ class AgentServiceTest(ServiceTest):
                     build:
                         dockerfile: Dockerfile
                         context: docker/python/flask
-                    command: bash -c "pip install -U elastic-apm && gunicorn app:app"
+                    command: bash -c "pip install -q -U elastic-apm && gunicorn app:app"
                     container_name: flaskapp
                     environment:
                         FLASK_SERVICE_NAME: flaskapp

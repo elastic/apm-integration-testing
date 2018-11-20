@@ -11,7 +11,7 @@ RUN curl -SLO https://chromedriver.storage.googleapis.com/$(curl -o- https://chr
 	rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+RUN pip install -q -r requirements.txt
 
 RUN useradd -U -m -s /bin/bash -d /app tester
 

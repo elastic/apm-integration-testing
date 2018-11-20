@@ -940,7 +940,7 @@ class AgentPythonDjango(AgentPython):
     def _content(self):
         return dict(
             build={"context": "docker/python/django", "dockerfile": "Dockerfile"},
-            command="bash -c \"pip install -U {} && python testapp/manage.py runserver 0.0.0.0:{}\"".format(
+            command="bash -c \"pip install -q -U {} && python testapp/manage.py runserver 0.0.0.0:{}\"".format(
                 self.agent_package, self.SERVICE_PORT),
             container_name="djangoapp",
             environment={
@@ -965,7 +965,7 @@ class AgentPythonFlask(AgentPython):
     def _content(self):
         return dict(
             build={"context": "docker/python/flask", "dockerfile": "Dockerfile"},
-            command="bash -c \"pip install -U {} && gunicorn app:app\"".format(self.agent_package),
+            command="bash -c \"pip install -q -U {} && gunicorn app:app\"".format(self.agent_package),
             container_name="flaskapp",
             image=None,
             labels=None,
