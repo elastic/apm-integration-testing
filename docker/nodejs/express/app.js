@@ -4,6 +4,7 @@ var apm = require('elastic-apm-node').start({
   serviceName: process.env.EXPRESS_SERVICE_NAME,
   flushInterval: 1,
   maxQueueSize: 1,
+  apiRequestTime: "50ms",
   ignoreUrls: ['/healthcheck']
 })
 
@@ -23,8 +24,7 @@ app.get("/foo", function(req, res) {
 });
 
 function foo_route () {
-    var span = apm.buildSpan()
-    span.start('app.foo')
+    var span = apm.startSpan('app.foo', 'custom')
     span.end()
 }
 
@@ -34,15 +34,13 @@ app.get("/bar", function(req, res) {
 });
 
 function bar_route () {
-    var span = apm.buildSpan()
-    span.start('app.bar')
+    var span = apm.startSpan('app.bar', 'custom')
     extra_route()
     span.end()
 }
 
 function extra_route () {
-    var span = apm.buildSpan()
-    span.start('app.extra')
+    var span = apm.startSpan('app.extra', 'custom')
     span.end()
 }
 
