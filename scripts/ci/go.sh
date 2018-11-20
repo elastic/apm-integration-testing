@@ -4,6 +4,7 @@ srcdir=`dirname $0`
 test -z "$srcdir" && srcdir=.
 . ${srcdir}/common.sh
 
+# see https://github.com/elastic/apm-integration-testing#environment-variables
 if [ -n "${APM_AGENT_GO_VERSION}" ]; then
   APM_AGENT_GO_VERSION=${APM_AGENT_GO_VERSION/'github;'/''}
   APM_AGENT_GO_VERSION=${APM_AGENT_GO_VERSION/'release;'/''}

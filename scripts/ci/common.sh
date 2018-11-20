@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# for details about how it works see https://github.com/elastic/apm-integration-testing#continuous-integration
+
 function stopEnv() {
   make stop-env
 }
