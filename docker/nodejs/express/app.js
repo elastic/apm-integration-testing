@@ -1,6 +1,8 @@
 'use strict'
 
 var apm = require('elastic-apm-node').start({
+  frameworkName: 'express',
+  frameworkVersion: 'unknown',
   serviceName: process.env.EXPRESS_SERVICE_NAME,
   flushInterval: 1,
   maxQueueSize: 1,
