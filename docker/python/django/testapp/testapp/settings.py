@@ -42,13 +42,14 @@ INSTALLED_APPS = [
 
 ELASTIC_APM = {
     'SERVICE_NAME': os.environ['DJANGO_SERVICE_NAME'],
-    'SERVER': os.environ['APM_SERVER_URL'], # 1.x
+    'SERVER': os.environ['APM_SERVER_URL'],  # 1.x
     'SERVER_URL': os.environ['APM_SERVER_URL'],
     'SECRET_TOKEN': os.getenv('APM_SERVER_SECRET_TOKEN', '1234_test'),
-    'TRANSACTION_SEND_FREQ': 1, # 1.x
-    'FLUSH_INTERVAL': 1, # 2.x
-    'MAX_EVENT_QUEUE_LENGTH': 1, # 1.x
-    'MAX_QUEUE_SIZE': 1, # 2.x
+    'TRANSACTION_SEND_FREQ': 1,  # 1.x
+    'FLUSH_INTERVAL': 1,  # 2.x
+    'MAX_EVENT_QUEUE_LENGTH': 1,  # 1.x
+    'MAX_QUEUE_SIZE': 1,  # 2.x
+    'API_REQUEST_TIME': '50ms',  # 4.x
     'TRANSACTIONS_IGNORE_PATTERNS': ['.*healthcheck']
 }
 
