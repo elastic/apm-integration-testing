@@ -62,6 +62,7 @@ class Concurrent:
         self.es = elasticsearch.es
         self.endpoints = endpoints
         self.iters = iters
+        self.num_errors = {}
         self.set_logger()
 
     def count(self, name):
@@ -85,7 +86,7 @@ class Concurrent:
             ioloop.IOLoop.instance().stop()
             message = "Bad response, aborting: {} - {} {} ({})".format(r.code, r.request.url, r.error, r.request_time)
             self.logger.error(message)
-            self.num_errors[r.request.url] += 1
+            self.num_errors.update({r.request.url : self.num_errors.get(r.request.url, 0) + 1})
             raise Exception(message)
 
         self.num_reqs -= 1
@@ -97,7 +98,7 @@ class Concurrent:
         http_client = httpclient.AsyncHTTPClient(max_clients=4)
         for endpoint in self.endpoints:
             for _ in range(endpoint.events_no):
-                if self.num_errors[endpoint.url] > endpoint.max_num_errors:
+                if self.num_errors.get(endpoint.url) > endpoint.max_num_errors:
                     raise Exception("Too many request errors {}, the max number allowed is {}",
                                     self.num_errors, endpoint.max_num_errors)
                 self.num_reqs += 1
