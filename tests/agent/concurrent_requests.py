@@ -195,7 +195,7 @@ class Concurrent:
             except KeyError:
                 # The Go agent doesn't support reporting framework:
                 #   https://github.com/elastic/apm-agent-go/issues/69
-                assert agent in ('go', 'java')
+                assert agent in ('go', 'java'), agent + ' agent did not report framework name'
 
             search = context['request']['url']['search']
             lang = lookup(context, 'service', 'language', 'name')
