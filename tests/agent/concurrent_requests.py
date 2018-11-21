@@ -86,7 +86,7 @@ class Concurrent:
             ioloop.IOLoop.instance().stop()
             message = "Bad response, aborting: {} - {} {} ({})".format(r.code, r.request.url, r.error, r.request_time)
             self.logger.error(message)
-            self.num_errors.update({r.request.url : self.num_errors.get(r.request.url, 0) + 1})
+            self.num_errors.update({r.request.url: self.num_errors.get(r.request.url, 0) + 1})
             raise Exception(message)
 
         self.num_reqs -= 1
