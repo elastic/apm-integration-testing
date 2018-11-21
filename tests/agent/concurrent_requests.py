@@ -98,7 +98,7 @@ class Concurrent:
         http_client = httpclient.AsyncHTTPClient(max_clients=4)
         for endpoint in self.endpoints:
             for _ in range(endpoint.events_no):
-                if self.num_errors.get(endpoint.url) > endpoint.max_num_errors:
+                if self.num_errors.get(endpoint.url, 0) > endpoint.max_num_errors:
                     raise Exception("Too many request errors {}, the max number allowed is {}",
                                     self.num_errors, endpoint.max_num_errors)
                 self.num_reqs += 1
