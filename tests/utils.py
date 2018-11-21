@@ -40,7 +40,7 @@ def check_elasticsearch_content(elasticsearch,
 
     actual_count = 0
     retries = 0
-    max_retries = 3
+    max_retries = 10
     while actual_count != expected_count and retries < max_retries:
         try:
             actual_count = elasticsearch.fetch(query)['hits']['total']
