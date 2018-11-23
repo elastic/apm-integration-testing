@@ -30,5 +30,10 @@ module Minimal
 
     # Elastic APM config
     config.elastic_apm.ignore_url_patterns = '/healthcheck'
+
+
+    if apm = Gem.loaded_specs["elastic-apm"]
+      config.elastic_apm.api_request_time = '50ms' if apm.version >= Gem::Version.new("2.0")
+    end
   end
 end
