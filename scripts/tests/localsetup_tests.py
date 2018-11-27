@@ -409,6 +409,7 @@ class RedisServiceTest(ServiceTest):
                 redis:
                     image: redis:4
                     container_name: localtesting_6.2.4_redis
+                    command: "--save ''"
                     ports:
                       - 6379:6379
                     logging:

@@ -752,6 +752,7 @@ class Redis(Service):
             healthcheck={"interval": "10s", "test": ["CMD", "redis-cli", "ping"]},
             image="redis:4",
             labels=None,
+            command="--save ''",  # disable persistence
             ports=[self.publish_port(self.port, self.SERVICE_PORT, expose=True)],
         )
 
