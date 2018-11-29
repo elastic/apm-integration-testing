@@ -1513,12 +1513,12 @@ class OpbeansLoadGenerator(Service):
 class LocalSetup(object):
     SUPPORTED_VERSIONS = {
         '6.0': '6.0.1',
-        '6.1': '6.1.3',
+        '6.1': '6.1.4',
         '6.2': '6.2.4',
-        '6.3': '6.3.3',
-        '6.4': '6.4.2',
-        '6.5': '6.5.0',
-        'master': '7.0.0-alpha1'
+        '6.3': '6.3.2',
+        '6.4': '6.4.3',
+        '6.5': '6.5.2',
+        'master': '7.0.0',
     }
 
     def __init__(self, argv=None, services=None):
