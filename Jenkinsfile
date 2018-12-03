@@ -1,41 +1,26 @@
 #!/usr/bin/env groovy
 
-library identifier: 'apm@master',
-changelog: false,
-retriever: modernSCM(
-  [$class: 'GitSCMSource', 
-  credentialsId: 'f94e9298-83ae-417e-ba91-85c279771570', 
-  id: '37cf2c00-2cc7-482e-8c62-7bbffef475e2', 
-  remote: 'git@github.com:elastic/apm-pipeline-library.git'])
-
 pipeline {
-  agent { label 'linux && immutable' }
+  agent none
   environment {
-    HOME = "${env.HUDSON_HOME}"
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
-    JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
   }
-   
   options {
     timeout(time: 1, unit: 'HOURS') 
-    buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '100', daysToKeepStr: '30'))
+    buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20', daysToKeepStr: '30'))
     timestamps()
-    //see https://issues.jenkins-ci.org/browse/JENKINS-11752, https://issues.jenkins-ci.org/browse/JENKINS-39536, https://issues.jenkins-ci.org/browse/JENKINS-54133 and jenkinsci/ansicolor-plugin#132
-    //ansiColor('xterm')
+    ansiColor('xterm')
     disableResume()
     durabilityHint('PERFORMANCE_OPTIMIZED')
   }
   parameters {
-    string(name: 'branch_specifier', defaultValue: "", description: "the Git branch specifier to build (branchName, tagName, commitId, etc.)")
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.4", description: "Elastic Stack Git branch/tag to use")
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.5", description: "Elastic Stack Git branch/tag to use")
     string(name: 'APM_SERVER_BRANCH', defaultValue: "master", description: "APM Server Git branch/tag to use")
-
     string(name: 'APM_AGENT_NODEJS_PKG', defaultValue: "release;latest", description: "APM Agent NodeJS package to use, it can be a release version (release;VERSION) or build from a github branch (github;BRANCH)")
     string(name: 'APM_AGENT_PYTHON_PKG', defaultValue: "release;latest", description: "APM Agent Python package to use, it can be a release version (release;VERSION) or build from a github branch (github;RANCH)")
     string(name: 'APM_AGENT_RUBY_PKG', defaultValue: "release;latest", description: "APM Agent Ruby package to use, it can be a release version (release;VERSION) or build from a github branch (github;RANCH)")
     string(name: 'APM_AGENT_JAVA_PKG', defaultValue: "master", description: "APM Agent Java package to use, it is build from a github branch (RANCH)")
     string(name: 'APM_AGENT_GO_PKG', defaultValue: "master", description: "APM Agent Go package to use, it is build from a github branch (RANCH)")
-
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     string(name: 'BUILD_DESCRIPTION', defaultValue: "", description: "Text to named the build in the queue")
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', defaultValue: true, description: "Disable the build parallel option on compose.py, disable it is better for error detection.")
@@ -49,57 +34,24 @@ pipeline {
     booleanParam(name: 'server_Test', defaultValue: false, description: 'Enable Test')
   }
   stages{
+    /**
+     Checkout the code and stash it, to use it on other stages.
+    */
     stage('Checkout'){
-      agent { label 'master || linux' }
+      agent { label 'linux && immutable' }
       steps {
-        withEnvWrapper() {
-          dir("${BASE_DIR}"){
-            script{
-              if(!env?.branch_specifier){
-                echo "Checkout SCM"
-                checkout scm
-              } else {
-                echo "Checkout ${branch_specifier}"
-                checkout([$class: 'GitSCM', branches: [[name: "${branch_specifier}"]], 
-                  doGenerateSubmoduleConfigurations: false, 
-                  extensions: [], 
-                  submoduleCfg: [], 
-                  userRemoteConfigs: [[credentialsId: "${JOB_GIT_CREDENTIALS}", 
-                  url: "${GIT_URL}"]]])
-              }
-              env.JOB_GIT_COMMIT = getGitCommitSha()
-              env.JOB_GIT_URL = "${GIT_URL}"
-              
-              github_enterprise_constructor()
-              
-              on_change{
-                echo "build cause a change (commit or PR)"
-              }
-              
-              on_commit {
-                echo "build cause a commit"
-              }
-              
-              on_merge {
-                echo "build cause a merge"
-              }
-              
-              on_pull_request {
-                echo "build cause PR"
-              }
-            }
-          }
-          stash allowEmpty: true, name: 'source'
-          script {
-            if(env.BUILD_DESCRIPTION){
-              //currentBuild.displayName = "${currentBuild.displayName} ${BUILD_DESCRIPTION}"
-              currentBuild.description = "${BUILD_DESCRIPTION}"
-            }
+        gitCheckout(basedir: "${BASE_DIR}")
+        stash allowEmpty: true, name: 'source'
+        script {
+          if(env.BUILD_DESCRIPTION){
+            currentBuild.description = "${BUILD_DESCRIPTION}"
           }
         }
       }
     }
-
+    /**
+      launch integration tests.
+    */
     stage("Integration Tests"){
       environment {
         STAGE_STACK = "ES:${env.ELASTIC_STACK_VERSION}-APM:${env.APM_SERVER_BRANCH}"
