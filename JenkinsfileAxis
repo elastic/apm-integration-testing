@@ -21,6 +21,7 @@ pipeline {
     string(name: 'APM_SERVER_BRANCH', defaultValue: "master", description: "APM Server Git branch/tag to use")
     
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
+    string(name: 'BUILD_DESCRIPTION', defaultValue: "", description: "Build description to show in queue.")
 
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', defaultValue: true, description: "Disable the build parallel option on compose.py, disable it is better for error detection.")
     booleanParam(name: 'go_Test', defaultValue: false, description: 'Enable Test')
@@ -36,10 +37,10 @@ pipeline {
         gitCheckout(basedir: "${BASE_DIR}", branch: env?.branch_specifier, 
           repo: 'git@github.com:elastic/apm-integration-testing.git', 
           credentialsId: "${JOB_GIT_CREDENTIALS}")
-        stash allowEmpty: true, name: 'source'
+        stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
-          if(env.BUILD_DESCRIPTION){
-            currentBuild.description = "${BUILD_DESCRIPTION}"
+          if(params?.BUILD_DESCRIPTION){
+            currentBuild.description = "${params.BUILD_DESCRIPTION}"
           }
         }
       }
@@ -47,7 +48,7 @@ pipeline {
     stage("Go") { 
       when { 
         beforeAgent true
-        environment name: 'go_Test', value: 'true' 
+        expression { return params.go_Test }
       }
       steps {
         runIntegrationTestAxis(source: 'source', agentType: "go")
@@ -56,7 +57,7 @@ pipeline {
     stage("Java") { 
       when { 
         beforeAgent true
-        environment name: 'java_Test', value: 'true' 
+        expression { return params.java_Test }
       }
       steps {
         runIntegrationTestAxis(source: 'source', agentType: "java")
@@ -65,7 +66,7 @@ pipeline {
     stage("Node.js") { 
       when { 
         beforeAgent true
-        environment name: 'nodejs_Test', value: 'true' 
+        expression { return params.nodejs_Test }
       }
       steps {
         runIntegrationTestAxis(source: 'source', agentType: "nodejs")
@@ -74,7 +75,7 @@ pipeline {
     stage("Python") { 
       when { 
         beforeAgent true
-        environment name: 'python_Test', value: 'true' 
+        expression { return params.python_Test }
       }
       steps {
         runIntegrationTestAxis(source: 'source', agentType: "python")
@@ -83,7 +84,7 @@ pipeline {
     stage("Ruby") { 
       when { 
         beforeAgent true
-        environment name: 'ruby_Test', value: 'true' 
+        expression { return params.ruby_Test }
       }
       steps {
         runIntegrationTestAxis(source: 'source', agentType: "ruby")

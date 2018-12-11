@@ -41,7 +41,7 @@ pipeline {
       agent { label 'linux && immutable' }
       steps {
         gitCheckout(basedir: "${BASE_DIR}")
-        stash allowEmpty: true, name: 'source'
+        stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
           if(env.BUILD_DESCRIPTION){
             currentBuild.description = "${BUILD_DESCRIPTION}"
@@ -54,14 +54,14 @@ pipeline {
     */
     stage("Integration Tests"){
       environment {
-        STAGE_STACK = "ES:${env.ELASTIC_STACK_VERSION}-APM:${env.APM_SERVER_BRANCH}"
+        STAGE_STACK = "ES:${params.ELASTIC_STACK_VERSION}-APM:${params.APM_SERVER_BRANCH}"
         STAGE_ALL = "All-${env.STAGE_STACK}"
-        STAGE_GO = "Go ${env.APM_AGENT_GO_PKG}-${env.STAGE_STACK}"
-        STAGE_JAVA = "Java ${env.APM_AGENT_JAVA_PKG}-${env.STAGE_STACK}"
+        STAGE_GO = "Go ${params.APM_AGENT_GO_PKG}-${env.STAGE_STACK}"
+        STAGE_JAVA = "Java ${params.APM_AGENT_JAVA_PKG}-${env.STAGE_STACK}"
         STAGE_KIBANA = "Kibana-${env.STAGE_STACK}"
-        STAGE_NODEJS = "Node.js ${env.APM_AGENT_NODEJS_PKG}-${env.STAGE_STACK}"
-        STAGE_PYTHON = "Python ${env.APM_AGENT_PYTHON_PKG}-${env.STAGE_STACK}"
-        STAGE_RUBY = "Ruby ${env.APM_AGENT_RUBY_PKG}-${env.STAGE_STACK}"
+        STAGE_NODEJS = "Node.js ${params.APM_AGENT_NODEJS_PKG}-${env.STAGE_STACK}"
+        STAGE_PYTHON = "Python ${params.APM_AGENT_PYTHON_PKG}-${env.STAGE_STACK}"
+        STAGE_RUBY = "Ruby ${params.APM_AGENT_RUBY_PKG}-${env.STAGE_STACK}"
         STAGE_SERVER = "Server-${env.STAGE_STACK}"
       }
       failFast false
@@ -70,7 +70,7 @@ pipeline {
           agent { label 'linux && immutable' }
           when { 
             beforeAgent true
-            environment name: 'all_Test', value: 'true' 
+            expression { return params.all_Test }
           }
           steps {
             stepIntegrationTest(source: "source", tag: "${STAGE_ALL}", agentType: "all")
@@ -80,7 +80,7 @@ pipeline {
           agent { label 'linux && immutable' }
           when { 
             beforeAgent true
-            environment name: 'go_Test', value: 'true' 
+            expression { return params.go_Test }
           }
           steps {
             stepIntegrationTest(source: "source", tag: "${STAGE_GO}", agentType: "go")
@@ -90,7 +90,7 @@ pipeline {
           agent { label 'linux && immutable' }
           when { 
             beforeAgent true
-            environment name: 'java_Test', value: 'true' 
+            expression { return params.java_Test }
           }
           steps {
             stepIntegrationTest(source: "source", tag: "${STAGE_JAVA}", agentType: "java")
@@ -100,7 +100,7 @@ pipeline {
           agent { label 'linux && immutable' }
           when { 
             beforeAgent true
-            environment name: 'kibana_Test', value: 'true' 
+            expression { return params.kibana_Test }
           }
           steps {
             stepIntegrationTest(source: "source", tag: "${STAGE_KIBANA}", agentType: "kibana")
@@ -110,7 +110,7 @@ pipeline {
           agent { label 'linux && immutable' }
           when { 
             beforeAgent true
-            environment name: 'nodejs_Test', value: 'true' 
+            expression { return params.nodejs_Test }
           }
           steps {
             stepIntegrationTest(source: "source", tag: "${STAGE_NODEJS}", agentType: "nodejs")
@@ -120,7 +120,7 @@ pipeline {
           agent { label 'linux && immutable' }
           when { 
             beforeAgent true
-            environment name: 'python_Test', value: 'true' 
+            expression { return params.python_Test }
           }
           steps {
             stepIntegrationTest(source: "source", tag: "${STAGE_PYTHON}", agentType: "python")
@@ -130,7 +130,7 @@ pipeline {
           agent { label 'linux && immutable' }
           when { 
             beforeAgent true
-            environment name: 'ruby_Test', value: 'true' 
+            expression { return params.ruby_Test }
           }
           steps {
             stepIntegrationTest(source: "source", tag: "${STAGE_RUBY}", agentType: "ruby")
@@ -140,7 +140,7 @@ pipeline {
           agent { label 'linux && immutable' }
           when { 
             beforeAgent true
-            environment name: 'server_Test', value: 'true' 
+            expression { return params.server_Test }
           }
           steps {
             stepIntegrationTest(source: "source", tag: "${STAGE_SERVER}", agentType: "server")
