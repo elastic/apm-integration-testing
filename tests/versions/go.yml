@@ -2,9 +2,9 @@ GO_AGENT:
   - 'github;master'
 
 exclude:
-  - JAVA_AGENT: 'github;master'
+  - GO_AGENT: 'github;master'
     APM_SERVER: '6.4'
-  - JAVA_AGENT: 'github;master'
+  - GO_AGENT: 'github;master'
     APM_SERVER: '6.3'
-  - JAVA_AGENT: 'github;master'
+  - GO_AGENT: 'github;master'
     APM_SERVER: '6.2'
