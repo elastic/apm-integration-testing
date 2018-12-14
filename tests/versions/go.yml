@@ -1,0 +1,10 @@
+GO_AGENT:
+  - 'github;master'
+
+exclude:
+  - GO_AGENT: 'github;master'
+    APM_SERVER: '6.4'
+  - GO_AGENT: 'github;master'
+    APM_SERVER: '6.3'
+  - GO_AGENT: 'github;master'
+    APM_SERVER: '6.2'
