@@ -3,19 +3,19 @@ PYTHON_AGENT:
   # release;latest -> pip install elastic-apm
   # release;release -> pip install elastic-apm==version
   - 'github;master'
-  - 'release;latest' 
+  - 'release;latest'
   - 'release;3.0'
 
 exclude:
   - PYTHON_AGENT: 'release;latest'
-    APM_SERVER: '6.4'
+    APM_SERVER: '6.4;--release'
   - PYTHON_AGENT: 'release;latest'
     APM_SERVER: '6.3;--release'
   - PYTHON_AGENT: 'release;latest'
     APM_SERVER: '6.2;--release'
   - PYTHON_AGENT: 'github;master'
-    APM_SERVER: '6.4' 
+    APM_SERVER: '6.4;--release'
   - PYTHON_AGENT: 'github;master'
-    APM_SERVER: '6.3;--release' 
+    APM_SERVER: '6.3;--release'
   - PYTHON_AGENT: 'github;master'
-    APM_SERVER: '6.2;--release' 
+    APM_SERVER: '6.2;--release'

@@ -7,13 +7,13 @@ NODEJS_AGENT:
 
 exclude:
 - NODEJS_AGENT: 'release;latest'
-  APM_SERVER: '6.4'
+  APM_SERVER: '6.4;--release'
 - NODEJS_AGENT: 'release;latest'
   APM_SERVER: '6.3;--release'
 - NODEJS_AGENT: 'release;latest'
   APM_SERVER: '6.2;--release'
 - NODEJS_AGENT: 'github;master'
-  APM_SERVER: '6.4'
+  APM_SERVER: '6.4;--release'
 - NODEJS_AGENT: 'github;master'
   APM_SERVER: '6.3;--release'
 - NODEJS_AGENT: 'github;master'

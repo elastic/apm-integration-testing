@@ -3,7 +3,7 @@ GO_AGENT:
 
 exclude:
   - GO_AGENT: 'github;master'
-    APM_SERVER: '6.4'
+    APM_SERVER: '6.4;--release'
   - GO_AGENT: 'github;master'
     APM_SERVER: '6.3;--release'
   - GO_AGENT: 'github;master'
