@@ -2,5 +2,5 @@ APM_SERVER:
   - master
   - '6.5'
   - '6.4'
-  - '6.3'
+  - '6.3;--release'
   - '6.2;--release'
