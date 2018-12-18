@@ -8,14 +8,14 @@ RUBY_AGENT:
 
 exclude:
   - RUBY_AGENT: 'release;latest'
-    APM_SERVER: '6.4'
+    APM_SERVER: '6.4;--release'
   - RUBY_AGENT: 'release;latest'
-    APM_SERVER: '6.3'
+    APM_SERVER: '6.3;--release'
   - RUBY_AGENT: 'release;latest'
     APM_SERVER: '6.2;--release'
   - RUBY_AGENT: 'github;master'
-    APM_SERVER: '6.4'
+    APM_SERVER: '6.4;--release'
   - RUBY_AGENT: 'github;master'
-    APM_SERVER: '6.3'
+    APM_SERVER: '6.3;--release'
   - RUBY_AGENT: 'github;master'
     APM_SERVER: '6.2;--release'
