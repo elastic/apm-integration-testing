@@ -157,7 +157,12 @@ class Concurrent:
 
             # ensure query for docs returns results
             tr_cnt = ep.count("transaction") * it
-            assert tr_cnt == lookup(rs, 'hits', 'total')
+            total = lookup(rs, 'hits', 'total')
+            if "value" in total:
+                actual_cnt = total["value"]
+            else:
+                actual_cnt = total
+            assert tr_cnt == actual_cnt, "expected {} hits, got: {}".format(tr_cnt, actual_cnt)
 
             # check the first existing transaction for every endpoint
             hit = lookup(rs, 'hits', 'hits')[0]
