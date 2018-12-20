@@ -468,7 +468,7 @@ class ApmServer(StackService, Service):
             command_args.extend(["-E", param + "=" + value])
         healthcheck_path = "/"
         try:
-            version_tuple = map(int, self.version.split("."))[:3]
+            version_tuple = tuple(map(int, self.version.split(".")))[:3]
             if version_tuple < (6, 5):
                 healthcheck_path = "/healthcheck"
         except ValueError:
