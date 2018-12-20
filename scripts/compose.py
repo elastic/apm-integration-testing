@@ -467,12 +467,13 @@ class ApmServer(StackService, Service):
         for param, value in self.apm_server_command_args:
             command_args.extend(["-E", param + "=" + value])
 
+        healthcheck_path = "/" if self.at_least_version("6.5") else "/healthcheck"
         content = dict(
             cap_add=["CHOWN", "DAC_OVERRIDE", "SETGID", "SETUID"],
             cap_drop=["ALL"],
             command=["apm-server", "-e", "--httpprof", ":{}".format(self.apm_server_monitor_port)] + command_args,
             depends_on=self.depends_on,
-            healthcheck=curl_healthcheck(self.SERVICE_PORT),
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, path=healthcheck_path),
             labels=["co.elatic.apm.stack-version=" + self.version],
             ports=[
                 self.publish_port(self.port, self.SERVICE_PORT),
