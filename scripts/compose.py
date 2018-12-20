@@ -470,7 +470,7 @@ class ApmServer(StackService, Service):
         try:
             version_tuple = map(int, self.version.split("."))[:3]
             if version_tuple < (6, 5):
-                healthcheck_path = "/"
+                healthcheck_path = "/healthcheck"
         except ValueError:
             pass
         content = dict(
