@@ -130,12 +130,12 @@ def resolve_bc(version, kind):
     rsp = urlopen("https://staging.elastic.co/latest/{}.json".format(branch))
     if rsp.code != 200:
         raise Exception("failed to query build candidates at {}: {}".format(rsp.geturl(), rsp.info()))
-    encoding = "utf-8" # python2 rsp.headers.get_content_charset("utf-8")
+    encoding = "utf-8"  # python2 rsp.headers.get_content_charset("utf-8")
     info = json.load(codecs.getreader(encoding)(rsp))
     try:
         build_id = info["build_id"]
         return build_id[build_id.rfind("-")+1:]
-    except:
+    except Exception:
         raise Exception("failed to find matching build in: {}".format(info))
 
 
