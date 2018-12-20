@@ -620,7 +620,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: 5s
                     retries: 12
-                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://localhost:8200/']
                 image: docker.elastic.co/apm/apm-server:7.0.10-alpha1-SNAPSHOT
                 labels: [co.elatic.apm.stack-version=7.0.10-alpha1]
                 logging:
