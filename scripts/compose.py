@@ -122,9 +122,14 @@ def curl_healthcheck(port, host="localhost", path="/healthcheck",
     }
 
 
+bcs = {}
+
+
 def resolve_bc(version, kind):
     if kind != "latest":
         return kind
+    if bcs.get(version):
+        return bcs[version]
     branch = ".".join(version.split(".", 2)[:2])
     rsp = urlopen("https://staging.elastic.co/latest/{}.json".format(branch))
     if rsp.code != 200:
@@ -135,7 +140,9 @@ def resolve_bc(version, kind):
         print("found latest build candidate for {} - {}".format(version, info["summary_url"]))
     try:
         build_id = info["build_id"]
-        return build_id[build_id.rfind("-")+1:]
+        bc = build_id[build_id.rfind("-")+1:]
+        bcs[version] = bc
+        return bc
     except Exception:
         raise Exception("failed to find matching build in: {}".format(info))
 
