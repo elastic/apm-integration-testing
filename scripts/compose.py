@@ -7,6 +7,7 @@ from __future__ import print_function
 from abc import abstractmethod
 
 import argparse
+import codecs
 import collections
 import datetime
 import functools
@@ -121,6 +122,31 @@ def curl_healthcheck(port, host="localhost", path="/healthcheck",
     }
 
 
+bcs = {}
+
+
+def resolve_bc(version, kind):
+    if kind != "latest":
+        return kind
+    if bcs.get(version):
+        return bcs[version]
+    branch = ".".join(version.split(".", 2)[:2])
+    rsp = urlopen("https://staging.elastic.co/latest/{}.json".format(branch))
+    if rsp.code != 200:
+        raise Exception("failed to query build candidates at {}: {}".format(rsp.geturl(), rsp.info()))
+    encoding = "utf-8"  # python2 rsp.headers.get_content_charset("utf-8")
+    info = json.load(codecs.getreader(encoding)(rsp))
+    if "summary_url" in info:
+        print("found latest build candidate for {} - {}".format(version, info["summary_url"]))
+    try:
+        build_id = info["build_id"]
+        bc = build_id[build_id.rfind("-")+1:]
+        bcs[version] = bc
+        return bc
+    except Exception:
+        raise Exception("failed to find matching build in: {}".format(info))
+
+
 def parse_version(version):
     res = []
     for x in version.split('.'):
@@ -168,13 +194,15 @@ class Service(object):
         if hasattr(self, "SERVICE_PORT"):
             self.port = options.get(self.option_name() + "_port", self.SERVICE_PORT)
 
-        self._bc = options.get(self.option_name() + "_bc") or options.get("bc")
         self._oss = options.get(self.option_name() + "_oss") or options.get("oss")
         self._release = options.get(self.option_name() + "_release") or options.get("release")
         self._snapshot = options.get(self.option_name() + "_snapshot") or options.get("snapshot")
 
         # version is service specific or stack or default
         self._version = options.get(self.option_name() + "_version") or options.get("version", DEFAULT_STACK_VERSION)
+
+        # bc depends on version for resolution
+        self._bc = resolve_bc(self._version, options.get(self.option_name() + "_bc") or options.get("bc"))
 
     @property
     def bc(self):
@@ -1666,10 +1694,12 @@ class LocalSetup(object):
         build_type_group = parser.add_mutually_exclusive_group()
         build_type_group.add_argument(
             '--bc',
-            action='store',
-            dest='bc',
-            help='ID of the build candidate, e.g. 37b864a0',
-            default=''
+            const="latest",
+            nargs="?",
+            help=(
+                'ID of the build candidate, e.g. 37b864a0',
+                "override default 'latest' by providing an argument."
+            ),
         )
         build_type_group.add_argument(
             '--release',
