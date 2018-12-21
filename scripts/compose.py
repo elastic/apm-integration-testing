@@ -125,13 +125,14 @@ def curl_healthcheck(port, host="localhost", path="/healthcheck",
 def resolve_bc(version, kind):
     if kind != "latest":
         return kind
-    logging.debug("searching for latest build candidate for %s", version)
     branch = ".".join(version.split(".", 2)[:2])
     rsp = urlopen("https://staging.elastic.co/latest/{}.json".format(branch))
     if rsp.code != 200:
         raise Exception("failed to query build candidates at {}: {}".format(rsp.geturl(), rsp.info()))
     encoding = "utf-8"  # python2 rsp.headers.get_content_charset("utf-8")
     info = json.load(codecs.getreader(encoding)(rsp))
+    if "summary_url" in info:
+        print("found latest build candidate for {} - {}".format(version, info["summary_url"]))
     try:
         build_id = info["build_id"]
         return build_id[build_id.rfind("-")+1:]
