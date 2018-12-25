@@ -153,16 +153,11 @@ class Concurrent:
                 {'context.service.name': ep.app_name},
                 {'transaction.name.keyword': ep.transaction_name}
             ])
-            rs = self.es.search(index=self.index, body=q)
+            rs = self.es.search(index=self.index, body=q, params={"rest_total_hits_as_int": "true"})
 
             # ensure query for docs returns results
             tr_cnt = ep.count("transaction") * it
-            total = lookup(rs, 'hits', 'total')
-            if "value" in total:
-                actual_cnt = total["value"]
-            else:
-                actual_cnt = total
-            assert tr_cnt == actual_cnt, "expected {} hits, got: {}".format(tr_cnt, actual_cnt)
+            assert tr_cnt == lookup(rs, 'hits', 'total')
 
             # check the first existing transaction for every endpoint
             hit = lookup(rs, 'hits', 'hits')[0]
