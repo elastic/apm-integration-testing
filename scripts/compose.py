@@ -1697,7 +1697,7 @@ class LocalSetup(object):
             const="latest",
             nargs="?",
             help=(
-                'ID of the build candidate, e.g. 37b864a0',
+                'ID of the build candidate, e.g. 37b864a0. '
                 "override default 'latest' by providing an argument."
             ),
         )

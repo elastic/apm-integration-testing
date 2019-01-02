@@ -62,7 +62,12 @@ test-kibana: venv
 test-server: venv
 	pytest tests/server/ -v -s $(JUNIT_OPT)/server-junit.xml
 
-test-all: venv test-compose lint
+SUBCOMMANDS = list-options load-dashboards start status stop upload-sourcemap versions
+
+test-helps:
+	$(foreach subcommand,$(SUBCOMMANDS), $(PYTHON) scripts/compose.py $(subcommand) --help >/dev/null || exit 1;)
+
+test-all: venv test-compose lint test-helps
 	pytest -v -s $(JUNIT_OPT)/all-junit.xml
 
 docker-test-%:
