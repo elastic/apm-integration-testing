@@ -1,15 +1,17 @@
 FROM python:3.7
 # install latest Google Chrome & Chromedriver
-RUN curl -SLO https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
-	dpkg -i google-chrome-stable_current_amd64.deb || true && \
-	apt update && apt-get -y -f --no-install-recommends install && \
-	curl -SLO https://chromedriver.storage.googleapis.com/$(curl -o- https://chromedriver.storage.googleapis.com/LATEST_RELEASE)/chromedriver_linux64.zip && \
-	apt install -y --no-install-recommends unzip && \
+RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get -yqq update && \
+    apt-get -yqq install google-chrome-stable && \
+    rm -rf /var/lib/apt/lists/*
+RUN curl -SLO https://chromedriver.storage.googleapis.com/$(curl -o- https://chromedriver.storage.googleapis.com/LATEST_RELEASE)/chromedriver_linux64.zip && \
+    apt-get -yqq update && apt install -yqq --no-install-recommends unzip && \
 	unzip -d /usr/local/bin/ chromedriver_linux64.zip chromedriver && \
 	rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+RUN pip install -q -r requirements.txt
 
 RUN useradd -U -m -s /bin/bash -d /app tester
 

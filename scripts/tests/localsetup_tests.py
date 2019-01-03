@@ -342,7 +342,7 @@ class OpbeansServiceTest(ServiceTest):
 
     def test_opbeans_secret_token(self):
         for cls in opbeans_services():
-            services = cls(version="6.5.0", opbeans_apm_server_secret_token="supersecret").render()
+            services = cls(version="6.5.0", apm_server_secret_token="supersecret").render()
             opbeans_service = list(services.values())[0]
             secret_token = [e for e in opbeans_service["environment"] if e.startswith("ELASTIC_APM_SECRET_TOKEN=")]
             self.assertEqual(["ELASTIC_APM_SECRET_TOKEN=supersecret"], secret_token, cls.__name__)
@@ -409,6 +409,7 @@ class RedisServiceTest(ServiceTest):
                 redis:
                     image: redis:4
                     container_name: localtesting_6.2.4_redis
+                    command: "--save ''"
                     ports:
                       - 6379:6379
                     logging:
@@ -609,7 +610,9 @@ class LocalTest(unittest.TestCase):
                     -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
                     -E, xpack.monitoring.elasticsearch=true, -E, xpack.monitoring.enabled=true, -E, setup.dashboards.enabled=true,
-                    -E, 'output.elasticsearch.hosts=["elasticsearch:9200"]', -E, output.elasticsearch.enabled=true]
+                    -E, 'output.elasticsearch.hosts=["elasticsearch:9200"]', -E, output.elasticsearch.enabled=true,
+                    -E, "output.elasticsearch.pipelines=[{pipeline: 'apm_user_agent'}]", -E, 'apm-server.register.ingest.pipeline.enabled=true'
+                    ]
                 container_name: localtesting_7.0.10-alpha1_apm-server
                 depends_on:
                     elasticsearch: {condition: service_healthy}
@@ -617,7 +620,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: 5s
                     retries: 12
-                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://localhost:8200/']
                 image: docker.elastic.co/apm/apm-server:7.0.10-alpha1-SNAPSHOT
                 labels: [co.elatic.apm.stack-version=7.0.10-alpha1]
                 logging:

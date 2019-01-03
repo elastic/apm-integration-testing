@@ -1,0 +1,17 @@
+JAVA_AGENT:
+  - 'github;master'
+  - 'github;v1.0.1'
+
+exclude:
+  - JAVA_AGENT: 'github;v1.0.0'
+    APM_SERVER: '6.4;--release'
+  - JAVA_AGENT: 'github;v1.0.0'
+    APM_SERVER: '6.3;--release'
+  - JAVA_AGENT: 'github;v1.0.0'
+    APM_SERVER: '6.2;--release'
+  - JAVA_AGENT: 'github;master'
+    APM_SERVER: '6.4;--release'
+  - JAVA_AGENT: 'github;master'
+    APM_SERVER: '6.3;--release'
+  - JAVA_AGENT: 'github;master'
+    APM_SERVER: '6.2;--release'

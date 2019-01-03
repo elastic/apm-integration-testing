@@ -157,7 +157,12 @@ class Concurrent:
 
             # ensure query for docs returns results
             tr_cnt = ep.count("transaction") * it
-            assert tr_cnt == lookup(rs, 'hits', 'total')
+            total = lookup(rs, 'hits', 'total')
+            if isinstance(total, int):
+                actual_cnt = total
+            else:
+                actual_cnt = total["value"]
+            assert tr_cnt == actual_cnt, "expected {} hits, got: {}".format(tr_cnt, actual_cnt)
 
             # check the first existing transaction for every endpoint
             hit = lookup(rs, 'hits', 'hits')[0]
@@ -195,7 +200,7 @@ class Concurrent:
             except KeyError:
                 # The Go agent doesn't support reporting framework:
                 #   https://github.com/elastic/apm-agent-go/issues/69
-                assert agent in ('go', 'java')
+                assert agent in ('go', 'java'), agent + ' agent did not report framework name'
 
             search = context['request']['url']['search']
             lang = lookup(context, 'service', 'language', 'name')

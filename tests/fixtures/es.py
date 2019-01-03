@@ -26,13 +26,12 @@ def es():
             return {"query": {"bool": {"must": t}}}
 
         @timeout_decorator.timeout(10)
-        def fetch(self, q):
+        def count(self, q):
             ct = 0
-            s = {}
             while ct == 0:
                 time.sleep(3)
-                s = self.es.search(index=self.index, body=q)
-                ct = s['hits']['total']
-            return s
+                s = self.es.count(index=self.index, body=q)
+                ct = s['count']
+            return ct
 
     return Elasticsearch(default.from_env("ES_URL"))

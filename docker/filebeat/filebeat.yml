@@ -76,6 +76,17 @@ filebeat.autodiscover:
             multiline.match: after
       - condition:
           contains:
+            docker.container.image: "opbeans-go"
+        config:
+          - type: docker
+            containers.ids:
+              - "${data.docker.container.id}"
+            processors:
+              - decode_json_fields:
+                  fields: ["message"]
+                  target: "opbeans-go"
+      - condition:
+          contains:
             docker.container.image: "postgres"
         config:
           - type: docker
@@ -101,6 +112,9 @@ filebeat.autodiscover:
             - not:
                 contains:
                   docker.container.image: "opbeans-node"
+            - not:
+                contains:
+                  docker.container.image: "opbeans-go"
             - not:
                 contains:
                   docker.container.image: "postgres"
