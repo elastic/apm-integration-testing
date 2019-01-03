@@ -4,6 +4,8 @@ pipeline {
   agent none
   environment {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
+    NOTIFY_TO = credentials('notify-to')
+    JOB_GCS_BUCKET = credentials('gcs-bucket')
   }
   options {
     timeout(time: 1, unit: 'HOURS') 
@@ -40,6 +42,7 @@ pipeline {
     stage('Checkout'){
       agent { label 'linux && immutable' }
       steps {
+        deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
@@ -158,7 +161,7 @@ pipeline {
     }
     failure { 
       echoColor(text: '[FAILURE]', colorfg: 'red', colorbg: 'default')
-      //step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
+      step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
     }
     unstable { 
       echoColor(text: '[UNSTABLE]', colorfg: 'yellow', colorbg: 'default')
