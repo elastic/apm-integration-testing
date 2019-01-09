@@ -16,11 +16,11 @@ def check_agent_error(endpoint, elasticsearch, ct=1):
     check_elasticsearch_count(elasticsearch, ct, processor='error')
 
 
-def check_server_transaction(endpoint, elasticsearch, json, headers=None, ct=2):
+def check_server_transaction(endpoint, elasticsearch, payload, headers=None, ct=2):
     elasticsearch.clean()
     if headers is None:
-        headers = {'Content-Type': 'application/json'}
-    r = requests.post(endpoint.url, json=json, headers=headers)
+        headers = {'Content-Type': 'application/x-ndjson'}
+    r = requests.post(endpoint.url, data=payload, headers=headers)
     check_request_response(r, endpoint)
     check_elasticsearch_count(elasticsearch, ct)
 

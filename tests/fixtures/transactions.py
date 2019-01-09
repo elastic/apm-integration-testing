@@ -3,22 +3,5 @@ import pytest
 
 @pytest.fixture
 def minimal():
-    return {
-        "service": {
-            "name": "service1",
-            "agent": {
-                "name": "python",
-                "version": "1.0"
-            }
-        },
-        "transactions": [
-            {
-                "id": "945254c5-67a5-417e-8a4e-aa29efcbfb79",
-                "name": "GET /api/types",
-                "type": "request",
-                "duration": 32.592981,
-                "result": "success",
-                "timestamp": "2017-05-09T15:04:05.999999Z"
-            }
-        ]
-    }
+    return b"""{"metadata":{"service":{"name":"service1","agent":{"name":"python","version":"1.0"}}}}
+{"transaction":{"id":"945254c567a5417e","name":"GET /api/types","type":"request","duration":32.592981,"result":"success","timestamp":1494342245999999,"trace_id":"945254c567a5417eaaaaaaaaaaaaaaaa","span_count":{"started":0}}}"""  # noqa: 501
