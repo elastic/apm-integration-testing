@@ -10,10 +10,10 @@ def apm_server(es):
         def __init__(self, url, elasticsearch):
             self.url = url
             self.elasticsearch = elasticsearch
-            self.transaction_endpoint = Endpoint(self.url,
-                                                 "v1/transactions",
-                                                 qu_str=None,
-                                                 text="",
-                                                 status_code=202)
+            self.intake_endpoint = Endpoint(self.url,
+                                            "intake/v2/events",
+                                            qu_str=None,
+                                            text="",
+                                            status_code=202)
 
     return APMServer(default.from_env("APM_SERVER_URL"), es)
