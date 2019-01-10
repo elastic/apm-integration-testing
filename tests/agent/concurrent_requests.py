@@ -20,7 +20,7 @@ def lookup(d, *keys):
 
 
 def anomaly(x):
-    return x > 100000 or x < 0  # 100000 = 0.1 sec
+    return x > 500000 or x < 0  # 0.5 secs
 
 
 class Concurrent:
