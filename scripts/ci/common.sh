@@ -32,5 +32,5 @@ ELASTIC_STACK_VERSION=${ELASTIC_STACK_VERSION:-'master'}
 # assume we're under CI if BUILD_NUMBER is set
 if [ -n "${BUILD_NUMBER}" ]; then
   # kill any running containers under CI
-  docker ps -aq | xargs -t docker rm -f || true
+  docker ps -aq | xargs -n1 -t docker rm -f || true
 fi
