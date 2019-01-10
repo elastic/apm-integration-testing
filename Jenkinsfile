@@ -40,7 +40,7 @@ pipeline {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
     NOTIFY_TO = credentials('notify-to')
     JOB_GCS_BUCKET = credentials('gcs-bucket')
-    PIPELINE_LOG_LEVEL='DEBUG'
+    PIPELINE_LOG_LEVEL='INFO'
   }
   options {
     timeout(time: 1, unit: 'HOURS') 
@@ -269,12 +269,11 @@ def runScript(Map params = [:]){
     pytestIni += "addopts = --color=yes -ra\n"
     writeFile(file: "pytest.ini", text: pytestIni, encoding: "UTF-8")
 
-/** TODO enable script */
     sh """#!/bin/bash
     echo "${tag}"
     export TMPDIR="${WORKSPACE}"
     chmod ugo+rx ./scripts/ci/*.sh
-    echo ./scripts/ci/${agentType}.sh
+    ./scripts/ci/${agentType}.sh
     """
   }
 }
