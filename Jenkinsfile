@@ -116,6 +116,7 @@ pipeline {
   post {
     always{
       writeJSON(file: 'results.json', json: toJSON(results), pretty: 2)
+      processResults(results)
       archive('results.json')
     }
     success {
@@ -170,6 +171,31 @@ def buildColumn(x, yItems, excludes){
     }
   }
   return column
+}
+
+def processResults(results){
+  String html = '<html>\n\t<head>\n\t\t<title>Integration Tests Results</title>\n\t\t</head>\n\t\t<body>\n'
+  results.each{ k, v ->
+    html += '<table>'
+    html += '<tr>'
+    html += '<th> </th>'
+    v.x.each{ vx ->
+      html += "<th>${vx}</th>"
+    }
+    html += '</tr>'
+    
+    v.y.each{ vy ->
+      html += '<tr>'
+      html += "<th>${vy}</th>"
+      v.x.each{ vx ->
+        html += "<td>${v.data[vx][vy]}</td>"
+      }
+      html += '</tr>'
+    }
+    html += '</table>'
+  }
+  html += '\t\t</body></html>\n'
+  writeFile(file: 'results.html', text: html)
 }
 
 def generateParallelTests(tag) {
@@ -227,7 +253,7 @@ def testStep(tag, x, y){
           saveResult(x, y, results[tag], 1)
         }
       } catch(e){
-        saveResult(x, y, 0)
+        saveResult(x, y, results[tag], 0)
         error("Some ${tag} tests failed")
       } finally {
         junit(
