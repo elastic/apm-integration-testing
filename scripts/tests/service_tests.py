@@ -417,6 +417,22 @@ class ElasticsearchServiceTest(ServiceTest):
             "xpack.license.self_generated.type=trial" in elasticsearch["environment"], "xpack.license type"
         )
 
+    def test_data_dir(self):
+        # default
+        elasticsearch = Elasticsearch(version="6.3.100").render()["elasticsearch"]
+        data_path = [e for e in elasticsearch["environment"] if e.startswith("path.data=")]
+        self.assertListEqual(["path.data=/usr/share/elasticsearch/data/6.3.100"], data_path)
+
+        # override empty
+        elasticsearch = Elasticsearch(version="6.3.100", elasticsearch_data_dir="").render()["elasticsearch"]
+        data_path = [e for e in elasticsearch["environment"] if e.startswith("path.data=")]
+        self.assertListEqual(["path.data=/usr/share/elasticsearch/data/"], data_path)
+
+        # override non-empty
+        elasticsearch = Elasticsearch(version="6.3.100", elasticsearch_data_dir="foo").render()["elasticsearch"]
+        data_path = [e for e in elasticsearch["environment"] if e.startswith("path.data=")]
+        self.assertListEqual(["path.data=/usr/share/elasticsearch/data/foo"], data_path)
+
     def test_heap(self):
         elasticsearch = Elasticsearch(version="6.3.100", elasticsearch_heap="5m").render()["elasticsearch"]
         java_opts = [e for e in elasticsearch["environment"] if e.startswith("ES_JAVA_OPTS=")]
