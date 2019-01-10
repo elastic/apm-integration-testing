@@ -17,7 +17,10 @@ function runTests() {
 }
 
 if [ -n "${APM_SERVER_BRANCH}" ]; then
- BUILD_OPTS="${BUILD_OPTS} --apm-server-build https://github.com/elastic/apm-server.git@${APM_SERVER_BRANCH#*;} ${APM_SERVER_BRANCH%;*}"
+ APM_SERVER_BRANCH_VERSION=${APM_SERVER_BRANCH%;*}
+ APM_SERVER_BRANCH_TYPE=${APM_SERVER_BRANCH//$APM_SERVER_BRANCH_VERSION/}
+ APM_SERVER_BRANCH_TYPE=${APM_SERVER_BRANCH_TYPE//;/}
+ BUILD_OPTS="${BUILD_OPTS} --apm-server-build https://github.com/elastic/apm-server.git@${APM_SERVER_BRANCH_VERSION} ${APM_SERVER_BRANCH_TYPE} "
 fi
 
 if [ -z "${DISABLE_BUILD_PARALLEL}" ]; then
