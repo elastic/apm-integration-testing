@@ -233,8 +233,7 @@ def testStep(tag, x, y){
         junit(
           allowEmptyResults: true, 
           keepLongStdio: true, 
-          testResults: "tests/results/*-junit*.xml")
-        deleteDir()
+          testResults: "${BASE_DIR}/tests/results/*-junit*.xml")
       }
     }
   }
