@@ -167,7 +167,7 @@ def getExcludeVersions(file, xKey, yKey){
 def saveResult(x, y, results, value){
   if(results.data[x] == null){
     results.data[x] = [:]
-    results.data[x]["Agent ${results.displayname}"] = results.displayname
+    results.data[x]["Agent ${results.displayname}"] = x
   }
   results.data[x][y] = value
 }
@@ -280,6 +280,7 @@ def runScript(Map params = [:]){
     pytestIni += "addopts = --color=yes -ra\n"
     writeFile(file: "pytest.ini", text: pytestIni, encoding: "UTF-8")
 
+    /** TODO enable script execution */
     sh """#!/bin/bash
     echo "${tag}"
     export TMPDIR="${WORKSPACE}"
@@ -291,13 +292,17 @@ def runScript(Map params = [:]){
 
 
 def processResults(results){
-  String html = '''
+  sh 'curl -sLO https://code.jquery.com/jquery-3.3.1.slim.min.js'
+  sh 'curl -sLO https://cdn.jsdelivr.net/npm/htmlson.js@1.0.4/src/htmlson.js'
+  def jquery = readFile(file: 'jquery-3.3.1.slim.min.js')
+  def htmlson = readFile(file: 'htmlson.js')
+  String html = """
   <html>
   <head>
     <title>Integration Test Results</title>
   </head>
-  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/htmlson.js@1.0.4/src/htmlson.js"></script>
+  <script>${jquery}</script>
+  <script>${htmlson}</script>
   <style>
     table {
       font-family: Arial, Helvetica, sans-serif;
@@ -349,14 +354,23 @@ def processResults(results){
       padding: 2px 8px;
       border-radius: 5px;
     }
+    
+    td .error {
+      color: red;
+    }
+    
+    td .ok {
+      color: green;
+    }
   </style>
   <body>
-  '''
+  """
   
   results.each{ k, v ->
     def records = []
     v.data.each{ dk, dv ->
       def row = [:]
+      row.put("Agent ${v.displayname}","")
       v.y.each{ vy ->
         row.put(vy, "N/A")
       }
@@ -379,9 +393,9 @@ def processResults(results){
   <script type="text/javascript">
     $('td').each(function(){
       if(this.textContent === "1"){
-        $( this ).replaceWith("<td>OK</td>");
+        $( this ).replaceWith("<td class="ok">OK</td>");
       } else if(this.textContent === "0") {
-        $( this ).replaceWith("<td>ERROR</td>");
+        $( this ).replaceWith("<td class="error">ERROR</td>");
       }
     });
   </script>
