@@ -357,9 +357,22 @@ class ApmServer(StackService, Service):
     def __init__(self, **options):
         super(ApmServer, self).__init__(**options)
 
-        self.apm_server_command_args = [
-            ("apm-server.frontend.enabled", "true"),
-            ("apm-server.frontend.rate_limit", "100000"),
+        v1_rate_limit = ("apm-server.frontend.rate_limit", "100000")
+        if self.at_least_version("6.5"):
+            rum_config = [
+                ("apm-server.rum.enabled", "true"),
+                ("apm-server.rum.event_rate.limit", "1000"),
+            ]
+            if not self.at_least_version("7.0"):
+                rum_config.append(v1_rate_limit)
+        else:
+            rum_config = [
+                ("apm-server.frontend.enabled", "true"),
+                v1_rate_limit,
+            ]
+
+        self.apm_server_command_args = rum_config
+        self.apm_server_command_args.extend([
             ("apm-server.host", "0.0.0.0:8200"),
             ("apm-server.read_timeout", "1m"),
             ("apm-server.shutdown_timeout", "2m"),
@@ -372,7 +385,7 @@ class ApmServer(StackService, Service):
             ("setup.template.settings.index.refresh_interval", "1ms"),
             ("xpack.monitoring.elasticsearch", "true"),
             ("xpack.monitoring.enabled", "true")
-        ]
+        ])
         if options.get("apm_server_self_instrument"):
             self.apm_server_command_args.append(("apm-server.instrumentation.enabled", "true"))
         self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if options.get(
