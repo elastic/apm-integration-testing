@@ -452,6 +452,8 @@ class ApmServer(StackService, Service):
         super(ApmServer, cls).add_arguments(parser)
         parser.add_argument(
             '--apm-server-build',
+            const="https://github.com/elastic/apm-server.git",
+            nargs="?",
             help='build apm-server from a git repo[@branch], eg https://github.com/elastic/apm-server.git@v2'
         )
         parser.add_argument(
