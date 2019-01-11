@@ -34,6 +34,15 @@ import groovy.transform.Field
   'server': 'APM_SERVER'
 ]
 
+@Field Map displayName = [
+  'go': 'Go',
+  'java': 'Java',
+  'nodejs': 'Node.js',
+  'python': 'Python',
+  'ruby': 'Ruby',
+  'server': 'APM Server'
+]
+
 pipeline {
   agent any
   environment {
@@ -158,7 +167,7 @@ def getExcludeVersions(file, xKey, yKey){
 def saveResult(x, y, results, value){
   if(results.data[x] == null){
     results.data[x] = [:]
-    results.data[x]["Agent ${results.tag}"] = esults.tag
+    results.data[x]["Agent ${results.displayname}"] = results.displayname
   }
   results.data[x][y] = value
 }
@@ -174,51 +183,6 @@ def buildColumn(x, yItems, excludes){
   return column
 }
 
-def processResults(results){
-  String html = """
-  <html>
-  <head>
-    <title>Integration Test Results</title>
-  </head>
-  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/htmlson.js@1.0.4/src/htmlson.js"></script>
-  <body>
-  """
-  
-  results.each{ k, v ->
-    def records = []
-    v.data.each{ dk, dv ->
-      records.add(dv)
-    }
-    
-    String jsonRecords = toJSON(records).toString()
-    html += """
-    <table class="${k}Agent"></table>
-    <script type="text/javascript">
-      let ${k}Data = ${jsonRecords};
-      let ${k}Table = \$('.${k}Agent').htmlson({
-        data: ${k}Data;
-      });
-    </script>
-    """
-  }
-  
-  html += '''
-  <script type="text/javascript">
-    $('td').each(function(){
-      if(this.textContent === "1"){
-        $( this ).replaceWith("<td>OK</td>");
-      } else if(this.textContent === "0") {
-        $( this ).replaceWith("<td>ERROR</td>");
-      }
-    });
-  </script>
-  </body>
-  </html>
-  '''
-  writeFile(file: 'results.html', text: html)
-}
-
 def generateParallelTests(tag) {
   def xKey = agentYamlVar[tag]
   def yKey = agentYamlVar['server']
@@ -228,6 +192,7 @@ def generateParallelTests(tag) {
   results[tag] = [:]
   results[tag].data = [:]
   results[tag].tag = tag
+  results[tag].displayname = displayName[tag]
   results[tag].x = getXVersions(xFile, xKey)
   results[tag].y = getYVersions(yFile, yKey)
   results[tag].excludes = getExcludeVersions(exclusionFile, xKey, yKey)
@@ -322,5 +287,107 @@ def runScript(Map params = [:]){
     echo ./scripts/ci/${agentType}.sh
     """
   }
+}
+
+
+def processResults(results){
+  String html = '''
+  <html>
+  <head>
+    <title>Integration Test Results</title>
+  </head>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/htmlson.js@1.0.4/src/htmlson.js"></script>
+  <style>
+    table {
+      font-family: Arial, Helvetica, sans-serif;
+      border: 1px solid #000000;
+      background-color: #EEEEEE;
+      width: 50em;
+      text-align: center;
+      border-collapse: collapse;
+      margin: 30px 20px;
+    }
+    table td, table th {
+      border: 1px solid #AAAAAA;
+      padding: 3px 2px;
+    }
+    table tbody td {
+      font-size: 13px;
+    }
+    table tr:nth-child(even) {
+      background: #D0E4F5;
+    }
+    table thead {
+      background: #1C6EA4;
+      background: -moz-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+      background: -webkit-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+      background: linear-gradient(to bottom, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+      border-bottom: 2px solid #444444;
+    }
+    table thead th {
+      font-size: 15px;
+      font-weight: bold;
+      color: #FFFFFF;
+      text-align: center;
+      border-left: 2px solid #D0E4F5;
+    }
+    table thead th:first-child {
+      border-left: none;
+    }
+
+    table tfoot td {
+      font-size: 14px;
+    }
+    table tfoot .links {
+      text-align: right;
+    }
+    table tfoot .links a{
+      display: inline-block;
+      background: #1C6EA4;
+      color: #FFFFFF;
+      padding: 2px 8px;
+      border-radius: 5px;
+    }
+  </style>
+  <body>
+  '''
+  
+  results.each{ k, v ->
+    def records = []
+    v.data.each{ dk, dv ->
+      def row = [:]
+      v.y.each{ vy ->
+        row.put(vy, "N/A")
+      }
+      row.putAll(dv)
+      records.add(row)
+    }
+    
+    String jsonRecords = toJSON(records).toString()
+    html += """
+    <h2>Agent ${v.displayname}</h2>
+    <table class="${k}Agent"></table>
+    <script type="text/javascript">
+      let ${k}Data = ${jsonRecords};
+      let ${k}Table = \$('.${k}Agent').htmlson({data: ${k}Data});
+    </script>
+    """
+  }
+  
+  html += '''
+  <script type="text/javascript">
+    $('td').each(function(){
+      if(this.textContent === "1"){
+        $( this ).replaceWith("<td>OK</td>");
+      } else if(this.textContent === "0") {
+        $( this ).replaceWith("<td>ERROR</td>");
+      }
+    });
+  </script>
+  </body>
+  </html>
+  '''
+  writeFile(file: 'results.html', text: html)
 }
 
