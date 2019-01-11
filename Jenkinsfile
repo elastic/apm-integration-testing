@@ -158,6 +158,7 @@ def getExcludeVersions(file, xKey, yKey){
 def saveResult(x, y, results, value){
   if(results.data[x] == null){
     results.data[x] = [:]
+    results.data[x]["Agent ${results.tag}"] = esults.tag
   }
   results.data[x][y] = value
 }
@@ -174,27 +175,47 @@ def buildColumn(x, yItems, excludes){
 }
 
 def processResults(results){
-  String html = '<html>\n\t<head>\n\t\t<title>Integration Tests Results</title>\n\t\t</head>\n\t\t<body>\n'
+  String html = """
+  <html>
+  <head>
+    <title>Integration Test Results</title>
+  </head>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/htmlson.js@1.0.4/src/htmlson.js"></script>
+  <body>
+  """
+  
   results.each{ k, v ->
-    html += '\t\t<table>\n'
-    html += '\t\t\t<tr>\n'
-    html += '\t\t\t\t<th> </th>\n'
-    v.x.each{ vx ->
-      html += "\t\t\t\t<th>${vx}</th>\n"
+    def records = []
+    v.data.each{ dk, dv ->
+      records.add(dv)
     }
-    html += '\t\t\t</tr>\n'
     
-    v.y.each{ vy ->
-      html += '\t\t\t<tr>\n'
-      html += "\t\t\t\t<th>${vy}</th>\n"
-      v.x.each{ vx ->
-        html += "\t\t\t\t<td>${v.data[vx][vy]}</td>\n"
-      }
-      html += '\t\t\t</tr>\n'
-    }
-    html += '\t\t</table>\n\n'
+    String jsonRecords = toJSON(records).toString()
+    html += """
+    <table class="${k}Agent"></table>
+    <script type="text/javascript">
+      let ${k}Data = ${jsonRecords};
+      var ${k}Table = $('.${k}Agent').htmlson({
+        data: ${k}Data;
+      });
+    </script>
+    """
   }
-  html += '\t\t</body>\n</html>\n'
+  
+  html += '''
+  <script type="text/javascript">
+    $('td').each(function(){
+      if(this.textContent === "1"){
+        $( this ).replaceWith("<td>OK</td>");
+      } else if(this.textContent === "0") {
+        $( this ).replaceWith("<td>ERROR</td>");
+      }
+    });
+  </script>
+  </body>
+  </html>
+  '''
   writeFile(file: 'results.html', text: html)
 }
 
@@ -298,7 +319,7 @@ def runScript(Map params = [:]){
     echo "${tag}"
     export TMPDIR="${WORKSPACE}"
     chmod ugo+rx ./scripts/ci/*.sh
-    ./scripts/ci/${agentType}.sh
+    echo ./scripts/ci/${agentType}.sh
     """
   }
 }
