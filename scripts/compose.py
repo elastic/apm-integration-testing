@@ -589,8 +589,11 @@ class Elasticsearch(StackService, Service):
             es_java_opts["XX:UseAVX"] = "=2"
 
         java_opts_env = "ES_JAVA_OPTS=" + " ".join(["-{}{}".format(k, v) for k, v in sorted(es_java_opts.items())])
+        # falsy empty string permitted
+        data_dir = self.version if options.get("elasticsearch_data_dir") is None else options["elasticsearch_data_dir"]
+
         self.environment = self.default_environment + [
-            java_opts_env, "path.data=/usr/share/elasticsearch/data/" + self.version]
+            java_opts_env, "path.data=/usr/share/elasticsearch/data/" + data_dir]
         if not self.oss:
             self.environment.append("xpack.security.enabled=false")
             self.environment.append("xpack.license.self_generated.type=trial")
@@ -600,6 +603,11 @@ class Elasticsearch(StackService, Service):
     @classmethod
     def add_arguments(cls, parser):
         super(Elasticsearch, cls).add_arguments(parser)
+        parser.add_argument(
+            "--elasticsearch-data-dir",
+            help="override elasticsearch data dir.  Defaults to the current es version."
+        )
+
         parser.add_argument(
             "--elasticsearch-heap",
             default=Elasticsearch.default_heap_size,
