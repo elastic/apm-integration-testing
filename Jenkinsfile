@@ -109,11 +109,12 @@ pipeline {
             dir("${BASE_DIR}"){
               script {
                 def matrix = [:]
-                matrix.putAll(generateParallelTests('go'))
-                matrix.putAll(generateParallelTests('java'))
+                /** TODO enable all agents */
+                //matrix.putAll(generateParallelTests('go'))
+                //matrix.putAll(generateParallelTests('java'))
                 matrix.putAll(generateParallelTests('python'))
-                matrix.putAll(generateParallelTests('nodejs'))
-                matrix.putAll(generateParallelTests('ruby'))
+                //matrix.putAll(generateParallelTests('nodejs'))
+                //matrix.putAll(generateParallelTests('ruby'))
                 parallel(matrix)
               }
             }
@@ -296,13 +297,12 @@ def processResults(results){
   sh 'curl -sLO https://cdn.jsdelivr.net/npm/htmlson.js@1.0.4/src/htmlson.js'
   def jquery = readFile(file: 'jquery-3.3.1.slim.min.js')
   def htmlson = readFile(file: 'htmlson.js')
-  String html = """
-  <html>
+  String html = """<html>
   <head>
     <title>Integration Test Results</title>
   </head>
-  <script>${jquery}</script>
-  <script>${htmlson}</script>
+  <script type="text/javascript">${jquery}</script>
+  <script type="text/javascript">${htmlson}</script>
   <style>
     table {
       font-family: Arial, Helvetica, sans-serif;
@@ -370,7 +370,6 @@ def processResults(results){
     def records = []
     v.data.each{ dk, dv ->
       def row = [:]
-      row.put("Agent ${v.displayname}","")
       v.y.each{ vy ->
         row.put(vy, "N/A")
       }
@@ -393,9 +392,9 @@ def processResults(results){
   <script type="text/javascript">
     $('td').each(function(){
       if(this.textContent === "1"){
-        $( this ).replaceWith("<td class="ok">OK</td>");
+        $( this ).replaceWith("<td class='ok'>OK</td>");
       } else if(this.textContent === "0") {
-        $( this ).replaceWith("<td class="error">ERROR</td>");
+        $( this ).replaceWith("<td class='error'>ERROR</td>");
       }
     });
   </script>
