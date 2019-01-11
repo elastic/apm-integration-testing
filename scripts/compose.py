@@ -437,7 +437,7 @@ class ApmServer(StackService, Service):
                 self.apm_server_command_args.extend([
                     ("output.kafka.enabled", "true"),
                     ("output.kafka.hosts", "[\"kafka:9092\"]"),
-                    ("output.kafka.topics", "[{default: 'apm', topic: 'apm-%{[context.service.name]}'}]"),
+                    ("output.kafka.topics", "[{default: 'apm', topic: 'apm-%{[service.name]}'}]"),
                 ])
             elif self.apm_server_output == "logstash":
                 self.apm_server_command_args.extend([
