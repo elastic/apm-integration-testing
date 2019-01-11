@@ -109,12 +109,11 @@ pipeline {
             dir("${BASE_DIR}"){
               script {
                 def matrix = [:]
-                /** TODO enable all agents */
-                //matrix.putAll(generateParallelTests('go'))
-                //matrix.putAll(generateParallelTests('java'))
+                matrix.putAll(generateParallelTests('go'))
+                matrix.putAll(generateParallelTests('java'))
                 matrix.putAll(generateParallelTests('python'))
-                //matrix.putAll(generateParallelTests('nodejs'))
-                //matrix.putAll(generateParallelTests('ruby'))
+                matrix.putAll(generateParallelTests('nodejs'))
+                matrix.putAll(generateParallelTests('ruby'))
                 parallel(matrix)
               }
             }
@@ -281,12 +280,11 @@ def runScript(Map params = [:]){
     pytestIni += "addopts = --color=yes -ra\n"
     writeFile(file: "pytest.ini", text: pytestIni, encoding: "UTF-8")
 
-    /** TODO enable script execution */
     sh """#!/bin/bash
     echo "${tag}"
     export TMPDIR="${WORKSPACE}"
     chmod ugo+rx ./scripts/ci/*.sh
-    echo ./scripts/ci/${agentType}.sh
+    ./scripts/ci/${agentType}.sh
     """
   }
 }
@@ -355,11 +353,11 @@ def processResults(results){
       border-radius: 5px;
     }
     
-    td .error {
+    .error {
       color: red;
     }
     
-    td .ok {
+    .ok {
       color: green;
     }
   </style>
