@@ -11,6 +11,8 @@ do
   echo "***************Docker Container ${id}***************"
   docker ps -af id=${id} --no-trunc
   docker logs ${id}
-  docker ps -aq -f id=${id} -f status=dead -f status=exited -f health=unhealthy|xargs -n1 -t docker inspect
+  
+  DOCKER_CONTAINER_NO_OK=$(docker ps -aq -f id=${id} -f status=dead -f status=exited -f health=unhealthy)
+  [ -n "${DOCKER_CONTAINER_NO_OK}" ] && docker inspect ${id}
 done
 echo "*******************************************************"
