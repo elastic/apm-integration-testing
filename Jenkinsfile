@@ -196,7 +196,7 @@ def processResults(results){
     <table class="${k}Agent"></table>
     <script type="text/javascript">
       let ${k}Data = ${jsonRecords};
-      var ${k}Table = $('.${k}Agent').htmlson({
+      let ${k}Table = \$('.${k}Agent').htmlson({
         data: ${k}Data;
       });
     </script>
