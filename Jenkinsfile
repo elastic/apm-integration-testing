@@ -65,6 +65,7 @@ pipeline {
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', defaultValue: true, description: "Disable the build parallel option on compose.py, disable it is better for error detection.")
     booleanParam(name: 'all_Test', defaultValue: true, description: 'Enable Test')
     booleanParam(name: 'agents_Test', defaultValue: true, description: 'Enable Test')
+    booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
   }
   stages{
     /**
@@ -99,9 +100,21 @@ pipeline {
         stage("Agents") { 
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
-          when { 
+          when {
             beforeAgent true
-            expression { return params.agents_Test }
+            allOf {
+              anyOf {
+                not {
+                  changeRequest()
+                }
+                branch 'master'
+                branch "\\d+\\.\\d+"
+                branch "v\\d?"
+                tag "v\\d+\\.\\d+\\.\\d+*"
+                environment name: 'Run_As_Master_Branch', value: 'true'
+              }
+              expression { return params.agents_Test }
+            }
           }
           steps {
             deleteDir()
