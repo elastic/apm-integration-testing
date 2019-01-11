@@ -117,7 +117,7 @@ pipeline {
     always{
       writeJSON(file: 'results.json', json: toJSON(results), pretty: 2)
       processResults(results)
-      archive('results.json')
+      archiveArtifacts allowEmptyArchive: true, artifacts: 'results.json,results.html', defaultExcludes: false
     }
     success {
       echoColor(text: '[SUCCESS]', colorfg: 'green', colorbg: 'default')
@@ -176,25 +176,25 @@ def buildColumn(x, yItems, excludes){
 def processResults(results){
   String html = '<html>\n\t<head>\n\t\t<title>Integration Tests Results</title>\n\t\t</head>\n\t\t<body>\n'
   results.each{ k, v ->
-    html += '<table>'
-    html += '<tr>'
-    html += '<th> </th>'
+    html += '\t\t<table>\n'
+    html += '\t\t\t<tr>\n'
+    html += '\t\t\t\t<th> </th>\n'
     v.x.each{ vx ->
-      html += "<th>${vx}</th>"
+      html += "\t\t\t\t<th>${vx}</th>\n"
     }
-    html += '</tr>'
+    html += '\t\t\t</tr>\n'
     
     v.y.each{ vy ->
-      html += '<tr>'
-      html += "<th>${vy}</th>"
+      html += '\t\t\t<tr>\n'
+      html += "\t\t\t\t<th>${vy}</th>\n"
       v.x.each{ vx ->
-        html += "<td>${v.data[vx][vy]}</td>"
+        html += "\t\t\t\t<td>${v.data[vx][vy]}</td>\n"
       }
-      html += '</tr>'
+      html += '\t\t\t</tr>\n'
     }
-    html += '</table>'
+    html += '\t\t</table>\n\n'
   }
-  html += '\t\t</body></html>\n'
+  html += '\t\t</body>\n</html>\n'
   writeFile(file: 'results.html', text: html)
 }
 
