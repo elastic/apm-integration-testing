@@ -243,9 +243,9 @@ def testStep(tag, x, y){
         error("Some ${tag} tests failed")
       } finally {
         junit(
-          allowEmptyResults: true, 
+          allowEmptyResults: false, 
           keepLongStdio: true, 
-          testResults: "${BASE_DIR}/tests/results/*-junit*.xml")
+          testResults: "${BASE_DIR}/**/tests/results/*-junit*.xml")
       }
     }
   }
