@@ -15,7 +15,11 @@ BAR = "bar"
 def lookup(d, *keys):
     d1 = copy.deepcopy(d)
     for k in keys:
-        d1 = d1[k]
+        try:
+            d1 = d1[k]
+        except KeyError:
+            print(d)
+            raise
     return d1
 
 
@@ -130,13 +134,13 @@ class Concurrent:
                 spans_sum += count
                 assert_count([
                     {"span.name": span_name},
-                    {"context.service.name": ep.app_name}
+                    {"service.name": ep.app_name}
                 ], count)
 
             count = ep.count("transaction") * it
             transactions_sum += count
             assert_count([
-                {'context.service.name': ep.app_name},
+                {'service.name': ep.app_name},
                 {'transaction.name.keyword': ep.transaction_name}
             ], count)
 
@@ -150,7 +154,7 @@ class Concurrent:
         slack = timedelta(seconds=2) if slack is None else slack
         for ep in self.endpoints:
             q = self.elasticsearch.term_q([
-                {'context.service.name': ep.app_name},
+                {'service.name': ep.app_name},
                 {'transaction.name.keyword': ep.transaction_name}
             ])
             rs = self.es.search(index=self.index, body=q)
@@ -165,19 +169,19 @@ class Concurrent:
             assert tr_cnt == actual_cnt, "expected {} hits, got: {}".format(tr_cnt, actual_cnt)
 
             # check the first existing transaction for every endpoint
-            hit = lookup(rs, 'hits', 'hits')[0]
-            assert hit['_source']['processor'] == {'name': 'transaction', 'event': 'transaction'}
+            source = lookup(rs, 'hits', 'hits')[0]['_source']
+            assert source['processor'] == {'name': 'transaction', 'event': 'transaction'}
 
-            transaction = lookup(hit, '_source', 'transaction')
+            transaction = lookup(source, 'transaction')
             duration = lookup(transaction, 'duration', 'us')
-            assert not anomaly(duration), (hit, duration)
+            assert not anomaly(duration), (source, duration)
 
-            timestamp = datetime.strptime(lookup(hit, '_source', '@timestamp'), '%Y-%m-%dT%H:%M:%S.%fZ')
+            timestamp = datetime.strptime(lookup(source, '@timestamp'), '%Y-%m-%dT%H:%M:%S.%fZ')
             assert first_req < timestamp < last_req + slack, \
                 "transaction time {} outside of expected range {} - {}".format(timestamp, first_req, last_req)
             assert transaction['result'] == 'HTTP 2xx', transaction['result']
 
-            context = lookup(hit, '_source', 'context')
+            context = lookup(source, 'context')
             assert context['request']['method'] == "GET", context['request']['method']
             exp_p = os.path.basename(os.path.normpath(ep.url.split('?')[0]))
             p = context['request']['url']['pathname'].strip("/")
@@ -188,38 +192,40 @@ class Concurrent:
                 tags = context['tags']
             assert tags == {}, tags
 
-            app_name = lookup(context, 'service', 'name')
-            assert app_name == ep.app_name, app_name
+            service = lookup(source, 'service')
+            service_name = service['name']
+            assert service_name == ep.app_name, service_name
 
-            agent = lookup(context, 'service', 'agent', 'name')
-            assert agent == ep.agent, agent
+            agent = lookup(source, 'agent')
+            agent_name = agent['name']
+            assert agent_name == ep.agent, agent_name
             assert transaction['type'] == 'request'
 
+            search = context['request']['url']['search']
             try:
-                framework = lookup(context, 'service', 'framework', 'name')
+                framework = lookup(service, 'framework', 'name')
             except KeyError:
                 # The Go agent doesn't support reporting framework:
                 #   https://github.com/elastic/apm-agent-go/issues/69
-                assert agent in ('go', 'java'), agent + ' agent did not report framework name'
+                assert agent_name in ('go', 'java'), agent_name + ' agent did not report framework name'
+            lang = lookup(service, 'language', 'name')
 
-            search = context['request']['url']['search']
-            lang = lookup(context, 'service', 'language', 'name')
-            if agent == 'nodejs':
+            if agent_name == 'nodejs':
                 assert lang == "javascript", context
-                assert framework in ("express"), context
+                assert framework in ("express",), context
                 assert search == '?q=1', context
-            elif agent == 'python':
+            elif agent_name == 'python':
                 assert lang == "python", context
                 assert framework in ("django", "flask"), context
                 assert search == '?q=1', context
-            elif agent == 'ruby':
+            elif agent_name == 'ruby':
                 assert lang == "ruby", context
-                assert framework in ("Ruby on Rails"), context
-            elif agent == 'go':
+                assert framework in ("Ruby on Rails",), context
+            elif agent_name == 'go':
                 assert lang == "go", context
                 assert transaction['type'] == 'request'
                 assert search == 'q=1', context
-            elif agent == 'java':
+            elif agent_name == 'java':
                 assert lang == "Java", context
                 assert transaction['type'] == 'request'
                 assert search == 'q=1', context
@@ -234,21 +240,21 @@ class Concurrent:
             span_hits = lookup(rs, 'hits', 'hits')
             assert len(span_hits) == ep.no_per_event["span"]
             for span_hit in span_hits:
-                assert span_hit['_source']['processor'] == {'event': 'span', 'name': 'transaction'}, span_hit
+                span_source = span_hit['_source']
+                assert span_source['processor'] == {'event': 'span', 'name': 'transaction'}, span_hit
 
-                span = lookup(span_hit, '_source', 'span')
+                span = lookup(span_source, 'span')
                 assert span["name"] in ep.span_names, span
 
-                span_context = lookup(span_hit, '_source', 'context')
-                span_app_name = lookup(span_context, 'service', 'name')
-                assert span_app_name == ep.app_name, span_context
+                span_source = lookup(span_source, 'service', 'name')
+                assert span_source == ep.app_name, span_source
 
                 if 'start' in span:
                     span_start = lookup(span, 'start', 'us')
                     assert not anomaly(span_start), span_start
 
                 span_duration = lookup(span, 'duration', 'us')
-                assert not anomaly(span_duration), (hit, span_duration)
+                assert not anomaly(span_duration), (span_hit, span_duration)
 
                 assert span_duration < duration * 10, \
                     "span duration {} is more than 10X bigger than transaction duration{}".format(

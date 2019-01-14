@@ -298,7 +298,7 @@ class ApmServerServiceTest(ServiceTest):
         kafka_options = [
             "output.kafka.enabled=true",
             "output.kafka.hosts=[\"kafka:9092\"]",
-            "output.kafka.topics=[{default: 'apm', topic: 'apm-%{[context.service.name]}'}]",
+            "output.kafka.topics=[{default: 'apm', topic: 'apm-%{[service.name]}'}]",
         ]
         for o in kafka_options:
             self.assertTrue(o in apm_server["command"], "{} not set while output=kafka".format(o))
