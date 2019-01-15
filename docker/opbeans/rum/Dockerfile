@@ -1,21 +1,22 @@
-FROM node:8
+FROM node:8-slim
 
 RUN apt-get -qq update && apt-get -qq install -y \
+	libgconf-2-4 \
 	apt-transport-https \
 	ca-certificates \
 	curl \
-    gnupg \
+	gnupg \
 	--no-install-recommends \
 	&& curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
 	&& echo "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
 	&& apt-get -qq update && apt-get -qq install -y \
-	google-chrome-stable \
+	google-chrome-unstable \
 	--no-install-recommends \
 	&& rm -rf /var/lib/apt/lists/*
 
 # Add Chrome as a user
 RUN groupadd -r chrome && useradd -r -g chrome -G audio,video chrome \
-    && mkdir -p /home/chrome && chown -R chrome:chrome /home/chrome
+	&& mkdir -p /home/chrome && chown -R chrome:chrome /home/chrome
 
 WORKDIR /home/chrome
 
