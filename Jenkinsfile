@@ -18,7 +18,7 @@ pipeline {
   }
   parameters {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.5", description: "Elastic Stack Git branch/tag to use")
-    string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "pipeline-axis", description: "Integration testing Git branch/tag to use")
+    string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "6.x", description: "Integration testing Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', defaultValue: true, description: "Disable the build parallel option on compose.py, disable it is better for error detection.")
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -42,9 +42,7 @@ pipeline {
       options { skipDefaultCheckout() }
       when {
         beforeAgent true
-        not {
-          changeRequest()
-        }
+        changeRequest()
       }
       steps {
         runJob('All')
@@ -60,9 +58,9 @@ pipeline {
         beforeAgent true
         allOf {
           anyOf {
-            //not {
+            not {
               changeRequest()
-            //}
+            }
             branch 'master'
             branch "\\d+\\.\\d+"
             branch "v\\d?"
