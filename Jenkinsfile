@@ -42,7 +42,9 @@ pipeline {
       options { skipDefaultCheckout() }
       when {
         beforeAgent true
-        changeRequest()
+        not {
+          changeRequest()
+        }
       }
       steps {
         runJob('All')
