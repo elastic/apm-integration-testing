@@ -1,5 +1,6 @@
 {
   "name": "opbeans-frontend-loadgen",
+  "private": true,
   "version": "1.0.0",
   "description": "Load generator for opbeans frontend app",
   "dependencies": {
