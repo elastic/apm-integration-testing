@@ -437,7 +437,7 @@ class ApmServer(StackService, Service):
                 self.apm_server_command_args.extend([
                     ("output.kafka.enabled", "true"),
                     ("output.kafka.hosts", "[\"kafka:9092\"]"),
-                    ("output.kafka.topics", "[{default: 'apm', topic: 'apm-%{[context.service.name]}'}]"),
+                    ("output.kafka.topics", "[{default: 'apm', topic: 'apm-%{[service.name]}'}]"),
                 ])
             elif self.apm_server_output == "logstash":
                 self.apm_server_command_args.extend([
@@ -452,6 +452,8 @@ class ApmServer(StackService, Service):
         super(ApmServer, cls).add_arguments(parser)
         parser.add_argument(
             '--apm-server-build',
+            const="https://github.com/elastic/apm-server.git",
+            nargs="?",
             help='build apm-server from a git repo[@branch], eg https://github.com/elastic/apm-server.git@v2'
         )
         parser.add_argument(
@@ -579,7 +581,12 @@ class ApmServer(StackService, Service):
 
 
 class Elasticsearch(StackService, Service):
-    default_environment = ["cluster.name=docker-cluster", "bootstrap.memory_lock=true", "discovery.type=single-node"]
+    default_environment = [
+        "bootstrap.memory_lock=true",
+        "cluster.name=docker-cluster",
+        "discovery.type=single-node",
+        "cluster.routing.allocation.disk.threshold_enabled=false",
+    ]
     default_heap_size = "1g"
 
     SERVICE_PORT = 9200
