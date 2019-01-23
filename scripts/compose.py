@@ -1508,7 +1508,7 @@ class OpbeansRum(Service):
             ],
             image=None,
             labels=None,
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "opbeans-rum", path="/"),
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
         return content
