@@ -62,6 +62,9 @@ test-kibana: venv
 test-server: venv
 	pytest tests/server/ -v -s $(JUNIT_OPT)/server-junit.xml
 
+test-upgrade: venv
+	pytest tests/server/test_upgrade.py -v -s $(JUNIT_OPT)/server-junit.xml
+
 SUBCOMMANDS = list-options load-dashboards start status stop upload-sourcemap versions
 
 test-helps:
@@ -70,12 +73,15 @@ test-helps:
 test-all: venv test-compose lint test-helps
 	pytest -v -s $(JUNIT_OPT)/all-junit.xml
 
+docker-compose-wait: venv
+	docker-compose-wait || (docker ps -a && exit 1)
+
 docker-test-%:
 	TARGET=test-$* $(MAKE) dockerized-test
 
 dockerized-test:
 	@echo waiting for services to be healthy
-	docker-compose-wait || (docker ps -a && exit 1)
+	$(MAKE) docker-compose wait
 	
 	@echo containers summary
 	docker ps -a
@@ -106,4 +112,4 @@ dockerized-test:
 	  apm-integration-testing \
 	  $(TARGET)
 
-.PHONY: test-% docker-test-% dockerized-test
+.PHONY: test-% docker-test-% dockerized-test docker-compose-wait

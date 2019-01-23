@@ -557,11 +557,17 @@ class ApmServer(StackService, Service):
         single["ports"] = [p.rsplit(":", 1)[-1] for p in single["ports"]]
 
         # render proxy + backends
-        ren = self.render_proxy()
+        if self.apm_server_count != 2:
+            raise Exception("teeproxy requires exactly 2 apm servers")
+
+        ren = self.render_tee()  # self.render_proxy()
         # individualize each backend instance
         for i in range(1, self.apm_server_count + 1):
             backend = dict(single)
             backend["container_name"] = backend["container_name"] + "-" + str(i)
+            if i == 2:
+                backend["image"] = "docker.elastic.co/apm/apm-server:7.0.0-SNAPSHOT"
+                backend["labels"] = ["co.elatic.apm.stack-version=7.0.0"]
             ren.update({"-".join([self.name(), str(i)]): backend})
         return ren
 
@@ -573,6 +579,21 @@ class ApmServer(StackService, Service):
             depends_on={"apm-server-{}".format(i): condition for i in range(1, self.apm_server_count + 1)},
             environment={"APM_SERVER_COUNT": self.apm_server_count},
             healthcheck={"test": ["CMD", "haproxy", "-c", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]},
+            ports=[
+                self.publish_port(self.port, self.SERVICE_PORT),
+            ],
+        )
+        return {self.name(): content}
+
+    def render_tee(self):
+        condition = {"condition": "service_healthy"}
+        content = dict(
+            build={"context": "docker/apm-server/teeproxy"},
+            # TODO: support > 1 backup server
+            command=["teeproxy", "-l", "0.0.0.0:8200", "-a", "apm-server-1:8200", "-b", "apm-server-2:8200"],
+            container_name=self.default_container_name() + "-tee",
+            depends_on={"apm-server-{}".format(i): condition for i in range(1, self.apm_server_count + 1)},
+            healthcheck={"test": ["CMD", "pgrep", "teeproxy"]},
             ports=[
                 self.publish_port(self.port, self.SERVICE_PORT),
             ],
@@ -1793,6 +1814,14 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
+            '--remove-orphans',
+            action='store_true',
+            help='remove services that no longer exist',
+            dest='remove_orphans',
+            default=False,
+        )
+
+        parser.add_argument(
             '--all',
             action='store_true',
             help='run all opbeans services',
@@ -2004,6 +2033,8 @@ class LocalSetup(object):
                 subprocess.call(["docker-compose", "-f", docker_compose_path.name, "pull"] + image_services)
             # really start
             docker_compose_up = ["docker-compose", "-f", docker_compose_path.name, "up", "-d"]
+            if args["remove_orphans"]:
+                docker_compose_up.append("--remove-orphans")
             subprocess.call(docker_compose_up)
 
     @staticmethod
