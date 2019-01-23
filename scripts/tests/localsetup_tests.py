@@ -335,7 +335,7 @@ class OpbeansServiceTest(ServiceTest):
                          opbeans-node:
                              condition: service_healthy
                      healthcheck:
-                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-rum:9222/"]
+                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://localhost:9222/"]
                          interval: 5s
                          retries: 12""")  # noqa: 501
         )
