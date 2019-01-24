@@ -5,6 +5,7 @@ ctx._source.ecs = ['version': '1.0.0-beta2'];
 // beat -> observer
 def beat = ctx._source.remove("beat");
 if (beat != null) {
+    beat.remove("name");
     ctx._source.observer = beat;
     ctx._source.observer.type = "apm-server";
 }
