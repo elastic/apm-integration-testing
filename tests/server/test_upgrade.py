@@ -240,17 +240,7 @@ def test_reindex_v2(es):
             wait_for_completion=True,
         )
 
+        print("comparing {} with {}".format(exp, dst))
+        want = es.es.search(index=exp, sort="@timestamp:asc", size=1)["hits"]["hits"][0]["_source"]
         got = es.es.search(index=dst, sort="@timestamp:asc", size=1)["hits"]["hits"][0]["_source"]
-
-        # can't do this for now since index splitting isn't in nightly snap yet and can't --apm-server-build easily
-        # print("comparing {} with {}".format(exp, dst))
-        # want = es.es.search(index=exp, sort="@timestamp:asc", size=1)["hits"]["hits"][0]["_source"]
-        print(got)
-        # want = es.es.search(index="apm-7.0.0-*", sort="@timestamp:asc", size=1, body={
-        #     "query": {"bool": {"must": [
-        #         {"term": {"observer.version": {"value": "7.0.0"}}},
-        #         {"term": {"@timestamp": {"value": got["@timestamp"]}}},
-        #         {"term": {"processor.event": {"value": got["processor"]["event"]}}}
-        #     ]}}})["hits"]["hits"][0]["_source"]
-
-        #assert want == got
+        assert want == got
