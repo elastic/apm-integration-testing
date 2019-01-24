@@ -568,6 +568,7 @@ class ApmServer(StackService, Service):
             if i == 2:
                 backend["image"] = "docker.elastic.co/apm/apm-server:7.0.0-SNAPSHOT"
                 backend["labels"] = ["co.elatic.apm.stack-version=7.0.0"]
+                backend["volumes"] = ["./docker/apm-server/apm-server.docker.yml:/usr/share/apm-server/apm-server.yml"]
             ren.update({"-".join([self.name(), str(i)]): backend})
         return ren
 
