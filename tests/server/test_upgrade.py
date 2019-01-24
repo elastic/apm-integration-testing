@@ -212,6 +212,14 @@ if (ctx._source.processor.event == "transaction") {
         }
     }
 }
+
+if (ctx._source.processor.event == "error") {
+    def exception = ctx._source.error.remove("exception");
+    if (exception != null) {
+        ctx._source.error.exception = [exception];
+    }
+}
+
 """
 
 
