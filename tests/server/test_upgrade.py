@@ -255,4 +255,33 @@ def test_reindex_v2(es):
         print("comparing {} with {}".format(exp, dst))
         want = es.es.search(index=exp, sort="@timestamp:asc", size=1)["hits"]["hits"][0]["_source"]
         got = es.es.search(index=dst, sort="@timestamp:asc", size=1)["hits"]["hits"][0]["_source"]
+
+        # no id or ephemeral_id in reindexed docs
+        assert want["observer"].pop("ephemeral_id"), "missing ephemeral_id"
+        assert want["observer"].pop("id"), "missing id"
+
+        # versions should be different
+        want_version = want["observer"].pop("version")
+        got_version = got["observer"].pop("version")
+        assert want_version is not None
+        assert want_version != got_version
+
+        # hostnames should be different
+        want_hostname = want["observer"].pop("hostname")
+        got_hostname = got["observer"].pop("hostname")
+        assert want_hostname is not None
+        assert want_hostname != got_hostname
+
+        # host.name to be removed
+        host = want.pop("host")
+        del(host["name"])
+        # only put host back if it's not empty
+        if host:
+            want["host"] = host
+
+        # onboarding doc timestamps won't match exactly
+        if want["processor"]["event"] == "onboarding":
+            del(want["@timestamp"])
+            del(got["@timestamp"])
+
         assert want == got
