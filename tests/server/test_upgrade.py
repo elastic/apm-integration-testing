@@ -186,9 +186,9 @@ if (ctx._source.processor.event == "span") {
     if (ctx._source.span.containsKey("hex_id")) {
       ctx._source.span.id = ctx._source.span.remove("hex_id");
     }
-    if (ctx._source.span.containsKey("parent") && ctx._source.parent == null) {
-      ctx._source.parent = new HashMap();
-      ctx.source.parent.id = ctx._source.span.remove("parent");
+    def parent = ctx._source.span.remove("parent");
+    if (parent != null && ctx._source.parent == null) {
+      ctx._source.parent = ["id": parent];
     }
 }
 
