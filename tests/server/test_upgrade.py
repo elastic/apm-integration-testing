@@ -39,7 +39,7 @@ if (context != null) {
       
         // context.request.http_version -> http.version
         def http_version = request.remove("http_version");
-        if (http_version != null){
+        if (http_version != null) {
           if (ctx._source.http == null) {
               ctx._source.http = new HashMap();
           }
@@ -60,7 +60,7 @@ if (context != null) {
         
         // context.request.body -> http.request.body.original
         def body = request.remove("body");
-        if (body != null){
+        if (body != null) {
           ctx._source.http.request.body = new HashMap()
           //ctx._source.http.request.body.original = body;
               // TODO: figure out how to handle body - it can be a string or an object
@@ -68,29 +68,29 @@ if (context != null) {
         }
 
         def parsed = request.remove("cookies"); 
-        if (parsed != null){
+        if (parsed != null) {
           ctx._source.http.request.headers = new HashMap();
           ctx._source.http.request.headers.cookies.parsed = parsed;
         }
         
-        if (request.headers.containsKey("cookies") && request.headers.cookies.containsKey("original")){
-          if (ctx._source.http.request.headers == null){
+        if (request.headers.containsKey("cookies") && request.headers.cookies.containsKey("original")) {
+          if (ctx._source.http.request.headers == null) {
             ctx._source.http.request.headers = new HashMap();
           }
           ctx._source.http.request.headers.cookies = new HashMap();
           ctx._source.http.request.headers.cookies.original = request.headers.cookies.remove("original");
         }
         def ua = request.headers.remove("user-agent");
-        if (ua != null){
-          if (ctx._source.http.request.headers == null){
+        if (ua != null) {
+          if (ctx._source.http.request.headers == null) {
             ctx._source.http.request.headers = new HashMap();
           }
           //TODO: figure out why `user-agent` throws an exception
           //ctx._source.http.request.headers.user_agent = parsed;
         }
         def ct = request.headers.remove("content-type");
-        if (ct != null){
-          if (ctx._source.http.request.headers == null){
+        if (ct != null) {
+          if (ctx._source.http.request.headers == null) {
             ctx._source.http.request.headers = new HashMap();
           }
           //TODO: figure out why `content-type` throws an exception
@@ -149,8 +149,8 @@ if (context != null) {
         }
         // context.user.user-agent -> user_agent.original.text
         // XXX: untested
-        //if (user.containsKey("user-agent")){
-        //  if (ctx._source.user_agent == null){
+        //if (user.containsKey("user-agent")) {
+        //  if (ctx._source.user_agent == null) {
         //    ctx._source.user_agent = new HashMap();
         //  }
         //  ctx._source.user_agent.original.text = user.remove("user-agent");
@@ -172,7 +172,7 @@ if (ctx._source.processor.event == "span") {
     // bump timestamp.us by span.start.us for spans
     // shouldn't @timestamp this already be a Date?
     def ts = ctx._source.get("@timestamp");
-    if (ts != null && !ctx._source.containsKey("timestamp")){
+    if (ts != null && !ctx._source.containsKey("timestamp")) {
         // add span.start to @timestamp for rum documents v1
         if (ctx._source.context.service.agent.name == "js-base" && ctx._source.span.start.containsKey("us")) {
            ts += ctx._source.span.start.us/1000;
@@ -182,17 +182,17 @@ if (ctx._source.processor.event == "span") {
         ctx._source.timestamp = new HashMap();
         ctx._source.timestamp.us = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(ts).getTime()*1000;
     }
-    if (ctx._source.span.containsKey("hex_id")){
+    if (ctx._source.span.containsKey("hex_id")) {
       ctx._source.span.id = ctx._source.span.remove("hex_id");
     }
-    if (ctx._source.span.containsKey("parent") && ctx._source.parent == null){
+    if (ctx._source.span.containsKey("parent") && ctx._source.parent == null) {
       ctx._source.parent = new HashMap();
       ctx.source.parent.id = ctx._source.span.remove("parent");
     }
 }
 
-if (ctx._source.processor.event == "transaction" || ctx._source.processor.event == "span" || ctx._source.processor.event == "error"){
-  if (ctx._source.containsKey("transaction")){
+if (ctx._source.processor.event == "transaction" || ctx._source.processor.event == "span" || ctx._source.processor.event == "error") {
+  if (ctx._source.containsKey("transaction")) {
     def tr_id = ctx._source.transaction.get("id");
     if (ctx._source.trace == null && tr_id != null) {
         // create a trace id from the transaction.id
@@ -203,7 +203,7 @@ if (ctx._source.processor.event == "transaction" || ctx._source.processor.event 
   }
 }
 
-if (ctx._source.processor.event == "transaction"){
+if (ctx._source.processor.event == "transaction") {
     // transaction.span_count.dropped.total -> transaction.span_count.dropped
     if (ctx._source.transaction.containsKey("span_count")) {
         def dropped = ctx._source.transaction.span_count.remove("dropped");
