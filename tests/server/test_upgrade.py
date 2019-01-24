@@ -6,7 +6,7 @@ ctx._source.ecs = ['version': '1.0.0-beta2'];
 def beat = ctx._source.remove("beat");
 if (beat != null) {
     ctx._source.observer = beat;
-    ctx._source.observer.type = ctx._source.observer.name
+    ctx._source.observer.type = "apm-server";
 }
 
 def listening = ctx._source.remove("listening");
