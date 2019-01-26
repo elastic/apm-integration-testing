@@ -37,20 +37,18 @@ if (context != null) {
     // context.request -> http & url
     HashMap request = context.remove("request");
     if (request != null) {
+        if (! ctx._source.containsKey("http")) {
+            ctx._source.http = new HashMap();
+        }
+        if (! ctx._source.http.containsKey("request")) {
+            ctx._source.http.request = new HashMap();
+        }
 
         // context.request.http_version -> http.version
         def http_version = request.remove("http_version");
         if (http_version != null) {
-          if (ctx._source.http == null) {
-              ctx._source.http = new HashMap();
-          }
           ctx._source.http.version = http_version;
         }
-
-        if (! ctx._source.containsKey("http")) {
-            ctx._source.http = new HashMap();
-        }
-        ctx._source.http.request = new HashMap();
 
         // context.request.method -> http.request.method
         ctx._source.http.request.method = request.remove("method");
