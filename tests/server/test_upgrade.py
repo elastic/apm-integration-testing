@@ -253,8 +253,9 @@ def test_reindex_v2(es):
         )
 
         print("comparing {} with {}".format(exp, dst))
-        want = es.es.search(index=exp, sort="@timestamp:asc", size=1)["hits"]["hits"][0]["_source"]
-        got = es.es.search(index=dst, sort="@timestamp:asc", size=1)["hits"]["hits"][0]["_source"]
+        exclude_rum = {'query': {'bool': {'must_not': [{'term': {'agent.name': 'js-base'}}]}}}
+        want = es.es.search(index=exp, body=exclude_rum, sort="@timestamp:asc", size=1)["hits"]["hits"][0]["_source"]
+        got = es.es.search(index=dst, body=exclude_rum, sort="@timestamp:asc", size=1)["hits"]["hits"][0]["_source"]
 
         # no id or ephemeral_id in reindexed docs
         assert want["observer"].pop("ephemeral_id"), "missing ephemeral_id"
