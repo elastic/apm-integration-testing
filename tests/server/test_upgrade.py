@@ -37,7 +37,7 @@ if (context != null) {
     // context.request -> http & url
     HashMap request = context.remove("request");
     if (request != null) {
-      
+
         // context.request.http_version -> http.version
         def http_version = request.remove("http_version");
         if (http_version != null) {
@@ -46,19 +46,19 @@ if (context != null) {
           }
           ctx._source.http.version = http_version;
         }
-        
+
         if (! ctx._source.containsKey("http")) {
             ctx._source.http = new HashMap();
         }
         ctx._source.http.request = new HashMap();
-        
+
         // context.request.method -> http.request.method
         ctx._source.http.request.method = request.remove("method");
         // context.request.env -> http.request.env
         ctx._source.http.request.env = request.remove("env");
         // context.request.socket -> http.request.socket
         ctx._source.http.request.socket = request.remove("socket");
-        
+
         // context.request.body -> http.request.body.original
         def body = request.remove("body");
         if (body != null) {
@@ -68,12 +68,12 @@ if (context != null) {
               //request.body = bodyContent;
         }
 
-        def parsed = request.remove("cookies"); 
+        def parsed = request.remove("cookies");
         if (parsed != null) {
           ctx._source.http.request.headers = new HashMap();
           ctx._source.http.request.headers.cookies.parsed = parsed;
         }
-        
+
         if (request.headers.containsKey("cookies") && request.headers.cookies.containsKey("original")) {
           if (ctx._source.http.request.headers == null) {
             ctx._source.http.request.headers = new HashMap();
@@ -97,22 +97,49 @@ if (context != null) {
           //TODO: figure out why `content-type` throws an exception
           ctx._source.http.request.headers.content_type = ct;
         }
-         
+
         // context.request.url -> url
         HashMap url = request.remove("url");
-        url.fragment = url.remove("hash");
-        url.domain = url.remove("hostname");
-        url.path = url.remove("pathname");
-        url.scheme = url.remove("protocol");
-        url.original = url.remove("raw");
-        url.query = url.remove("search");
-        request.url = url;
-  
+        def fragment = url.remove("hash");
+        if (fragment != null) {
+            url.fragment = fragment;
+        }
+        def domain = url.remove("hostname");
+        if (domain != null) {
+            url.domain = domain;
+        }
+        def path = url.remove("pathname");
+        if (path != null) {
+            url.path = path;
+        }
+        def scheme = url.remove("protocol");
+        if (scheme != null) {
+            url.scheme = scheme;
+        }
+        def original = url.remove("raw");
+        if (original != null) {
+            url.original = original;
+        }
+        def port = url.remove("port");
+        if (port != null) {
+            try {
+                int portNum = Integer.parseInt(port);
+                url.port = portNum;
+            } catch (Exception e) {
+                // toss port
+            }
+        }
+        def query = url.remove("search");
+        if (query != null) {
+            url.query = query;
+        }
+        ctx._source.url = url;
+
         // restore what is left of request, under http
         ctx._source.http.request = request;
     }
-    
-    
+
+
     // context.response -> http.response
     HashMap resp = context.remove("response");
     if (resp != null) {
@@ -156,9 +183,9 @@ if (context != null) {
         //  }
         //  ctx._source.user_agent.original.text = user.remove("user-agent");
         //}
-        
+
         //TODO: what about user_agent pipelines?
-        
+
         ctx._source.user = user;
     }
 
@@ -178,7 +205,7 @@ if (ctx._source.processor.event == "span") {
         if (ctx._source.context.service.agent.name == "js-base" && ctx._source.span.start.containsKey("us")) {
            ts += ctx._source.span.start.us/1000;
         }
-    
+
         //set timestamp.microseconds to @timestamp
         ctx._source.timestamp = new HashMap();
         ctx._source.timestamp.us = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(ts).getTime()*1000;
