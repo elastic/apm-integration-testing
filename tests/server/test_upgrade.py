@@ -34,6 +34,15 @@ if (context != null) {
         ctx._source.process.args = ctx._source.process.remove("argv");
     }
 
+    // context.response -> http.response
+    HashMap resp = context.remove("response");
+    if (resp != null) {
+        if (! ctx._source.containsKey("http")) {
+            ctx._source.http = new HashMap();
+        }
+        ctx._source.http.response = resp;
+    }
+
     // context.request -> http & url
     HashMap request = context.remove("request");
     if (request != null) {
@@ -139,13 +148,6 @@ if (context != null) {
 
         // restore what is left of request, under http
         ctx._source.http.request = request;
-    }
-
-
-    // context.response -> http.response
-    HashMap resp = context.remove("response");
-    if (resp != null) {
-      ctx._source.response = resp;
     }
 
     // context.service.agent -> agent
