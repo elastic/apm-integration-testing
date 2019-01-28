@@ -81,7 +81,7 @@ docker-test-%:
 
 dockerized-test:
 	@echo waiting for services to be healthy
-	$(MAKE) docker-compose wait
+	$(MAKE) docker-compose-wait
 	
 	@echo containers summary
 	docker ps -a
