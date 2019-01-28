@@ -257,7 +257,7 @@ if (ctx._source.processor.event == "error") {
     }
 }
 
-"""
+"""  # noqa
 
 
 def test_reindex_v2(es):
