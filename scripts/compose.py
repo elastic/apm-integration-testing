@@ -566,6 +566,15 @@ class ApmServer(StackService, Service):
             backend = dict(single)
             backend["container_name"] = backend["container_name"] + "-" + str(i)
             if i == 2:
+                # always build 7.0
+                backend["build"] = {
+                    "args": {
+                        "apm_server_base_image": "docker.elastic.co/apm/apm-server:7.0.0-SNAPSHOT",
+                        "apm_server_branch": "master",
+                        "apm_server_repo": "https://github.com/elastic/apm-server.git"
+                    },
+                    "context": "docker/apm-server"
+                }
                 backend["image"] = "docker.elastic.co/apm/apm-server:7.0.0-SNAPSHOT"
                 backend["labels"] = ["co.elatic.apm.stack-version=7.0.0"]
             ren.update({"-".join([self.name(), str(i)]): backend})
