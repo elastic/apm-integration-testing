@@ -228,6 +228,7 @@ if (ctx._source.processor.event == "span") {
     }
 }
 
+// create trace.id
 if (ctx._source.processor.event == "transaction" || ctx._source.processor.event == "span" || ctx._source.processor.event == "error") {
   if (ctx._source.containsKey("transaction")) {
     def tr_id = ctx._source.transaction.get("id");
@@ -240,6 +241,7 @@ if (ctx._source.processor.event == "transaction" || ctx._source.processor.event 
   }
 }
 
+// transaction.span_count.dropped.total -> transaction.span_count.dropped
 if (ctx._source.processor.event == "transaction") {
     // transaction.span_count.dropped.total -> transaction.span_count.dropped
     if (ctx._source.transaction.containsKey("span_count")) {
@@ -250,6 +252,7 @@ if (ctx._source.processor.event == "transaction") {
     }
 }
 
+// error.exception is now a list (exception chain)
 if (ctx._source.processor.event == "error") {
     def exception = ctx._source.error.remove("exception");
     if (exception != null) {
