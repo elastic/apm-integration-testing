@@ -172,6 +172,11 @@ if (context != null) {
     // context.user -> user & user_agent
     if (context.containsKey("user")) {
         HashMap user = context.remove("user");
+        // user.username -> user.name
+        def username = user.remove("username");
+        if (username != null) {
+            user.name = username;
+        }
         // context.user.ip -> client.ip
         if (user.containsKey("ip")) {
             ctx._source.client = new HashMap();
