@@ -446,6 +446,7 @@ class ApmServer(StackService, Service):
                 ])
 
         self.apm_server_count = options.get("apm_server_count", 1)
+        self.apm_server_tee = options.get("apm_server_tee", False)
 
     @classmethod
     def add_arguments(cls, parser):
@@ -478,7 +479,7 @@ class ApmServer(StackService, Service):
             '--apm-server-count',
             type=int,
             default=1,
-            help="apm-server count. >1 adds a load balancer service to round robin traffic between servers.",
+            help="apm-server count. >1 adds a load balancer service to distribute traffic between servers.",
         )
         parser.add_argument(
             '--apm-server-elasticsearch-url',
@@ -503,6 +504,13 @@ class ApmServer(StackService, Service):
             action="store_false",
             dest="apm_server_dashboards",
             help="skip loading apm-server dashboards (setup.dashboards.enabled=false)",
+        )
+        parser.add_argument(
+            '--apm-server-tee',
+            action="store_true",
+            default=False,
+            help=argparse.SUPPRESS,
+            # help="tee proxied traffic instead of load balancing.  Only for  7.0upgrade testing atm.",
         )
 
     def _content(self):
@@ -557,15 +565,16 @@ class ApmServer(StackService, Service):
         single["ports"] = [p.rsplit(":", 1)[-1] for p in single["ports"]]
 
         # render proxy + backends
-        if self.apm_server_count != 2:
-            raise Exception("teeproxy requires exactly 2 apm servers")
+        if self.apm_server_tee:
+            ren = self.render_tee()
+        else:
+            ren = self.render_proxy()
 
-        ren = self.render_tee()  # self.render_proxy()
         # individualize each backend instance
         for i in range(1, self.apm_server_count + 1):
             backend = dict(single)
             backend["container_name"] = backend["container_name"] + "-" + str(i)
-            if i == 2:
+            if self.apm_server_tee and i == 2:
                 # always build 7.0
                 backend["build"] = {
                     "args": {
@@ -578,6 +587,7 @@ class ApmServer(StackService, Service):
                 backend["image"] = "docker.elastic.co/apm/apm-server:7.0.0-SNAPSHOT"
                 backend["labels"] = ["co.elatic.apm.stack-version=7.0.0"]
             ren.update({"-".join([self.name(), str(i)]): backend})
+
         return ren
 
     def render_proxy(self):

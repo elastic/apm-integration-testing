@@ -350,7 +350,16 @@ class ApmServerServiceTest(ServiceTest):
         render = ApmServer(version="6.4.100", apm_server_count=2).render()
         apm_server_lb = render["apm-server"]
         apm_server_2 = render["apm-server-2"]
+        self.assertDictEqual(apm_server_lb["build"], {"context": "docker/apm-server/haproxy"})
+        self.assertListEqual(["127.0.0.1:8200:8200"], apm_server_lb["ports"], apm_server_lb["ports"])
+        self.assertListEqual(["8200", "6060"], apm_server_2["ports"], apm_server_2["ports"])
+
+    def test_apm_server_tee(self):
+        render = ApmServer(version="6.4.100", apm_server_count=2, apm_server_tee=True).render()
+        apm_server_lb = render["apm-server"]
+        apm_server_2 = render["apm-server-2"]
         self.assertIn("build", apm_server_lb)
+        self.assertDictEqual(apm_server_lb["build"], {"context": "docker/apm-server/teeproxy"})
         self.assertListEqual(["127.0.0.1:8200:8200"], apm_server_lb["ports"], apm_server_lb["ports"])
         self.assertListEqual(["8200", "6060"], apm_server_2["ports"], apm_server_2["ports"])
 
