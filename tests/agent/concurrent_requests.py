@@ -7,7 +7,6 @@ from tornado import ioloop, httpclient
 
 import timeout_decorator
 
-
 FOO = "foo"
 BAR = "bar"
 
@@ -181,16 +180,17 @@ class Concurrent:
                 "transaction time {} outside of expected range {} - {}".format(timestamp, first_req, last_req)
             assert transaction['result'] == 'HTTP 2xx', transaction['result']
 
-            context = lookup(source, 'context')
-            assert context['request']['method'] == "GET", context['request']['method']
+            http = lookup(source, 'http')
+            url = lookup(source, 'url')
+            request = http["request"]
+            assert request['method'].upper() == "GET", request['method']
             exp_p = os.path.basename(os.path.normpath(ep.url.split('?')[0]))
-            p = context['request']['url']['pathname'].strip("/")
-            assert p == exp_p, p
+            p = url['path'].strip("/")
+            assert p == exp_p, url
 
-            tags = {}
-            if 'tags' in context.keys():
-                tags = context['tags']
-            assert tags == {}, tags
+            if 'labels' in source:
+                labels = lookup(source, 'labels')
+                assert labels == {}, labels
 
             service = lookup(source, 'service')
             service_name = service['name']
@@ -201,7 +201,7 @@ class Concurrent:
             assert agent_name == ep.agent, agent_name
             assert transaction['type'] == 'request'
 
-            search = context['request']['url']['search']
+            search = url['query']
             try:
                 framework = lookup(service, 'framework', 'name')
             except KeyError:
@@ -211,24 +211,24 @@ class Concurrent:
             lang = lookup(service, 'language', 'name')
 
             if agent_name == 'nodejs':
-                assert lang == "javascript", context
-                assert framework in ("express",), context
-                assert search == '?q=1', context
+                assert lang == "javascript", service
+                assert framework in ("express",), service
+                assert search == '?q=1', service
             elif agent_name == 'python':
-                assert lang == "python", context
-                assert framework in ("django", "flask"), context
-                assert search == '?q=1', context
+                assert lang == "python", service
+                assert framework in ("django", "flask"), service
+                assert search == '?q=1', service
             elif agent_name == 'ruby':
-                assert lang == "ruby", context
-                assert framework in ("Ruby on Rails",), context
+                assert lang == "ruby", service
+                assert framework in ("Ruby on Rails",), service
             elif agent_name == 'go':
-                assert lang == "go", context
+                assert lang == "go", service
                 assert transaction['type'] == 'request'
-                assert search == 'q=1', context
+                assert search == 'q=1', service
             elif agent_name == 'java':
-                assert lang == "Java", context
+                assert lang == "Java", service
                 assert transaction['type'] == 'request'
-                assert search == 'q=1', context
+                assert search == 'q=1', service
             else:
                 raise Exception("Undefined agent {}".format(agent))
 
