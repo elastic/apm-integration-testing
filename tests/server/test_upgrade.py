@@ -112,7 +112,11 @@ if (context != null) {
         }
         def scheme = url.remove("protocol");
         if (scheme != null) {
-            url.scheme = scheme;
+            def end = scheme.lastIndexOf(":");
+            if (end > -1) {
+                scheme = scheme.substring(0, end);
+            }
+            url.scheme = scheme
         }
         def original = url.remove("raw");
         if (original != null) {
