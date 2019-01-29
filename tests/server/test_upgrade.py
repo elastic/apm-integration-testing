@@ -221,7 +221,6 @@ if (context != null) {
 }
 
 if (ctx._source.processor.event == "span") {
-    // make timestamp.us from @timestamp
     // bump timestamp.us by span.start.us for spans
     // shouldn't @timestamp this already be a Date?
     def ts = ctx._source.get("@timestamp");
@@ -230,10 +229,6 @@ if (ctx._source.processor.event == "span") {
         if (ctx._source.context.service.agent.name == "js-base" && ctx._source.span.start.containsKey("us")) {
            ts += ctx._source.span.start.us/1000;
         }
-
-        //set timestamp.microseconds to @timestamp
-        ctx._source.timestamp = new HashMap();
-        ctx._source.timestamp.us = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(ts).getTime()*1000;
     }
     if (ctx._source.span.containsKey("hex_id")) {
       ctx._source.span.id = ctx._source.span.remove("hex_id");
@@ -255,6 +250,15 @@ if (ctx._source.processor.event == "transaction" || ctx._source.processor.event 
         ctx._source.trace.id = tr_id.replace("-", "");
     }
   }
+
+  // create timestamp.us from @timestamp
+  def ts = ctx._source.get("@timestamp");
+  if (ts != null && !ctx._source.containsKey("timestamp")) {
+    //set timestamp.microseconds to @timestamp
+    ctx._source.timestamp = new HashMap();
+    ctx._source.timestamp.us = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(ts).getTime()*1000;
+  }
+
 }
 
 // transaction.span_count.dropped.total -> transaction.span_count.dropped
