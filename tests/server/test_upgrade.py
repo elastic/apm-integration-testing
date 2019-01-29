@@ -219,6 +219,16 @@ if (context != null) {
     // context.http -> span.http
     def http = context.remove("http");
     if (http != null) {
+        // context.http.url -> span.http.url.original
+        def url = http.remove("url");
+        if (url != null) {
+            http.url = ["original": url];
+        }
+        // context.http.status_code -> span.http.response.status_code
+        def status_code = http.remove("status_code");
+        if (status_code != null) {
+            http.response = ["status_code": status_code];
+        }
         ctx._source.span.http = http;
     }
 }
