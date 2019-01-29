@@ -9,6 +9,7 @@ config=/usr/local/etc/haproxy/haproxy.cfg
 # generate configuration file
 cat > $config <<EOF
 defaults
+    log stdout local0
     timeout connect 1h
     timeout client  1h
     timeout server  1h
