@@ -1,3 +1,3 @@
-FROM haproxy:1.8
+FROM haproxy:1.9
 
 COPY docker-entrypoint.sh /
