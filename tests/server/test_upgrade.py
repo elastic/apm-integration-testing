@@ -198,9 +198,16 @@ if (context != null) {
         ctx._source.user = user;
     }
 
-    // restore what is left of context
-    if (context.size() > 0) {
-        ctx._source.context = context;
+    // context.db -> span.db
+    def db = context.remove("db");
+    if (db != null) {
+        ctx._source.span.db = db;
+    }
+
+    // context.http -> span.http
+    def http = context.remove("http");
+    if (http != null) {
+        ctx._source.span.http = http;
     }
 }
 
