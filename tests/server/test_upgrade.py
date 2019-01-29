@@ -198,6 +198,15 @@ if (context != null) {
         ctx._source.user = user;
     }
 
+    // context.custom -> event.custom
+    def custom = context.remove("custom");
+    if (custom != null) {
+        if (! ctx._source.containsKey("event")) {
+            ctx._source.event = new HashMap();
+        }
+        ctx._source.event.custom = custom;
+    }
+
     // context.db -> span.db
     def db = context.remove("db");
     if (db != null) {
