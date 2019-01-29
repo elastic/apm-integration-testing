@@ -60,7 +60,10 @@ if (context != null) {
         }
 
         // context.request.method -> http.request.method
-        ctx._source.http.request.method = request.remove("method");
+        def method = request.remove("method");
+        if (method != null) {
+            ctx._source.http.request.method = method.toLowerCase();
+        }
         // context.request.env -> http.request.env
         ctx._source.http.request.env = request.remove("env");
         // context.request.socket -> http.request.socket
