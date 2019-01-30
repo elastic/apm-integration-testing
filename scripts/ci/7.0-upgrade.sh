@@ -11,5 +11,5 @@ make start-env docker-compose-wait
 sleep 10
 
 # upgrade elasticsearch, remove all other services
-export COMPOSE_ARGS="master --no-apm-server --elasticsearch-data-dir '' --no-kibana --remove-orphans"
+export COMPOSE_ARGS="master --no-apm-server --elasticsearch-data-dir '' --remove-orphans"
 make start-env docker-compose-wait test-upgrade
