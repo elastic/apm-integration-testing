@@ -208,13 +208,16 @@ if (context != null) {
         ctx._source.user = user;
     }
 
-    // context.custom -> event.custom
+    // context.custom -> error,transaction,span.custom
     def custom = context.remove("custom");
     if (custom != null) {
-        if (! ctx._source.containsKey("event")) {
-            ctx._source.event = new HashMap();
+        if (ctx._source.processor.event == "span") {
+            ctx._source.span.custom = custom;
+        } else if (ctx._source.processor.event == "transaction") {
+            ctx._source.transaction.custom = custom;
+        } else if (ctx._source.processor.event == "error") {
+            ctx._source.error.custom = custom;
         }
-        ctx._source.event.custom = custom;
     }
 
     // context.db -> span.db
