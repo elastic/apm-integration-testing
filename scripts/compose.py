@@ -584,8 +584,8 @@ class ApmServer(StackService, Service):
                     },
                     "context": "docker/apm-server"
                 }
-                backend["image"] = "docker.elastic.co/apm/apm-server:7.0.0-SNAPSHOT"
                 backend["labels"] = ["co.elatic.apm.stack-version=7.0.0"]
+                del(backend["image"])  # use the built one instead
             ren.update({"-".join([self.name(), str(i)]): backend})
 
         return ren
