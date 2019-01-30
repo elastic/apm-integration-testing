@@ -10,6 +10,13 @@ if (beat != null) {
     ctx._source.observer.type = "apm-server";
 }
 
+if (! ctx._source.containsKey("observer")) {
+    ctx._source.observer = new HashMap();
+}
+
+// observer.major_version
+ctx._source.observer.version_major = 7;
+
 def listening = ctx._source.remove("listening");
 if (listening != null) {
     ctx._source.observer.listening = listening;
