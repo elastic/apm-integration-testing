@@ -88,7 +88,7 @@ pipeline {
           )
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script{
-          currentBuild.description = "Agent ${params.agent_integration_test} Integration test ${UPSTREAM_BUILD}"
+          currentBuild.description = "Agent ${params.agent_integration_test} Integration test ${params.UPSTREAM_BUILD}"
         }
       }
     }
