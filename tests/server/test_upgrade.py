@@ -295,8 +295,14 @@ if (ctx._source.processor.event == "transaction") {
     }
 }
 
-// error.exception is now a list (exception chain)
 if (ctx._source.processor.event == "error") {
+    // culprit is now a keyword, so trim it down to 1024 chars
+    def culprit = ctx._source.error.remove("culprit");
+    if (culprit != null) {
+        ctx._source.error.culprit = culprit.substring(0, Integer.min(1024, culprit.length()));
+    }
+
+    // error.exception is now a list (exception chain)
     def exception = ctx._source.error.remove("exception");
     if (exception != null) {
         ctx._source.error.exception = [exception];
