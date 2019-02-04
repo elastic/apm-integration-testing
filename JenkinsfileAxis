@@ -143,16 +143,18 @@ pipeline {
       }
       post {
         always {
-          sh('./scripts/docker-get-logs.sh')
-          sh('make stop-env || echo 0')
-          archiveArtifacts(
-              allowEmptyArchive: true, 
-              artifacts: 'docker-info', 
-              defaultExcludes: false)
-          junit(
-            allowEmptyResults: true, 
-            keepLongStdio: true, 
-            testResults: "${BASE_DIR}/**/tests/results/*-junit*.xml")
+          dir("${BASE_DIR}"){
+            sh('./scripts/docker-get-logs.sh')
+            sh('make stop-env || echo 0')
+            archiveArtifacts(
+                allowEmptyArchive: true, 
+                artifacts: 'docker-info', 
+                defaultExcludes: false)
+            junit(
+              allowEmptyResults: true, 
+              keepLongStdio: true, 
+              testResults: "**/tests/results/*-junit*.xml")
+          }
         }
       }
     }
@@ -224,16 +226,18 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
           saveResult(x, y, 0)
           error("${label} tests failed : ${e}\n")
         } finally {
-          steps.sh('./scripts/docker-get-logs.sh')
-          steps.sh('make stop-env || echo 0')
-          steps.archiveArtifacts(
-              allowEmptyArchive: true, 
-              artifacts: 'docker-info', 
-              defaultExcludes: false)
-          steps.junit(
-            allowEmptyResults: false, 
-            keepLongStdio: true, 
-            testResults: "**/tests/results/*-junit*.xml")
+          dir("${steps.env.BASE_DIR}"){
+            steps.sh('./scripts/docker-get-logs.sh')
+            steps.sh('make stop-env || echo 0')
+            steps.archiveArtifacts(
+                allowEmptyArchive: true, 
+                artifacts: 'docker-info', 
+                defaultExcludes: false)
+            steps.junit(
+              allowEmptyResults: false, 
+              keepLongStdio: true, 
+              testResults: "**/tests/results/*-junit*.xml")
+          }
         }
       }
     }
