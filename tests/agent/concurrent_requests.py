@@ -140,7 +140,7 @@ class Concurrent:
             transactions_sum += count
             assert_count([
                 {'service.name': ep.app_name},
-                {'transaction.name.keyword': ep.transaction_name}
+                {'transaction.name': ep.transaction_name}
             ], count)
 
         assert transactions_count == transactions_sum, err.format(
@@ -154,7 +154,7 @@ class Concurrent:
         for ep in self.endpoints:
             q = self.elasticsearch.term_q([
                 {'service.name': ep.app_name},
-                {'transaction.name.keyword': ep.transaction_name}
+                {'transaction.name': ep.transaction_name}
             ])
             rs = self.es.search(index=self.index, body=q)
 
