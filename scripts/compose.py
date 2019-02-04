@@ -234,6 +234,10 @@ class Service(object):
                 "max-size": "2m"
             }
         }
+    
+    @staticmethod
+    def default_networks():
+        return ["net1"]
 
     @staticmethod
     def enabled():
@@ -273,7 +277,8 @@ class Service(object):
             container_name=content.get("container_name", self.default_container_name()),
             image=content.get("image", self.default_image()),
             labels=content.get("labels", self.default_labels()),
-            logging=content.get("logging", self.default_logging())
+            logging=content.get("logging", self.default_logging()),
+            networks=content.get("network", self.default_networks())
         ))
         for prune in "image", "labels", "logging":
             if content[prune] is None:
@@ -1972,7 +1977,7 @@ class LocalSetup(object):
             version="2.1",
             services=services,
             networks=dict(
-                default={"name": "apm-integration-testing"},
+                net1={"name": "apm-integration-testing"},
             ),
             volumes=dict(
                 esdata={"driver": "local"},
