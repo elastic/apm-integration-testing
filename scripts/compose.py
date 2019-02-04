@@ -237,7 +237,7 @@ class Service(object):
     
     @staticmethod
     def default_networks():
-        return ["net1"]
+        return ["default_net"]
 
     @staticmethod
     def enabled():
@@ -1822,6 +1822,14 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
+            '--secret-token',
+            action='store',
+            dest='secret_token',
+            help='Secret token to authenticate against the APM server. Empty by default.',
+            default=''
+        )
+
+        parser.add_argument(
             '--opbeans-apm-js-server-url',
             action='store',
             help='server_url to use for Opbeans frontend service',
@@ -1862,14 +1870,6 @@ class LocalSetup(object):
         parser.add_argument(
             "--opbeans-frontend-bundle-path",
             help='Bundle path in minified files. Defaults to "http://opbeans-node:3000/static/js/" + name of sourcemap',
-        )
-
-        parser.add_argument(
-            '--secret-token',
-            action='store',
-            dest='secret_token',
-            help='Secret token to authenticate against the APM server. Empty by default.',
-            default=''
         )
 
         return parser
@@ -1977,7 +1977,7 @@ class LocalSetup(object):
             version="2.1",
             services=services,
             networks=dict(
-                net1={"name": "apm-integration-testing"},
+                default_net={"name": "apm-integration-testing"},
             ),
             volumes=dict(
                 esdata={"driver": "local"},
