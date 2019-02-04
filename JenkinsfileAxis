@@ -132,6 +132,7 @@ pipeline {
       }
       environment {
         TMPDIR = "${WORKSPACE}"
+        REUSE_CONTAINERS = "true"
       }
       steps {
         deleteDir()
@@ -142,6 +143,12 @@ pipeline {
       }
       post {
         always {
+          sh('./scripts/docker-get-logs.sh')
+          sh('make stop-env || echo 0')
+          archiveArtifacts(
+              allowEmptyArchive: true, 
+              artifacts: 'docker-info', 
+              defaultExcludes: false)
           junit(
             allowEmptyResults: true, 
             keepLongStdio: true, 
