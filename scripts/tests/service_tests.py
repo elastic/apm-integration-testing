@@ -40,6 +40,7 @@ class AgentServiceTest(ServiceTest):
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://gonethttpapp:8080/healthcheck"]
                     ports:
                         - 127.0.0.1:8080:8080
+                    networks: ['default_net']
             """)  # noqa: 501
         )
 
@@ -66,6 +67,7 @@ class AgentServiceTest(ServiceTest):
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://expressapp:8010/healthcheck"]
                     ports:
                         - 127.0.0.1:8010:8010
+                    networks: ['default_net']
             """)  # noqa: 501
         )
 
@@ -96,6 +98,7 @@ class AgentServiceTest(ServiceTest):
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://djangoapp:8003/healthcheck"]
                     ports:
                         - 127.0.0.1:8003:8003
+                    networks: ['default_net']
             """)  # noqa: 501
         )
 
@@ -122,6 +125,7 @@ class AgentServiceTest(ServiceTest):
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://flaskapp:8001/healthcheck"]
                     ports:
                         - 127.0.0.1:8001:8001
+                    networks: ['default_net']
             """)  # noqa: 501
         )
 
@@ -154,6 +158,7 @@ class AgentServiceTest(ServiceTest):
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://railsapp:8020/healthcheck"]
                     ports:
                         - 127.0.0.1:8020:8020
+                    networks: ['default_net']
             """)  # noqa: 501
         )
 
@@ -182,6 +187,7 @@ class AgentServiceTest(ServiceTest):
                         "/dev/null", "http://javaspring:8090/healthcheck"]
                     ports:
                         - 127.0.0.1:8090:8090
+                    networks: ['default_net']
             """)
         )
 
@@ -460,6 +466,7 @@ class FilebeatServiceTest(ServiceTest):
                         options:
                             max-size: '2m'
                             max-file: '5'
+                    networks: ['default_net']
                     depends_on:
                         elasticsearch:
                             condition: service_healthy
@@ -485,6 +492,7 @@ class FilebeatServiceTest(ServiceTest):
                         options:
                             max-size: '2m'
                             max-file: '5'
+                    networks: ['default_net']
                     depends_on:
                         elasticsearch:
                             condition: service_healthy
@@ -514,6 +522,7 @@ class KafkaServiceTest(ServiceTest):
                         KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
                     ports:
                         - 127.0.0.1:9092:9092
+                    networks: ['default_net']
             """)
         )
 
@@ -537,6 +546,7 @@ class KibanaServiceTest(ServiceTest):
                         options:
                             max-size: '2m'
                             max-file: '5'
+                    networks: ['default_net']
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://kibana:5601/api/status"]
                         interval: 5s
@@ -567,6 +577,7 @@ class KibanaServiceTest(ServiceTest):
                         options:
                             max-size: '2m'
                             max-file: '5'
+                    networks: ['default_net']
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://kibana:5601/api/status"]
                         interval: 5s
@@ -607,6 +618,7 @@ class LogstashServiceTest(ServiceTest):
             logging:
                 driver: json-file
                 options: {max-file: '5', max-size: 2m}
+            networks: ['default_net']
             ports: ['127.0.0.1:5044:5044', '9600']
             volumes: ['./docker/logstash/pipeline/:/usr/share/logstash/pipeline/']""")  # noqa: 501
 
@@ -628,6 +640,7 @@ class MetricbeatServiceTest(ServiceTest):
                         options:
                             max-size: '2m'
                             max-file: '5'
+                    networks: ['default_net']
                     depends_on:
                         elasticsearch:
                             condition: service_healthy
@@ -647,6 +660,7 @@ class ZookeeperServiceTest(ServiceTest):
                 zookeeper:
                     image: confluentinc/cp-zookeeper:latest
                     container_name: localtesting_6.2.4_zookeeper
+                    networks: ['default_net']
                     environment:
                         ZOOKEEPER_CLIENT_PORT: 2181
                         ZOOKEEPER_TICK_TIME: 2000
