@@ -205,7 +205,10 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
   public Closure generateStep(x, y){
     return {
       steps.node('linux && immutable'){
-        def env = ["APM_SERVER_BRANCH=${y}", "${agentEnvVar[tag]}=${x}"]
+        def env = ["APM_SERVER_BRANCH=${y}", 
+          "${agentEnvVar[tag]}=${x}",
+          "REUSE_CONTAINERS=true"
+          ]
         def label = "${tag}-${x}-${y}"
         try{
           steps.runScript(label: label, agentType: tag, env: env)
@@ -214,6 +217,12 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
           saveResult(x, y, 0)
           error("${label} tests failed : ${e}\n")
         } finally {
+          steps.sh('./scripts/docker-get-logs.sh')
+          steps.sh('make stop-env || echo 0')
+          steps.archiveArtifacts(
+              allowEmptyArchive: true, 
+              artifacts: 'docker-info', 
+              defaultExcludes: false)
           steps.junit(
             allowEmptyResults: false, 
             keepLongStdio: true, 
