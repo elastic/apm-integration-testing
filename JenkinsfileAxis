@@ -226,7 +226,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
           saveResult(x, y, 0)
           error("${label} tests failed : ${e}\n")
         } finally {
-          dir("${steps.env.BASE_DIR}"){
+          steps.dir("${steps.env.BASE_DIR}"){
             steps.sh('./scripts/docker-get-logs.sh')
             steps.sh('make stop-env || echo 0')
             steps.archiveArtifacts(
