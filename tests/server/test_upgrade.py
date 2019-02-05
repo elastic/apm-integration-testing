@@ -371,9 +371,13 @@ def test_reindex_v2(es):
             want_span_subtype = want["span"].pop("subtype", None)
             want_span_action = want["span"].pop("action", None)
             got_span_type = got["span"].pop("type", None)
+            got_span_subtype = got["span"].pop("subtype", None)
             if got_span_type:
                 assert got_span_type.startswith(want_span_type)
             else:
                 assert want_span_type is None
+            # only for go agent
+            if got_span_subtype:
+                assert got_span_type == want_span_type
 
         assert want == got
