@@ -228,15 +228,19 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
           error("${label} tests failed : ${e}\n")
         } finally {
           steps.dir("${steps.env.BASE_DIR}"){
-            steps.sh('./scripts/docker-get-logs.sh || echo 0')
+            def stepName = label.replaceAll(";","_")
+              .replaceAll("#","_")
+              .replaceAll(":","_")
+              .replaceAll("-","_")
+            steps.sh("./scripts/docker-get-logs.sh ${stepName}|| echo 0")
             steps.sh('make stop-env || echo 0')
             steps.archiveArtifacts(
-                allowEmptyArchive: true, 
-                artifacts: 'docker-info', 
+                allowEmptyArchive: true,
+                artifacts: 'docker-info*/**',
                 defaultExcludes: false)
             steps.junit(
-              allowEmptyResults: false, 
-              keepLongStdio: true, 
+              allowEmptyResults: false,
+              keepLongStdio: true,
               testResults: "**/tests/results/*-junit*.xml")
           }
         }
