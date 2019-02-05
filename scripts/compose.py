@@ -739,8 +739,8 @@ class Kibana(StackService, Service):
             if self.at_least_version("6.3"):
                 self.environment["XPACK_XPACK_MAIN_TELEMETRY_ENABLED"] = "false"
             if options.get("xpack_secure"):
-                self.environment["ELASTICSEARCH_USERNAME"] = "kibana_system_user"
                 self.environment["ELASTICSEARCH_PASSWORD"] = "changeme"
+                self.environment["ELASTICSEARCH_USERNAME"] = "kibana_system_user"
                 self.environment["STATUS_ALLOWANONYMOUS"] = "true"
 
     def _content(self):
