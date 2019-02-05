@@ -68,10 +68,9 @@ if (context != null) {
         // context.request.body -> http.request.body.original
         def body = request.remove("body");
         if (body != null) {
-          ctx._source.http.request.body = new HashMap()
+          ctx._source.http.request.body = new HashMap();
+          // TODO: figure out how to handle body - it can be a string or an object
           //ctx._source.http.request.body.original = body;
-              // TODO: figure out how to handle body - it can be a string or an object
-              //request.body = bodyContent;
         }
 
         // context.request.url -> url
@@ -149,21 +148,51 @@ if (context != null) {
         if (username != null) {
             user.name = username;
         }
+
         // context.user.ip -> client.ip
         if (user.containsKey("ip")) {
             ctx._source.client = new HashMap();
             ctx._source.client.ip = user.remove("ip");
         }
-        // context.user.user-agent -> user_agent.original.text
-        // XXX: untested
-        //if (user.containsKey("user-agent")) {
-        //  if (ctx._source.user_agent == null) {
-        //    ctx._source.user_agent = new HashMap();
-        //  }
-        //  ctx._source.user_agent.original.text = user.remove("user-agent");
-        //}
 
-        //TODO: what about user_agent pipelines?
+        def ua = user.remove("user-agent");
+        if (ua != null) {
+          ctx._source.user_agent = new HashMap();
+          // setting original and original.text is not possible in painless
+          // as original is a keyword in ES template we cannot set it to a HashMap here, 
+          // so the following is the only possible solution:
+          ctx._source.user_agent.original = ua.substring(0, Integer.min(1024, ua.length()));
+        }
+
+        def pua = user.remove("user_agent");
+        if (pua != null) {
+          if (ctx._source.user_agent == null){
+            ctx._source.user_agent = new HashMap();
+          }
+          def os = pua.remove("os");
+          def osminor = pua.remove("os_minor");
+          def osmajor = pua.remove("os_major");
+          def osname = pua.remove("os_name");
+          if (osminor != null || osmajor != null || osname != null){
+            ctx._source.user_agent.os = new HashMap();
+            ctx._source.user_agent.os.full = os;
+            ctx._source.user_agent.os.version = osmajor + "." + osminor;
+            ctx._source.user_agent.os.name = osname;
+          }
+
+          def device = pua.remove("device");
+          if (device != null){
+            ctx._source.user_agent.device = new HashMap();
+            ctx._source.user_agent.device.name = device;
+          }
+          // not exactly reflecting 7.0, but the closes we can get
+          def patch = pua.remove("patch");
+          def minor = pua.remove("minor");
+          def major = pua.remove("major");
+          if (patch != null || minor != null || major != null){
+            ctx._source.user_agent.version = major + "." + minor + "." + patch;
+          }
+        }
 
         ctx._source.user = user;
     }
@@ -268,6 +297,7 @@ if (ctx._source.processor.event == "error") {
         ctx._source.error.exception = [exception];
     }
 }
+
 """  # noqa
 
 
