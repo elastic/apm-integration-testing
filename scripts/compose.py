@@ -416,7 +416,7 @@ class ApmServer(StackService, Service):
                 es_opt = "apm_server_elasticsearch_{}".format(cfg)
                 if self.options.get(es_opt):
                     args.append((prefix + ".elasticsearch.{}".format(cfg), self.options[es_opt]))
-                elif self.options.get("secure"):
+                elif self.options.get("xpack_secure"):
                     args.append((prefix + ".elasticsearch.{}".format(cfg),
                         {"username": "apm_server_user", "password": "changeme"}.get(cfg)))
 
@@ -600,7 +600,7 @@ class Elasticsearch(StackService, Service):
         if not self.oss and not self.at_least_version("6.3"):
             self.docker_name = self.name() + "-platinum"
 
-        self.secure = bool(self.options.get("secure"))
+        self.xpack_secure = bool(self.options.get("xpack_secure"))
 
         # construct elasticsearch environment variables
         es_java_opts = {}
@@ -622,7 +622,7 @@ class Elasticsearch(StackService, Service):
             java_opts_env, "path.data=/usr/share/elasticsearch/data/" + data_dir]
         if not self.oss:
             xpack_security_enabled = "false"
-            if self.secure:
+            if self.xpack_secure:
                 xpack_security_enabled = "true"
                 self.environment.append("xpack.security.audit.enabled=true")
                 self.environment.append("xpack.security.authc.anonymous.roles=monitoring_user")
@@ -665,7 +665,7 @@ class Elasticsearch(StackService, Service):
 
     def _content(self):
         volumes = ["esdata:/usr/share/elasticsearch/data"]
-        if self.secure:
+        if self.xpack_secure:
             volumes.extend([
                 "./docker/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml",
                 "./docker/elasticsearch/users:/usr/share/elasticsearch/config/users",
@@ -738,7 +738,7 @@ class Kibana(StackService, Service):
             self.environment["XPACK_MONITORING_ENABLED"] = "true"
             if self.at_least_version("6.3"):
                 self.environment["XPACK_XPACK_MAIN_TELEMETRY_ENABLED"] = "false"
-            if options.get("secure"):
+            if options.get("xpack_secure"):
                 self.environment["ELASTICSEARCH_USERNAME"] = "kibana_system_user"
                 self.environment["ELASTICSEARCH_PASSWORD"] = "changeme"
                 self.environment["STATUS_ALLOWANONYMOUS"] = "true"
@@ -1850,9 +1850,9 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
-            '--secure',
+            '--xpack-secure',
             action="store_true",
-            dest="secure",
+            dest="xpack_secure",
             help="enable xpack security throughout the stack",
         )
 
