@@ -232,6 +232,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
               .replaceAll("#","_")
               .replaceAll(":","_")
               .replaceAll("-","_")
+              .replaceAll(".","_")
             steps.sh("./scripts/docker-get-logs.sh ${stepName}|| echo 0")
             steps.sh('make stop-env || echo 0')
             steps.archiveArtifacts(

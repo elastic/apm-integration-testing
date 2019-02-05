@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -exuo pipefail
 
-STEP=${1:""}
+STEP=${1:-""}
 
 mkdir -p docker-info${STEP}
 cd docker-info${STEP}
