@@ -63,8 +63,25 @@ if (context != null) {
           ctx._source.http.version = http_version;
         }
 
-        ctx._source.http.request = new HashMap();
-
+        // context.request.socket -> request.socket
+        def socket = request.remove("socket");
+        if (socket != null) {
+            def add_socket = false;
+            def new_socket = new HashMap();
+            def remote_address = socket.remove("remote_address");
+            if (remote_address != null) {
+                add_socket = true;
+                new_socket.remote_address = remote_address;
+            }
+            def encrypted = socket.remove("encrypted");
+            if (encrypted != null) {
+                add_socket = true;
+                new_socket.encrypted = encrypted;
+            }
+            if (add_socket) {
+                request.socket = new_socket;
+            }
+        }
 
         // context.request.url -> url
         HashMap url = request.remove("url");
