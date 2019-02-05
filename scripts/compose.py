@@ -1977,7 +1977,7 @@ class LocalSetup(object):
             version="2.1",
             services=services,
             networks=dict(
-                default_net={"name": "apm-integration-testing"},
+                default_net={},
             ),
             volumes=dict(
                 esdata={"driver": "local"},
