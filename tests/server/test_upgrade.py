@@ -355,10 +355,10 @@ def test_reindex_v2(es):
         gots = es.es.search(index=dst, body=exclude_rum, sort="@timestamp:asc", size=1000)["hits"]["hits"]
 
         assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
-        for w, g in zip(wants, gots):
+        for i, (w, g) in enumerate(zip(wants, gots)):
             want = w["_source"]
             got = g["_source"]
-            print("comparing want _id: {} with got _id: {}".format(w["_id"], g  ["_id"]))
+            print("comparing {:-3d}, want _id: {} with got _id: {}".format(i, w["_id"], g  ["_id"]))
             # no id or ephemeral_id in reindexed docs
             assert want["observer"].pop("ephemeral_id"), "missing ephemeral_id"
             assert want["observer"].pop("id"), "missing id"
