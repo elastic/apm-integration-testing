@@ -65,13 +65,6 @@ if (context != null) {
 
         ctx._source.http.request = new HashMap();
 
-        // context.request.body -> http.request.body.original
-        def body = request.remove("body");
-        if (body != null) {
-          ctx._source.http.request.body = new HashMap();
-          // TODO: figure out how to handle body - it can be a string or an object
-          //ctx._source.http.request.body.original = body;
-        }
 
         // context.request.url -> url
         HashMap url = request.remove("url");
@@ -115,8 +108,18 @@ if (context != null) {
         ctx._source.url = url;
 
         // restore what is left of request, under http
+
+        def body = request.remove("body");
+
         ctx._source.http.request = request;
-        ctx._source.http.request.method = ctx._source.http.request.method?.toLowerCase()
+        ctx._source.http.request.method = ctx._source.http.request.method?.toLowerCase();
+
+        // context.request.body -> http.request.body.original
+        if (body != null) {
+          ctx._source.http.request.body = new HashMap();
+          ctx._source.http.request.body.original = body;
+        }
+
     }
 
     // context.service.agent -> agent
