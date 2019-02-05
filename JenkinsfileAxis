@@ -144,7 +144,7 @@ pipeline {
       }
       post {
         always {
-          wrappingup('-all')
+          wrappingup('all')
         }
       }
     }
