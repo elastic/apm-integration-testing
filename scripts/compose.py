@@ -621,7 +621,7 @@ class Elasticsearch(StackService, Service):
             xpack_security_enabled = "false"
             if self.secure:
                 xpack_security_enabled = "true"
-                self.environment.append("xpack.security.authc.realms.file1.type=file")
+                self.environment.append("xpack.security.authc.realms.file.file1.order=0")
             self.environment.append("xpack.security.enabled=" + xpack_security_enabled)
             self.environment.append("xpack.license.self_generated.type=trial")
             if self.at_least_version("6.3"):
