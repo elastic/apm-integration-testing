@@ -56,9 +56,6 @@ if (context != null) {
         if (! ctx._source.containsKey("http")) {
             ctx._source.http = new HashMap();
         }
-        if (! ctx._source.http.containsKey("request")) {
-            ctx._source.http.request = new HashMap();
-        }
 
         // context.request.http_version -> http.version
         def http_version = request.remove("http_version");
@@ -66,15 +63,7 @@ if (context != null) {
           ctx._source.http.version = http_version;
         }
 
-        // context.request.method -> http.request.method
-        def method = request.remove("method");
-        if (method != null) {
-            ctx._source.http.request.method = method.toLowerCase();
-        }
-        // context.request.env -> http.request.env
-        ctx._source.http.request.env = request.remove("env");
-        // context.request.socket -> http.request.socket
-        ctx._source.http.request.socket = request.remove("socket");
+        ctx._source.http.request = new HashMap();
 
         // context.request.body -> http.request.body.original
         def body = request.remove("body");
@@ -83,36 +72,6 @@ if (context != null) {
           //ctx._source.http.request.body.original = body;
               // TODO: figure out how to handle body - it can be a string or an object
               //request.body = bodyContent;
-        }
-
-        def parsed = request.remove("cookies");
-        if (parsed != null) {
-          ctx._source.http.request.headers = new HashMap();
-          ctx._source.http.request.headers.cookies.parsed = parsed;
-        }
-
-        if (request.headers.containsKey("cookies") && request.headers.cookies.containsKey("original")) {
-          if (ctx._source.http.request.headers == null) {
-            ctx._source.http.request.headers = new HashMap();
-          }
-          ctx._source.http.request.headers.cookies = new HashMap();
-          ctx._source.http.request.headers.cookies.original = request.headers.cookies.remove("original");
-        }
-        def ua = request.headers.remove("user-agent");
-        if (ua != null) {
-          if (ctx._source.http.request.headers == null) {
-            ctx._source.http.request.headers = new HashMap();
-          }
-          //TODO: figure out why `user-agent` throws an exception
-          //ctx._source.http.request.headers.user_agent = parsed;
-        }
-        def ct = request.headers.remove("content-type");
-        if (ct != null) {
-          if (ctx._source.http.request.headers == null) {
-            ctx._source.http.request.headers = new HashMap();
-          }
-          //TODO: figure out why `content-type` throws an exception
-          ctx._source.http.request.headers.content_type = ct;
         }
 
         // context.request.url -> url
@@ -158,6 +117,7 @@ if (context != null) {
 
         // restore what is left of request, under http
         ctx._source.http.request = request;
+        ctx._source.http.request.method = ctx._source.http.request.method?.toLowerCase()
     }
 
     // context.service.agent -> agent
@@ -308,7 +268,6 @@ if (ctx._source.processor.event == "error") {
         ctx._source.error.exception = [exception];
     }
 }
-
 """  # noqa
 
 
