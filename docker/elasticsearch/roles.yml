@@ -1,12 +1,4 @@
-admin:
-  cluster:
-    - all
+apm_server:
   indices:
-    - names:
-        - '*'
-      privileges:
-        - all
-
-test_admin:
-  cluster:
-    - all
+    - names: [ 'apm-*' ]
+      privileges: [ 'all' ]

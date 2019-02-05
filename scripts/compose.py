@@ -416,6 +416,9 @@ class ApmServer(StackService, Service):
                 es_opt = "apm_server_elasticsearch_{}".format(cfg)
                 if self.options.get(es_opt):
                     args.append((prefix + ".elasticsearch.{}".format(cfg), self.options[es_opt]))
+                elif self.options.get("secure"):
+                    args.append((prefix + ".elasticsearch.{}".format(cfg),
+                        {"username": "apm_server_user", "password": "changeme"}.get(cfg)))
 
         add_es_config(self.apm_server_command_args)
 
@@ -621,7 +624,12 @@ class Elasticsearch(StackService, Service):
             xpack_security_enabled = "false"
             if self.secure:
                 xpack_security_enabled = "true"
-                self.environment.append("xpack.security.authc.realms.file.file1.order=0")
+                self.environment.append("xpack.security.audit.enabled=true")
+                self.environment.append("xpack.security.authc.anonymous.roles=monitoring_user")
+                if self.at_least_version("7.0"):
+                    self.environment.append("xpack.security.authc.realms.file.file1.order=0")
+                else:
+                    self.environment.append("xpack.security.authc.realms.file1.type=file")
             self.environment.append("xpack.security.enabled=" + xpack_security_enabled)
             self.environment.append("xpack.license.self_generated.type=trial")
             if self.at_least_version("6.3"):
@@ -730,6 +738,10 @@ class Kibana(StackService, Service):
             self.environment["XPACK_MONITORING_ENABLED"] = "true"
             if self.at_least_version("6.3"):
                 self.environment["XPACK_XPACK_MAIN_TELEMETRY_ENABLED"] = "false"
+            if options.get("secure"):
+                self.environment["ELASTICSEARCH_USERNAME"] = "kibana_system_user"
+                self.environment["ELASTICSEARCH_PASSWORD"] = "changeme"
+                self.environment["STATUS_ALLOWANONYMOUS"] = "true"
 
     def _content(self):
         return dict(

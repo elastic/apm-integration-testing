@@ -1,2 +1,7 @@
-admin:admin
-test_admin:test_admin_user
+apm_server:apm_server_user
+apm_system:apm_server_user
+apm_user:apm_user_ro
+ingest_admin:apm_server_user
+kibana_system:kibana_system_user
+kibana_user:apm_user_ro
+superuser:admin
