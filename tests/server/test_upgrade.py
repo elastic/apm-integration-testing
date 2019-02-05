@@ -334,50 +334,55 @@ def test_reindex_v2(es):
 
         print("comparing {} with {}".format(exp, dst))
         exclude_rum = {'query': {'bool': {'must_not': [{'term': {'agent.name': 'js-base'}}]}}}
-        want = es.es.search(index=exp, body=exclude_rum, sort="@timestamp:asc", size=1)["hits"]["hits"][0]["_source"]
-        got = es.es.search(index=dst, body=exclude_rum, sort="@timestamp:asc", size=1)["hits"]["hits"][0]["_source"]
+        wants = es.es.search(index=exp, body=exclude_rum, sort="@timestamp:asc", size=1000)["hits"]["hits"]
+        gots = es.es.search(index=dst, body=exclude_rum, sort="@timestamp:asc", size=1000)["hits"]["hits"]
 
-        # no id or ephemeral_id in reindexed docs
-        assert want["observer"].pop("ephemeral_id"), "missing ephemeral_id"
-        assert want["observer"].pop("id"), "missing id"
+        assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
+        for w, g in zip(wants, gots):
+            want = w["_source"]
+            got = g["_source"]
+            print("comparing want _id: {} with got _id: {}".format(w["_id"], g  ["_id"]))
+            # no id or ephemeral_id in reindexed docs
+            assert want["observer"].pop("ephemeral_id"), "missing ephemeral_id"
+            assert want["observer"].pop("id"), "missing id"
 
-        # versions should be different
-        want_version = want["observer"].pop("version")
-        got_version = got["observer"].pop("version")
-        assert want_version is not None
-        assert want_version != got_version
+            # versions should be different
+            want_version = want["observer"].pop("version")
+            got_version = got["observer"].pop("version")
+            assert want_version is not None
+            assert want_version != got_version
 
-        # hostnames should be different
-        want_hostname = want["observer"].pop("hostname")
-        got_hostname = got["observer"].pop("hostname")
-        assert want_hostname is not None
-        assert want_hostname != got_hostname
+            # hostnames should be different
+            want_hostname = want["observer"].pop("hostname")
+            got_hostname = got["observer"].pop("hostname")
+            assert want_hostname is not None
+            assert want_hostname != got_hostname
 
-        # host.name to be removed
-        host = want.pop("host")
-        del(host["name"])
-        # only put host back if it's not empty
-        if host:
-            want["host"] = host
+            # host.name to be removed
+            host = want.pop("host")
+            del(host["name"])
+            # only put host back if it's not empty
+            if host:
+                want["host"] = host
 
-        # onboarding doc timestamps won't match exactly
-        if want["processor"]["event"] == "onboarding":
-            del(want["@timestamp"])
-            del(got["@timestamp"])
+            # onboarding doc timestamps won't match exactly
+            if want["processor"]["event"] == "onboarding":
+                del(want["@timestamp"])
+                del(got["@timestamp"])
 
-        # span.type split in https://github.com/elastic/apm-server/issues/1837, not done in reindex script yet
-        if want["processor"]["event"] == "span":
-            want_span_type = want["span"].pop("type", None)
-            want_span_subtype = want["span"].pop("subtype", None)
-            want_span_action = want["span"].pop("action", None)
-            got_span_type = got["span"].pop("type", None)
-            got_span_subtype = got["span"].pop("subtype", None)
-            if got_span_type:
-                assert got_span_type.startswith(want_span_type)
-            else:
-                assert want_span_type is None
-            # only for go agent
-            if got_span_subtype:
-                assert got_span_type == want_span_type
+            # span.type split in https://github.com/elastic/apm-server/issues/1837, not done in reindex script yet
+            if want["processor"]["event"] == "span":
+                want_span_type = want["span"].pop("type", None)
+                want_span_subtype = want["span"].pop("subtype", None)
+                want_span_action = want["span"].pop("action", None)
+                got_span_type = got["span"].pop("type", None)
+                got_span_subtype = got["span"].pop("subtype", None)
+                if got_span_type:
+                    assert got_span_type.startswith(want_span_type)
+                else:
+                    assert want_span_type is None
+                # only for go agent
+                if got_span_subtype:
+                    assert got_span_type == want_span_type
 
-        assert want == got
+            assert want == got
