@@ -387,6 +387,10 @@ def test_reindex_v2(es):
                 del(want["@timestamp"])
                 del(got["@timestamp"])
 
+            # error transaction.type only introduced in 7.0, can't make it up before then
+            if want["processor"]["event"] == "error" and want.get("transaction", {}).get("type"):
+                del(want["transaction"]["type"])
+
             # span.type split in https://github.com/elastic/apm-server/issues/1837, not done in reindex script yet
             if want["processor"]["event"] == "span":
                 want_span_type = want["span"].pop("type", None)
