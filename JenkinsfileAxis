@@ -228,11 +228,19 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
           error("${label} tests failed : ${e}\n")
         } finally {
           steps.dir("${steps.env.BASE_DIR}"){
+<<<<<<< HEAD
             def stepName = label.replace(";","_")
               .replace("#","_")
               .replace(":","_")
               .replace("-","_")
               .replace(".","_")
+=======
+            def stepName = label.replaceAll(";","_")
+              .replaceAll("#","_")
+              .replaceAll(":","_")
+              .replaceAll("-","_")
+              .replaceAll(".","_")
+>>>>>>> 945e58408eb341e28d059849fef1c1fbed7cab3a
             steps.sh("./scripts/docker-get-logs.sh ${stepName}|| echo 0")
             steps.sh('make stop-env || echo 0')
             steps.archiveArtifacts(
