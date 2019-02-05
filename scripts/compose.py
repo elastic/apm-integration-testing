@@ -1822,14 +1822,6 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
-            '--secret-token',
-            action='store',
-            dest='secret_token',
-            help='Secret token to authenticate against the APM server. Empty by default.',
-            default=''
-        )
-
-        parser.add_argument(
             '--opbeans-apm-js-server-url',
             action='store',
             help='server_url to use for Opbeans frontend service',
@@ -1870,6 +1862,14 @@ class LocalSetup(object):
         parser.add_argument(
             "--opbeans-frontend-bundle-path",
             help='Bundle path in minified files. Defaults to "http://opbeans-node:3000/static/js/" + name of sourcemap',
+        )
+
+        parser.add_argument(
+            '--secret-token',
+            action='store',
+            dest='secret_token',
+            help='Secret token to authenticate against the APM server. Empty by default.',
+            default=''
         )
 
         return parser
@@ -2063,13 +2063,13 @@ class LocalSetup(object):
             auth_header = ''
         print("Uploading {} for {} version {}".format(sourcemap_file, service_name, service_version))
         cmd = (
-            'curl -sS -X POST '
+            'curl -f -X POST '
             '-F service_name="{service_name}" '
             '-F service_version="{service_version}" '
             '-F bundle_filepath="{bundle_path}" '
             '-F sourcemap=@/tmp/sourcemap '
             '{auth_header}'
-            '{server_url}/v1/client-side/sourcemaps'
+            '{server_url}/assets/v1/sourcemaps'
         ).format(
             service_name=service_name,
             service_version=service_version,
