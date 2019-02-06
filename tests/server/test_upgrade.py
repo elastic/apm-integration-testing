@@ -385,7 +385,17 @@ def test_reindex_v2(es):
         for i, (w, g) in enumerate(zip(wants, gots)):
             want = w["_source"]
             got = g["_source"]
-            print("comparing {:-3d}, want _id: {} with got _id: {}".format(i, w["_id"], g  ["_id"]))
+
+            want_processor_event = want.get("processor", {}).get("event", "unknown")
+            # try to detect ordering issues and skip
+            if want_processor_event == "span" and \
+                    want["@timestamp"] == got ["@timestamp"] and \
+                    want_processor_event == got["processor"]["event"] and \
+                    want["transaction"]["id"] != got["transaction"]["id"]:
+                print("skipped comparing {:-3d}, want _id: {} with got _id: {}".format(i, w["_id"], g["_id"]))
+                continue
+
+            print("comparing {:-3d}, want _id: {} with got _id: {}".format(i, w["_id"], g["_id"]))
             # no id or ephemeral_id in reindexed docs
             assert want["observer"].pop("ephemeral_id"), "missing ephemeral_id"
             assert want["observer"].pop("id"), "missing id"
@@ -410,16 +420,16 @@ def test_reindex_v2(es):
                 want["host"] = host
 
             # onboarding doc timestamps won't match exactly
-            if want["processor"]["event"] == "onboarding":
+            if want_processor_event == "onboarding":
                 del(want["@timestamp"])
                 del(got["@timestamp"])
 
             # error transaction.type only introduced in 7.0, can't make it up before then
-            if want["processor"]["event"] == "error" and want.get("transaction", {}).get("type"):
+            if want_processor_event == "error" and want.get("transaction", {}).get("type"):
                 del(want["transaction"]["type"])
 
             # span.type split in https://github.com/elastic/apm-server/issues/1837, not done in reindex script yet
-            if want["processor"]["event"] == "span":
+            if want_processor_event == "span":
                 want_span_type = want["span"].pop("type", None)
                 want_span_subtype = want["span"].pop("subtype", None)
                 want_span_action = want["span"].pop("action", None)
