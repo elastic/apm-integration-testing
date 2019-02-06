@@ -82,11 +82,18 @@ pipeline {
       options { skipDefaultCheckout() }
       steps {
         deleteDir()
-        gitCheckout(basedir: "${BASE_DIR}", branch: "${params.INTEGRATION_TESTING_VERSION}",
-          repo: "${REPO}",
-          credentialsId: "${JOB_GIT_CREDENTIALS}",
-          reference: '/var/lib/jenkins/apm-integration-testing.git'
-          )
+        dir("${BASE_DIR}"){
+          checkout([$class: 'GitSCM',
+            branches: [[name: "${params.INTEGRATION_TESTING_VERSION}"]],
+            doGenerateSubmoduleConfigurations: false,
+            extensions: [],
+            submoduleCfg: [],
+            userRemoteConfigs: [[
+              refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pr/*',
+              url: "${REPO}",
+              credentialsId: "${JOB_GIT_CREDENTIALS}"]]
+          ])
+        }
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script{
           currentBuild.description = "Agent ${params.agent_integration_test} Integration test ${params.UPSTREAM_BUILD}"
