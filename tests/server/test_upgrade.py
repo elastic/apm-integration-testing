@@ -363,12 +363,17 @@ if (ctx._source.processor.event == "error") {
 
 """  # noqa
 
-from time import gmtime, strftime
+
+exclude_rum = {'query': {'bool': {'must_not': [{'term': {'agent.name': 'js-base'}}]}}}
+
 
 def test_reindex_v2(es):
+    # first migrate all indices
+    migrations = []
     for src, info in es.es.indices.get("apm*").items():
         try:
-            version = src.split("-", 2)[1]
+            # apm-version-type-date
+            _, version, event_type, _ = src.split("-", 3)
         except Exception:
             continue
         if version == "7.0.0":
@@ -393,28 +398,42 @@ def test_reindex_v2(es):
             refresh=True,
             wait_for_completion=True,
         )
-    onboarding(es)
-    metric(es)
-    transaction(es)
-    span(es)
-    error(es)
+        migrations.append((event_type, exp, dst))
 
-def metric(es):
-    exp, dst = regular_idx("metric"), migrated_idx("metric")
-    wants = es.es.search(index=exp, body=exclude_rum, sort="@timestamp:asc,agent.name:asc,system.memory.actual.free,labels.name", size=1000)["hits"]["hits"]
-    gots = es.es.search(index=dst, body=exclude_rum, sort="@timestamp:asc,agent.name:asc,system.memory.actual.free,labels.name", size=1000)["hits"]["hits"]
-    print("checking metrics - comparing {} with {}".format(exp, dst))
+    # then check document contents
+    for event_type, exp, dst in migrations:
+        # dispatch check by event type
+        {
+            "error": error,
+            "metric": metric,
+            "onboarding": onboarding,
+            "span": span,
+            "transaction": transaction,
+        }.get(event_type)(es, exp, dst)
+
+
+def metric(es, exp, dst):
+    wants = es.es.search(index=exp, body=exclude_rum,
+                         sort="@timestamp:asc,agent.name:asc,system.memory.actual.free",
+                         size=1000)["hits"]["hits"]
+    gots = es.es.search(index=dst, body=exclude_rum,
+                        sort="@timestamp:asc,agent.name:asc,system.memory.actual.free",
+                        size=1000)["hits"]["hits"]
+    print("checking metric - comparing {} with {}".format(exp, dst))
 
     assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
     for i, (w, g) in enumerate(zip(wants, gots)):
         common(i, w, g)
 
 
-def span(es):
-    exp, dst = regular_idx("span"), migrated_idx("span")
-    wants = es.es.search(index=exp, body=exclude_rum, sort="span.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
-    gots = es.es.search(index=dst, body=exclude_rum, sort="span.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
-    print("checking metrics - comparing {} with {}".format(exp, dst))
+def span(es, exp, dst):
+    wants = es.es.search(index=exp, body=exclude_rum,
+                         sort="span.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc",
+                         size=1000)["hits"]["hits"]
+    gots = es.es.search(index=dst, body=exclude_rum,
+                        sort="span.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc",
+                        size=1000)["hits"]["hits"]
+    print("checking span - comparing {} with {}".format(exp, dst))
 
     assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
     for i, (w, g) in enumerate(zip(wants, gots)):
@@ -427,7 +446,7 @@ def span(es):
         want_span_action = want["span"].pop("action", None)
         got_span_type = got["span"].pop("type", None)
         got_span_subtype = got["span"].pop("subtype", None)
-        got_span_action= got["span"].pop("action", None)
+        got_span_action = got["span"].pop("action", None)
         if got_span_type:
             assert got_span_type.startswith(want_span_type)
         else:
@@ -440,11 +459,14 @@ def span(es):
         common(i, w, g)
 
 
-def error(es):
-    exp, dst = regular_idx("error"), migrated_idx("error")
-    wants = es.es.search(index=exp, body=exclude_rum, sort="error.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
-    gots = es.es.search(index=dst, body=exclude_rum, sort="error.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
-    print("checking metrics - comparing {} with {}".format(exp, dst))
+def error(es, exp, dst):
+    wants = es.es.search(index=exp, body=exclude_rum,
+                 sort="error.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc",
+                 size=1000)["hits"]["hits"]
+    gots = es.es.search(index=dst, body=exclude_rum,
+                        sort="error.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc",
+                        size=1000)["hits"]["hits"]
+    print("checking error - comparing {} with {}".format(exp, dst))
 
     assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
     for i, (w, g) in enumerate(zip(wants, gots)):
@@ -457,21 +479,28 @@ def error(es):
         common(i, w, g)
 
 
-def transaction(es):
-    exp, dst = regular_idx("transaction"), migrated_idx("transaction")
-    wants = es.es.search(index=exp, body=exclude_rum, sort="transaction.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
-    gots = es.es.search(index=dst, body=exclude_rum, sort="transaction.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
-    print("checking metrics - comparing {} with {}".format(exp, dst))
+def transaction(es, exp, dst):
+    wants = es.es.search(index=exp, body=exclude_rum,
+                 sort="transaction.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc",
+                 size=1000)["hits"]["hits"]
+    gots = es.es.search(index=dst, body=exclude_rum,
+                 sort="transaction.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc",
+                 size=1000)["hits"]["hits"]
+    print("checking transaction - comparing {} with {}".format(exp, dst))
 
     assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
     for i, (w, g) in enumerate(zip(wants, gots)):
         common(i, w, g)
 
-def onboarding(es):
-    exp, dst = regular_idx("onboarding"), migrated_idx("onboarding")
-    wants = es.es.search(index=exp, body=exclude_rum, sort="timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
-    gots = es.es.search(index=dst, body=exclude_rum, sort="timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
-    print("checking metrics - comparing {} with {}".format(exp, dst))
+
+def onboarding(es, exp, dst):
+    wants = es.es.search(index=exp, body=exclude_rum,
+                 sort="timestamp.us:asc,@timestamp:asc,agent.name:asc",
+                 size=1000)["hits"]["hits"]
+    gots = es.es.search(index=dst, body=exclude_rum,
+                        sort="timestamp.us:asc,@timestamp:asc,agent.name:asc",
+                        size=1000)["hits"]["hits"]
+    print("checking onboarding - comparing {} with {}".format(exp, dst))
 
     assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
     for i, (w, g) in enumerate(zip(wants, gots)):
@@ -480,6 +509,7 @@ def onboarding(es):
         del(want["@timestamp"])
         del(got["@timestamp"])
         common(i, w, g)
+
 
 def common(i, w, g):
     want = w["_source"]
@@ -512,19 +542,7 @@ def common(i, w, g):
     # service.framework cannot be set through context information any longer
     want_framework = want.get("service", {}).pop("framework", None)
     got_framework = got.get("service", {}).pop("framework", None)
-    if want_framework != None:
+    if want_framework is not None:
         assert want_framework == got_framework
 
     assert want == got
-
-def today():
-    return strftime("%Y.%m.%d", gmtime())
-
-def migrated_idx(event):
-    return "apm-7.0.0-{}-{}-migrated".format(event, today())
-
-def regular_idx(event):
-    return "apm-7.0.0-{}-{}".format(event, today())
-
-exclude_rum={'query': {'bool': {'must_not': [{'term': {'agent.name': 'js-base'}}]}}}
-
