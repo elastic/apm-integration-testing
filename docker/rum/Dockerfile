@@ -23,7 +23,9 @@ RUN git clone -b $RUM_AGENT_BRANCH --single-branch https://github.com/$RUM_AGENT
 WORKDIR /rumjs-integration-test
 
 RUN npm install
-RUN npm run build && npm run buildE2eBundles
+RUN npx lerna bootstrap
+
+RUN npx lerna run build && npx lerna run buildE2eBundles
 
 # Add user so we don't need --no-sandbox.
 RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
