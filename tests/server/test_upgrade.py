@@ -255,6 +255,10 @@ if (context != null) {
     // context.db -> span.db
     def db = context.remove("db");
     if (db != null) {
+        def db_user = db.remove("user");
+        if (db_user != null) {
+            db.user = ["name": db_user];
+        }
         ctx._source.span.db = db;
     }
 
