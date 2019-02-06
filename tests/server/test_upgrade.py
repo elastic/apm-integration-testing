@@ -347,6 +347,7 @@ if (ctx._source.processor.event == "error") {
 
 """  # noqa
 
+from time import gmtime, strftime
 
 def test_reindex_v2(es):
     for src, info in es.es.indices.get("apm*").items():
@@ -376,75 +377,138 @@ def test_reindex_v2(es):
             refresh=True,
             wait_for_completion=True,
         )
+    onboarding(es)
+    metrics(es)
+    transaction(es)
+    span(es)
+    error(es)
 
-        print("comparing {} with {}".format(exp, dst))
-        exclude_rum = {'query': {'bool': {'must_not': [{'term': {'agent.name': 'js-base'}}]}}}
-        wants = es.es.search(index=exp, body=exclude_rum, sort="timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
-        gots = es.es.search(index=dst, body=exclude_rum, sort="timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
+def metrics(es):
+    exp, dst = regular_idx("metric"), migrated_idx("metric")
+    wants = es.es.search(index=exp, body=exclude_rum, sort="@timestamp:asc,agent.name:asc,system.memory.actual.free,labels.name", size=1000)["hits"]["hits"]
+    gots = es.es.search(index=dst, body=exclude_rum, sort="@timestamp:asc,agent.name:asc,system.memory.actual.free,labels.name", size=1000)["hits"]["hits"]
+    print("checking metrics - comparing {} with {}".format(exp, dst))
 
-        assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
-        for i, (w, g) in enumerate(zip(wants, gots)):
-            want = w["_source"]
-            got = g["_source"]
+    assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
+    for i, (w, g) in enumerate(zip(wants, gots)):
+        common(i, w, g)
 
-            want_processor_event = want.get("processor", {}).get("event", "unknown")
-            # try to detect ordering issues and skip
-            if want_processor_event == "span" and \
-                    want["@timestamp"] == got ["@timestamp"] and \
-                    want_processor_event == got["processor"]["event"] and \
-                    want["transaction"]["id"] != got["transaction"]["id"]:
-                print("skipped comparing {:-3d}, want _id: {} with got _id: {}".format(i, w["_id"], g["_id"]))
-                continue
 
-            print("comparing {:-3d}, want _id: {} with got _id: {}".format(i, w["_id"], g["_id"]))
-            # no id or ephemeral_id in reindexed docs
-            assert want["observer"].pop("ephemeral_id"), "missing ephemeral_id"
-            assert want["observer"].pop("id"), "missing id"
+def span(es):
+    exp, dst = regular_idx("span"), migrated_idx("span")
+    wants = es.es.search(index=exp, body=exclude_rum, sort="span.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
+    gots = es.es.search(index=dst, body=exclude_rum, sort="span.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
+    print("checking metrics - comparing {} with {}".format(exp, dst))
 
-            # versions should be different
-            want_version = want["observer"].pop("version")
-            got_version = got["observer"].pop("version")
-            assert want_version is not None
-            assert want_version != got_version
+    assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
+    for i, (w, g) in enumerate(zip(wants, gots)):
+        want = w["_source"]
+        got = g["_source"]
 
-            # hostnames should be different
-            want_hostname = want["observer"].pop("hostname")
-            got_hostname = got["observer"].pop("hostname")
-            assert want_hostname is not None
-            assert want_hostname != got_hostname
+        # span.type split in https://github.com/elastic/apm-server/issues/1837, not done in reindex script yet
+        want_span_type = want["span"].pop("type", None)
+        want_span_subtype = want["span"].pop("subtype", None)
+        want_span_action = want["span"].pop("action", None)
+        got_span_type = got["span"].pop("type", None)
+        got_span_subtype = got["span"].pop("subtype", None)
+        got_span_action= got["span"].pop("action", None)
+        if got_span_type:
+            assert got_span_type.startswith(want_span_type)
+        else:
+            assert want_span_type is None
+        # only for go agent
+        if got_span_action:
+            assert got_span_action == want_span_action
+        if got_span_subtype:
+            assert got_span_subtype == want_span_subtype
+        common(i, w, g)
 
-            # host.name to be removed
-            host = want.pop("host")
-            del(host["name"])
-            # only put host back if it's not empty
-            if host:
-                want["host"] = host
 
-            # onboarding doc timestamps won't match exactly
-            if want_processor_event == "onboarding":
-                del(want["@timestamp"])
-                del(got["@timestamp"])
+def error(es):
+    exp, dst = regular_idx("error"), migrated_idx("error")
+    wants = es.es.search(index=exp, body=exclude_rum, sort="error.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
+    gots = es.es.search(index=dst, body=exclude_rum, sort="error.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
+    print("checking metrics - comparing {} with {}".format(exp, dst))
 
-            # error transaction.type only introduced in 7.0, can't make it up before then
-            if want_processor_event == "error" and want.get("transaction", {}).get("type"):
-                del(want["transaction"]["type"])
+    assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
+    for i, (w, g) in enumerate(zip(wants, gots)):
+        want = w["_source"]
+        got = g["_source"]
 
-            # span.type split in https://github.com/elastic/apm-server/issues/1837, not done in reindex script yet
-            if want_processor_event == "span":
-                want_span_type = want["span"].pop("type", None)
-                want_span_subtype = want["span"].pop("subtype", None)
-                want_span_action = want["span"].pop("action", None)
-                got_span_type = got["span"].pop("type", None)
-                got_span_subtype = got["span"].pop("subtype", None)
-                got_span_action= got["span"].pop("action", None)
-                if got_span_type:
-                    assert got_span_type.startswith(want_span_type)
-                else:
-                    assert want_span_type is None
-                # only for go agent
-                if got_span_action:
-                    assert got_span_action == want_span_action
-                if got_span_subtype:
-                    assert got_span_subtype == want_span_subtype
+        # error transaction.type only introduced in 7.0, can't make it up before then
+        if want.get("transaction", {}).get("type"):
+            del(want["transaction"]["type"])
+        common(i, w, g)
 
-            assert want == got
+
+def transaction(es):
+    exp, dst = regular_idx("transaction"), migrated_idx("transaction")
+    wants = es.es.search(index=exp, body=exclude_rum, sort="transaction.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
+    gots = es.es.search(index=dst, body=exclude_rum, sort="transaction.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
+    print("checking metrics - comparing {} with {}".format(exp, dst))
+
+    assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
+    for i, (w, g) in enumerate(zip(wants, gots)):
+        common(i, w, g)
+
+def onboarding(es):
+    exp, dst = regular_idx("onboarding"), migrated_idx("onboarding")
+    wants = es.es.search(index=exp, body=exclude_rum, sort="timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
+    gots = es.es.search(index=dst, body=exclude_rum, sort="timestamp.us:asc,@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
+    print("checking metrics - comparing {} with {}".format(exp, dst))
+
+    assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
+    for i, (w, g) in enumerate(zip(wants, gots)):
+        want = w["_source"]
+        got = g["_source"]
+        del(want["@timestamp"])
+        del(got["@timestamp"])
+        common(i, w, g)
+
+def common(i, w, g):
+    want = w["_source"]
+    got = g["_source"]
+
+    print("comparing {:-3d}, want _id: {} with got _id: {}".format(i, w["_id"], g["_id"]))
+    # no id or ephemeral_id in reindexed docs
+    assert want["observer"].pop("ephemeral_id"), "missing ephemeral_id"
+    assert want["observer"].pop("id"), "missing id"
+
+    # versions should be different
+    want_version = want["observer"].pop("version")
+    got_version = got["observer"].pop("version")
+    assert want_version is not None
+    assert want_version != got_version
+
+    # hostnames should be different
+    want_hostname = want["observer"].pop("hostname")
+    got_hostname = got["observer"].pop("hostname")
+    assert want_hostname is not None
+    assert want_hostname != got_hostname
+
+    # host.name to be removed
+    host = want.pop("host")
+    del(host["name"])
+    # only put host back if it's not empty
+    if host:
+        want["host"] = host
+
+    # service.framework cannot be set through context information any longer
+    want_framework = want.get("service", {}).pop("framework", None)
+    got_framework = got.get("service", {}).pop("framework", None)
+    if want_framework != None:
+        assert want_framework == got_framework
+
+    assert want == got
+
+def today():
+    return strftime("%Y.%m.%d", gmtime())
+
+def migrated_idx(event):
+    return "apm-7.0.0-{}-{}-migrated".format(event, today())
+
+def regular_idx(event):
+    return "apm-7.0.0-{}-{}".format(event, today())
+
+exclude_rum={'query': {'bool': {'must_not': [{'term': {'agent.name': 'js-base'}}]}}}
+
