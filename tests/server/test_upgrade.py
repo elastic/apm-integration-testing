@@ -378,8 +378,8 @@ def test_reindex_v2(es):
 
         print("comparing {} with {}".format(exp, dst))
         exclude_rum = {'query': {'bool': {'must_not': [{'term': {'agent.name': 'js-base'}}]}}}
-        wants = es.es.search(index=exp, body=exclude_rum, sort="@timestamp:asc", size=1000)["hits"]["hits"]
-        gots = es.es.search(index=dst, body=exclude_rum, sort="@timestamp:asc", size=1000)["hits"]["hits"]
+        wants = es.es.search(index=exp, body=exclude_rum, sort="@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
+        gots = es.es.search(index=dst, body=exclude_rum, sort="@timestamp:asc,agent.name:asc", size=1000)["hits"]["hits"]
 
         assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
         for i, (w, g) in enumerate(zip(wants, gots)):
