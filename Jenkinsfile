@@ -12,7 +12,7 @@ pipeline {
   }
   triggers {
     cron 'H H(3-4) * * 1-5'
-    issueCommentTrigger('.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tav\\W+tests(?:\\W+please)?.*')
+    issueCommentTrigger('.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
   }
   options {
     timeout(time: 1, unit: 'HOURS')
@@ -24,7 +24,6 @@ pipeline {
   }
   parameters {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.5", description: "Elastic Stack Git branch/tag to use")
-    string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "master", description: "Integration testing Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
   }
@@ -127,7 +126,7 @@ def runJob(agentName){
     parameters: [
     string(name: 'agent_integration_test', value: agentName),
     string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
-    string(name: 'INTEGRATION_TESTING_VERSION', value: params.INTEGRATION_TESTING_VERSION),
+    string(name: 'INTEGRATION_TESTING_VERSION', value: env.GIT_SHA),
     string(name: 'BUILD_OPTS', value: ''),
     string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: true)],
