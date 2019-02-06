@@ -36,12 +36,13 @@ if (docker != null && docker.containsKey("container")) {
 HashMap context = ctx._source.remove("context");
 if (context != null) {
     // context.process -> process
-    if (context.containsKey("process")) {
-        ctx._source.process = context.remove("process");
-        def args = ctx._source.process.remove("argv");
+    def process = context.remove("process");
+    if (process != null) {
+        def args = process.remove("argv");
         if (args != null) {
-            ctx._source.process.args = args;
+            process.args = args;
         }
+        ctx._source.process = process;
     }
 
     // context.response -> http.response
@@ -173,11 +174,13 @@ if (context != null) {
         }
 
         // context.user.ip -> client.ip
-        if (user.containsKey("ip")) {
+        def userip = user.remove("ip");
+        if (userip != null) {
             ctx._source.client = new HashMap();
-            ctx._source.client.ip = user.remove("ip");
+            ctx._source.client.ip = userip;
         }
 
+        // move user-agent info
         def ua = user.remove("user-agent");
         if (ua != null) {
           ctx._source.user_agent = new HashMap();
@@ -196,12 +199,18 @@ if (context != null) {
           def osminor = pua.remove("os_minor");
           def osmajor = pua.remove("os_major");
           def osname = pua.remove("os_name");
-          if (osminor != null || osmajor != null || osname != null){
-            ctx._source.user_agent.os = new HashMap();
-            ctx._source.user_agent.os.full = os;
-            ctx._source.user_agent.os.version = osmajor + "." + osminor;
-            ctx._source.user_agent.os.name = osname;
+
+          def newos = new HashMap();
+          if (os != null){
+            newos.full = os;
           }
+          if (osmajor != null || osminor != null){
+            newos.version = osmajor + "." + osminor;
+          }
+          if (osname != null){
+            newos.name = osname;
+          }
+          ctx._source.user_agent.os = newos;
 
           def device = pua.remove("device");
           if (device != null){
@@ -209,11 +218,18 @@ if (context != null) {
             ctx._source.user_agent.device.name = device;
           }
           // not exactly reflecting 7.0, but the closes we can get
-          def patch = pua.remove("patch");
-          def minor = pua.remove("minor");
           def major = pua.remove("major");
-          if (patch != null || minor != null || major != null){
-            ctx._source.user_agent.version = major + "." + minor + "." + patch;
+          if (major != null){
+            def version = major;
+            def minor = pua.remove("minor");
+            if (minor != null){
+              version += "." + minor;
+              def patch = pua.remove("patch");
+              if (patch != null){
+                version += "." + patch
+              }
+            }
+            ctx._source.user_agent.version = version;
           }
         }
 
@@ -378,12 +394,12 @@ def test_reindex_v2(es):
             wait_for_completion=True,
         )
     onboarding(es)
-    metrics(es)
+    metric(es)
     transaction(es)
     span(es)
     error(es)
 
-def metrics(es):
+def metric(es):
     exp, dst = regular_idx("metric"), migrated_idx("metric")
     wants = es.es.search(index=exp, body=exclude_rum, sort="@timestamp:asc,agent.name:asc,system.memory.actual.free,labels.name", size=1000)["hits"]["hits"]
     gots = es.es.search(index=dst, body=exclude_rum, sort="@timestamp:asc,agent.name:asc,system.memory.actual.free,labels.name", size=1000)["hits"]["hits"]
