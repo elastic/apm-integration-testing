@@ -84,8 +84,7 @@ pipeline {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}", branch: "${params.INTEGRATION_TESTING_VERSION}",
           repo: "${REPO}",
-          credentialsId: "${JOB_GIT_CREDENTIALS}",
-          reference: '/var/lib/jenkins/apm-integration-testing.git'
+          credentialsId: "${JOB_GIT_CREDENTIALS}"
           )
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script{
