@@ -687,7 +687,7 @@ class LocalTest(unittest.TestCase):
         ## auditing enabled
         #self.assertIn("xpack.security.audit.enabled=true", es_env)
         ## allow anonymous healthcheck (doesn't work in 6.x though)
-        self.assertIn("xpack.security.authc.anonymous.roles=monitoring_user", es_env)
+        self.assertIn("xpack.security.authc.anonymous.roles=remote_monitoring_collector", es_env)
         ## file based realm
         self.assertIn("xpack.security.authc.realms.file1.type=file", es_env)
         # kibana should use user/pass -> es
@@ -715,7 +715,7 @@ class LocalTest(unittest.TestCase):
         ## auditing enabled
         #self.assertIn("xpack.security.audit.enabled=true", es_env)
         ## allow anonymous healthcheck
-        self.assertIn("xpack.security.authc.anonymous.roles=monitoring_user", es_env)
+        self.assertIn("xpack.security.authc.anonymous.roles=remote_monitoring_collector", es_env)
         ## file based realm
         self.assertIn("xpack.security.authc.realms.file.file1.order=0", es_env)
         # kibana should use user/pass -> es

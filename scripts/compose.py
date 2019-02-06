@@ -626,7 +626,7 @@ class Elasticsearch(StackService, Service):
             if self.xpack_secure:
                 xpack_security_enabled = "true"
                 # self.environment.append("xpack.security.audit.enabled=true")
-                self.environment.append("xpack.security.authc.anonymous.roles=monitoring_user")
+                self.environment.append("xpack.security.authc.anonymous.roles=remote_monitoring_collector")
                 if self.at_least_version("7.0"):
                     self.environment.append("xpack.security.authc.realms.file.file1.order=0")
                 else:
