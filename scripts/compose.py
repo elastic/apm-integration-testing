@@ -412,14 +412,14 @@ class ApmServer(StackService, Service):
 
         def add_es_config(args, prefix="output"):
             """add elasticsearch configuration options."""
+            default_apm_server_creds = {"username": "apm_server_user", "password": "changeme"}
             args.append((prefix+".elasticsearch.hosts", json.dumps(es_urls)))
             for cfg in ("username", "password"):
                 es_opt = "apm_server_elasticsearch_{}".format(cfg)
                 if self.options.get(es_opt):
                     args.append((prefix + ".elasticsearch.{}".format(cfg), self.options[es_opt]))
                 elif self.options.get("xpack_secure"):
-                    args.append((prefix + ".elasticsearch.{}".format(cfg),
-                        {"username": "apm_server_user", "password": "changeme"}.get(cfg)))
+                    args.append((prefix + ".elasticsearch.{}".format(cfg), default_apm_server_creds.get(cfg)))
 
         add_es_config(self.apm_server_command_args)
 
