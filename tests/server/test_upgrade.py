@@ -38,7 +38,10 @@ if (context != null) {
     // context.process -> process
     if (context.containsKey("process")) {
         ctx._source.process = context.remove("process");
-        ctx._source.process.args = ctx._source.process.remove("argv");
+        def args = ctx._source.process.remove("argv");
+        if (args != null) {
+            ctx._source.process.args = args;
+        }
     }
 
     // context.response -> http.response
