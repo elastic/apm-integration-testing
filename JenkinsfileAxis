@@ -89,7 +89,7 @@ pipeline {
             extensions: [],
             submoduleCfg: [],
             userRemoteConfigs: [[
-              refspec: '+refs/pull/*/head:refs/remotes/origin/pr/*',
+              refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pr/*',
               url: "${REPO}",
               credentialsId: "${JOB_GIT_CREDENTIALS}"]]
           ])
