@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -exuo pipefail
 
-mkdir -p docker-info
-cd docker-info
+STEP=${1:-""}
+
+mkdir -p docker-info${STEP}
+cd docker-info${STEP}
 
 docker ps -a &> docker-containers.txt
 

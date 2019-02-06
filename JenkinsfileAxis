@@ -1,11 +1,11 @@
 #!/usr/bin/env groovy
-@Library('apm@axis-tests') _
+@Library('apm@v1.0.6') _
 
 import co.elastic.matrix.*
 import groovy.transform.Field
 
 /**
-  This is the parallel tasks generator, 
+  This is the parallel tasks generator,
   it is need as field to store the results of the tests.
 */
 @Field def integrationTestsGen
@@ -54,10 +54,11 @@ pipeline {
     NOTIFY_TO = credentials('notify-to')
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
-    PIPELINE_LOG_LEVEL='INFO'
+    PIPELINE_LOG_LEVEL = 'INFO'
+    DISABLE_BUILD_PARALLEL = "${params.DISABLE_BUILD_PARALLEL}"
   }
   options {
-    timeout(time: 1, unit: 'HOURS') 
+    timeout(time: 1, unit: 'HOURS')
     buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20', daysToKeepStr: '30'))
     timestamps()
     ansiColor('xterm')
@@ -67,7 +68,7 @@ pipeline {
   parameters {
     choice(name: 'agent_integration_test', choices: ['Go', 'Java', 'Node.js', 'Python', 'Ruby', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.5", description: "Elastic Stack Git branch/tag to use")
-    string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "6.x", description: "Integration testing Git branch/tag to use")
+    string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "master", description: "Integration testing Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     string(name: 'UPSTREAM_BUILD', defaultValue: "", description: "upstream build info to show in the description.")
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', defaultValue: true, description: "Disable the build parallel option on compose.py, disable it is better for error detection.")
@@ -81,11 +82,18 @@ pipeline {
       options { skipDefaultCheckout() }
       steps {
         deleteDir()
-        gitCheckout(basedir: "${BASE_DIR}", branch: "${params.INTEGRATION_TESTING_VERSION}", 
-          repo: "${REPO}", 
-          credentialsId: "${JOB_GIT_CREDENTIALS}",
-          reference: '/var/lib/jenkins/apm-integration-testing.git'
-          )
+        dir("${BASE_DIR}"){
+          checkout([$class: 'GitSCM',
+            branches: [[name: "${params.INTEGRATION_TESTING_VERSION}"]],
+            doGenerateSubmoduleConfigurations: false,
+            extensions: [],
+            submoduleCfg: [],
+            userRemoteConfigs: [[
+              refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pr/*',
+              url: "${REPO}",
+              credentialsId: "${JOB_GIT_CREDENTIALS}"]]
+          ])
+        }
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script{
           currentBuild.description = "Agent ${params.agent_integration_test} Integration test ${params.UPSTREAM_BUILD}"
@@ -98,7 +106,7 @@ pipeline {
     stage("Integration Tests"){
       agent { label 'linux && immutable' }
       options { skipDefaultCheckout() }
-      when { 
+      when {
         beforeAgent true
         expression { return params.agent_integration_test != 'All' }
       }
@@ -124,9 +132,9 @@ pipeline {
         }
       }
     }
-    stage("All") { 
+    stage("All") {
       agent { label 'linux && immutable' }
-      when { 
+      when {
         beforeAgent true
         expression { return params.agent_integration_test == 'All' }
       }
@@ -143,18 +151,7 @@ pipeline {
       }
       post {
         always {
-          dir("${BASE_DIR}"){
-            sh('./scripts/docker-get-logs.sh')
-            sh('make stop-env || echo 0')
-            archiveArtifacts(
-                allowEmptyArchive: true, 
-                artifacts: 'docker-info', 
-                defaultExcludes: false)
-            junit(
-              allowEmptyResults: true, 
-              keepLongStdio: true, 
-              testResults: "**/tests/results/*-junit*.xml")
-          }
+          wrappingup('-all')
         }
       }
     }
@@ -177,11 +174,11 @@ pipeline {
     aborted {
       echoColor(text: '[ABORTED]', colorfg: 'magenta', colorbg: 'default')
     }
-    failure { 
+    failure {
       echoColor(text: '[FAILURE]', colorfg: 'red', colorbg: 'default')
       step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
     }
-    unstable { 
+    unstable {
       echoColor(text: '[UNSTABLE]', colorfg: 'yellow', colorbg: 'default')
     }
   }
@@ -202,11 +199,11 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
     'ruby': 'APM_AGENT_RUBY_PKG',
     'server': 'APM_SERVER_BRANCH'
   ]
-  
+
   public IntegrationTestingParallelTaskGenerator(Map params){
     super(params)
   }
-  
+
   /**
     build a clousure that launch and agent and execute the corresponding test script,
     then store the results.
@@ -214,7 +211,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
   public Closure generateStep(x, y){
     return {
       steps.node('linux && immutable'){
-        def env = ["APM_SERVER_BRANCH=${y}", 
+        def env = ["APM_SERVER_BRANCH=${y}",
           "${agentEnvVar[tag]}=${x}",
           "REUSE_CONTAINERS=true"
           ]
@@ -226,18 +223,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
           saveResult(x, y, 0)
           error("${label} tests failed : ${e}\n")
         } finally {
-          steps.dir("${steps.env.BASE_DIR}"){
-            steps.sh('./scripts/docker-get-logs.sh || echo 0')
-            steps.sh('make stop-env || echo 0')
-            steps.archiveArtifacts(
-                allowEmptyArchive: true, 
-                artifacts: 'docker-info', 
-                defaultExcludes: false)
-            steps.junit(
-              allowEmptyResults: false, 
-              keepLongStdio: true, 
-              testResults: "**/tests/results/*-junit*.xml")
-          }
+          steps.wrappingup(label)
         }
       }
     }
@@ -246,7 +232,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
 
 /**
   Execute a test script.
-  
+
   runScript(tag: "Running Go integration test", agentType: "go", env: [ 'V1': 'value', 'V2':'value'])
 */
 def runScript(Map params = [:]){
@@ -266,3 +252,22 @@ def runScript(Map params = [:]){
   }
 }
 
+def wrappingup(label){
+  dir("${BASE_DIR}"){
+    def stepName = "-" + label.replace(";","_")
+      .replace("#","_")
+      .replace(":","_")
+      .replace("-","_")
+      .replace(".","_")
+    sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
+    sh('make stop-env || echo 0')
+    archiveArtifacts(
+        allowEmptyArchive: true,
+        artifacts: 'docker-info*/**',
+        defaultExcludes: false)
+    junit(
+      allowEmptyResults: false,
+      keepLongStdio: true,
+      testResults: "**/tests/results/*-junit*.xml")
+  }
+}
