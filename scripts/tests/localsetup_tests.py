@@ -681,6 +681,7 @@ class LocalTest(unittest.TestCase):
         apm_server_cmd = got["services"]["apm-server"]["command"]
         self.assertTrue(any(cmd.startswith("output.elasticsearch.password=") for cmd in apm_server_cmd), apm_server_cmd)
         self.assertTrue(any(cmd.startswith("output.elasticsearch.username=") for cmd in apm_server_cmd), apm_server_cmd)
+        self.assertFalse(any(cmd == "setup.dashboards.enabled=true" for cmd in apm_server_cmd), apm_server_cmd)
         # elasticsearch configuration
         es_env = got["services"]["elasticsearch"]["environment"]
         ## auditing enabled

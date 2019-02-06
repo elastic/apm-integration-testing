@@ -394,7 +394,8 @@ class ApmServer(StackService, Service):
 
         if self.options.get("enable_kibana", True):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
-            if options.get("apm_server_dashboards", True) and not self.at_least_version("7.0"):
+            if options.get("apm_server_dashboards", True) and not self.at_least_version("7.0") \
+                    and not self.options.get("xpack_secure"):
                 self.apm_server_command_args.append(
                     ("setup.dashboards.enabled", "true")
                 )
