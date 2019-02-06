@@ -214,7 +214,27 @@ if (context != null) {
           }
         }
 
-        ctx._source.user = user;
+        // remove unknown fields from user, like is_authenticated
+        def add_user = false;
+        def new_user = new HashMap();
+        def email = user.remove("email");
+        if (email != null) {
+            add_user = true;
+            new_user.email = email;
+        }
+        def id = user.remove("id");
+        if (id != null) {
+            add_user = true;
+            new_user.id = String.valueOf(id);
+        }
+        def name = user.remove("name");
+        if (name != null) {
+            add_user = true;
+            new_user.name = name;
+        }
+        if (add_user) {
+            ctx._source.user = new_user;
+        }
     }
 
     // context.custom -> error,transaction,span.custom
