@@ -373,6 +373,7 @@ def test_reindex_v2(es):
                     "source": MIGRATION_SCRIPT,
                 }
             },
+            refresh=True,
             wait_for_completion=True,
         )
 
