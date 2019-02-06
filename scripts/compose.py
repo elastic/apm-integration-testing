@@ -399,7 +399,7 @@ class ApmServer(StackService, Service):
                     ("setup.dashboards.enabled", "true")
                 )
 
-        if self.options.get("apm-server-secret-token"):
+        if self.options.get("apm_server_secret_token"):
             self.apm_server_command_args.append(("apm-server.secret_token", self.options["apm_server_secret_token"]))
 
         self.apm_server_monitor_port = options.get("apm_server_monitor_port", self.DEFAULT_MONITOR_PORT)
@@ -497,6 +497,7 @@ class ApmServer(StackService, Service):
         )
         parser.add_argument(
             '--apm-server-secret-token',
+            dest="apm_server_secret_token",
             help="apm-server secret token.",
         )
         parser.add_argument(
@@ -1032,7 +1033,7 @@ class AgentPythonDjango(AgentPython):
     SERVICE_PORT = 8003
 
     @add_agent_environment([
-        ("apm_server_secret_token", "APM_SERVER_SECRET_TOKEN"),
+        ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
         ("apm_server_url", "APM_SERVER_URL"),
     ])
     def _content(self):
@@ -1057,7 +1058,7 @@ class AgentPythonFlask(AgentPython):
     SERVICE_PORT = 8001
 
     @add_agent_environment([
-        ("apm_server_secret_token", "APM_SERVER_SECRET_TOKEN"),
+        ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
         ("apm_server_url", "APM_SERVER_URL"),
     ])
     def _content(self):

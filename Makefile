@@ -34,7 +34,7 @@ stop-env: venv
 	docker-compose down -v --remove-orphans || true
 
 destroy-env: venv
-	(docker ps -aqf network=apm-integration-testing | xargs docker rm -f && docker network rm apm-integration-testing) || true
+	[ -n "$(docker ps -aqf network=apm-integration-testing)" ] && (docker ps -aqf network=apm-integration-testing | xargs -t docker rm -f && docker network rm apm-integration-testing) || true
 
 # default (all) started for now
 env-%: venv
@@ -81,10 +81,9 @@ docker-test-%:
 
 dockerized-test:
 	@echo waiting for services to be healthy
-	$(MAKE) docker-compose-wait
+	$(MAKE) docker-compose-wait || (./scripts/docker-summary.sh && exit 1)
 	
-	@echo containers summary
-	docker ps -a
+	./scripts/docker-summary.sh
 	
 	@echo running make $(TARGET) inside a container
 	docker build --pull -t apm-integration-testing .
