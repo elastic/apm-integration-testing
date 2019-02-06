@@ -9,7 +9,7 @@ pipeline {
     PIPELINE_LOG_LEVEL='INFO'
   }
   options {
-    timeout(time: 1, unit: 'HOURS') 
+    timeout(time: 1, unit: 'HOURS')
     buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20', daysToKeepStr: '30'))
     timestamps()
     ansiColor('xterm')
@@ -18,7 +18,6 @@ pipeline {
   }
   parameters {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.5", description: "Elastic Stack Git branch/tag to use")
-    string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "6.x", description: "Integration testing Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', defaultValue: true, description: "Disable the build parallel option on compose.py, disable it is better for error detection.")
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -36,7 +35,7 @@ pipeline {
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
-    
+
     stage("All Test Only") {
       agent { label 'linux && immutable' }
       options { skipDefaultCheckout() }
@@ -71,8 +70,8 @@ pipeline {
       }
       steps {
         log(level: "INFO", text: "Launching Agent tests in parallel")
-        /* 
-          Declarative pipeline's parallel stages lose the reference to the downstream job, 
+        /*
+          Declarative pipeline's parallel stages lose the reference to the downstream job,
           because of that, I use the parallel step. It is probably a bug.
         */
         script {
@@ -107,27 +106,26 @@ pipeline {
     aborted {
       echoColor(text: '[ABORTED]', colorfg: 'magenta', colorbg: 'default')
     }
-    failure { 
+    failure {
       echoColor(text: '[FAILURE]', colorfg: 'red', colorbg: 'default')
       step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
     }
-    unstable { 
+    unstable {
       echoColor(text: '[UNSTABLE]', colorfg: 'yellow', colorbg: 'default')
     }
   }
 }
 
 def runJob(agentName){
-  def job = build(job: 'apm-server/apm-integration-test-axis-pipeline', 
+  def job = build(job: 'apm-server/apm-integration-test-axis-pipeline',
     parameters: [
-    string(name: 'agent_integration_test', value: agentName), 
-    string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION), 
-    string(name: 'INTEGRATION_TESTING_VERSION', value: params.INTEGRATION_TESTING_VERSION), 
-    string(name: 'BUILD_OPTS', value: ''), 
+    string(name: 'agent_integration_test', value: agentName),
+    string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
+    string(name: 'INTEGRATION_TESTING_VERSION', value: env.GIT_SHA),
+    string(name: 'BUILD_OPTS', value: ''),
     string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
-    booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: true)], 
+    booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: true)],
     propagate: true,
     quietPeriod: 10,
     wait: true)
 }
-
