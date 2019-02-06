@@ -8,7 +8,7 @@ export COMPOSE_ARGS="6.6 --force-build --build-parallel --no-apm-server-dashboar
 make start-env docker-compose-wait
 
 # let opbeans apps generate some data
-sleep 10
+sleep 60
 
 # upgrade elasticsearch, remove all other services
 export COMPOSE_ARGS="master --no-apm-server --elasticsearch-data-dir '' --remove-orphans"
