@@ -68,7 +68,7 @@ test-helps:
 	$(foreach subcommand,$(SUBCOMMANDS), $(PYTHON) scripts/compose.py $(subcommand) --help >/dev/null || exit 1;)
 
 test-all: venv test-compose lint test-helps
-	pytest -v -s $(JUNIT_OPT)/all-junit.xml
+	pytest -v --ignore=tests/agent/test_python.py -s $(JUNIT_OPT)/all-junit.xml
 
 docker-test-%:
 	TARGET=test-$* $(MAKE) dockerized-test
