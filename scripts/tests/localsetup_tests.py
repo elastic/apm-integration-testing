@@ -672,7 +672,7 @@ class LocalTest(unittest.TestCase):
     def test_start_6_x_xpack_secure(self, _ignore_load_images):
         docker_compose_yml = stringIO()
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.6': '6.6.10'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["6.6", "--xpack-secure"])
+            setup = LocalSetup(argv=self.common_setup_args + ["6.6", "--xpack-secure", "--elasticsearch-xpack-audit"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -685,8 +685,8 @@ class LocalTest(unittest.TestCase):
         # elasticsearch configuration
         es_env = got["services"]["elasticsearch"]["environment"]
         ## auditing enabled
-        #self.assertIn("xpack.security.audit.enabled=true", es_env)
-        ## allow anonymous healthcheck (doesn't work in 6.x though)
+        self.assertIn("xpack.security.audit.enabled=true", es_env)
+        ## allow anonymous healthcheck
         self.assertIn("xpack.security.authc.anonymous.roles=remote_monitoring_collector", es_env)
         ## file based realm
         self.assertIn("xpack.security.authc.realms.file1.type=file", es_env)
@@ -712,8 +712,8 @@ class LocalTest(unittest.TestCase):
         self.assertTrue(any(cmd.startswith("output.elasticsearch.username=") for cmd in apm_server_cmd), apm_server_cmd)
         # elasticsearch configuration
         es_env = got["services"]["elasticsearch"]["environment"]
-        ## auditing enabled
-        #self.assertIn("xpack.security.audit.enabled=true", es_env)
+        ## auditing disabled by default
+        self.assertNotIn("xpack.security.audit.enabled=true", es_env)
         ## allow anonymous healthcheck
         self.assertIn("xpack.security.authc.anonymous.roles=remote_monitoring_collector", es_env)
         ## file based realm

@@ -625,7 +625,8 @@ class Elasticsearch(StackService, Service):
             xpack_security_enabled = "false"
             if self.xpack_secure:
                 xpack_security_enabled = "true"
-                # self.environment.append("xpack.security.audit.enabled=true")
+                if options.get("elasticsearch_xpack_audit"):
+                    self.environment.append("xpack.security.audit.enabled=true")
                 self.environment.append("xpack.security.authc.anonymous.roles=remote_monitoring_collector")
                 if self.at_least_version("7.0"):
                     self.environment.append("xpack.security.authc.realms.file.file1.order=0")
@@ -648,6 +649,12 @@ class Elasticsearch(StackService, Service):
             "--elasticsearch-heap",
             default=Elasticsearch.default_heap_size,
             help="min/max elasticsearch heap size, for -Xms -Xmx jvm options."
+        )
+
+        parser.add_argument(
+            "--elasticsearch-xpack-audit",
+            action="store_true",
+            help="enable very verbose xpack auditing",
         )
 
         class storeDict(argparse.Action):
