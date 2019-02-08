@@ -1,17 +1,4 @@
 GO_AGENT:
-  - 'github;master'
-  - 'github;v1.2.0'
-
+# No v1 versions
 exclude:
-  - GO_AGENT: 'github;master'
-    APM_SERVER: '6.4;--release'
-  - GO_AGENT: 'github;master'
-    APM_SERVER: '6.3;--release'
-  - GO_AGENT: 'github;master'
-    APM_SERVER: '6.2;--release'
-  - GO_AGENT: 'github;v1.2.0'
-    APM_SERVER: '6.4;--release'
-  - GO_AGENT: 'github;v1.2.0'
-    APM_SERVER: '6.3;--release'
-  - GO_AGENT: 'github;v1.2.0'
-    APM_SERVER: '6.2;--release'
+
