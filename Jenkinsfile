@@ -23,6 +23,9 @@ pipeline {
   }
   parameters {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.5", description: "Elastic Stack Git branch/tag to use")
+    string(name: 'NODEJS_AGENT_VERSION', defaultValue: "1.x", description: "Agent version to build")
+    string(name: 'PYTHON_AGENT_VERSION', defaultValue: "3.x", description: "Agent version to build")
+    string(name: 'RUBY_AGENT_VERSION', defaultValue: "1.x", description: "Agent version to build")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', defaultValue: true, description: "Disable the build parallel option on compose.py, disable it is better for error detection.")
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -82,16 +85,16 @@ pipeline {
         script {
           parallel(
             "Node.js": {
-              runJob('Node.js')
+              runJob('Node.js', "--nodejs-agent-package=elastic/apm-agent-nodejs#${NODEJS_AGENT_VERSION}")
             },
             "Python": {
-              runJob('Python')
+              runJob('Python', "--python-agent-package=git+https://github.com/elastic/apm-agent-python.git@{PYTHON_AGENT_VERSION}")
             },
             "Ruby": {
-              runJob('Ruby')
+              runJob('Ruby', '--ruby-agent-version-state=github --ruby-agent-version=${RUBY_AGENT_VERSION}')
             },
             "All": {
-              runJob('All')
+              runJob('All', '--nodejs-agent-package=${NODEJS_AGENT_VERSION} --python-agent-package=git+https://github.com/elastic/apm-agent-python.git@{PYTHON_AGENT_VERSION} --ruby-agent-version-state=github --ruby-agent-version=${RUBY_AGENT_VERSION}')
             }
           )
         }
@@ -115,13 +118,13 @@ pipeline {
   }
 }
 
-def runJob(agentName){
+def runJob(agentName, buildOpts){
   def job = build(job: 'apm-integration-test-axis-pipeline',
     parameters: [
     string(name: 'agent_integration_test', value: agentName),
     string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
     string(name: 'INTEGRATION_TESTING_VERSION', value: env.GIT_SHA),
-    string(name: 'BUILD_OPTS', value: ''),
+    string(name: 'BUILD_OPTS', value: buildOpts),
     string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: true)],
     propagate: true,
