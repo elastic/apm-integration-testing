@@ -52,7 +52,7 @@ pipeline {
         changeRequest()
       }
       steps {
-        runJob('All', '--nodejs-agent-package=${NODEJS_AGENT_VERSION} --python-agent-package=git+https://github.com/elastic/apm-agent-python.git@{PYTHON_AGENT_VERSION} --ruby-agent-version-state=github --ruby-agent-version=${RUBY_AGENT_VERSION}')
+        runJob('All', '--nodejs-agent-package=elastic/apm-agent-nodejs#1.x --python-agent-package=git+https://github.com/elastic/apm-agent-python.git@3.x --ruby-agent-version-state=github --ruby-agent-version=1.x')
       }
     }
     /**
@@ -85,16 +85,16 @@ pipeline {
         script {
           parallel(
             "Node.js": {
-              runJob('Node.js', "--nodejs-agent-package=elastic/apm-agent-nodejs#${NODEJS_AGENT_VERSION}")
+              runJob('Node.js', "--nodejs-agent-package=elastic/apm-agent-nodejs#1.x")
             },
             "Python": {
-              runJob('Python', "--python-agent-package=git+https://github.com/elastic/apm-agent-python.git@{PYTHON_AGENT_VERSION}")
+              runJob('Python', "--python-agent-package=git+https://github.com/elastic/apm-agent-python.git@3.x")
             },
             "Ruby": {
-              runJob('Ruby', '--ruby-agent-version-state=github --ruby-agent-version=${RUBY_AGENT_VERSION}')
+              runJob('Ruby', '--ruby-agent-version-state=github --ruby-agent-version=1.x')
             },
             "All": {
-              runJob('All', '--nodejs-agent-package=${NODEJS_AGENT_VERSION} --python-agent-package=git+https://github.com/elastic/apm-agent-python.git@{PYTHON_AGENT_VERSION} --ruby-agent-version-state=github --ruby-agent-version=${RUBY_AGENT_VERSION}')
+              runJob('All', '--nodejs-agent-package=elastic/apm-agent-nodejs#1.x --python-agent-package=git+https://github.com/elastic/apm-agent-python.git@3.x --ruby-agent-version-state=github --ruby-agent-version=1.x')
             }
           )
         }
