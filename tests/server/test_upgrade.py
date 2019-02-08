@@ -1,4 +1,4 @@
-MIGRATION_SCRIPT = """
+MIGRATION_SCRIPT = """    
 // add ecs version
 ctx._source.ecs = ['version': '1.0.0-beta2'];
 
@@ -142,6 +142,21 @@ if (context != null) {
         }
 
     }
+    
+    
+    // bump timestamp.us by span.start.us for spans
+    // shouldn't @timestamp this already be a Date?
+    if (ctx._source.processor.event == "span" && context.service.agent.name == "js-base"){
+      def ts = ctx._source.get("@timestamp");
+      if (ts != null && !ctx._source.containsKey("timestamp") && ctx._source.span.start.containsKey("us")) {
+         // add span.start to @timestamp for rum documents v1
+          ctx._source.timestamp = new HashMap();
+          def tsms = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(ts).getTime();
+          ctx._source['@timestamp'] = Instant.ofEpochMilli(tsms + (ctx._source.span.start.us/1000));
+          ctx._source.timestamp.us = (tsms*1000) + ctx._source.span.start.us;
+        
+      }
+    }
 
     // context.service.agent -> agent
     HashMap service = context.remove("service");
@@ -267,6 +282,17 @@ if (context != null) {
             ctx._source.error.custom = custom;
         }
     }
+    
+    
+    // context.page -> error.page,transaction.page
+    def page = context.remove("page");
+    if (page != null) {
+        if (ctx._source.processor.event == "transaction") {
+            ctx._source.transaction.page = page;
+        } else if (ctx._source.processor.event == "error") {
+            ctx._source.error.page = page;
+        }
+    }
 
     // context.db -> span.db
     def db = context.remove("db");
@@ -293,18 +319,10 @@ if (context != null) {
         }
         ctx._source.span.http = http;
     }
+    
 }
 
 if (ctx._source.processor.event == "span") {
-    // bump timestamp.us by span.start.us for spans
-    // shouldn't @timestamp this already be a Date?
-    def ts = ctx._source.get("@timestamp");
-    if (ts != null && !ctx._source.containsKey("timestamp")) {
-        // add span.start to @timestamp for rum documents v1
-        if (ctx._source.context.service.agent.name == "js-base" && ctx._source.span.start.containsKey("us")) {
-           ts += ctx._source.span.start.us/1000;
-        }
-    }
     if (ctx._source.span.containsKey("hex_id")) {
       ctx._source.span.id = ctx._source.span.remove("hex_id");
     }
@@ -331,7 +349,7 @@ if (ctx._source.processor.event == "transaction" || ctx._source.processor.event 
   if (ts != null && !ctx._source.containsKey("timestamp")) {
     //set timestamp.microseconds to @timestamp
     ctx._source.timestamp = new HashMap();
-    ctx._source.timestamp.us = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(ts).getTime()*1000;
+    ctx._source.timestamp.us = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(ts).getTime()*1000;
   }
 
 }
@@ -359,16 +377,65 @@ if (ctx._source.processor.event == "error") {
     if (exception != null) {
         ctx._source.error.exception = [exception];
     }
+    
+    def page = ctx._source.context
 }
-
 """  # noqa
 
 
 exclude_rum = {'query': {'bool': {'must_not': [{'term': {'agent.name': 'js-base'}}]}}}
 
+import os, json
+from elasticsearch import helpers
+
+def test_reindex_v1(es):
+
+    def index_docs(path):
+        for entry in os.scandir(path):
+            if entry.is_file():
+                with open(entry.path, 'r') as f:
+                    yield json.load(f)
+
+    def setup(event_type, version):
+        index = "apm-{}-{}-v1".format(version, event_type)
+        es.es.indices.delete(index=index, ignore=[400, 404])
+        path=os.path.join(os.getcwd(),"tests", "server", version, event_type)
+        helpers.bulk(es.es, index_docs(path), index=index, refresh=True)
+
+    # ensure v1 docs are stored in 6.x and 7.0 indices
+    for event_type in ["error", "transaction", "span"]:
+        es.es.indices.delete(index="apm-7.0.0-{}-v1-migrated".format(event_type), ignore=[400, 404])
+        setup(event_type, "6.x")
+        setup(event_type, "7.0.0")
+
+    # run reindexing script
+    migrations = run_migration(es)
+
+    # check v1 docs against expected 7.0 indices
+    for event_type, exp, dst in migrations:
+        if "v1" not in exp:
+            continue
+        verify(es, event_type, exp, dst, None)
 
 def test_reindex_v2(es):
     # first migrate all indices
+    migrations = run_migration(es)
+
+    for event_type, exp, dst in migrations:
+        # check against expected 7.0 indices
+        verify(es, event_type, exp, dst, exclude_rum)
+
+def verify(es, event_type, exp, dst, body):
+        print(event_type)
+        {
+            "error": error,
+            "metric": metric,
+            "onboarding": onboarding,
+            "span": span,
+            "transaction": transaction,
+        }.get(event_type)(es, exp, dst, body)
+
+def run_migration(es):    # first migrate all indices
     migrations = []
     for src, info in es.es.indices.get("apm*").items():
         try:
@@ -399,40 +466,17 @@ def test_reindex_v2(es):
             wait_for_completion=True,
         )
         migrations.append((event_type, exp, dst))
+    return migrations
 
-    # then check document contents
-    for event_type, exp, dst in migrations:
-        # dispatch check by event type
-        {
-            "error": error,
-            "metric": metric,
-            "onboarding": onboarding,
-            "span": span,
-            "transaction": transaction,
-        }.get(event_type)(es, exp, dst)
-
-
-def metric(es, exp, dst):
-    wants = es.es.search(index=exp, body=exclude_rum,
-                         sort="@timestamp:asc,agent.name:asc,system.memory.actual.free",
-                         size=1000)["hits"]["hits"]
-    gots = es.es.search(index=dst, body=exclude_rum,
-                        sort="@timestamp:asc,agent.name:asc,system.memory.actual.free",
-                        size=1000)["hits"]["hits"]
-    print("checking metric - comparing {} with {}".format(exp, dst))
-
+def metric(es, exp, dst, body):
+    wants, gots = query_for(es, exp, dst, body, "@timestamp:asc,agent.name:asc,system.memory.actual.free")
     assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
     for i, (w, g) in enumerate(zip(wants, gots)):
         common(i, w, g)
 
 
-def span(es, exp, dst):
-    wants = es.es.search(index=exp, body=exclude_rum,
-                         sort="span.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc",
-                         size=1000)["hits"]["hits"]
-    gots = es.es.search(index=dst, body=exclude_rum,
-                        sort="span.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc",
-                        size=1000)["hits"]["hits"]
+def span(es, exp, dst, body):
+    wants, gots = query_for(es, exp, dst, body, "span.id:asc,span.start.us:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc,span.duration.us")
     print("checking span - comparing {} with {}".format(exp, dst))
 
     assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
@@ -459,13 +503,8 @@ def span(es, exp, dst):
         common(i, w, g)
 
 
-def error(es, exp, dst):
-    wants = es.es.search(index=exp, body=exclude_rum,
-                 sort="error.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc",
-                 size=1000)["hits"]["hits"]
-    gots = es.es.search(index=dst, body=exclude_rum,
-                        sort="error.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc",
-                        size=1000)["hits"]["hits"]
+def error(es, exp, dst, body):
+    wants, gots = query_for(es, exp, dst, body, "error.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc")
     print("checking error - comparing {} with {}".format(exp, dst))
 
     assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
@@ -479,13 +518,8 @@ def error(es, exp, dst):
         common(i, w, g)
 
 
-def transaction(es, exp, dst):
-    wants = es.es.search(index=exp, body=exclude_rum,
-                 sort="transaction.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc",
-                 size=1000)["hits"]["hits"]
-    gots = es.es.search(index=dst, body=exclude_rum,
-                 sort="transaction.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc",
-                 size=1000)["hits"]["hits"]
+def transaction(es, exp, dst, body):
+    wants, gots = query_for(es, exp, dst, body, "transaction.id:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc")
     print("checking transaction - comparing {} with {}".format(exp, dst))
 
     assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
@@ -493,13 +527,8 @@ def transaction(es, exp, dst):
         common(i, w, g)
 
 
-def onboarding(es, exp, dst):
-    wants = es.es.search(index=exp, body=exclude_rum,
-                 sort="timestamp.us:asc,@timestamp:asc,agent.name:asc",
-                 size=1000)["hits"]["hits"]
-    gots = es.es.search(index=dst, body=exclude_rum,
-                        sort="timestamp.us:asc,@timestamp:asc,agent.name:asc",
-                        size=1000)["hits"]["hits"]
+def onboarding(es, exp, dst, body):
+    wants, gots = query_for(es, exp, dst, body, "timestamp.us:asc,@timestamp:asc,agent.name:asc")
     print("checking onboarding - comparing {} with {}".format(exp, dst))
 
     assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
@@ -510,6 +539,11 @@ def onboarding(es, exp, dst):
         del(got["@timestamp"])
         common(i, w, g)
 
+def query_for(es, exp, dst, body, sort):
+    wants = es.es.search(index=exp, body=body, sort=sort, size=1000)["hits"]["hits"]
+    gots = es.es.search(index=dst, body=body, sort=sort, size=1000)["hits"]["hits"]
+    return wants, gots
+
 
 def common(i, w, g):
     want = w["_source"]
@@ -517,23 +551,21 @@ def common(i, w, g):
 
     print("comparing {:-3d}, want _id: {} with got _id: {}".format(i, w["_id"], g["_id"]))
     # no id or ephemeral_id in reindexed docs
-    assert want["observer"].pop("ephemeral_id"), "missing ephemeral_id"
-    assert want["observer"].pop("id"), "missing id"
+    want["observer"].pop("ephemeral_id","")
+    want["observer"].pop("id", "")
 
-    # versions should be different
-    want_version = want["observer"].pop("version")
-    got_version = got["observer"].pop("version")
-    assert want_version is not None
-    assert want_version != got_version
+    # version should be set
+    want["observer"].pop("version","")
+    got_version = got["observer"].pop("version","")
+    assert got_version is not None
 
-    # hostnames should be different
-    want_hostname = want["observer"].pop("hostname")
+    # hostnames might be different
+    want["observer"].pop("hostname")
     got_hostname = got["observer"].pop("hostname")
-    assert want_hostname is not None
-    assert want_hostname != got_hostname
+    assert got_hostname is not None
 
     # host.name to be removed
-    host = want.pop("host")
+    host = want.pop("host", {"name": ""})
     del(host["name"])
     # only put host back if it's not empty
     if host:
