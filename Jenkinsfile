@@ -52,7 +52,7 @@ pipeline {
         changeRequest()
       }
       steps {
-        runJob('All')
+        runJob('All', '--nodejs-agent-package=${NODEJS_AGENT_VERSION} --python-agent-package=git+https://github.com/elastic/apm-agent-python.git@{PYTHON_AGENT_VERSION} --ruby-agent-version-state=github --ruby-agent-version=${RUBY_AGENT_VERSION}')
       }
     }
     /**
