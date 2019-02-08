@@ -22,7 +22,7 @@ pipeline {
     issueCommentTrigger('.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
   }
   parameters {
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.5", description: "Elastic Stack Git branch/tag to use")
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.5 --release", description: "Elastic Stack Git branch/tag to use")
     string(name: 'NODEJS_AGENT_VERSION', defaultValue: "1.x", description: "Agent version to build")
     string(name: 'PYTHON_AGENT_VERSION', defaultValue: "3.x", description: "Agent version to build")
     string(name: 'RUBY_AGENT_VERSION', defaultValue: "1.x", description: "Agent version to build")
