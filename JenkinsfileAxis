@@ -211,8 +211,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
   public Closure generateStep(x, y){
     return {
       steps.node('linux && immutable'){
-        def env = ["APM_SERVER_BRANCH=${y}",
-          "${agentEnvVar[tag]}=${x}",
+        def env = ["${agentEnvVar[tag]}=${x}",
           "REUSE_CONTAINERS=true"
           ]
         def label = "${tag}-${x}-${y}"
