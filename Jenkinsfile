@@ -81,12 +81,6 @@ pipeline {
         */
         script {
           parallel(
-            "Go": {
-              runJob('Go')
-            },
-            "Java": {
-              runJob('Java')
-            },
             "Node.js": {
               runJob('Node.js')
             },
