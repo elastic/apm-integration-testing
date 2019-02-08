@@ -394,7 +394,8 @@ class ApmServer(StackService, Service):
 
         if self.options.get("enable_kibana", True):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
-            if options.get("apm_server_dashboards", True) and not self.at_least_version("7.0"):
+            if options.get("apm_server_dashboards", True) and not self.at_least_version("7.0") \
+                    and not self.options.get("xpack_secure"):
                 self.apm_server_command_args.append(
                     ("setup.dashboards.enabled", "true")
                 )
@@ -411,11 +412,14 @@ class ApmServer(StackService, Service):
 
         def add_es_config(args, prefix="output"):
             """add elasticsearch configuration options."""
+            default_apm_server_creds = {"username": "apm_server_user", "password": "changeme"}
             args.append((prefix+".elasticsearch.hosts", json.dumps(es_urls)))
             for cfg in ("username", "password"):
                 es_opt = "apm_server_elasticsearch_{}".format(cfg)
                 if self.options.get(es_opt):
                     args.append((prefix + ".elasticsearch.{}".format(cfg), self.options[es_opt]))
+                elif self.options.get("xpack_secure"):
+                    args.append((prefix + ".elasticsearch.{}".format(cfg), default_apm_server_creds.get(cfg)))
 
         add_es_config(self.apm_server_command_args)
 
@@ -598,6 +602,8 @@ class Elasticsearch(StackService, Service):
         if not self.oss and not self.at_least_version("6.3"):
             self.docker_name = self.name() + "-platinum"
 
+        self.xpack_secure = bool(self.options.get("xpack_secure"))
+
         # construct elasticsearch environment variables
         es_java_opts = {}
         if "elasticsearch_heap" in options:
@@ -617,7 +623,17 @@ class Elasticsearch(StackService, Service):
         self.environment = self.default_environment + [
             java_opts_env, "path.data=/usr/share/elasticsearch/data/" + data_dir]
         if not self.oss:
-            self.environment.append("xpack.security.enabled=false")
+            xpack_security_enabled = "false"
+            if self.xpack_secure:
+                xpack_security_enabled = "true"
+                if options.get("elasticsearch_xpack_audit"):
+                    self.environment.append("xpack.security.audit.enabled=true")
+                self.environment.append("xpack.security.authc.anonymous.roles=remote_monitoring_collector")
+                if self.at_least_version("7.0"):
+                    self.environment.append("xpack.security.authc.realms.file.file1.order=0")
+                else:
+                    self.environment.append("xpack.security.authc.realms.file1.type=file")
+            self.environment.append("xpack.security.enabled=" + xpack_security_enabled)
             self.environment.append("xpack.license.self_generated.type=trial")
             if self.at_least_version("6.3"):
                 self.environment.append("xpack.monitoring.collection.enabled=true")
@@ -636,6 +652,12 @@ class Elasticsearch(StackService, Service):
             help="min/max elasticsearch heap size, for -Xms -Xmx jvm options."
         )
 
+        parser.add_argument(
+            "--elasticsearch-xpack-audit",
+            action="store_true",
+            help="enable very verbose xpack auditing",
+        )
+
         class storeDict(argparse.Action):
             def __call__(self, parser, namespace, value, option_string=None):
                 items = getattr(namespace, self.dest)
@@ -651,6 +673,13 @@ class Elasticsearch(StackService, Service):
         )
 
     def _content(self):
+        volumes = ["esdata:/usr/share/elasticsearch/data"]
+        if self.xpack_secure:
+            volumes.extend([
+                "./docker/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml",
+                "./docker/elasticsearch/users:/usr/share/elasticsearch/config/users",
+                "./docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles",
+            ])
         return dict(
             environment=self.environment,
             healthcheck={
@@ -662,7 +691,7 @@ class Elasticsearch(StackService, Service):
             ulimits={
                 "memlock": {"hard": -1, "soft": -1},
             },
-            volumes=["esdata:/usr/share/elasticsearch/data"]
+            volumes=volumes,
         )
 
     @staticmethod
@@ -718,6 +747,10 @@ class Kibana(StackService, Service):
             self.environment["XPACK_MONITORING_ENABLED"] = "true"
             if self.at_least_version("6.3"):
                 self.environment["XPACK_XPACK_MAIN_TELEMETRY_ENABLED"] = "false"
+            if options.get("xpack_secure"):
+                self.environment["ELASTICSEARCH_PASSWORD"] = "changeme"
+                self.environment["ELASTICSEARCH_USERNAME"] = "kibana_system_user"
+                self.environment["STATUS_ALLOWANONYMOUS"] = "true"
 
     def _content(self):
         return dict(
@@ -1823,6 +1856,13 @@ class LocalSetup(object):
             help='server_url to use for Opbeans frontend service',
             dest='opbeans_apm_js_server_url',
             default='http://apm-server:8200',
+        )
+
+        parser.add_argument(
+            '--xpack-secure',
+            action="store_true",
+            dest="xpack_secure",
+            help="enable xpack security throughout the stack",
         )
 
         self.store_options(parser)
