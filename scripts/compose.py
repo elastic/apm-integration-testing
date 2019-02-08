@@ -589,8 +589,9 @@ class Elasticsearch(StackService, Service):
     default_environment = [
         "bootstrap.memory_lock=true",
         "cluster.name=docker-cluster",
-        "discovery.type=single-node",
         "cluster.routing.allocation.disk.threshold_enabled=false",
+        "discovery.type=single-node",
+        "path.repo=/usr/share/elasticsearch/data/backups",
     ]
     default_heap_size = "1g"
 
