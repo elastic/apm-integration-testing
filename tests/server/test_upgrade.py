@@ -569,10 +569,4 @@ def common(i, w, g):
     if host:
         want["host"] = host
 
-    # service.framework cannot be set through context information any longer
-    want_framework = want.get("service", {}).pop("framework", None)
-    got_framework = got.get("service", {}).pop("framework", None)
-    if want_framework is not None:
-        assert want_framework == got_framework
-
     assert want == got
