@@ -323,12 +323,16 @@ if (context != null) {
 }
 
 if (ctx._source.processor.event == "span") {
-    if (ctx._source.span.containsKey("hex_id")) {
-      ctx._source.span.id = ctx._source.span.remove("hex_id");
+    def hex_id = ctx._source.span.remove("hex_id");
+    def span_id = ctx._source.span.remove("id");
+    if (hex_id != null) {
+      ctx._source.span.id = hex_id;
+    } else if (span_id != null){
+      ctx._source.span.id = span_id.toString();
     }
     def parent = ctx._source.span.remove("parent");
     if (parent != null && ctx._source.parent == null) {
-      ctx._source.parent = ["id": parent];
+      ctx._source.parent = ["id": parent.toString()];
     }
 }
 
@@ -569,8 +573,8 @@ def common(i, w, g):
     assert got_hostname is not None
 
     # host.name to be removed
-    host = want.pop("host", {"name": ""})
-    del(host["name"])
+    host = want.pop("host", {})
+    host.pop("name", "")
     # only put host back if it's not empty
     if host:
         want["host"] = host
