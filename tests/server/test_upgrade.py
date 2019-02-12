@@ -377,8 +377,6 @@ if (ctx._source.processor.event == "error") {
     if (exception != null) {
         ctx._source.error.exception = [exception];
     }
-    
-    def page = ctx._source.context
 }
 """  # noqa
 
