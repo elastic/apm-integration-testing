@@ -380,14 +380,13 @@ if (ctx._source.processor.event == "error") {
 }
 """  # noqa
 
-
 exclude_rum = {'query': {'bool': {'must_not': [{'term': {'agent.name': 'js-base'}}]}}}
 
 import os, json
 from elasticsearch import helpers
 
-def test_reindex_v1(es):
 
+def test_reindex_v1(es):
     def index_docs(path):
         for entry in os.scandir(path):
             if entry.is_file():
@@ -416,6 +415,7 @@ def test_reindex_v1(es):
             continue
         verify(es, event_type, exp, dst, None)
 
+
 def test_reindex_v2(es):
     # first migrate all indices
     migrations = run_migration(es)
@@ -424,16 +424,18 @@ def test_reindex_v2(es):
         # check against expected 7.0 indices
         verify(es, event_type, exp, dst, exclude_rum)
 
-def verify(es, event_type, exp, dst, body):
-        {
-            "error": error,
-            "metric": metric,
-            "onboarding": onboarding,
-            "span": span,
-            "transaction": transaction,
-        }.get(event_type)(es, exp, dst, body)
 
-def run_migration(es):    # first migrate all indices
+def verify(es, event_type, exp, dst, body):
+    {
+        "error": error,
+        "metric": metric,
+        "onboarding": onboarding,
+        "span": span,
+        "transaction": transaction,
+    }.get(event_type)(es, exp, dst, body)
+
+
+def run_migration(es):  # first migrate all indices
     migrations = []
     for src, info in es.es.indices.get("apm*").items():
         try:
@@ -466,6 +468,7 @@ def run_migration(es):    # first migrate all indices
         migrations.append((event_type, exp, dst))
     return migrations
 
+
 def metric(es, exp, dst, body):
     pass  # skip non-deterministic metric comparisons
     # wants, gots = query_for(es, exp, dst, body, "@timestamp:asc,agent.name:asc,system.memory.actual.free")
@@ -475,7 +478,8 @@ def metric(es, exp, dst, body):
 
 
 def span(es, exp, dst, body):
-    wants, gots = query_for(es, exp, dst, body, "span.id:asc,span.start.us:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc,span.duration.us")
+    wants, gots = query_for(es, exp, dst, body,
+                            "span.id:asc,span.start.us:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc,span.duration.us")
     print("checking span - comparing {} with {}".format(exp, dst))
 
     assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
@@ -538,6 +542,7 @@ def onboarding(es, exp, dst, body):
         del(got["@timestamp"])
         common(i, w, g)
 
+
 def query_for(es, exp, dst, body, sort):
     wants = es.es.search(index=exp, body=body, sort=sort, size=1000)["hits"]["hits"]
     gots = es.es.search(index=dst, body=body, sort=sort, size=1000)["hits"]["hits"]
@@ -550,12 +555,12 @@ def common(i, w, g):
 
     print("comparing {:-3d}, want _id: {} with got _id: {}".format(i, w["_id"], g["_id"]))
     # no id or ephemeral_id in reindexed docs
-    want["observer"].pop("ephemeral_id","")
+    want["observer"].pop("ephemeral_id", "")
     want["observer"].pop("id", "")
 
     # version should be set
-    want["observer"].pop("version","")
-    got_version = got["observer"].pop("version","")
+    want["observer"].pop("version", "")
+    got_version = got["observer"].pop("version", "")
     assert got_version is not None
 
     # hostnames might be different
