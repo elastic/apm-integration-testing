@@ -397,7 +397,8 @@ def test_reindex_v1(es):
     def setup(event_type, version):
         index = "apm-{}-{}-v1".format(version, event_type)
         es.es.indices.delete(index=index, ignore=[400, 404])
-        path=os.path.join(os.getcwd(),"tests", "server", version, event_type)
+        path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                            '..', '..', "tests", "server", version, event_type)
         helpers.bulk(es.es, index_docs(path), index=index, refresh=True)
 
     # ensure v1 docs are stored in 6.x and 7.0 indices
@@ -424,7 +425,6 @@ def test_reindex_v2(es):
         verify(es, event_type, exp, dst, exclude_rum)
 
 def verify(es, event_type, exp, dst, body):
-        print(event_type)
         {
             "error": error,
             "metric": metric,
