@@ -27,13 +27,5 @@ module Minimal
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
-
-    # Elastic APM config
-    config.elastic_apm.ignore_url_patterns = '/healthcheck'
-
-
-    if apm = Gem.loaded_specs["elastic-apm"]
-      config.elastic_apm.api_request_time = '50ms' if apm.version >= Gem::Version.new("2.0")
-    end
   end
 end
