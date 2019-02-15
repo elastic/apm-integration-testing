@@ -20,7 +20,11 @@ if [ -n "${APM_SERVER_BRANCH}" ]; then
  APM_SERVER_BRANCH_VERSION=${APM_SERVER_BRANCH%;*}
  APM_SERVER_BRANCH_TYPE=${APM_SERVER_BRANCH//$APM_SERVER_BRANCH_VERSION/}
  APM_SERVER_BRANCH_TYPE=${APM_SERVER_BRANCH_TYPE//;/}
- BUILD_OPTS="${BUILD_OPTS} --apm-server-build https://github.com/elastic/apm-server.git@${APM_SERVER_BRANCH_VERSION} ${APM_SERVER_BRANCH_TYPE} "
+ if [ "${APM_SERVER_BRANCH_TYPE}" != "--release" ]; then
+  BUILD_OPTS="${BUILD_OPTS} --apm-server-build https://github.com/elastic/apm-server.git@${APM_SERVER_BRANCH_VERSION} ${APM_SERVER_BRANCH_TYPE} "
+ else
+   ELASTIC_STACK_VERSION=${APM_SERVER_BRANCH_VERSION}
+ fi
 fi
 
 if [ -z "${DISABLE_BUILD_PARALLEL}" ]; then
