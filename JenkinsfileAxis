@@ -14,6 +14,8 @@ import groovy.transform.Field
   YAML files to get agent versions and exclusions.
 */
 @Field Map ymlFiles = [
+  'go': 'tests/versions/go.yml',
+  'java': 'tests/versions/java.yml',
   'nodejs': 'tests/versions/nodejs.yml',
   'python': 'tests/versions/python.yml',
   'ruby': 'tests/versions/ruby.yml',
@@ -24,6 +26,8 @@ import groovy.transform.Field
   Key which contains the agent versions.
 */
 @Field Map agentYamlVar = [
+  'go': 'GO_AGENT',
+  'java': 'JAVA_AGENT',
   'nodejs': 'NODEJS_AGENT',
   'python': 'PYTHON_AGENT',
   'ruby': 'RUBY_AGENT',
@@ -34,6 +38,8 @@ import groovy.transform.Field
   translate from human agent name to an ID.
 */
 @Field Map mapAgentsIDs = [
+  'Go': 'go',
+  'Java': 'java',
   'Node.js': 'nodejs',
   'Python': 'python',
   'Ruby': 'ruby',
@@ -60,7 +66,7 @@ pipeline {
     durabilityHint('PERFORMANCE_OPTIMIZED')
   }
   parameters {
-    choice(name: 'agent_integration_test', choices: ['Node.js', 'Python', 'Ruby', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
+    choice(name: 'agent_integration_test', choices: ['Go', 'Java', 'Node.js', 'Python', 'Ruby', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.5", description: "Elastic Stack Git branch/tag to use")
     string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "6.x", description: "Integration testing Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
@@ -186,6 +192,8 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
     Enviroment variable to put the agent version before run tests.
   */
   public Map agentEnvVar = [
+    'go': 'APM_AGENT_GO_PKG',
+    'java': 'APM_AGENT_JAVA_PKG',
     'nodejs': 'APM_AGENT_NODEJS_PKG',
     'python': 'APM_AGENT_PYTHON_PKG',
     'ruby': 'APM_AGENT_RUBY_PKG',
@@ -203,7 +211,8 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
   public Closure generateStep(x, y){
     return {
       steps.node('linux && immutable'){
-        def env = ["${agentEnvVar[tag]}=${x}",
+        def env = ["APM_SERVER_BRANCH=${y}",
+          "${agentEnvVar[tag]}=${x}",
           "REUSE_CONTAINERS=true"
           ]
         def label = "${tag}-${x}-${y}"
