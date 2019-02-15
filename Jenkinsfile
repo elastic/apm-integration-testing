@@ -22,10 +22,7 @@ pipeline {
     issueCommentTrigger('.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
   }
   parameters {
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.5 --release --no-kibana", description: "Elastic Stack Git branch/tag to use")
-    string(name: 'NODEJS_AGENT_VERSION', defaultValue: "1.x", description: "Agent version to build")
-    string(name: 'PYTHON_AGENT_VERSION', defaultValue: "3.x", description: "Agent version to build")
-    string(name: 'RUBY_AGENT_VERSION', defaultValue: "1.x", description: "Agent version to build")
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.6 --release", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', defaultValue: true, description: "Disable the build parallel option on compose.py, disable it is better for error detection.")
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
@@ -35,7 +32,7 @@ pipeline {
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout'){
-      agent { label 'linux && immutable' }
+      agent { label 'flyweight' }
       options { skipDefaultCheckout() }
       steps {
         deleteDir()
@@ -45,7 +42,7 @@ pipeline {
     }
 
     stage("All Test Only") {
-      agent { label 'linux && immutable' }
+      agent { label 'flyweight' }
       options { skipDefaultCheckout() }
       when {
         beforeAgent true
@@ -59,7 +56,7 @@ pipeline {
       launch integration tests.
     */
     stage("Integration Tests") {
-      agent { label 'linux && immutable' }
+      agent { label 'flyweight' }
       options { skipDefaultCheckout() }
       when {
         beforeAgent true
@@ -85,13 +82,13 @@ pipeline {
         script {
           parallel(
             "Node.js": {
-              runJob('Node.js', "--nodejs-agent-package=elastic/apm-agent-nodejs#1.x")
+              runJob('Node.js')
             },
             "Python": {
-              runJob('Python', "--python-agent-package=git+https://github.com/elastic/apm-agent-python.git@3.x")
+              runJob('Python')
             },
             "Ruby": {
-              runJob('Ruby', '--ruby-agent-version-state=github --ruby-agent-version=1.x')
+              runJob('Ruby')
             },
             "All": {
               runJob('All', '--nodejs-agent-package=elastic/apm-agent-nodejs#1.x --python-agent-package=git+https://github.com/elastic/apm-agent-python.git@3.x --ruby-agent-version-state=github --ruby-agent-version=1.x')
@@ -118,7 +115,7 @@ pipeline {
   }
 }
 
-def runJob(agentName, buildOpts){
+def runJob(agentName, buildOpts = ''){
   def job = build(job: 'apm-integration-test-axis-pipeline',
     parameters: [
     string(name: 'agent_integration_test', value: agentName),
