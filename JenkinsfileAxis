@@ -192,11 +192,11 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
     Enviroment variable to put the agent version before run tests.
   */
   public Map agentEnvVar = [
-    'go': 'APM_AGENT_GO_PKG',
-    'java': 'APM_AGENT_JAVA_PKG',
-    'nodejs': 'APM_AGENT_NODEJS_PKG',
-    'python': 'APM_AGENT_PYTHON_PKG',
-    'ruby': 'APM_AGENT_RUBY_PKG',
+    'go': 'APM_AGENT_GO_VERSION',
+    'java': 'APM_AGENT_JAVA_VERSION',
+    'nodejs': 'APM_AGENT_NODEJS_VERSION',
+    'python': 'APM_AGENT_PYTHON_VERSION',
+    'ruby': 'APM_AGENT_RUBY_VERSION',
     'server': 'APM_SERVER_BRANCH'
   ]
 
