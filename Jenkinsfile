@@ -25,7 +25,7 @@ pipeline {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', defaultValue: true, description: "Disable the build parallel option on compose.py, disable it is better for error detection.")
-    booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
+    booleanParam(name: 'Run_As_Master_Branch', defaultValue: true, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
   }
   stages{
     /**
@@ -46,7 +46,11 @@ pipeline {
       options { skipDefaultCheckout() }
       when {
         beforeAgent true
-        changeRequest()
+        not {
+          changeRequest()
+        }
+        /** TODO enable after tests */
+        //changeRequest()
       }
       steps {
         runJob('All', '--nodejs-agent-package=elastic/apm-agent-nodejs#1.x --python-agent-package=git+https://github.com/elastic/apm-agent-python.git@3.x --ruby-agent-version-state=github --ruby-agent-version=1.x')
