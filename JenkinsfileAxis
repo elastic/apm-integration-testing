@@ -67,7 +67,7 @@ pipeline {
   }
   parameters {
     choice(name: 'agent_integration_test', choices: ['Go', 'Java', 'Node.js', 'Python', 'Ruby', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.5", description: "Elastic Stack Git branch/tag to use")
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.6 --release", description: "Elastic Stack Git branch/tag to use")
     string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "master", description: "Integration testing Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     string(name: 'UPSTREAM_BUILD', defaultValue: "", description: "upstream build info to show in the description.")
@@ -192,11 +192,11 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
     Enviroment variable to put the agent version before run tests.
   */
   public Map agentEnvVar = [
-    'go': 'APM_AGENT_GO_PKG',
-    'java': 'APM_AGENT_JAVA_PKG',
-    'nodejs': 'APM_AGENT_NODEJS_PKG',
-    'python': 'APM_AGENT_PYTHON_PKG',
-    'ruby': 'APM_AGENT_RUBY_PKG',
+    'go': 'APM_AGENT_GO_VERSION',
+    'java': 'APM_AGENT_JAVA_VERSION',
+    'nodejs': 'APM_AGENT_NODEJS_VERSION',
+    'python': 'APM_AGENT_PYTHON_VERSION',
+    'ruby': 'APM_AGENT_RUBY_VERSION',
     'server': 'APM_SERVER_BRANCH'
   ]
 

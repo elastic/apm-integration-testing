@@ -121,13 +121,13 @@ pipeline {
   }
 }
 
-def runJob(agentName){
+def runJob(agentName, buildOpts = ''){
   def job = build(job: 'apm-integration-test-axis-pipeline',
     parameters: [
     string(name: 'agent_integration_test', value: agentName),
     string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
     string(name: 'INTEGRATION_TESTING_VERSION', value: env.GIT_SHA),
-    string(name: 'BUILD_OPTS', value: ''),
+    string(name: 'BUILD_OPTS', value: buildOpts),
     string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: true)],
     propagate: true,
