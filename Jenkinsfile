@@ -119,7 +119,7 @@ pipeline {
   }
 }
 
-def runJob(agentName, buildOpts){
+def runJob(agentName, buildOpts = ''){
   def job = build(job: 'apm-integration-test-axis-pipeline',
     parameters: [
     string(name: 'agent_integration_test', value: agentName),
