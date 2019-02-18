@@ -45,7 +45,10 @@ pipeline {
       options { skipDefaultCheckout() }
       when {
         beforeAgent true
-        changeRequest()
+        /** TODO only for test PR */
+        not {
+          changeRequest()
+        }
       }
       steps {
         runJob('All')
