@@ -3,31 +3,7 @@ RUBY_AGENT:
   # release;latest -> gem elastic-apm
   # release;version -> gem elastic-apm, version
   - 'github;master'
-  - 'github;1.x'
   - 'release;latest'
 
 exclude:
-  - RUBY_AGENT: 'release;latest'
-    APM_SERVER: '6.7'
-  - RUBY_AGENT: 'release;latest'
-    APM_SERVER: '6.6;--release'
-  - RUBY_AGENT: 'release;latest'
-    APM_SERVER: '6.5;--release'
-  - RUBY_AGENT: 'release;latest'
-    APM_SERVER: '6.4;--release'
-  - RUBY_AGENT: 'release;latest'
-    APM_SERVER: '6.3;--release'
-  - RUBY_AGENT: 'release;latest'
-    APM_SERVER: '6.2;--release'
-  - RUBY_AGENT: 'github;master'
-    APM_SERVER: '6.7'
-  - RUBY_AGENT: 'github;master'
-    APM_SERVER: '6.6;--release'
-  - RUBY_AGENT: 'github;master'
-    APM_SERVER: '6.5;--release'
-  - RUBY_AGENT: 'github;master'
-    APM_SERVER: '6.4;--release'
-  - RUBY_AGENT: 'github;master'
-    APM_SERVER: '6.3;--release'
-  - RUBY_AGENT: 'github;master'
-    APM_SERVER: '6.2;--release'
+
