@@ -23,7 +23,6 @@ RUN git clone -b $RUM_AGENT_BRANCH --single-branch https://github.com/$RUM_AGENT
 WORKDIR /rumjs-integration-test
 
 RUN npm install
-RUN npx lerna bootstrap
 
 RUN npx lerna run build && npx lerna run buildE2eBundles
 
