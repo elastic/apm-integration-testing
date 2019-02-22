@@ -4,7 +4,3 @@ JAVA_AGENT:
   - 'github;v1.1.0'
   - 'github;v1.2.0'
   - 'github;v1.3.0'
-
-exclude:
-
-
