@@ -17,7 +17,7 @@
       "us": 13099
     },
     "http": {
-      "method": "GET",
+      "method": "get",
       "url": {
         "original": "http://localhost:8000/test/e2e/common/data.json?test=hamid"
       },

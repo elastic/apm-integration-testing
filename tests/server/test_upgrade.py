@@ -317,6 +317,10 @@ if (context != null) {
         if (status_code != null) {
             http.response = ["status_code": status_code];
         }
+        // lowercase span.http.method
+        if (http.containsKey("method")) {
+            http.method = http.method.toLowerCase();
+        }
         ctx._source.span.http = http;
     }
     
@@ -384,8 +388,6 @@ if (ctx._source.processor.event == "error") {
 }
 """  # noqa
 
-exclude_rum = {'query': {'bool': {'must_not': [{'term': {'agent.name': 'js-base'}}]}}}
-
 import os, json
 from elasticsearch import helpers
 
@@ -417,7 +419,7 @@ def test_reindex_v1(es):
     for event_type, exp, dst in migrations:
         if "v1" not in exp:
             continue
-        verify(es, event_type, exp, dst, None)
+        verify(es, event_type, exp, dst)
 
 
 def test_reindex_v2(es):
@@ -426,10 +428,10 @@ def test_reindex_v2(es):
 
     for event_type, exp, dst in migrations:
         # check against expected 7.0 indices
-        verify(es, event_type, exp, dst, exclude_rum)
+        verify(es, event_type, exp, dst)
 
 
-def verify(es, event_type, exp, dst, body):
+def verify(es, event_type, exp, dst, body=None):
     {
         "error": error,
         "metric": metric,
@@ -578,5 +580,12 @@ def common(i, w, g):
     # only put host back if it's not empty
     if host:
         want["host"] = host
+
+    # special handling for RUM agent docs
+    if "service" in got and got["agent"]["name"] == "js-base":
+        want.pop("@timestamp")
+        got.pop("@timestamp")
+        want["timestamp"].pop("us")
+        got["timestamp"].pop("us")
 
     assert want == got
