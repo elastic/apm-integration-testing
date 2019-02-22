@@ -108,14 +108,16 @@ class Concurrent:
     def check_counts(self, it, max_wait=60, backoff=.5):
         err = "queried for {}, expected {}, got {}"
 
-        @timeout_decorator.timeout(max_wait)
         def assert_count(terms, cnt):
             """wait a bit for doc count to reach expectation"""
             rs = {'count': -1}
-            while rs['count'] < cnt:
-                rs = self.es.count(index=self.index,
-                                   body=self.elasticsearch.term_q(terms))
-                time.sleep(backoff)
+            try:
+                while rs['count'] < cnt:
+                    rs = self.es.count(index=self.index,
+                                       body=self.elasticsearch.term_q(terms))
+                    time.sleep(backoff)
+            except timeout_decorator.TimeoutError:
+                pass
             assert rs['count'] == cnt, err.format(terms, cnt, rs)
 
         self.es.indices.refresh()
