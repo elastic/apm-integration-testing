@@ -72,7 +72,7 @@ pipeline {
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout'){
-      agent { label 'linux && immutable' }
+      agent { label 'flyweight' }
       options { skipDefaultCheckout() }
       steps {
         deleteDir()
@@ -90,7 +90,8 @@ pipeline {
         }
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script{
-          currentBuild.description = "Agent ${params.agent_integration_test} Integration test ${params.UPSTREAM_BUILD}"
+          currentBuild.displayName = "apm-agent-${params.agent_integration_test} - ${currentBuild.displayName}"
+          currentBuild.description = "Agent ${params.agent_integration_test} - ${params.UPSTREAM_BUILD}"
         }
       }
     }
@@ -98,7 +99,7 @@ pipeline {
       launch integration tests.
     */
     stage("Integration Tests"){
-      agent { label 'linux && immutable' }
+      agent { label 'flyweight' }
       options { skipDefaultCheckout() }
       when {
         beforeAgent true
@@ -212,7 +213,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
           saveResult(x, y, 1)
         } catch (e){
           saveResult(x, y, 0)
-          error("${label} tests failed : ${e}\n")
+          error("${label} tests failed : ${e.toString()}\n")
         } finally {
           steps.wrappingup(label)
         }
