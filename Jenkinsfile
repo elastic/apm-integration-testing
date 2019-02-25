@@ -90,9 +90,6 @@ pipeline {
             "Node.js": {
               runJob('Node.js')
             },
-            "Python": {
-              runJob('Python')
-            },
             "Ruby": {
               runJob('Ruby')
             },
