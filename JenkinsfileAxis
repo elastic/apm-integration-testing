@@ -96,7 +96,7 @@ pipeline {
         }
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script{
-          currentBuild.fullDisplayName = "apm-agent-${params.agent_integration_test} >> ${currentBuild.fullDisplayName}"
+          currentBuild.displayName = "apm-agent-${params.agent_integration_test} >> ${currentBuild.displayName}"
           currentBuild.description = "Agent ${params.agent_integration_test} - ${params.UPSTREAM_BUILD}"
         }
       }
