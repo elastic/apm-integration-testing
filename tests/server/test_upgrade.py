@@ -140,10 +140,8 @@ if (context != null) {
           ctx._source.http.request.body = new HashMap();
           ctx._source.http.request.body.original = body;
         }
-
     }
-    
-    
+
     // bump timestamp.us by span.start.us for spans
     // shouldn't @timestamp this already be a Date?
     if (ctx._source.processor.event == "span" && context.service.agent.name == "js-base"){
@@ -154,7 +152,6 @@ if (context != null) {
           def tsms = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(ts).getTime();
           ctx._source['@timestamp'] = Instant.ofEpochMilli(tsms + (ctx._source.span.start.us/1000));
           ctx._source.timestamp.us = (tsms*1000) + ctx._source.span.start.us;
-        
       }
     }
 
@@ -200,7 +197,7 @@ if (context != null) {
         if (ua != null) {
           ctx._source.user_agent = new HashMap();
           // setting original and original.text is not possible in painless
-          // as original is a keyword in ES template we cannot set it to a HashMap here, 
+          // as original is a keyword in ES template we cannot set it to a HashMap here,
           // so the following is the only possible solution:
           ctx._source.user_agent.original = ua.substring(0, Integer.min(1024, ua.length()));
         }
@@ -282,8 +279,7 @@ if (context != null) {
             ctx._source.error.custom = custom;
         }
     }
-    
-    
+
     // context.page -> error.page,transaction.page
     def page = context.remove("page");
     if (page != null) {
@@ -323,7 +319,6 @@ if (context != null) {
         }
         ctx._source.span.http = http;
     }
-    
 }
 
 if (ctx._source.processor.event == "span") {
