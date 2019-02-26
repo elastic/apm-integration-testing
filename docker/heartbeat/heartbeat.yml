@@ -19,3 +19,24 @@ heartbeat.monitors:
   check.response.status: 200
 heartbeat.scheduler:
   limit: 10
+
+heartbeat.autodiscover:
+  providers:
+    - type: docker
+      templates:
+        - condition:
+            contains:
+              docker.container.image: redis
+          config:
+            - type: tcp
+              hosts: ["${data.host}:${data.port}"]
+              schedule: "@every 1s"
+              timeout: 1s
+        - condition:
+            contains:
+              docker.container.image: opbeans
+          config:
+            - type: http
+              urls: ["http://${data.host}:${data.port}"]
+              schedule: "@every 5s"
+              timeout: 1s
