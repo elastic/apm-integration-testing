@@ -750,7 +750,7 @@ class Heartbeat(BeatMixin, StackService, Service):
             labels=None,
             user="root",
             volumes=[
-                self.heartbeat_config_path + ":/usr/share/heartbeat/filebeat.yml",
+                self.heartbeat_config_path + ":/usr/share/heartbeat/heartbeat.yml",
                 "/var/lib/docker/containers:/var/lib/docker/containers",
                 "/var/run/docker.sock:/var/run/docker.sock",
             ]
