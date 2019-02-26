@@ -733,6 +733,30 @@ class Filebeat(BeatMixin, StackService, Service):
         )
 
 
+class Heartbeat(BeatMixin, StackService, Service):
+    DEFAULT_COMMAND = "heartbeat -e --strict.perms=false"
+    docker_path = "beats"
+
+    def __init__(self, **options):
+        del options['enable_kibana']
+        super(Heartbeat, self).__init__(**options)
+        config = "heartbeat.yml"
+        self.heartbeat_config_path = os.path.join(".", "docker", "heartbeat", config)
+
+    def _content(self):
+        return dict(
+            command=self.command,
+            depends_on=self.depends_on,
+            labels=None,
+            user="root",
+            volumes=[
+                self.heartbeat_config_path + ":/usr/share/heartbeat/filebeat.yml",
+                "/var/lib/docker/containers:/var/lib/docker/containers",
+                "/var/run/docker.sock:/var/run/docker.sock",
+            ]
+        )
+
+
 class Kibana(StackService, Service):
     default_environment = {"SERVER_NAME": "kibana.example.org", "ELASTICSEARCH_URL": "http://elasticsearch:9200"}
 
