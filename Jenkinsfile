@@ -23,7 +23,7 @@ pipeline {
     durabilityHint('PERFORMANCE_OPTIMIZED')
   }
   parameters {
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.5", description: "Elastic Stack Git branch/tag to use")
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "7.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
   }
@@ -32,7 +32,7 @@ pipeline {
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout'){
-      agent { label 'linux && immutable' }
+      agent { label 'flyweight' }
       options { skipDefaultCheckout() }
       steps {
         deleteDir()
@@ -42,7 +42,7 @@ pipeline {
     }
 
     stage("All Test Only") {
-      agent { label 'linux && immutable' }
+      agent { label 'flyweight' }
       options { skipDefaultCheckout() }
       when {
         beforeAgent true
@@ -56,7 +56,7 @@ pipeline {
       launch integration tests.
     */
     stage("Integration Tests") {
-      agent { label 'linux && immutable' }
+      agent { label 'flyweight' }
       options { skipDefaultCheckout() }
       when {
         beforeAgent true
@@ -121,13 +121,13 @@ pipeline {
   }
 }
 
-def runJob(agentName){
-  def job = build(job: 'apm-server/apm-integration-test-axis-pipeline',
+def runJob(agentName, buildOpts = ''){
+  def job = build(job: 'apm-integration-test-axis-pipeline',
     parameters: [
     string(name: 'agent_integration_test', value: agentName),
     string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
     string(name: 'INTEGRATION_TESTING_VERSION', value: env.GIT_SHA),
-    string(name: 'BUILD_OPTS', value: ''),
+    string(name: 'BUILD_OPTS', value: buildOpts),
     string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: true)],
     propagate: true,

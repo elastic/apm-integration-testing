@@ -59,15 +59,15 @@ pipeline {
   }
   options {
     timeout(time: 1, unit: 'HOURS')
-    buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20', daysToKeepStr: '30'))
+    buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '100', daysToKeepStr: '30'))
     timestamps()
     ansiColor('xterm')
     disableResume()
     durabilityHint('PERFORMANCE_OPTIMIZED')
   }
   parameters {
-    choice(name: 'agent_integration_test', choices: ['Go', 'Java', 'Node.js', 'Python', 'Ruby', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.5", description: "Elastic Stack Git branch/tag to use")
+    choice(name: 'agent_integration_test', choices: ['Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.6 --release", description: "Elastic Stack Git branch/tag to use")
     string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "master", description: "Integration testing Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     string(name: 'UPSTREAM_BUILD', defaultValue: "", description: "upstream build info to show in the description.")
@@ -78,7 +78,7 @@ pipeline {
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout'){
-      agent { label 'linux && immutable' }
+      agent { label 'flyweight' }
       options { skipDefaultCheckout() }
       steps {
         deleteDir()
@@ -96,7 +96,8 @@ pipeline {
         }
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script{
-          currentBuild.description = "Agent ${params.agent_integration_test} Integration test ${params.UPSTREAM_BUILD}"
+          currentBuild.displayName = "apm-agent-${params.agent_integration_test} - ${currentBuild.displayName}"
+          currentBuild.description = "Agent ${params.agent_integration_test} - ${params.UPSTREAM_BUILD}"
         }
       }
     }
@@ -104,7 +105,7 @@ pipeline {
       launch integration tests.
     */
     stage("Integration Tests"){
-      agent { label 'linux && immutable' }
+      agent { label 'flyweight' }
       options { skipDefaultCheckout() }
       when {
         beforeAgent true
@@ -192,11 +193,11 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
     Enviroment variable to put the agent version before run tests.
   */
   public Map agentEnvVar = [
-    'go': 'APM_AGENT_GO_PKG',
-    'java': 'APM_AGENT_JAVA_PKG',
-    'nodejs': 'APM_AGENT_NODEJS_PKG',
-    'python': 'APM_AGENT_PYTHON_PKG',
-    'ruby': 'APM_AGENT_RUBY_PKG',
+    'go': 'APM_AGENT_GO_VERSION',
+    'java': 'APM_AGENT_JAVA_VERSION',
+    'nodejs': 'APM_AGENT_NODEJS_VERSION',
+    'python': 'APM_AGENT_PYTHON_VERSION',
+    'ruby': 'APM_AGENT_RUBY_VERSION',
     'server': 'APM_SERVER_BRANCH'
   ]
 
@@ -221,7 +222,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
           saveResult(x, y, 1)
         } catch (e){
           saveResult(x, y, 0)
-          error("${label} tests failed : ${e}\n")
+          error("${label} tests failed : ${e.toString()}\n")
         } finally {
           steps.wrappingup(label)
         }

@@ -1,0 +1,5 @@
+{
+  "upstream": "elastic/apm-integration-testing",
+  "branches": [{ "name": "6.x", "checked": true }, { "name": "6.x-v1", "checked": true } ],
+  "labels": ["backport"]
+}

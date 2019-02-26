@@ -1,0 +1,4 @@
+apm_server:
+  indices:
+    - names: [ 'apm-*' ]
+      privileges: [ 'all' ]

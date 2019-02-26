@@ -10,9 +10,6 @@ for id in ${DOCKER_IDS}
 do
   echo "***************Docker Container ${id}***************"
   docker ps -af id=${id} --no-trunc
-  docker logs ${id}
-
-  DOCKER_CONTAINER_NO_OK=$(docker ps -aq -f id=${id} -f status=dead && docker ps -aq -f id=${id} -f status=exited && docker ps -aq -f id=${id} -f health=unhealthy)
-  [ -n "${DOCKER_CONTAINER_NO_OK}" ] && docker inspect ${id}
+  docker logs ${id} | tail -n 10
 done
 echo "*******************************************************"
