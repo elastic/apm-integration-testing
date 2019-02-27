@@ -1885,6 +1885,12 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
+            '--with-services',
+            type=argparse.FileType(mode="r"),
+            help="merge additional service definitions into the final docker-compose configuration",
+        )
+
+        parser.add_argument(
             '--xpack-secure',
             action="store_true",
             dest="xpack_secure",
@@ -2023,6 +2029,9 @@ class LocalSetup(object):
         services = {}
         for service in selections:
             services.update(service.render())
+
+        if args['with_services']:
+            services.update(json.load(args['with_services']))
 
         # expose a list of enabled opbeans services to all opbeans services. This allows them to talk amongst each other
         # and have a jolly good distributed time
