@@ -1550,7 +1550,6 @@ class LocalSetup(object):
         '6.5': '6.5.4',
         '6.6': '6.6.1',
         '6.7': '6.7.0',
-        'master': '6.6.1',
     }
 
     def __init__(self, argv=None, services=None):
