@@ -38,6 +38,7 @@ def main():
                 },
             },
             wait_for_completion=True,
+            request_timeout=3600,
         )
     except elasticsearch.exceptions.TransportError as e:
         failure = e.info['failures'][0]  # just consider the first error
