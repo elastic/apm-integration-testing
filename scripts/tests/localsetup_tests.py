@@ -728,9 +728,10 @@ class LocalTest(unittest.TestCase):
     @mock.patch(compose.__name__ + '.load_images')
     def test_start_no_elasticesarch(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        setup = LocalSetup(argv=self.common_setup_args + ["master", "--no-elasticsearch"])
-        setup.set_docker_compose_path(docker_compose_yml)
-        setup()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--no-elasticsearch"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
         docker_compose_yml.seek(0)
         got = yaml.load(docker_compose_yml)
         services = got["services"]
@@ -740,9 +741,10 @@ class LocalTest(unittest.TestCase):
     @mock.patch(compose.__name__ + '.load_images')
     def test_start_all(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        setup = LocalSetup(argv=self.common_setup_args + ["master", "--all"])
-        setup.set_docker_compose_path(docker_compose_yml)
-        setup()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
         docker_compose_yml.seek(0)
         got = yaml.load(docker_compose_yml)
         services = got["services"]
@@ -752,9 +754,10 @@ class LocalTest(unittest.TestCase):
     @mock.patch(compose.__name__ + '.load_images')
     def test_start_one_opbeans(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-node"])
-        setup.set_docker_compose_path(docker_compose_yml)
-        setup()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-node"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
         docker_compose_yml.seek(0)
         got = yaml.load(docker_compose_yml)
         services = got["services"]
@@ -764,9 +767,10 @@ class LocalTest(unittest.TestCase):
     @mock.patch(compose.__name__ + '.load_images')
     def test_start_opbeans_no_apm_server(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--no-apm-server"])
-        setup.set_docker_compose_path(docker_compose_yml)
-        setup()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--no-apm-server"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
         docker_compose_yml.seek(0)
         got = yaml.load(docker_compose_yml)
         depends_on = set(got["services"]["opbeans-node"]["depends_on"].keys())
