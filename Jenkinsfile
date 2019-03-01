@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 
-@Library('apm@v1.0.6') _
+@Library('apm@v1.0.9') _
 
 pipeline {
   agent any
@@ -38,6 +38,13 @@ pipeline {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
+        dir("${BASE_DIR}"){
+          sh '''
+          echo "GIT_COMMIT=${GIT_COMMIT}"
+          git rev-list HEAD -4 || echo KO
+          git reflog -4 || echo KO
+          '''
+        }
       }
     }
 
@@ -90,9 +97,6 @@ pipeline {
             "Node.js": {
               runJob('Node.js')
             },
-            "Python": {
-              runJob('Python')
-            },
             "Ruby": {
               runJob('Ruby')
             },
@@ -126,7 +130,7 @@ def runJob(agentName, buildOpts = ''){
     parameters: [
     string(name: 'agent_integration_test', value: agentName),
     string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
-    string(name: 'INTEGRATION_TESTING_VERSION', value: env.GIT_SHA),
+    string(name: 'INTEGRATION_TESTING_VERSION', value: env.GIT_BASE_COMMIT),
     string(name: 'BUILD_OPTS', value: buildOpts),
     string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: true)],

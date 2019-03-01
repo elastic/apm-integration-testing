@@ -773,6 +773,30 @@ class Filebeat(BeatMixin, StackService, Service):
         )
 
 
+class Heartbeat(BeatMixin, StackService, Service):
+    DEFAULT_COMMAND = "heartbeat -e --strict.perms=false"
+    docker_path = "beats"
+
+    def __init__(self, **options):
+        del options['enable_kibana']
+        super(Heartbeat, self).__init__(**options)
+        config = "heartbeat.yml"
+        self.heartbeat_config_path = os.path.join(".", "docker", "heartbeat", config)
+
+    def _content(self):
+        return dict(
+            command=self.command,
+            depends_on=self.depends_on,
+            labels=None,
+            user="root",
+            volumes=[
+                self.heartbeat_config_path + ":/usr/share/heartbeat/heartbeat.yml",
+                "/var/lib/docker/containers:/var/lib/docker/containers",
+                "/var/run/docker.sock:/var/run/docker.sock",
+            ]
+        )
+
+
 class Kibana(StackService, Service):
     default_environment = {"SERVER_NAME": "kibana.example.org", "ELASTICSEARCH_URL": "http://elasticsearch:9200"}
 
@@ -1909,6 +1933,12 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
+            '--with-services',
+            type=argparse.FileType(mode="r"),
+            help="merge additional service definitions into the final docker-compose configuration",
+        )
+
+        parser.add_argument(
             '--xpack-secure',
             action="store_true",
             dest="xpack_secure",
@@ -2009,7 +2039,7 @@ class LocalSetup(object):
         # Prepare and call command
         print("Loading Kibana dashboards using APM Server:\n")
         cmd = (
-                'docker-compose run --rm ' +
+                'docker-compose run --rm --no-ansi --log-level ERROR' +
                 'apm-server -e setup -E setup.kibana.host="kibana:5601"'
         )
         subprocess.call(cmd, shell=True)
@@ -2048,6 +2078,9 @@ class LocalSetup(object):
         for service in selections:
             services.update(service.render())
 
+        if args['with_services']:
+            services.update(json.load(args['with_services']))
+
         # expose a list of enabled opbeans services to all opbeans services. This allows them to talk amongst each other
         # and have a jolly good distributed time
         enabled_opbeans_services = [k for k in services.keys()
@@ -2082,7 +2115,8 @@ class LocalSetup(object):
             # always build if possible, should be quick for rebuilds
             build_services = [name for name, service in compose["services"].items() if 'build' in service]
             if build_services:
-                docker_compose_build = ["docker-compose", "-f", docker_compose_path.name, "build", "--pull"]
+                docker_compose_build = ["docker-compose", "-f", docker_compose_path.name,
+                    "--no-ansi", "--log-level", "ERROR", "build", "--pull"]
                 if args["force_build"]:
                     docker_compose_build.append("--no-cache")
                 if args["build_parallel"]:
@@ -2093,9 +2127,11 @@ class LocalSetup(object):
             image_services = [name for name, service in compose["services"].items() if
                               'image' in service and name not in services_to_load]
             if image_services and not args["skip_download"]:
-                subprocess.call(["docker-compose", "-f", docker_compose_path.name, "pull"] + image_services)
+                subprocess.call(["docker-compose", "-f", docker_compose_path.name,
+                                "--no-ansi", "--log-level", "ERROR", "pull"] + image_services)
             # really start
-            docker_compose_up = ["docker-compose", "-f", docker_compose_path.name, "up", "-d"]
+            docker_compose_up = ["docker-compose", "-f", docker_compose_path.name,
+                                "--no-ansi", "--log-level", "ERROR", "up", "-d"]
             if args["remove_orphans"]:
                 docker_compose_up.append("--remove-orphans")
             subprocess.call(docker_compose_up)
@@ -2108,7 +2144,7 @@ class LocalSetup(object):
     @staticmethod
     def stop_handler():
         print("Stopping all stack services..\n")
-        subprocess.call(['docker-compose', 'stop'])
+        subprocess.call(['docker-compose', "--no-ansi", "--log-level", "ERROR", 'stop'])
 
     def upload_sourcemaps_handler(self):
         service_name = self.args.opbeans_frontend_service_name
