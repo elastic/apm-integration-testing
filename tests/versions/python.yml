@@ -4,3 +4,11 @@ PYTHON_AGENT:
   # release;release -> pip install elastic-apm==version
   - 'github;master'
   - 'release;4.0'
+
+exclude:
+  - PYTHON_AGENT: release;4.0
+    APM_SERVER: 6.5;--release
+  - PYTHON_AGENT: release;4.0
+    APM_SERVER: 6.6;--release
+  - PYTHON_AGENT: release;4.0
+    APM_SERVER: 6.7;--release
