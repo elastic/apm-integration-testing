@@ -11,4 +11,4 @@ exclude:
   - PYTHON_AGENT: release;4.0
     APM_SERVER: 6.6;--release
   - PYTHON_AGENT: release;4.0
-    APM_SERVER: 6.7;--release
+    APM_SERVER: 6.7
