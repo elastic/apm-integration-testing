@@ -2116,7 +2116,7 @@ class LocalSetup(object):
             build_services = [name for name, service in compose["services"].items() if 'build' in service]
             if build_services:
                 docker_compose_build = ["docker-compose", "-f", docker_compose_path.name,
-                    "--no-ansi", "--log-level", "ERROR", "build", "--pull"]
+                                        "--no-ansi", "--log-level", "ERROR", "build", "--pull"]
                 if args["force_build"]:
                     docker_compose_build.append("--no-cache")
                 if args["build_parallel"]:
