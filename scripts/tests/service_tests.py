@@ -29,6 +29,9 @@ class AgentServiceTest(ServiceTest):
                         dockerfile: Dockerfile
                         context: docker/go/nethttp
                     container_name: gonethttpapp
+                    depends_on: 
+                        apm-server:
+                            condition: 'service_healthy'
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_FLUSH_INTERVAL: 500ms
@@ -56,6 +59,9 @@ class AgentServiceTest(ServiceTest):
                         dockerfile: Dockerfile
                         context: docker/nodejs/express
                     container_name: expressapp
+                    depends_on: 
+                        apm-server:
+                            condition: 'service_healthy'
                     command: bash -c "npm install elastic-apm-node && node app.js"
                     environment:
                         EXPRESS_SERVICE_NAME: expressapp
@@ -87,6 +93,9 @@ class AgentServiceTest(ServiceTest):
                         context: docker/python/django
                     command: bash -c "pip install -q -U elastic-apm && python testapp/manage.py runserver 0.0.0.0:8003"
                     container_name: djangoapp
+                    depends_on: 
+                        apm-server:
+                            condition: 'service_healthy'
                     environment:
                         DJANGO_SERVICE_NAME: djangoapp
                         DJANGO_PORT: 8003
@@ -113,6 +122,9 @@ class AgentServiceTest(ServiceTest):
                         context: docker/python/flask
                     command: bash -c "pip install -q -U elastic-apm && gunicorn app:app"
                     container_name: flaskapp
+                    depends_on: 
+                        apm-server:
+                            condition: 'service_healthy'
                     environment:
                         FLASK_SERVICE_NAME: flaskapp
                         GUNICORN_CMD_ARGS: "-w 4 -b 0.0.0.0:8001"
@@ -138,6 +150,9 @@ class AgentServiceTest(ServiceTest):
                         dockerfile: Dockerfile
                         context: docker/ruby/rails
                     container_name: railsapp
+                    depends_on: 
+                        apm-server:
+                            condition: 'service_healthy'
                     command: bash -c "bundle install && RAILS_ENV=production bundle exec rails s -b 0.0.0.0 -p 8020"
                     environment:
                         APM_SERVER_URL: http://apm-server:8200
@@ -172,6 +187,9 @@ class AgentServiceTest(ServiceTest):
                         dockerfile: Dockerfile
                         context: docker/java/spring
                     container_name: javaspring
+                    depends_on: 
+                        apm-server:
+                            condition: 'service_healthy'
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_SERVICE_NAME: springapp

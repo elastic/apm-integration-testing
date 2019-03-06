@@ -901,6 +901,9 @@ class AgentRUMJS(Service):
         super(AgentRUMJS, self).__init__(**options)
         self.agent_branch = options.get("rum_agent_branch", self.DEFAULT_AGENT_BRANCH)
         self.agent_repo = options.get("rum_agent_repo", self.DEFAULT_AGENT_REPO)
+        self.depends_on = {
+            "apm-server": {"condition": "service_healthy"},
+        }
 
     @classmethod
     def add_arguments(cls, parser):
@@ -932,6 +935,7 @@ class AgentRUMJS(Service):
                 "ELASTIC_APM_SERVICE_NAME": "rum",
                 "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
             },
+            depends_on=self.depends_on,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
@@ -952,6 +956,9 @@ class AgentGoNetHttp(Service):
     def __init__(self, **options):
         super(AgentGoNetHttp, self).__init__(**options)
         self.agent_version = options.get("go_agent_version", self.DEFAULT_AGENT_VERSION)
+        self.depends_on = {
+            "apm-server": {"condition": "service_healthy"},
+        }
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
@@ -974,6 +981,7 @@ class AgentGoNetHttp(Service):
                 "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "gonethttpapp"),
+            depends_on=self.depends_on,
             image=None,
             labels=None,
             logging=None,
@@ -989,6 +997,9 @@ class AgentNodejsExpress(Service):
     def __init__(self, **options):
         super(AgentNodejsExpress, self).__init__(**options)
         self.agent_package = options.get("nodejs_agent_package", self.DEFAULT_AGENT_PACKAGE)
+        self.depends_on = {
+            "apm-server": {"condition": "service_healthy"},
+        }
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1010,6 +1021,7 @@ class AgentNodejsExpress(Service):
                 self.agent_package, self.SERVICE_PORT),
             container_name="expressapp",
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "expressapp"),
+            depends_on=self.depends_on,
             image=None,
             labels=None,
             logging=None,
@@ -1028,6 +1040,9 @@ class AgentPython(Service):
     def __init__(self, **options):
         super(AgentPython, self).__init__(**options)
         self.agent_package = options.get("python_agent_package", self.DEFAULT_AGENT_PACKAGE)
+        self.depends_on = {
+            "apm-server": {"condition": "service_healthy"},
+        }
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1065,6 +1080,7 @@ class AgentPythonDjango(AgentPython):
                 "DJANGO_SERVICE_NAME": "djangoapp",
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "djangoapp"),
+            depends_on=self.depends_on,
             image=None,
             labels=None,
             logging=None,
@@ -1092,6 +1108,7 @@ class AgentPythonFlask(AgentPython):
                 "GUNICORN_CMD_ARGS": "-w 4 -b 0.0.0.0:{}".format(self.SERVICE_PORT),
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "flaskapp"),
+            depends_on=self.depends_on,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
@@ -1119,6 +1136,9 @@ class AgentRubyRails(Service):
         super(AgentRubyRails, self).__init__(**options)
         self.agent_version = options.get("ruby_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_version_state = options.get("ruby_agent_version_state", self.DEFAULT_AGENT_VERSION_STATE)
+        self.depends_on = {
+            "apm-server": {"condition": "service_healthy"},
+        }
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
@@ -1140,6 +1160,7 @@ class AgentRubyRails(Service):
                 "RUBY_AGENT_VERSION": self.agent_version,
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "railsapp", interval="10s", retries=60),
+            depends_on=self.depends_on,
             image=None,
             labels=None,
             logging=None,
@@ -1163,6 +1184,9 @@ class AgentJavaSpring(Service):
     def __init__(self, **options):
         super(AgentJavaSpring, self).__init__(**options)
         self.agent_version = options.get("java_agent_version", self.DEFAULT_AGENT_VERSION)
+        self.depends_on = {
+            "apm-server": {"condition": "service_healthy"},
+        }
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
@@ -1186,6 +1210,7 @@ class AgentJavaSpring(Service):
                 "ELASTIC_APM_SERVICE_NAME": "springapp",
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "javaspring"),
+            depends_on=self.depends_on,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
