@@ -930,7 +930,7 @@ class AgentRUMJS(Service):
             logging=None,
             environment={
                 "ELASTIC_APM_SERVICE_NAME": "rum",
-                "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
+                "APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
             },
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
