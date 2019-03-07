@@ -2,6 +2,7 @@ FROM node:8-slim
 
 ARG RUM_AGENT_BRANCH
 ARG RUM_AGENT_REPO
+ARG APM_SERVER_URL
 
 RUN apt-get -qq update && apt-get -qq install -yq libgconf-2-4 \
     && apt-get -qq install -y wget git --no-install-recommends \
