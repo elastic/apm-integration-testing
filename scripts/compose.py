@@ -895,7 +895,7 @@ class Zookeeper(Service):
 class AgentRUMJS(Service):
     SERVICE_PORT = 8000
     DEFAULT_AGENT_BRANCH = "master"
-    DEFAULT_AGENT_REPO = "elastic/apm-agent-js-base"
+    DEFAULT_AGENT_REPO = "elastic/apm-agent-rum-js"
 
     def __init__(self, **options):
         super(AgentRUMJS, self).__init__(**options)
@@ -925,6 +925,7 @@ class AgentRUMJS(Service):
                 args=[
                     "RUM_AGENT_BRANCH=" + self.agent_branch,
                     "RUM_AGENT_REPO=" + self.agent_repo,
+                    "APM_SERVER_URL=" + self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL)
                 ]
             ),
             container_name="rum",
@@ -933,7 +934,7 @@ class AgentRUMJS(Service):
             logging=None,
             environment={
                 "ELASTIC_APM_SERVICE_NAME": "rum",
-                "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
+                "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL)
             },
             depends_on=self.depends_on,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],

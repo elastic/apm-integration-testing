@@ -2,6 +2,7 @@ FROM node:8-slim
 
 ARG RUM_AGENT_BRANCH
 ARG RUM_AGENT_REPO
+ARG APM_SERVER_URL
 
 RUN apt-get -qq update && apt-get -qq install -yq libgconf-2-4 \
     && apt-get -qq install -y wget git --no-install-recommends \
@@ -35,7 +36,6 @@ RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
     && mkdir -p /home/pptruser/Downloads \
     && chown -R pptruser:pptruser /home/pptruser \
     && chown -R pptruser:pptruser /rumjs-integration-test/node_modules
-
 
 # Run everything after as non-privileged user.
 USER pptruser
