@@ -23,7 +23,7 @@ class ApplicationController < ActionController::API
   end
 
   def extra_span
-    ElasticAPM.span 'app.extra' do
+    ElasticAPM.with_span 'app.extra' do
       "extra"
     end
   end
