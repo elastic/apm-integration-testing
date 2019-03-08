@@ -5,18 +5,21 @@ from tests.agent.concurrent_requests import Concurrent
 
 
 @pytest.mark.version
+@pytest.mark.rails
 def test_req_rails(rails):
     utils.check_agent_transaction(
         rails.foo, rails.apm_server.elasticsearch)
 
 
 @pytest.mark.version
+@pytest.mark.rails
 def test_rails_error(rails):
     utils.check_agent_error(
         rails.oof, rails.apm_server.elasticsearch)
 
 
 @pytest.mark.version
+@pytest.mark.rails
 def test_conc_req_rails(es, apm_server, rails):
     foo = Concurrent.Endpoint(rails.foo.url,
                               rails.app_name,
@@ -27,6 +30,7 @@ def test_conc_req_rails(es, apm_server, rails):
 
 
 @pytest.mark.version
+@pytest.mark.rails
 def test_conc_req_rails_foobar(es, apm_server, rails):
     foo = Concurrent.Endpoint(rails.foo.url,
                               rails.app_name,
