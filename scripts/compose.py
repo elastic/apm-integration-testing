@@ -1332,7 +1332,6 @@ class OpbeansJava(OpbeansService):
 
     def __init__(self, **options):
         super(OpbeansJava, self).__init__(**options)
-        self.service_name = options.get("opbeans_java_service_name", self.DEFAULT_SERVICE_NAME)
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
