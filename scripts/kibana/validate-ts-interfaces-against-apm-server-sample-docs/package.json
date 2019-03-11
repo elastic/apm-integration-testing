@@ -1,0 +1,16 @@
+{
+  "scripts": {
+    "lint": "tsc ./temp/apm-server-docs/*.ts --noEmit",
+    "setup": "ts-node ./scripts/setup.ts"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "prettier": "^1.16.4",
+    "ts-node": "^8.0.2",
+    "typescript": "^3.3.3333"
+  },
+  "devDependencies": {
+    "@types/prettier": "^1.16.1",
+    "@types/node": "^11.9.6"
+  }
+}

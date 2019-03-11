@@ -13,3 +13,7 @@ docker-compose.yml
 htmlcov/
 tests/results/
 docker/opbeans/node/sourcemaps/*.map
+.DS_Store
+node_modules
+**/.vscode/settings.json
+/scripts/kibana/validate-ts-interfaces-against-apm-server-sample-docs/temp/
