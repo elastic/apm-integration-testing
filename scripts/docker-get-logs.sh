@@ -3,8 +3,8 @@ set -exuo pipefail
 
 STEP=${1:-""}
 
-mkdir -p docker-info${STEP}
-cd docker-info${STEP}
+mkdir -p docker-info/${STEP}
+cd docker-info/${STEP}
 
 docker ps -a &> docker-containers.txt
 
