@@ -1238,30 +1238,30 @@ class OpbeansService(Service):
         """add service-specific command line arguments"""
         # allow port overrides
         super(OpbeansService, cls).add_arguments(parser)
+        parser.add_argument(
+            '--' + cls.name() + '-agent-branch',
+            default=None,
+            dest=cls.option_name() + '_agent_branch',
+            help=cls.name() + " branch for agent"
+        )
+        parser.add_argument(
+            '--' + cls.name() + '-agent-repo',
+            default=None,
+            dest=cls.option_name() + '_agent_repo',
+            help=cls.name() + " github repo for agent (in form org/repo)"
+        )
+        parser.add_argument(
+            '--' + cls.name() + '-agent-local-repo',
+            default=None,
+            dest=cls.option_name() + '_agent_local_repo',
+            help=cls.name() + " local repo path for agent"
+        )
         if hasattr(cls, 'DEFAULT_SERVICE_NAME'):
             parser.add_argument(
                 '--' + cls.name() + '-service-name',
                 default=cls.DEFAULT_SERVICE_NAME,
                 dest=cls.option_name() + '_service_name',
                 help=cls.name() + " service name"
-            )
-            parser.add_argument(
-                '--' + cls.name() + '-agent-branch',
-                default=None,
-                dest=cls.option_name() + '_agent_branch',
-                help=cls.name() + " branch for agent"
-            )
-            parser.add_argument(
-                '--' + cls.name() + '-agent-repo',
-                default=None,
-                dest=cls.option_name() + '_agent_repo',
-                help=cls.name() + " github repo for agent (in form org/repo)"
-            )
-            parser.add_argument(
-                '--' + cls.name() + '-agent-local-repo',
-                default=None,
-                dest=cls.option_name() + '_agent_local_repo',
-                help=cls.name() + " local repo path for agent"
             )
 
 
@@ -1388,11 +1388,10 @@ class OpbeansJava(OpbeansService):
 class OpbeansNode(OpbeansService):
     SERVICE_PORT = 3000
     DEFAULT_LOCAL_REPO = "."
-    DEFAULT_SERVICE_NAME = "opbeans-node"
 
     def __init__(self, **options):
         super(OpbeansNode, self).__init__(**options)
-        self.service_name = options.get("opbeans_node_service_name", self.DEFAULT_SERVICE_NAME)
+        self.service_name = "opbeans-node"
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
