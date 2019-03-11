@@ -255,7 +255,7 @@ def runScript(Map params = [:]){
 
 def wrappingup(label){
   dir("${BASE_DIR}"){
-    def stepName = "-" + label.replace(";","/")
+    def stepName = label.replace(";","/")
       .replace("--","_")
       .replace(".","_")
     sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
