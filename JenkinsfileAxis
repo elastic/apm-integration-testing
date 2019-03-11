@@ -59,7 +59,7 @@ pipeline {
   }
   options {
     timeout(time: 1, unit: 'HOURS')
-    buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '100', daysToKeepStr: '30'))
+    buildDiscarder(logRotator(numToKeepStr: '300', artifactNumToKeepStr: '300', daysToKeepStr: '30'))
     timestamps()
     ansiColor('xterm')
     disableResume()
@@ -152,7 +152,7 @@ pipeline {
       }
       post {
         always {
-          wrappingup('-all')
+          wrappingup('all')
         }
       }
     }
@@ -255,16 +255,14 @@ def runScript(Map params = [:]){
 
 def wrappingup(label){
   dir("${BASE_DIR}"){
-    def stepName = "-" + label.replace(";","_")
-      .replace("#","_")
-      .replace(":","_")
-      .replace("-","_")
+    def stepName = "-" + label.replace(";","/")
+      .replace("--","_")
       .replace(".","_")
     sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
     sh('make stop-env || echo 0')
     archiveArtifacts(
         allowEmptyArchive: true,
-        artifacts: 'docker-info*/**',
+        artifacts: 'docker-info/**',
         defaultExcludes: false)
     junit(
       allowEmptyResults: false,
