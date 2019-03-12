@@ -57,7 +57,9 @@ pipeline {
         changeRequest()
       }
       steps {
-        runJob('All')
+        // TODO commented to test
+        //runJob('All')
+        echo "NOOP"
       }
     }
     /**
@@ -70,9 +72,10 @@ pipeline {
         beforeAgent true
         allOf {
           anyOf {
-            not {
+            // TODO commented to test
+            //not {
               changeRequest()
-            }
+            //}
             branch 'master'
             branch "\\d+\\.\\d+"
             branch "v\\d?"
