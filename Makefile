@@ -75,8 +75,8 @@ docker-test-%:
 
 dockerized-test:
 	@echo waiting for services to be healthy
-	docker-compose-wait || (./scripts/docker-summary.sh && exit 1)
-	sleep 30
+	docker-compose-wait || (./scripts/docker-summary.sh; echo "Failed waiting for all containers are healthy"; exit 1)
+
 	./scripts/docker-summary.sh
 	
 	@echo running make $(TARGET) inside a container
