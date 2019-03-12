@@ -29,7 +29,7 @@ RUN npm install -g npm@latest
 RUN rm package-lock.json
 RUN npm install
 
-RUN npx lerna run build && npx lerna run buildE2eBundles
+RUN npx lerna run build && npx lerna run build:e2e
 
 # Add user so we don't need --no-sandbox.
 RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
