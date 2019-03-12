@@ -2087,12 +2087,14 @@ class LocalSetup(object):
         if hasattr(docker_compose_path, "name") and os.path.isdir(os.path.dirname(docker_compose_path.name)):
             docker_compose_path.close()
             print("Starting stack services..\n")
+            docker_compose_cmd = ["docker-compose", "-f", docker_compose_path.name]
+            if not sys.stdin.isatty():
+                docker_compose_cmd.extend(["--no-ansi", "--log-level", "ERROR"])
 
             # always build if possible, should be quick for rebuilds
             build_services = [name for name, service in compose["services"].items() if 'build' in service]
             if build_services:
-                docker_compose_build = ["docker-compose", "-f", docker_compose_path.name,
-                                        "--no-ansi", "--log-level", "ERROR", "build", "--pull"]
+                docker_compose_build = docker_compose_cmd + ["build", "--pull"]
                 if args["force_build"]:
                     docker_compose_build.append("--no-cache")
                 if args["build_parallel"]:
@@ -2103,12 +2105,9 @@ class LocalSetup(object):
             image_services = [name for name, service in compose["services"].items() if
                               'image' in service and name not in services_to_load]
             if image_services and not args["skip_download"]:
-                subprocess.call(["docker-compose", "-f", docker_compose_path.name,
-                                "--no-ansi", "--log-level", "ERROR", "pull"] + image_services)
+                subprocess.call(docker_compose_cmd + ["pull"] + image_services)
             # really start
-            docker_compose_up = ["docker-compose", "-f", docker_compose_path.name,
-                                 "--no-ansi", "--log-level", "ERROR", "up", "-d"]
-            subprocess.call(docker_compose_up)
+            subprocess.call(docker_compose_cmd + ["up", "-d"])
 
     @staticmethod
     def status_handler():
