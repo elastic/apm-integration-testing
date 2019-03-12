@@ -1238,30 +1238,30 @@ class OpbeansService(Service):
         """add service-specific command line arguments"""
         # allow port overrides
         super(OpbeansService, cls).add_arguments(parser)
+        parser.add_argument(
+            '--' + cls.name() + '-agent-branch',
+            default=None,
+            dest=cls.option_name() + '_agent_branch',
+            help=cls.name() + " branch for agent"
+        )
+        parser.add_argument(
+            '--' + cls.name() + '-agent-repo',
+            default=None,
+            dest=cls.option_name() + '_agent_repo',
+            help=cls.name() + " github repo for agent (in form org/repo)"
+        )
+        parser.add_argument(
+            '--' + cls.name() + '-agent-local-repo',
+            default=None,
+            dest=cls.option_name() + '_agent_local_repo',
+            help=cls.name() + " local repo path for agent"
+        )
         if hasattr(cls, 'DEFAULT_SERVICE_NAME'):
             parser.add_argument(
                 '--' + cls.name() + '-service-name',
                 default=cls.DEFAULT_SERVICE_NAME,
                 dest=cls.option_name() + '_service_name',
                 help=cls.name() + " service name"
-            )
-            parser.add_argument(
-                '--' + cls.name() + '-agent-branch',
-                default=None,
-                dest=cls.option_name() + '_agent_branch',
-                help=cls.name() + " branch for agent"
-            )
-            parser.add_argument(
-                '--' + cls.name() + '-agent-repo',
-                default=None,
-                dest=cls.option_name() + '_agent_repo',
-                help=cls.name() + " github repo for agent (in form org/repo)"
-            )
-            parser.add_argument(
-                '--' + cls.name() + '-agent-local-repo',
-                default=None,
-                dest=cls.option_name() + '_agent_local_repo',
-                help=cls.name() + " local repo path for agent"
             )
 
 
@@ -1332,7 +1332,6 @@ class OpbeansJava(OpbeansService):
 
     def __init__(self, **options):
         super(OpbeansJava, self).__init__(**options)
-        self.service_name = options.get("opbeans_java_service_name", self.DEFAULT_SERVICE_NAME)
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
@@ -1388,11 +1387,10 @@ class OpbeansJava(OpbeansService):
 class OpbeansNode(OpbeansService):
     SERVICE_PORT = 3000
     DEFAULT_LOCAL_REPO = "."
-    DEFAULT_SERVICE_NAME = "opbeans-node"
 
     def __init__(self, **options):
         super(OpbeansNode, self).__init__(**options)
-        self.service_name = options.get("opbeans_node_service_name", self.DEFAULT_SERVICE_NAME)
+        self.service_name = "opbeans-node"
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
@@ -2089,12 +2087,14 @@ class LocalSetup(object):
         if hasattr(docker_compose_path, "name") and os.path.isdir(os.path.dirname(docker_compose_path.name)):
             docker_compose_path.close()
             print("Starting stack services..\n")
+            docker_compose_cmd = ["docker-compose", "-f", docker_compose_path.name]
+            if not sys.stdin.isatty():
+                docker_compose_cmd.extend(["--no-ansi", "--log-level", "ERROR"])
 
             # always build if possible, should be quick for rebuilds
             build_services = [name for name, service in compose["services"].items() if 'build' in service]
             if build_services:
-                docker_compose_build = ["docker-compose", "-f", docker_compose_path.name,
-                                        "--no-ansi", "--log-level", "ERROR", "build", "--pull"]
+                docker_compose_build = docker_compose_cmd + ["build", "--pull"]
                 if args["force_build"]:
                     docker_compose_build.append("--no-cache")
                 if args["build_parallel"]:
@@ -2105,12 +2105,15 @@ class LocalSetup(object):
             image_services = [name for name, service in compose["services"].items() if
                               'image' in service and name not in services_to_load]
             if image_services and not args["skip_download"]:
-                subprocess.call(["docker-compose", "-f", docker_compose_path.name,
-                                "--no-ansi", "--log-level", "ERROR", "pull", "-q"] + image_services)
+                pull_params = ["pull"]
+                if not sys.stdin.isatty():
+                    pull_params.extend(["-q"])
+                subprocess.call(docker_compose_cmd + pull_params + image_services)
             # really start
-            docker_compose_up = ["docker-compose", "-f", docker_compose_path.name,
-                                 "--no-ansi", "--log-level", "ERROR", "up", "-d", "--quiet-pull"]
-            subprocess.call(docker_compose_up)
+            up_params = ["up", "-d"]
+            if not sys.stdin.isatty():
+                up_params.extend(["--quiet-pull"])
+            subprocess.call(docker_compose_cmd + up_params)
 
     @staticmethod
     def status_handler():
