@@ -5,7 +5,8 @@ import fs from 'fs';
 const writeFile = promisify(fs.writeFile);
 import prettierRc from '../.prettierrc.json';
 
-const BRANCH = 'master';
+const [owner = 'elastic', branch = 'master'] = process.argv.slice(2);
+console.log(`Downloading sample docs: ${owner}:${branch}`);
 
 interface DocType {
   interfaceName: string;
@@ -17,17 +18,17 @@ const docTypes: DocType[] = [
   {
     interfaceName: 'SpanRaw',
     interfacePath: '../apm-ui-interfaces/raw/SpanRaw',
-    url: `https://raw.githubusercontent.com/elastic/apm-server/${BRANCH}/beater/test_approved_es_documents/TestPublishIntegrationSpans.approved.json`
+    url: `https://raw.githubusercontent.com/elastic/apm-server/${branch}/beater/test_approved_es_documents/TestPublishIntegrationSpans.approved.json`
   },
   {
     interfaceName: 'TransactionRaw',
     interfacePath: '../apm-ui-interfaces/raw/TransactionRaw',
-    url: `https://raw.githubusercontent.com/elastic/apm-server/${BRANCH}/beater/test_approved_es_documents/TestPublishIntegrationTransactions.approved.json`
+    url: `https://raw.githubusercontent.com/elastic/apm-server/${branch}/beater/test_approved_es_documents/TestPublishIntegrationTransactions.approved.json`
   },
   {
     interfaceName: 'ErrorRaw',
     interfacePath: '../apm-ui-interfaces/raw/ErrorRaw',
-    url: `https://raw.githubusercontent.com/elastic/apm-server/${BRANCH}/beater/test_approved_es_documents/TestPublishIntegrationErrors.approved.json`
+    url: `https://raw.githubusercontent.com/elastic/apm-server/${branch}/beater/test_approved_es_documents/TestPublishIntegrationErrors.approved.json`
   }
 ];
 
@@ -39,7 +40,7 @@ async function writeConvertedFile({
   url
 }: DocType) {
   const name = `${interfaceName}Docs`;
-  const fileName = `./temp/apm-server-docs/${name}.ts`;
+  const fileName = `./tmp/apm-server-docs/${name}.ts`;
   const { data } = await axios.get(url);
 
   const content = `import { ${interfaceName} } from '${interfacePath}';

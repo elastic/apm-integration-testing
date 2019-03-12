@@ -1,7 +1,10 @@
 {
+  "license": "Apache-2.0",
   "scripts": {
-    "lint": "tsc ./temp/apm-server-docs/*.ts --noEmit",
-    "setup": "ts-node ./scripts/setup.ts"
+    "lint": "tsc ./tmp/apm-server-docs/*.ts --noEmit",
+    "setup": "./scripts/setup.sh",
+    "clone-kibana": "./scripts/clone-kibana.sh",
+    "download-sample-docs": "./scripts/download-sample-docs.ts"
   },
   "dependencies": {
     "axios": "^0.18.0",
