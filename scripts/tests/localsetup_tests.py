@@ -133,7 +133,7 @@ class OpbeansServiceTest(ServiceTest):
                         condition: service_healthy
                     healthcheck:
                       test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-java:3000/"]
-                      interval: 5s
+                      interval: 10s
                       retries: 36""")  # noqa: 501
         )
 
@@ -183,7 +183,7 @@ class OpbeansServiceTest(ServiceTest):
                             condition: service_healthy
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-node:3000/"]
-                        interval: 5s
+                        interval: 10s
                         retries: 12
                     volumes:
                         - ./docker/opbeans/node/sourcemaps:/sourcemaps""")  # noqa: 501
@@ -235,7 +235,7 @@ class OpbeansServiceTest(ServiceTest):
                             condition: service_healthy
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-python:3000/"]
-                        interval: 5s
+                        interval: 10s
                         retries: 12
             """)  # noqa: 501
         )
@@ -306,8 +306,8 @@ class OpbeansServiceTest(ServiceTest):
                         condition: service_healthy
                     healthcheck:
                       test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-ruby:3000/"]
-                      interval: 5s
-                      retries: 100""")  # noqa: 501
+                      interval: 10s
+                      retries: 50""")  # noqa: 501
 
         )
 
@@ -336,7 +336,7 @@ class OpbeansServiceTest(ServiceTest):
                              condition: service_healthy
                      healthcheck:
                          test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://localhost:9222/"]
-                         interval: 5s
+                         interval: 10s
                          retries: 12""")  # noqa: 501
         )
 
@@ -461,7 +461,7 @@ class LocalTest(unittest.TestCase):
                     elasticsearch: {condition: service_healthy}
                     kibana: {condition: service_healthy}
                 healthcheck:
-                    interval: 5s
+                    interval: 10s
                     retries: 12
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
                 image: docker.elastic.co/apm/apm-server:6.2.10-SNAPSHOT
@@ -494,7 +494,7 @@ class LocalTest(unittest.TestCase):
                     elasticsearch: {condition: service_healthy}
                 environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true'}
                 healthcheck:
-                    interval: 5s
+                    interval: 10s
                     retries: 20
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
                 image: docker.elastic.co/kibana/kibana-x-pack:6.2.10-SNAPSHOT
@@ -538,7 +538,7 @@ class LocalTest(unittest.TestCase):
                     elasticsearch: {condition: service_healthy}
                     kibana: {condition: service_healthy}
                 healthcheck:
-                    interval: 5s
+                    interval: 10s
                     retries: 12
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
                 image: docker.elastic.co/apm/apm-server:6.3.10-SNAPSHOT
@@ -571,7 +571,7 @@ class LocalTest(unittest.TestCase):
                     elasticsearch: {condition: service_healthy}
                 environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
                 healthcheck:
-                    interval: 5s
+                    interval: 10s
                     retries: 20
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
                 image: docker.elastic.co/kibana/kibana:6.3.10-SNAPSHOT
@@ -618,7 +618,7 @@ class LocalTest(unittest.TestCase):
                     elasticsearch: {condition: service_healthy}
                     kibana: {condition: service_healthy}
                 healthcheck:
-                    interval: 5s
+                    interval: 10s
                     retries: 12
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://localhost:8200/']
                 image: docker.elastic.co/apm/apm-server:7.0.10-alpha1-SNAPSHOT
@@ -651,7 +651,7 @@ class LocalTest(unittest.TestCase):
                     elasticsearch: {condition: service_healthy}
                 environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
                 healthcheck:
-                    interval: 5s
+                    interval: 10s
                     retries: 20
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
                 image: docker.elastic.co/kibana/kibana:7.0.10-alpha1-SNAPSHOT

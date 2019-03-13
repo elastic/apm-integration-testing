@@ -1210,7 +1210,7 @@ class AgentJavaSpring(Service):
                 "ELASTIC_APM_API_REQUEST_TIME": "3s",
                 "ELASTIC_APM_SERVICE_NAME": "springapp",
             },
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "javaspring", path="/"),
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "javaspring"),
             depends_on=self.depends_on,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
