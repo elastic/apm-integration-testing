@@ -941,6 +941,7 @@ class AgentRUMJS(Service):
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
+
 class AgentGoNetHttp(Service):
     SERVICE_PORT = 8080
     DEFAULT_AGENT_VERSION = "master"
