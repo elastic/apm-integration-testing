@@ -39,48 +39,12 @@ pipeline {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
-        dir("${BASE_DIR}"){
-          sh '''
-          echo "GIT_COMMIT=${GIT_COMMIT}"
-          git rev-list HEAD -4 || echo KO
-          git reflog -4 || echo KO
-          '''
-        }
-      }
-    }
-
-    stage("All Test Only") {
-      agent { label 'linux && immutable' }
-      options { skipDefaultCheckout() }
-      when {
-        beforeAgent true
-        changeRequest()
-      }
-      steps {
-        runJob('All')
       }
     }
     /**
       launch integration tests.
     */
     stage("Integration Tests") {
-      agent { label 'linux && immutable' }
-      options { skipDefaultCheckout() }
-      when {
-        beforeAgent true
-        allOf {
-          anyOf {
-            not {
-              changeRequest()
-            }
-            branch 'master'
-            branch "\\d+\\.\\d+"
-            branch "v\\d?"
-            tag "v\\d+\\.\\d+\\.\\d+*"
-            environment name: 'Run_As_Master_Branch', value: 'true'
-          }
-        }
-      }
       steps {
         log(level: "INFO", text: "Launching Agent tests in parallel")
         /*
@@ -88,26 +52,24 @@ pipeline {
           because of that, I use the parallel step. It is probably a bug.
         */
         script {
-          parallel(
-            "Go": {
-              runJob('Go')
-            },
-            "Java": {
-              runJob('Java')
-            },
-            "Node.js": {
-              runJob('Node.js')
-            },
-            "Ruby": {
-              runJob('Ruby')
-            },
-            "RUM": {
-              runJob('RUM')
-            },
-            "All": {
-              runJob('All')
-            }
-          )
+          def downstreamJobs = [:]
+          if(changeRequest() && !params.Run_As_Master_Branch){
+            downstreamJobs = ['All': {runJob('All')}]
+          } else {
+            downstreamJobs = [
+            'All': {runJob('All')},
+            'Go': {runJob('Go')},
+            'Java': {runJob('Java')},
+            'Node.js': {runJob('Node.js')},
+            'Python(disabled)': {
+              //runJob('Python')
+              echo "NOOP"
+              },
+            'Ruby': {runJob('Ruby')},
+            'RUM': {runJob('RUM')}
+            ]
+          }
+          parallel(downstreamJobs)
         }
       }
     }
