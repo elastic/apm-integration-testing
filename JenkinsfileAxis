@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-@Library('apm@v1.0.9') _
+@Library('apm@current') _
 
 import co.elastic.matrix.*
 import groovy.transform.Field
@@ -19,6 +19,7 @@ import groovy.transform.Field
   'nodejs': 'tests/versions/nodejs.yml',
   'python': 'tests/versions/python.yml',
   'ruby': 'tests/versions/ruby.yml',
+  'rum': 'tests/versions/rum.yml',
   'server': 'tests/versions/apm_server.yml'
 ]
 
@@ -31,6 +32,7 @@ import groovy.transform.Field
   'nodejs': 'NODEJS_AGENT',
   'python': 'PYTHON_AGENT',
   'ruby': 'RUBY_AGENT',
+  'rum': 'RUM_AGENT',
   'server': 'APM_SERVER'
 ]
 
@@ -43,6 +45,7 @@ import groovy.transform.Field
   'Node.js': 'nodejs',
   'Python': 'python',
   'Ruby': 'ruby',
+  'RUM': 'rum',
   'All': 'all'
 ]
 
@@ -198,6 +201,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
     'nodejs': 'APM_AGENT_NODEJS_VERSION',
     'python': 'APM_AGENT_PYTHON_VERSION',
     'ruby': 'APM_AGENT_RUBY_VERSION',
+    'rum': 'APM_AGENT_RUM_VERSION',
     'server': 'APM_SERVER_BRANCH'
   ]
 

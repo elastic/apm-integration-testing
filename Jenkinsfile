@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 
-@Library('apm@v1.0.9') _
+@Library('apm@current') _
 
 pipeline {
   agent any
@@ -103,6 +103,9 @@ pipeline {
             },
             "Ruby": {
               runJob('Ruby')
+            },
+            "RUM": {
+              runJob('RUM')
             },
             "All": {
               runJob('All')

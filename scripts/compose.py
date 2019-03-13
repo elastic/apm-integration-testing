@@ -937,7 +937,7 @@ class AgentRUMJS(Service):
                 "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL)
             },
             depends_on=self.depends_on,
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "rum", path="/run_integration_test"),
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "rum", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
