@@ -26,14 +26,14 @@ pipeline {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.6 --release", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', defaultValue: true, description: "Disable the build parallel option on compose.py, disable it is better for error detection.")
-    booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
+    booleanParam(name: 'Run_As_Master_Branch', defaultValue: true, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
   }
   stages{
     /**
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout'){
-      agent { label 'master || (linux && immutable)' }
+      agent { label 'master || immutable' }
       options { skipDefaultCheckout() }
       steps {
         deleteDir()
@@ -41,39 +41,10 @@ pipeline {
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
-
-    stage("All Test Only") {
-      agent { label 'master || (linux && immutable)' }
-      options { skipDefaultCheckout() }
-      when {
-        beforeAgent true
-        changeRequest()
-      }
-      steps {
-        runJob('All')
-      }
-    }
     /**
       launch integration tests.
     */
     stage("Integration Tests") {
-      agent { label 'master || (linux && immutable)' }
-      options { skipDefaultCheckout() }
-      when {
-        beforeAgent true
-        allOf {
-          anyOf {
-            not {
-              changeRequest()
-            }
-            branch 'master'
-            branch "\\d+\\.\\d+"
-            branch "v\\d?"
-            tag "v\\d+\\.\\d+\\.\\d+*"
-            environment name: 'Run_As_Master_Branch', value: 'true'
-          }
-        }
-      }
       steps {
         log(level: "INFO", text: "Launching Agent tests in parallel")
         /*
@@ -81,26 +52,21 @@ pipeline {
           because of that, I use the parallel step. It is probably a bug.
         */
         script {
-          parallel(
-            "Go": {
-              runJob('Go')
-            },
-            "Java": {
-              runJob('Java')
-            },
-            "Node.js": {
-              runJob('Node.js')
-            },
-            "Python": {
-              runJob('Python')
-            },
-            "Ruby": {
-              runJob('Ruby')
-            },
-            "All": {
-              runJob('All')
-            }
-          )
+          def downstreamJobs = [:]
+          if(changeRequest() && !params.Run_As_Master_Branch){
+            downstreamJobs = ['All': {runJob('All')}]
+          } else {
+            downstreamJobs = [
+            'All': {runJob('All')},
+            'Go': {runJob('Go')},
+            'Java': {runJob('Java')},
+            'Node.js': {runJob('Node.js')},
+            'Python': {runJob('Python')},
+            'Ruby': {runJob('Ruby')},
+            'RUM': {runJob('RUM')}
+            ]
+          }
+          parallel(downstreamJobs)
         }
       }
     }
