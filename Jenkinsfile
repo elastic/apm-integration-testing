@@ -48,66 +48,108 @@ pipeline {
         }
       }
     }
-
-    stage("All Test Only") {
-      agent { label 'linux && immutable' }
-      options { skipDefaultCheckout() }
-      when {
-        beforeAgent true
-        changeRequest()
-      }
-      steps {
-        runJob('All')
-      }
-    }
     /**
       launch integration tests.
     */
     stage("Integration Tests") {
-      agent { label 'linux && immutable' }
-      options { skipDefaultCheckout() }
-      when {
-        beforeAgent true
-        allOf {
-          anyOf {
-            not {
-              changeRequest()
-            }
-            branch 'master'
-            branch "\\d+\\.\\d+"
-            branch "v\\d?"
-            tag "v\\d+\\.\\d+\\.\\d+*"
-            environment name: 'Run_As_Master_Branch', value: 'true'
+      parallel {
+        stage('All') {
+          agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
+          steps {
+            runJob('All')
           }
         }
-      }
-      steps {
-        log(level: "INFO", text: "Launching Agent tests in parallel")
-        /*
-          Declarative pipeline's parallel stages lose the reference to the downstream job,
-          because of that, I use the parallel step. It is probably a bug.
-        */
-        script {
-          parallel(
-            "Go": {
-              runJob('Go')
-            },
-            "Java": {
-              runJob('Java')
-            },
-            "Node.js": {
-              runJob('Node.js')
-            },
-            "Ruby": {
-              runJob('Ruby')
-            },
-            "RUM": {
-              runJob('RUM')
-            },
-            "All": {
-              runJob('All')
+        stage('Go') {
+          agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
+          when {
+            anyOf {
+              not {
+                changeRequest()
+              }
+              environment name: 'Run_As_Master_Branch', value: 'true'
             }
-          )
+          }
+          steps {
+            runJob('Go')
+          }
+        }
+        stage('Java') {
+          agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
+          when {
+            anyOf {
+              not {
+                changeRequest()
+              }
+              environment name: 'Run_As_Master_Branch', value: 'true'
+            }
+          }
+          steps {
+            runJob('Java')
+          }
+        }
+        stage('Node.js') {
+          agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
+          when {
+            anyOf {
+              not {
+                changeRequest()
+              }
+              environment name: 'Run_As_Master_Branch', value: 'true'
+            }
+          }
+          steps {
+            runJob('Node.js')
+          }
+        }
+        stage('Python(disabled)') {
+          agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
+          when {
+            anyOf {
+              not {
+                changeRequest()
+              }
+              environment name: 'Run_As_Master_Branch', value: 'true'
+            }
+          }
+          steps {
+            //runJob('Python')
+            echo "NOOP"
+          }
+        }
+        stage('Ruby') {
+          agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
+          when {
+            anyOf {
+              not {
+                changeRequest()
+              }
+              environment name: 'Run_As_Master_Branch', value: 'true'
+            }
+          }
+          steps {
+            runJob('Ruby')
+          }
+        }
+        stage('RUM') {
+          agent { label 'linux && immutable' }
+          options { skipDefaultCheckout() }
+          when {
+            anyOf {
+              not {
+                changeRequest()
+              }
+              environment name: 'Run_As_Master_Branch', value: 'true'
+            }
+          }
+          steps {
+            runJob('RUM')
+          }
         }
       }
     }
