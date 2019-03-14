@@ -46,10 +46,10 @@ pipeline {
           echo "GIT_COMMIT=${GIT_COMMIT}"
           git rev-list HEAD -4 || echo KO
           git log --decorate --oneline -4 || echo KO
-          git status --porcelain
-          git rev-parse @{u}
-          git rev-parse HEAD
-          git origin/${BRANCH_NAME}  -r --contains ${GIT_SHA} && echo OK
+          git status --porcelain || echo KO
+          git rev-parse @{u} || echo KO
+          git rev-parse HEAD || echo KO
+          git origin/${BRANCH_NAME}  -r --contains ${GIT_SHA} || echo KO
           '''
         }
       }
@@ -79,7 +79,7 @@ pipeline {
             'RUM': {runJob('RUM')}
             ]
           }
-          parallel(downstreamJobs)
+          //parallel(downstreamJobs)
         }
       }
     }
