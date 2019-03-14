@@ -41,10 +41,15 @@ pipeline {
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         dir("${BASE_DIR}"){
           sh '''
+          set -x
           export
           echo "GIT_COMMIT=${GIT_COMMIT}"
           git rev-list HEAD -4 || echo KO
-          git reflog -4 || echo KO
+          git log --decorate --oneline -4 || echo KO
+          git status --porcelain
+          git rev-parse @{u}
+          git rev-parse HEAD
+          git origin/${BRANCH_NAME}  -r --contains ${GIT_SHA} && echo OK
           '''
         }
       }
