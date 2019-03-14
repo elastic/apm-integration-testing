@@ -49,7 +49,9 @@ pipeline {
           git status --porcelain || echo KO
           git rev-parse @{u} || echo KO
           git rev-parse HEAD || echo KO
-          git origin/${BRANCH_NAME}  -r --contains ${GIT_SHA} || echo KO
+          git branch -r --contains ${GIT_SHA} || echo KO
+          git branch -r --contains ${GIT_BASE_COMMIT} || echo KO
+          git branch -r --contains ${GIT_COMMIT} || echo KO
           '''
         }
       }
