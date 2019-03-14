@@ -39,6 +39,13 @@ pipeline {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
+        dir("${BASE_DIR}"){
+          sh '''
+          echo "GIT_COMMIT=${GIT_COMMIT}"
+          git rev-list HEAD -4 || echo KO
+          git reflog -4 || echo KO
+          '''
+        }
       }
     }
     /**
