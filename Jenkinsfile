@@ -61,8 +61,7 @@ pipeline {
             'All': {runJob('All')},
             'Node.js': {runJob('Node.js')},
             'Python': {runJob('Python')},
-            'Ruby': {runJob('Ruby')},
-            'RUM': {runJob('RUM')}
+            'Ruby': {runJob('Ruby')}
             ]
           }
           parallel(downstreamJobs)

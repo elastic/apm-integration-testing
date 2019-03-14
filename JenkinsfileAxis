@@ -19,7 +19,6 @@ import groovy.transform.Field
   'nodejs': 'tests/versions/nodejs.yml',
   'python': 'tests/versions/python.yml',
   'ruby': 'tests/versions/ruby.yml',
-  'rum': 'tests/versions/rum.yml',
   'server': 'tests/versions/apm_server.yml'
 ]
 
@@ -32,7 +31,6 @@ import groovy.transform.Field
   'nodejs': 'NODEJS_AGENT',
   'python': 'PYTHON_AGENT',
   'ruby': 'RUBY_AGENT',
-  'rum': 'RUM_AGENT',
   'server': 'APM_SERVER'
 ]
 
@@ -45,7 +43,6 @@ import groovy.transform.Field
   'Node.js': 'nodejs',
   'Python': 'python',
   'Ruby': 'ruby',
-  'RUM': 'rum',
   'All': 'all'
 ]
 
@@ -69,7 +66,7 @@ pipeline {
     durabilityHint('PERFORMANCE_OPTIMIZED')
   }
   parameters {
-    choice(name: 'agent_integration_test', choices: ['Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
+    choice(name: 'agent_integration_test', choices: ['Go', 'Java', 'Node.js', 'Python', 'Ruby', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.5", description: "Elastic Stack Git branch/tag to use")
     string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "6.x", description: "Integration testing Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
@@ -195,7 +192,6 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
     'nodejs': 'APM_AGENT_NODEJS_VERSION',
     'python': 'APM_AGENT_PYTHON_VERSION',
     'ruby': 'APM_AGENT_RUBY_VERSION',
-    'rum': 'APM_AGENT_RUM_VERSION',
     'server': 'APM_SERVER_BRANCH'
   ]
 
