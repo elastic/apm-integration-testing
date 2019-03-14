@@ -3,7 +3,7 @@
 @Library('apm@current') _
 
 pipeline {
-  agent any
+  agent none
   environment {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
     NOTIFY_TO = credentials('notify-to')
@@ -26,7 +26,7 @@ pipeline {
   parameters {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "7.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
-    booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
+    booleanParam(name: 'Run_As_Master_Branch', defaultValue: true, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
   }
   stages{
     /**
@@ -45,6 +45,7 @@ pipeline {
       launch integration tests.
     */
     stage("Integration Tests") {
+      agent none
       steps {
         log(level: "INFO", text: "Launching Agent tests in parallel")
         /*
@@ -82,8 +83,10 @@ pipeline {
       echoColor(text: '[ABORTED]', colorfg: 'magenta', colorbg: 'default')
     }
     failure {
-      echoColor(text: '[FAILURE]', colorfg: 'red', colorbg: 'default')
-      step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
+      node('master'){
+        echoColor(text: '[FAILURE]', colorfg: 'red', colorbg: 'default')
+        step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
+      }
     }
     unstable {
       echoColor(text: '[UNSTABLE]', colorfg: 'yellow', colorbg: 'default')

@@ -50,7 +50,7 @@ import groovy.transform.Field
 ]
 
 pipeline {
-  agent any
+  agent { label 'linux && immutable' }
   environment {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
     REPO="git@github.com:elastic/apm-integration-testing.git"
@@ -81,7 +81,6 @@ pipeline {
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout'){
-      agent { label 'master || immutable' }
       options { skipDefaultCheckout() }
       steps {
         deleteDir()
@@ -108,10 +107,7 @@ pipeline {
       launch integration tests.
     */
     stage("Integration Tests"){
-      agent { label 'linux && immutable' }
-      options { skipDefaultCheckout() }
       when {
-        beforeAgent true
         expression { return params.agent_integration_test != 'All' }
       }
       steps {
@@ -137,9 +133,7 @@ pipeline {
       }
     }
     stage("All") {
-      agent { label 'linux && immutable' }
       when {
-        beforeAgent true
         expression { return params.agent_integration_test == 'All' }
       }
       environment {
