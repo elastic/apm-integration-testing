@@ -22,6 +22,7 @@ pipeline {
     disableResume()
     durabilityHint('PERFORMANCE_OPTIMIZED')
     rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
+    quietPeriod(10)
   }
   parameters {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "7.0.0", description: "Elastic Stack Git branch/tag to use")
@@ -34,7 +35,6 @@ pipeline {
     */
     stage('Checkout'){
       agent { label 'master || immutable' }
-      options { skipDefaultCheckout() }
       steps {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
@@ -103,7 +103,7 @@ def runJob(agentName, buildOpts = ''){
     string(name: 'INTEGRATION_TESTING_VERSION', value: env.GIT_BASE_COMMIT),
     string(name: 'BUILD_OPTS', value: buildOpts),
     string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
-    booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: true)],
+    booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: false)],
     propagate: true,
     quietPeriod: 10,
     wait: true)
