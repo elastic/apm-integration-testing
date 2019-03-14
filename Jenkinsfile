@@ -25,8 +25,7 @@ pipeline {
   parameters {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.6 --release", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
-    booleanParam(name: 'DISABLE_BUILD_PARALLEL', defaultValue: true, description: "Disable the build parallel option on compose.py, disable it is better for error detection.")
-    booleanParam(name: 'Run_As_Master_Branch', defaultValue: true, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
+    booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
   }
   stages{
     /**
@@ -34,7 +33,6 @@ pipeline {
     */
     stage('Checkout'){
       agent { label 'master || immutable' }
-      options { skipDefaultCheckout() }
       steps {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
@@ -100,7 +98,7 @@ def runJob(agentName, buildOpts = ''){
     string(name: 'INTEGRATION_TESTING_VERSION', value: env.GIT_BASE_COMMIT),
     string(name: 'BUILD_OPTS', value: buildOpts),
     string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
-    booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: true)],
+    booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: false)],
     propagate: true,
     quietPeriod: 10,
     wait: true)
