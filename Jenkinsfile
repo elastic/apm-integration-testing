@@ -2,7 +2,7 @@
 @Library('apm@v1.0.9') _
 
 pipeline {
-  agent any
+  agent none
   environment {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
     NOTIFY_TO = credentials('notify-to')
@@ -45,6 +45,7 @@ pipeline {
       launch integration tests.
     */
     stage("Integration Tests") {
+      agent none
       steps {
         log(level: "INFO", text: "Launching Agent tests in parallel")
         /*
@@ -77,8 +78,10 @@ pipeline {
       echoColor(text: '[ABORTED]', colorfg: 'magenta', colorbg: 'default')
     }
     failure {
-      echoColor(text: '[FAILURE]', colorfg: 'red', colorbg: 'default')
-      step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
+      node('master'){
+        echoColor(text: '[FAILURE]', colorfg: 'red', colorbg: 'default')
+        step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
+      }
     }
     unstable {
       echoColor(text: '[UNSTABLE]', colorfg: 'yellow', colorbg: 'default')
