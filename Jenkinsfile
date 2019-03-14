@@ -17,6 +17,7 @@ pipeline {
     disableResume()
     durabilityHint('PERFORMANCE_OPTIMIZED')
     rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
+    quietPeriod(10)
   }
   triggers {
     cron 'H H(3-4) * * 1-5'
