@@ -34,26 +34,10 @@ pipeline {
     */
     stage('Checkout'){
       agent { label 'master || immutable' }
-      //options { skipDefaultCheckout() }
       steps {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
-        dir("${BASE_DIR}"){
-          sh '''
-          set -x
-          export
-          echo "GIT_COMMIT=${GIT_COMMIT}"
-          git rev-list HEAD -4 || echo KO
-          git log --decorate --oneline -4 || echo KO
-          git status --porcelain || echo KO
-          git rev-parse @{u} || echo KO
-          git rev-parse HEAD || echo KO
-          git branch -r --contains ${GIT_SHA} || echo KO
-          git branch -r --contains ${GIT_BASE_COMMIT} || echo KO
-          git branch -r --contains ${GIT_COMMIT} || echo KO
-          '''
-        }
       }
     }
     /**

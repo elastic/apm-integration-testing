@@ -107,7 +107,6 @@ pipeline {
       launch integration tests.
     */
     stage("Integration Tests"){
-      options { skipDefaultCheckout() }
       when {
         expression { return params.agent_integration_test != 'All' }
       }
