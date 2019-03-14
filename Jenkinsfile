@@ -51,6 +51,7 @@ pipeline {
         /*
           Declarative pipeline's parallel stages lose the reference to the downstream job,
           because of that, I use the parallel step. It is probably a bug.
+          https://issues.jenkins-ci.org/browse/JENKINS-56562
         */
         script {
           def downstreamJobs = [:]
