@@ -34,7 +34,7 @@ pipeline {
     */
     stage('Checkout'){
       agent { label 'master || immutable' }
-      options { skipDefaultCheckout() }
+      //options { skipDefaultCheckout() }
       steps {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
