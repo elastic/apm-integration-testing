@@ -41,6 +41,7 @@ pipeline {
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         dir("${BASE_DIR}"){
           sh '''
+          export
           echo "GIT_COMMIT=${GIT_COMMIT}"
           git rev-list HEAD -4 || echo KO
           git reflog -4 || echo KO
