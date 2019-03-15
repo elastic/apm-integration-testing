@@ -58,7 +58,12 @@ pipeline {
             downstreamJobs = ['All': {runJob('All')}]
           } else {
             downstreamJobs = [
-            'All': {runJob('All')},
+            'All': {
+              runJob('All', '--nodejs-agent-package=elastic/apm-agent-nodejs#1.x '
+                + '--python-agent-package=git+https://github.com/elastic/apm-agent-python.git@3.x '
+                + '--ruby-agent-version-state=github '
+                + '--ruby-agent-version=1.x')
+              },
             'Node.js': {runJob('Node.js')},
             'Python': {runJob('Python')},
             'Ruby': {runJob('Ruby')}
