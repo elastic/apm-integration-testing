@@ -97,9 +97,9 @@ def runJob(agentName, buildOpts = ''){
     string(name: 'agent_integration_test', value: agentName),
     string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
     string(name: 'INTEGRATION_TESTING_VERSION', value: env.GIT_BASE_COMMIT),
-    string(name: 'BUILD_OPTS', value: buildOpts),
+    string(name: 'BUILD_OPTS', value: "${params.BUILD_OPTS} ${buildOpts}"),
     string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
-    booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: false)],
+    booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: '')],
     propagate: true,
     quietPeriod: 10,
     wait: true)
