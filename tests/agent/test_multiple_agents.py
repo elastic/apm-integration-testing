@@ -2,7 +2,7 @@ from tests.agent.concurrent_requests import Concurrent
 
 
 def test_conc_req_all_agents(es, apm_server, flask, django, express, rails, go_nethttp, java_spring):
-    # FIXME Temporarily disabled python tests
+    # FIXME Temporarily disabled python tests
     # flask_f = Concurrent.Endpoint(flask.foo.url,
     #                               flask.app_name,
     #                               ["app.foo"],
@@ -65,7 +65,7 @@ def test_conc_req_all_agents(es, apm_server, flask, django, express, rails, go_n
                                         events_no=500)
 
     Concurrent(es, [
-        # FIXME Temporarily disabled python tests
+        # FIXME Temporarily disabled python tests
         # flask_f, flask_b,
         # django_f, django_b,
         express_f, express_b,
