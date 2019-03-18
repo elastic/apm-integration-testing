@@ -54,7 +54,7 @@ pipeline {
         */
         script {
           def downstreamJobs = [:]
-          if(changeRequest() && !params.Run_As_Master_Branch){
+          if(env?.CHANGE_ID != null && !params.Run_As_Master_Branch){
             downstreamJobs = ['All': {runJob('All')}]
           } else {
             downstreamJobs = [
