@@ -107,7 +107,7 @@ def load_images(urls, cache_dir):
         sys.exit(1)
 
 
-DEFAULT_HEALTHCHECK_INTERVAL = "5s"
+DEFAULT_HEALTHCHECK_INTERVAL = "10s"
 DEFAULT_HEALTHCHECK_RETRIES = 12
 
 
@@ -778,7 +778,7 @@ class Kibana(StackService, Service):
 
     def _content(self):
         return dict(
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/api/status", interval="5s", retries=20),
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/api/status", retries=20),
             depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
                 "enable_elasticsearch", True) else {},
             environment=self.environment,
@@ -937,6 +937,7 @@ class AgentRUMJS(Service):
                 "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL)
             },
             depends_on=self.depends_on,
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "rum", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
@@ -1160,7 +1161,7 @@ class AgentRubyRails(Service):
                 "RUBY_AGENT_VERSION_STATE": self.agent_version_state,
                 "RUBY_AGENT_VERSION": self.agent_version,
             },
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "railsapp", interval="10s", retries=60),
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "railsapp", retries=60),
             depends_on=self.depends_on,
             image=None,
             labels=None,
@@ -1550,7 +1551,7 @@ class OpbeansRuby(OpbeansService):
             image=None,
             labels=None,
             # lots of retries as the ruby app can take a long time to boot
-            healthcheck=curl_healthcheck(3000, "opbeans-ruby", path="/", retries=100),
+            healthcheck=curl_healthcheck(3000, "opbeans-ruby", path="/", retries=50),
             ports=[self.publish_port(self.port, 3000)],
         )
         if self.agent_local_repo:
@@ -2107,9 +2108,15 @@ class LocalSetup(object):
             image_services = [name for name, service in compose["services"].items() if
                               'image' in service and name not in services_to_load]
             if image_services and not args["skip_download"]:
-                subprocess.call(docker_compose_cmd + ["pull"] + image_services)
+                pull_params = ["pull"]
+                if not sys.stdin.isatty():
+                    pull_params.extend(["-q"])
+                subprocess.call(docker_compose_cmd + pull_params + image_services)
             # really start
-            subprocess.call(docker_compose_cmd + ["up", "-d"])
+            up_params = ["up", "-d"]
+            if not sys.stdin.isatty():
+                up_params.extend(["--quiet-pull"])
+            subprocess.call(docker_compose_cmd + up_params)
 
     @staticmethod
     def status_handler():
@@ -2119,7 +2126,7 @@ class LocalSetup(object):
     @staticmethod
     def stop_handler():
         print("Stopping all stack services..\n")
-        subprocess.call(['docker-compose', "--no-ansi", "--log-level", "ERROR", 'stop'])
+        subprocess.call(['docker-compose', "--no-ansi", "--log-level", "ERROR", "-q", 'stop'])
 
     def upload_sourcemaps_handler(self):
         service_name = self.args.opbeans_frontend_service_name

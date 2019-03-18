@@ -38,7 +38,7 @@ class AgentServiceTest(ServiceTest):
                         ELASTIC_APM_SERVICE_NAME: gonethttpapp
                         ELASTIC_APM_TRANSACTION_IGNORE_NAMES: healthcheck
                     healthcheck:
-                        interval: 5s
+                        interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://gonethttpapp:8080/healthcheck"]
                     ports:
@@ -67,7 +67,7 @@ class AgentServiceTest(ServiceTest):
                         EXPRESS_SERVICE_NAME: expressapp
                         EXPRESS_PORT: "8010"
                     healthcheck:
-                        interval: 5s
+                        interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://expressapp:8010/healthcheck"]
                     ports:
@@ -100,7 +100,7 @@ class AgentServiceTest(ServiceTest):
                         DJANGO_SERVICE_NAME: djangoapp
                         DJANGO_PORT: 8003
                     healthcheck:
-                        interval: 5s
+                        interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://djangoapp:8003/healthcheck"]
                     ports:
@@ -129,7 +129,7 @@ class AgentServiceTest(ServiceTest):
                         FLASK_SERVICE_NAME: flaskapp
                         GUNICORN_CMD_ARGS: "-w 4 -b 0.0.0.0:8001"
                     healthcheck:
-                        interval: 5s
+                        interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://flaskapp:8001/healthcheck"]
                     ports:
@@ -194,7 +194,7 @@ class AgentServiceTest(ServiceTest):
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_SERVICE_NAME: springapp
                     healthcheck:
-                        interval: 5s
+                        interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output",
                         "/dev/null", "http://javaspring:8090/healthcheck"]
@@ -557,7 +557,7 @@ class KibanaServiceTest(ServiceTest):
                             max-file: '5'
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://kibana:5601/api/status"]
-                        interval: 5s
+                        interval: 10s
                         retries: 20
                     depends_on:
                         elasticsearch:
@@ -587,7 +587,7 @@ class KibanaServiceTest(ServiceTest):
                             max-file: '5'
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://kibana:5601/api/status"]
-                        interval: 5s
+                        interval: 10s
                         retries: 20
                     depends_on:
                         elasticsearch:
@@ -618,7 +618,7 @@ class LogstashServiceTest(ServiceTest):
             environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200'}
             healthcheck:
                 test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://logstash:9600/"]
-                interval: 5s
+                interval: 10s
                 retries: 12
             image: docker.elastic.co/logstash/logstash:6.3.0
             labels: [co.elatic.apm.stack-version=6.3.0]

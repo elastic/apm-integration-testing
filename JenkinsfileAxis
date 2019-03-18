@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-@Library('apm@v1.0.9') _
+@Library('apm@current') _
 
 import co.elastic.matrix.*
 import groovy.transform.Field
@@ -19,6 +19,7 @@ import groovy.transform.Field
   'nodejs': 'tests/versions/nodejs.yml',
   'python': 'tests/versions/python.yml',
   'ruby': 'tests/versions/ruby.yml',
+  'rum': 'tests/versions/rum.yml',
   'server': 'tests/versions/apm_server.yml'
 ]
 
@@ -31,6 +32,7 @@ import groovy.transform.Field
   'nodejs': 'NODEJS_AGENT',
   'python': 'PYTHON_AGENT',
   'ruby': 'RUBY_AGENT',
+  'rum': 'RUM_AGENT',
   'server': 'APM_SERVER'
 ]
 
@@ -43,11 +45,12 @@ import groovy.transform.Field
   'Node.js': 'nodejs',
   'Python': 'python',
   'Ruby': 'ruby',
+  'RUM': 'rum',
   'All': 'all'
 ]
 
 pipeline {
-  agent any
+  agent { label 'linux && immutable' }
   environment {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
     REPO="git@github.com:elastic/apm-integration-testing.git"
@@ -67,7 +70,7 @@ pipeline {
   }
   parameters {
     choice(name: 'agent_integration_test', choices: ['Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.6 --release", description: "Elastic Stack Git branch/tag to use")
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "7.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "master", description: "Integration testing Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     string(name: 'UPSTREAM_BUILD', defaultValue: "", description: "upstream build info to show in the description.")
@@ -78,7 +81,6 @@ pipeline {
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout'){
-      agent { label 'master || (linux && immutable)' }
       options { skipDefaultCheckout() }
       steps {
         deleteDir()
@@ -105,10 +107,7 @@ pipeline {
       launch integration tests.
     */
     stage("Integration Tests"){
-      agent { label 'master || (linux && immutable)' }
-      options { skipDefaultCheckout() }
       when {
-        beforeAgent true
         expression { return params.agent_integration_test != 'All' }
       }
       steps {
@@ -134,9 +133,7 @@ pipeline {
       }
     }
     stage("All") {
-      agent { label 'linux && immutable' }
       when {
-        beforeAgent true
         expression { return params.agent_integration_test == 'All' }
       }
       environment {
@@ -198,6 +195,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
     'nodejs': 'APM_AGENT_NODEJS_VERSION',
     'python': 'APM_AGENT_PYTHON_VERSION',
     'ruby': 'APM_AGENT_RUBY_VERSION',
+    'rum': 'APM_AGENT_RUM_VERSION',
     'server': 'APM_SERVER_BRANCH'
   ]
 
@@ -262,7 +260,7 @@ def wrappingup(label){
     sh('make stop-env || echo 0')
     archiveArtifacts(
         allowEmptyArchive: true,
-        artifacts: 'docker-info/**',
+        artifacts: 'docker-info/**,**/tests/results/data-*.json',
         defaultExcludes: false)
     junit(
       allowEmptyResults: false,
