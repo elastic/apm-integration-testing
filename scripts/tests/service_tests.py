@@ -521,7 +521,7 @@ class KafkaServiceTest(ServiceTest):
         self.assertEqual(
             kafka, yaml.load("""
                 kafka:
-                    image: confluentinc/cp-kafka:4.1.0
+                    image: confluentinc/cp-kafka:4.1.3
                     container_name: localtesting_6.2.4_kafka
                     depends_on:
                         - zookeeper

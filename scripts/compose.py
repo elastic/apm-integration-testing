@@ -836,7 +836,7 @@ class Kafka(Service):
                 "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR": 1,
                 "KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
             },
-            image="confluentinc/cp-kafka:4.1.0",
+            image="confluentinc/cp-kafka:4.1.3",
             labels=None,
             logging=None,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
@@ -855,7 +855,6 @@ class Postgres(Service):
             labels=None,
             ports=[self.publish_port(self.port, self.SERVICE_PORT, expose=True)],
             volumes=["./docker/opbeans/sql:/docker-entrypoint-initdb.d", "pgdata:/var/lib/postgresql/data"],
-
         )
 
 
