@@ -68,14 +68,14 @@ test-helps:
 	$(foreach subcommand,$(SUBCOMMANDS), $(PYTHON) scripts/compose.py $(subcommand) --help >/dev/null || exit 1;)
 
 test-all: venv test-compose lint test-helps
-	pytest -v --ignore=tests/agent/test_python.py -s $(JUNIT_OPT)/all-junit.xml
+	pytest -v -s $(JUNIT_OPT)/all-junit.xml
 
 docker-test-%:
 	TARGET=test-$* $(MAKE) dockerized-test
 
 dockerized-test:
 	@echo waiting for services to be healthy
-	docker-compose-wait || (./scripts/docker-summary.sh && exit 1)
+	docker-compose-wait || (./scripts/docker-summary.sh; echo "[ERROR] Failed waiting for all containers are healthy"; exit 1)
 	
 	./scripts/docker-summary.sh
 	
