@@ -836,9 +836,9 @@ class LocalTest(unittest.TestCase):
         self.assertEqual("docker.elastic.co/kibana/kibana:{}".format(version), services["kibana"]["image"])
         mock_load_images.assert_called_once_with(
             {
-                'https://staging.elastic.co/6.9.5-abcd1234/docker/apm-server-6.9.5.tar.gz',
-                'https://staging.elastic.co/6.9.5-abcd1234/docker/elasticsearch-6.9.5.tar.gz',
-                'https://staging.elastic.co/6.9.5-abcd1234/docker/kibana-6.9.5.tar.gz'
+                'https://staging.elastic.co/6.9.5-abcd1234/downloads/apm-server/apm-server-6.9.5-docker-image.tar.gz',
+                'https://staging.elastic.co/6.9.5-abcd1234/downloads/elasticsearch/elasticsearch-6.9.5-docker-image.tar.gz',
+                'https://staging.elastic.co/6.9.5-abcd1234/downloads/kibana/kibana-6.9.5-docker-image.tar.gz'
             },
             image_cache_dir)\
 
@@ -864,8 +864,8 @@ class LocalTest(unittest.TestCase):
         )
         mock_load_images.assert_called_once_with(
             {
-                'https://staging.elastic.co/6.9.5-abcd1234/docker/elasticsearch-6.9.5.tar.gz',
-                'https://staging.elastic.co/6.9.5-abcd1234/docker/kibana-6.9.5.tar.gz'
+                'https://staging.elastic.co/6.9.5-abcd1234/downloads/elasticsearch/elasticsearch-6.9.5-docker-image.tar.gz',
+                'https://staging.elastic.co/6.9.5-abcd1234/downloads/kibana/kibana-6.9.5-docker-image.tar.gz'
             },
             image_cache_dir)
 
@@ -874,10 +874,28 @@ class LocalTest(unittest.TestCase):
         common_args = (("image_cache_dir", ".images"),)
         cases = [
             # post-6.3
-            Case(Elasticsearch, "https://staging.elastic.co/6.3.10-be84d930/docker/elasticsearch-6.3.10.tar.gz",
+            Case(Elasticsearch, "https://staging.elastic.co/6.3.10-be84d930/downloads/elasticsearch/elasticsearch-6.3.10-docker-image.tar.gz",
                  dict(bc="be84d930", version="6.3.10")),
-            Case(Elasticsearch, "https://staging.elastic.co/6.3.10-be84d930/docker/elasticsearch-oss-6.3.10.tar.gz",
+            Case(Elasticsearch, "https://staging.elastic.co/6.3.10-be84d930/downloads/elasticsearch/elasticsearch-oss-6.3.10-docker-image.tar.gz",
                  dict(bc="be84d930", oss=True, version="6.3.10")),
+        ]
+        for case in cases:
+            args = dict(common_args)
+            if case.args:
+                args.update(case.args)
+            service = case.service(**args)
+            got = service.image_download_url()
+            self.assertEqual(case.expected, got)
+
+    def test_docker_download_old_image_url(self):
+        Case = collections.namedtuple("Case", ("service", "expected", "args"))
+        common_args = (("image_cache_dir", ".images"),)
+        cases = [
+            # post-6.3
+            Case(Elasticsearch, "https://staging.elastic.co/6.3.10-be84d930/docker/elasticsearch-6.3.10.tar.gz",
+                 dict(bc="be84d930", version="6.3.10", bc_old=True)),
+            Case(Elasticsearch, "https://staging.elastic.co/6.3.10-be84d930/docker/elasticsearch-oss-6.3.10.tar.gz",
+                 dict(bc="be84d930", oss=True, version="6.3.10", bc_old=True)),
         ]
         for case in cases:
             args = dict(common_args)
