@@ -15,9 +15,13 @@ from tests.fixtures.agents import rum
 
 
 @pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_teardown(item, nextitem):
-    """Called after pytest_runtest_call."""
-    outcome = yield
-    rs = es().es.search(index="apm-*")
-    with open(f'/app/tests/results/data-{item.name}.json', 'w') as outFile:
-        json.dump(rs, outFile, sort_keys=True, indent=4, ensure_ascii=False)
+def pytest_runtest_logreport(report):
+    yield
+    if report.when == "call" and report.failed:
+        rs = es().es.search(index="apm-*", size=1000)
+        name = report.nodeid.split(":",2)[-1]
+        try:
+            with open("/app/tests/results/data-{}.json".format(name), 'w') as outFile:
+                json.dump(rs, outFile, sort_keys=True, indent=4, ensure_ascii=False)
+        except IOError:
+            pass
