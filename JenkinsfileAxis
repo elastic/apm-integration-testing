@@ -47,7 +47,7 @@ import groovy.transform.Field
 ]
 
 pipeline {
-  agent any
+  agent { label 'linux && immutable' }
   environment {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
     REPO="git@github.com:elastic/apm-integration-testing.git"
@@ -56,6 +56,8 @@ pipeline {
     JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
     PIPELINE_LOG_LEVEL = 'INFO'
     DISABLE_BUILD_PARALLEL = "${params.DISABLE_BUILD_PARALLEL}"
+    ELASTIC_STACK_VERSION = "${params.ELASTIC_STACK_VERSION}"
+    BUILD_OPTS = "${params.BUILD_OPTS}"
   }
   options {
     timeout(time: 1, unit: 'HOURS')
@@ -66,9 +68,9 @@ pipeline {
     durabilityHint('PERFORMANCE_OPTIMIZED')
   }
   parameters {
-    choice(name: 'agent_integration_test', choices: ['Go', 'Java', 'Node.js', 'Python', 'Ruby', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.5", description: "Elastic Stack Git branch/tag to use")
-    string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "6.x", description: "Integration testing Git branch/tag to use")
+    choice(name: 'agent_integration_test', choices: ['Node.js', 'Python', 'Ruby', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.6 --release", description: "Elastic Stack Git branch/tag to use")
+    string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "6.x-v1", description: "Integration testing Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     string(name: 'UPSTREAM_BUILD', defaultValue: "", description: "upstream build info to show in the description.")
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', defaultValue: true, description: "Disable the build parallel option on compose.py, disable it is better for error detection.")
@@ -78,7 +80,6 @@ pipeline {
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout'){
-      agent { label 'master || (linux && immutable)' }
       options { skipDefaultCheckout() }
       steps {
         deleteDir()
@@ -105,10 +106,7 @@ pipeline {
       launch integration tests.
     */
     stage("Integration Tests"){
-      agent { label 'master || (linux && immutable)' }
-      options { skipDefaultCheckout() }
       when {
-        beforeAgent true
         expression { return params.agent_integration_test != 'All' }
       }
       steps {
@@ -134,9 +132,7 @@ pipeline {
       }
     }
     stage("All") {
-      agent { label 'linux && immutable' }
       when {
-        beforeAgent true
         expression { return params.agent_integration_test == 'All' }
       }
       environment {
