@@ -27,7 +27,7 @@ if [ -n "${APM_SERVER_BRANCH}" ]; then
  fi
 fi
 
-if [ -z "${DISABLE_BUILD_PARALLEL}" || "${DISABLE_BUILD_PARALLEL}" == "false" ]; then
+if [ -z "${DISABLE_BUILD_PARALLEL}" -o "${DISABLE_BUILD_PARALLEL}" = "false" ]; then
  BUILD_OPTS="${BUILD_OPTS} --build-parallel"
 fi
 

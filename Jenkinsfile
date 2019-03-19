@@ -68,7 +68,8 @@ pipeline {
               echo "NOOP"
               },
             'Ruby': {runJob('Ruby')},
-            'RUM': {runJob('RUM')}
+            'RUM': {runJob('RUM')},
+            'UI': {runJob('UI')}
             ]
           }
           parallel(downstreamJobs)

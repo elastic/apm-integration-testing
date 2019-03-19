@@ -46,11 +46,12 @@ import groovy.transform.Field
   'Python': 'python',
   'Ruby': 'ruby',
   'RUM': 'rum',
-  'All': 'all'
+  'All': 'all',
+  'UI': 'ui'
 ]
 
 pipeline {
-  agent { label 'linux && immutable' }
+  agent { label 'linux && immutable && docker' }
   environment {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
     REPO="git@github.com:elastic/apm-integration-testing.git"
@@ -108,7 +109,10 @@ pipeline {
     */
     stage("Integration Tests"){
       when {
-        expression { return params.agent_integration_test != 'All' }
+        expression {
+          return (params.agent_integration_test != 'All'
+            && params.agent_integration_test != 'UI')
+        }
       }
       steps {
         deleteDir()
@@ -150,6 +154,26 @@ pipeline {
       post {
         always {
           wrappingup('all')
+        }
+      }
+    }
+    stage("UI") {
+      when {
+        expression { return params.agent_integration_test == 'UI' }
+      }
+      environment {
+        TMPDIR = "${WORKSPACE}/${BASE_DIR}"
+        HOME = "${WORKSPACE}/${BASE_DIR}"
+      }
+      steps {
+        deleteDir()
+        unstash "source"
+        dir("${BASE_DIR}"){
+          script {
+            docker.image('node:11').inside() {
+              sh(label: "Check Schema", script: "./scripts/ci/ui.sh")
+            }
+          }
         }
       }
     }
