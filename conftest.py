@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import pytest
 import json
+import time
 from tests.fixtures.transactions import minimal
 from tests.fixtures.apm_server import apm_server
 from tests.fixtures.es import es
@@ -18,10 +19,11 @@ from tests.fixtures.agents import rum
 def pytest_runtest_logreport(report):
     yield
     if report.when == "call" and report.failed:
-        rs = es().es.search(index="apm-*", size=1000)
-        name = report.nodeid.split(":",2)[-1]
+        rs = es().es.search(index="apm-*", size=10000)
+        name = report.nodeid.split(":", 2)[-1]
         try:
             with open("/app/tests/results/data-{}.json".format(name), 'w') as outFile:
                 json.dump(rs, outFile, sort_keys=True, indent=4, ensure_ascii=False)
         except IOError:
             pass
+    time.sleep(5)
