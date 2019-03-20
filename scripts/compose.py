@@ -203,6 +203,7 @@ class Service(object):
 
         # bc depends on version for resolution
         self._bc = resolve_bc(self._version, options.get(self.option_name() + "_bc") or options.get("bc"))
+        self.bc_old = options.get("bc_old")
 
     @property
     def bc(self):
@@ -318,9 +319,19 @@ class StackService(object):
         image = self.docker_name
         if self.oss:
             image += "-oss"
-        return "https://staging.elastic.co/{version}-{sha}/docker/{image}-{version}.tar.gz".format(
+        base_url = "https://staging.elastic.co"
+        if self.bc_old:
+            return "{base_url}/{version}-{sha}/docker/{image}-{version}.tar.gz".format(
+                base_url=base_url,
+                sha=self.bc,
+                image=image,
+                version=version,
+            )
+        return "{base_url}/{version}-{sha}/downloads/{service}/{image}-{version}-docker-image.tar.gz".format(
+            base_url=base_url,
             sha=self.bc,
             image=image,
+            service=self.docker_name,
             version=version,
         )
 
@@ -1828,6 +1839,13 @@ class LocalSetup(object):
             dest='release',
             help='use snapshot version',
             default='',
+        )
+
+        # Add option to use the old bc format
+        parser.add_argument(
+            '--bc-old',
+            action='store_true',
+            help='use the older build candidate path.  option to be removed soon.'
         )
 
         # Add option to skip image downloads
