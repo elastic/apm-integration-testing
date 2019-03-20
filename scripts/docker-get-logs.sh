@@ -3,8 +3,10 @@ set -euo pipefail
 
 STEP=${1:-""}
 
-mkdir -p docker-info/${STEP}
-cd docker-info/${STEP}
+DOCKR_INFO_DIR="docker-info/${STEP}"
+mkdir -p ${DOCKR_INFO_DIR}
+cp docker-compose.yml ${DOCKR_INFO_DIR}
+cd ${DOCKR_INFO_DIR}
 
 docker ps -a &> docker-containers.txt
 
