@@ -105,7 +105,7 @@ class Concurrent:
         self.logger.debug("Starting tornado I/O loop")
         ioloop.IOLoop.instance().start()
 
-    def check_counts(self, it, max_wait=60, backoff=1):
+    def check_counts(self, it, max_wait=60, backoff=5):
         err = "queried for {}, expected {}, got {}"
 
         def assert_count(terms, expected):
