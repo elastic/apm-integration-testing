@@ -10,13 +10,13 @@ def test_conc_req_all_agents(es, apm_server, flask, django, express, rails, go_n
     flask_b = Concurrent.Endpoint(flask.bar.url,
                                   flask.app_name,
                                   ["app.bar", "app.extra"],
-                                 "GET /bar",
+                                  "GET /bar",
                                   events_no=500)
     django_f = Concurrent.Endpoint(django.foo.url,
                                    django.app_name,
                                    ["foo.views.foo"],
                                    "GET foo.views.show",
-                                  events_no=500)
+                                   events_no=500)
     django_b = Concurrent.Endpoint(django.bar.url,
                                    django.app_name,
                                    ["bar.views.bar", "bar.views.extra"],
