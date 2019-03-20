@@ -4,17 +4,14 @@ from tests import utils
 from tests.agent.concurrent_requests import Concurrent
 
 
-# FIXME Temporarily disabled python tests
 @pytest.mark.version
 @pytest.mark.flask
-@pytest.mark.skip(reason="Temporarily disabled")
 def test_req_flask(flask):
     utils.check_agent_transaction(flask.foo, flask.apm_server.elasticsearch)
 
 
 @pytest.mark.version
 @pytest.mark.flask
-@pytest.mark.skip(reason="Temporarily disabled")
 def test_flask_error(flask):
     # one from exception handler, one from logging handler
     utils.check_agent_error(flask.oof, flask.apm_server.elasticsearch, ct=2)
@@ -22,7 +19,6 @@ def test_flask_error(flask):
 
 @pytest.mark.version
 @pytest.mark.flask
-@pytest.mark.skip(reason="Temporarily disabled")
 def test_concurrent_req_flask(flask):
     foo = Concurrent.Endpoint(flask.foo.url,
                               flask.app_name,
@@ -33,7 +29,6 @@ def test_concurrent_req_flask(flask):
 
 @pytest.mark.version
 @pytest.mark.flask
-@pytest.mark.skip(reason="Temporarily disabled")
 def test_concurrent_req_flask_foobar(flask):
     foo = Concurrent.Endpoint(flask.foo.url,
                               flask.app_name,
@@ -49,21 +44,18 @@ def test_concurrent_req_flask_foobar(flask):
 
 @pytest.mark.version
 @pytest.mark.django
-@pytest.mark.skip(reason="Temporarily disabled")
 def test_req_django(django):
     utils.check_agent_transaction(django.foo, django.apm_server.elasticsearch)
 
 
 @pytest.mark.version
 @pytest.mark.django
-@pytest.mark.skip(reason="Temporarily disabled")
 def test_django_error(django):
     utils.check_agent_error(django.oof, django.apm_server.elasticsearch)
 
 
 @pytest.mark.version
 @pytest.mark.django
-@pytest.mark.skip(reason="Temporarily disabled")
 def test_concurrent_req_django(django):
     foo = Concurrent.Endpoint(django.foo.url,
                               django.app_name,
@@ -74,7 +66,6 @@ def test_concurrent_req_django(django):
 
 @pytest.mark.version
 @pytest.mark.django
-@pytest.mark.skip(reason="Temporarily disabled")
 def test_concurrent_req_django_foobar(django):
     foo = Concurrent.Endpoint(django.foo.url,
                               django.app_name,

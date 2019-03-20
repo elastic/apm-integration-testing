@@ -63,10 +63,7 @@ pipeline {
             'Go': {runJob('Go')},
             'Java': {runJob('Java')},
             'Node.js': {runJob('Node.js')},
-            'Python(disabled)': {
-              //runJob('Python')
-              echo "NOOP"
-              },
+            'Python': {runJob('Python')},
             'Ruby': {runJob('Ruby')},
             'RUM': {runJob('RUM')}
             ]
