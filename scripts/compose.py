@@ -319,13 +319,16 @@ class StackService(object):
         image = self.docker_name
         if self.oss:
             image += "-oss"
+        base_url = "https://staging.elastic.co"
         if self.bc_old:
-            return "https://staging.elastic.co/{version}-{sha}/docker/{image}-{version}.tar.gz".format(
+            return "{base_url}/{version}-{sha}/docker/{image}-{version}.tar.gz".format(
+                base_url=base_url,
                 sha=self.bc,
                 image=image,
                 version=version,
             )
-        return "https://staging.elastic.co/{version}-{sha}/downloads/{service}/{image}-{version}-docker-image.tar.gz".format(
+        return "{base_url}/{version}-{sha}/downloads/{service}/{image}-{version}-docker-image.tar.gz".format(
+            base_url=base_url,
             sha=self.bc,
             image=image,
             service=self.docker_name,
