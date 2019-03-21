@@ -3,7 +3,6 @@ from __future__ import print_function
 import unittest
 import yaml
 
-
 from ..compose import (AgentGoNetHttp, AgentJavaSpring, AgentNodejsExpress,
                        AgentPythonDjango, AgentPythonFlask, AgentRubyRails)
 
@@ -209,12 +208,6 @@ class AgentServiceTest(ServiceTest):
 
 
 class ApmServerServiceTest(ServiceTest):
-    def test_default_buildcandidate(self):
-        apm_server = ApmServer(version="6.3.100", bc=True).render()["apm-server"]
-        self.assertEqual(
-            apm_server["image"], "docker.elastic.co/apm/apm-server:6.3.100"
-        )
-
     def test_default_snapshot(self):
         apm_server = ApmServer(version="6.3.100", snapshot=True).render()["apm-server"]
         self.assertEqual(
@@ -225,12 +218,6 @@ class ApmServerServiceTest(ServiceTest):
         apm_server = ApmServer(version="6.3.100", release=True).render()["apm-server"]
         self.assertEqual(
             apm_server["image"], "docker.elastic.co/apm/apm-server:6.3.100"
-        )
-
-    def test_oss_buildcandidate(self):
-        apm_server = ApmServer(version="6.3.100", oss=True, bc="123").render()["apm-server"]
-        self.assertEqual(
-            apm_server["image"], "docker.elastic.co/apm/apm-server-oss:6.3.100"
         )
 
     def test_oss_snapshot(self):
