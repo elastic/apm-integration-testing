@@ -14,10 +14,10 @@ stack_args=${2//;/ }
 
 # use release version by default
 python_pkg="elastic-apm==${version}"
-if [[ ${version_type} == github ]]; then
+if [[ ${version_type} == "github" ]]; then
   python_pkg="git+https://github.com/elastic/apm-agent-python.git@${version}"
 else
-  if [[ ${version} == latest ]]; then
+  if [[ ${version} == "latest" ]]; then
     python_pkg="elastic-apm"
   fi
 fi
