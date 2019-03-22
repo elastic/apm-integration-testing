@@ -122,29 +122,44 @@ def curl_healthcheck(port, host="localhost", path="/healthcheck",
     }
 
 
-bcs = {}
+build_manifests = {}  # version -> manifest cache
 
 
-def resolve_bc(version, kind):
-    if kind != "latest":
-        return kind
-    if bcs.get(version):
-        return bcs[version]
-    branch = ".".join(version.split(".", 2)[:2])
-    rsp = urlopen("https://staging.elastic.co/latest/{}.json".format(branch))
+def latest_build_manifest(version):
+    minor_version = ".".join(version.split(".", 2)[:2])
+    rsp = urlopen("https://staging.elastic.co/latest/{}.json".format(minor_version))
     if rsp.code != 200:
         raise Exception("failed to query build candidates at {}: {}".format(rsp.geturl(), rsp.info()))
     encoding = "utf-8"  # python2 rsp.headers.get_content_charset("utf-8")
     info = json.load(codecs.getreader(encoding)(rsp))
     if "summary_url" in info:
-        print("found latest build candidate for {} - {}".format(version, info["summary_url"]))
-    try:
-        build_id = info["build_id"]
-        bc = build_id[build_id.rfind("-")+1:]
-        bcs[version] = bc
-        return bc
-    except Exception:
-        raise Exception("failed to find matching build in: {}".format(info))
+        print("found latest build candidate for {} - {} at {}".format(minor_version, info["summary_url"], rsp.geturl()))
+    return info["manifest_url"]
+
+
+def resolve_bc(version, build_id):
+    """construct or discover build candidate manifest url"""
+    if build_id is None:
+        return
+
+    # check cache
+    if version in build_manifests:
+        return build_manifests[version]
+
+    if build_id == "latest":
+        manifest_url = latest_build_manifest(version)
+    else:
+        manifest_url = "https://staging.elastic.co/{patch_version}-{sha}/manifest-{patch_version}.json".format(
+            patch_version=version,
+            sha=build_id,
+        )
+    rsp = urlopen(manifest_url)
+    if rsp.code != 200:
+        raise Exception("failed to fetch build manifest at {}: {}".format(rsp.geturl(), rsp.info()))
+    encoding = "utf-8"  # python2 rsp.headers.get_content_charset("utf-8")
+    manifest = json.load(codecs.getreader(encoding)(rsp))
+    build_manifests[version] = manifest  # fill cache
+    return manifest
 
 
 def parse_version(version):
@@ -203,7 +218,6 @@ class Service(object):
 
         # bc depends on version for resolution
         self._bc = resolve_bc(self._version, options.get(self.option_name() + "_bc") or options.get("bc"))
-        self.bc_old = options.get("bc_old")
 
     @property
     def bc(self):
@@ -310,30 +324,30 @@ class Service(object):
 class StackService(object):
     """Mix in for Elastic services that have public docker images built but not available in a registry [yet]"""
 
+    def build_candidate_manifest(self):
+        version = self.version
+        image = self.docker_name
+        if self.oss:
+            image += "-oss"
+        key = "{image}-{version}-docker-image.tar.gz".format(
+            image=image,
+            version=version,
+        )
+        try:
+            return self.bc["projects"][self.docker_name]["packages"][key]
+        except KeyError:
+            # help debug manifest issues
+            print(json.dumps(self.bc))
+            raise
+
     def image_download_url(self):
         # Elastic releases are public
         if self.release or not self.bc:
             return
 
-        version = self.version
-        image = self.docker_name
-        if self.oss:
-            image += "-oss"
-        base_url = "https://staging.elastic.co"
-        if self.bc_old:
-            return "{base_url}/{version}-{sha}/docker/{image}-{version}.tar.gz".format(
-                base_url=base_url,
-                sha=self.bc,
-                image=image,
-                version=version,
-            )
-        return "{base_url}/{version}-{sha}/downloads/{service}/{image}-{version}-docker-image.tar.gz".format(
-            base_url=base_url,
-            sha=self.bc,
-            image=image,
-            service=self.docker_name,
-            version=version,
-        )
+        info = self.build_candidate_manifest()
+        assert info["type"] == "docker"
+        return info["url"]
 
     @classmethod
     def add_arguments(cls, parser):
@@ -424,7 +438,7 @@ class ApmServer(StackService, Service):
         def add_es_config(args, prefix="output"):
             """add elasticsearch configuration options."""
             default_apm_server_creds = {"username": "apm_server_user", "password": "changeme"}
-            args.append((prefix+".elasticsearch.hosts", json.dumps(es_urls)))
+            args.append((prefix + ".elasticsearch.hosts", json.dumps(es_urls)))
             for cfg in ("username", "password"):
                 es_opt = "apm_server_elasticsearch_{}".format(cfg)
                 if self.options.get(es_opt):
@@ -520,6 +534,28 @@ class ApmServer(StackService, Service):
             dest="apm_server_dashboards",
             help="skip loading apm-server dashboards (setup.dashboards.enabled=false)",
         )
+
+    def build_candidate_manifest(self):
+        version = self.version
+        image = self.docker_name
+        if self.oss:
+            image += "-oss"
+
+        key = "{image}-{version}-docker-image.tar.gz".format(
+            image=image,
+            version=version,
+        )
+        try:
+            if key not in self.bc["projects"][self.docker_name]["packages"]:
+                key = "{image}-{version}-linux-amd64-docker-image.tar.gz".format(
+                    image=image,
+                    version=version,
+                )
+            return self.bc["projects"][self.docker_name]["packages"][key]
+        except KeyError:
+            # help debug manifest issues
+            print(json.dumps(self.bc))
+            raise
 
     def _content(self):
         command_args = []
@@ -720,6 +756,28 @@ class BeatMixin(object):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
         super(BeatMixin, self).__init__(**options)
 
+    def build_candidate_manifest(self):
+        version = self.version
+        image = self.docker_name
+        if self.oss:
+            image += "-oss"
+
+        key = "{image}-{version}-docker-image.tar.gz".format(
+            image=image,
+            version=version,
+        )
+        try:
+            if key not in self.bc["projects"]["beats"]["packages"]:
+                key = "{image}-{version}-linux-amd64-docker-image.tar.gz".format(
+                    image=image,
+                    version=version,
+                )
+            return self.bc["projects"]["beats"]["packages"][key]
+        except KeyError:
+            # help debug manifest issues
+            print(json.dumps(self.bc))
+            raise
+
 
 class Filebeat(BeatMixin, StackService, Service):
     DEFAULT_COMMAND = "filebeat -e --strict.perms=false"
@@ -803,6 +861,17 @@ class Kibana(StackService, Service):
 
 class Logstash(StackService, Service):
     SERVICE_PORT = 5044
+
+    def build_candidate_manifest(self):
+        version = self.version
+        image = self.docker_name
+        if self.oss:
+            image += "-oss"
+        key = "{image}-{version}-docker-image.tar.gz".format(
+            image=image,
+            version=version,
+        )
+        return self.bc["projects"]["logstash-docker"]["packages"][key]
 
     def _content(self):
         return dict(
@@ -1781,8 +1850,8 @@ class LocalSetup(object):
             argv = sys.argv
         available_versions = ' / '.join(list(self.SUPPORTED_VERSIONS))
         help_text = (
-                "Which version of the stack to start. " +
-                "Available options: {0}".format(available_versions)
+            "Which version of the stack to start. " +
+            "Available options: {0}".format(available_versions)
         )
         parser.add_argument("stack-version", action='store', help=help_text)
 
@@ -1839,13 +1908,6 @@ class LocalSetup(object):
             dest='release',
             help='use snapshot version',
             default='',
-        )
-
-        # Add option to use the old bc format
-        parser.add_argument(
-            '--bc-old',
-            action='store_true',
-            help='use the older build candidate path.  option to be removed soon.'
         )
 
         # Add option to skip image downloads
@@ -2202,7 +2264,7 @@ class LocalSetup(object):
             server_url=self.args.apm_server_url,
         )
         cmd = "docker run --rm --network apm-integration-testing " + \
-            "-v {}:/tmp/sourcemap centos:7 ".format(sourcemap_file) + cmd
+              "-v {}:/tmp/sourcemap centos:7 ".format(sourcemap_file) + cmd
         subprocess.check_output(cmd, shell=True).decode('utf8').strip()
 
     @staticmethod
