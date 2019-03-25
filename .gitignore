@@ -2,7 +2,9 @@
 **/*.pyc
 .cache
 **/__pycache__
-/.idea
+**/.idea
+**/target
+*.iml
 **/tmp
 **/log
 **/.images
