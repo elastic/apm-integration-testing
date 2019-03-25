@@ -18,12 +18,15 @@ def es():
             self.es.indices.delete(self.index)
             self.es.indices.refresh()
 
-        def term_q(self, terms):
-            t = []
-            for idx in range(len(terms)):
-                for k in terms[idx]:
-                    t.append({"term": {k: {"value": terms[idx][k]}}})
-            return {"query": {"bool": {"must": t}}}
+        def term_q(self, filters):
+            clauses = []
+            for field, value in filters:
+                if isinstance(value, list):
+                    clause = {"terms": {field: value}}
+                else:
+                    clause = {"term": {field: {"value": value}}}
+                clauses.append(clause)
+            return {"query": {"bool": {"must": clauses}}}
 
         @timeout_decorator.timeout(10)
         def count(self, q):

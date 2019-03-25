@@ -130,11 +130,12 @@ class Concurrent:
 
         self.es.indices.refresh()
 
+        service_names = [ep.app_name for ep in self.endpoints]
         transactions_count = self.count("transaction") * it
-        assert_count([{"processor.event": "transaction"}], transactions_count)
+        assert_count([("processor.event", "transaction"), ("service.name", service_names)], transactions_count)
 
         spans_count = self.count("span") * it
-        assert_count([{"processor.event": "span"}], spans_count)
+        assert_count([("processor.event", "span"), ('service.name', service_names)], spans_count)
 
         transactions_sum = spans_sum = 0
         for ep in self.endpoints:
@@ -142,15 +143,15 @@ class Concurrent:
                 count = ep.count("span") * it / len(ep.span_names)
                 spans_sum += count
                 assert_count([
-                    {"span.name": span_name},
-                    {"service.name": ep.app_name}
+                    ("span.name", span_name),
+                    ("service.name", ep.app_name),
                 ], count)
 
             count = ep.count("transaction") * it
             transactions_sum += count
             assert_count([
-                {'service.name': ep.app_name},
-                {'transaction.name': ep.transaction_name}
+                ("service.name", ep.app_name),
+                ("transaction.name", ep.transaction_name),
             ], count)
 
         assert transactions_count == transactions_sum, err.format(
@@ -163,8 +164,8 @@ class Concurrent:
         slack = timedelta(seconds=2) if slack is None else slack
         for ep in self.endpoints:
             q = self.elasticsearch.term_q([
-                {'service.name': ep.app_name},
-                {'transaction.name': ep.transaction_name}
+                ("service.name", ep.app_name),
+                ("transaction.name", ep.transaction_name),
             ])
             rs = self.es.search(index=self.index, body=q)
 
@@ -243,8 +244,8 @@ class Concurrent:
                 raise Exception("Undefined agent {}".format(agent))
 
             span_q = self.elasticsearch.term_q([
-                {'processor.event': 'span'},
-                {'transaction.id': transaction['id']}
+                ("processor.event", "span"),
+                ("transaction.id", transaction["id"]),
             ])
             rs = self.es.search(index=self.index, body=span_q)
             span_hits = lookup(rs, 'hits', 'hits')
