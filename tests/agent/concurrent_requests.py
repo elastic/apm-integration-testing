@@ -41,13 +41,13 @@ class Concurrent:
             }
             if app_name in ("flaskapp", "djangoapp"):
                 self.agent = "python"
-            elif app_name in ("expressapp"):
+            elif app_name in ("expressapp",):
                 self.agent = "nodejs"
-            elif self.app_name in ("railsapp"):
+            elif self.app_name in ("railsapp",):
                 self.agent = "ruby"
-            elif self.app_name in ("gonethttpapp"):
+            elif self.app_name in ("gonethttpapp",):
                 self.agent = "go"
-            elif self.app_name in ("springapp"):
+            elif self.app_name in ("springapp",):
                 self.agent = "java"
             else:
                 raise Exception(
