@@ -8,6 +8,9 @@ test -z "$srcdir" && srcdir=.
 if [ -n "${APM_AGENT_PYTHON_VERSION}" ]; then
   APM_AGENT_PYTHON_VERSION=${APM_AGENT_PYTHON_VERSION/'github;'/'git+https://github.com/elastic/apm-agent-python.git@'}
   APM_AGENT_PYTHON_VERSION=${APM_AGENT_PYTHON_VERSION/'release;'/'elastic-apm=='}
+  if [ "${APM_AGENT_PYTHON_VERSION}" = "elastic-apm==latest" ]; then
+    APM_AGENT_PYTHON_VERSION="elastic-apm"
+  fi
   BUILD_OPTS="${BUILD_OPTS} --python-agent-package='${APM_AGENT_PYTHON_VERSION}'"
 fi
 

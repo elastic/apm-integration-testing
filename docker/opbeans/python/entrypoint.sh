@@ -6,7 +6,7 @@ if [[ -f /local-install/setup.py ]]; then
     cp -r /local-install ~
     cd ~/local-install && python setup.py install
     cd -
-elif [[ $PYTHON_AGENT_VERSION ]]; then
+elif [[ -n "$PYTHON_AGENT_VERSION" -a "$PYTHON_AGENT_VERSION" != "latest" ]]; then
     pip install -q -U elastic-apm==$PYTHON_AGENT_VERSION
 elif [[ $PYTHON_AGENT_BRANCH ]]; then
     if [[ -z ${PYTHON_AGENT_REPO} ]]; then
