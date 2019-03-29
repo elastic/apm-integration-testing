@@ -44,7 +44,10 @@ async function writeConvertedFile({
   const { data } = await axios.get(url);
 
   const content = `import { ${interfaceName} } from '${interfacePath}';
-  export const ${name}:${interfaceName}[] = ${JSON.stringify(data.events)}`;
+  import { AllowUnknownProperties } from '../../scripts/helpers';
+  export const ${name}:AllowUnknownProperties<${interfaceName}>[] = ${JSON.stringify(
+    data.events
+  )}`;
 
   const formattedContent = prettier.format(content, {
     ...prettierRc,
