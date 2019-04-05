@@ -7,7 +7,9 @@ setup.kibana:
   host: "kibana:5601"
 
 output.elasticsearch:
-  hosts: ["elasticsearch:9200"]
+  hosts: '${ELASTICSEARCH_HOSTS:elasticsearch:9200}'
+  username: '${ELASTICSEARCH_USERNAME:}'
+  password: '${ELASTICSEARCH_PASSWORD:}'
 
 logging.json: true
 logging.metrics.enabled: false
