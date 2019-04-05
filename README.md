@@ -1,4 +1,4 @@
-# APM Integration Testing 
+# APM Integration Testing
 
 This repo contains tools for end to end (eg agent -> apm server -> elasticsearch <- kibana) development and testing of Elastic APM.
 
@@ -153,7 +153,7 @@ Prefix any of the `test-` targets with `docker-` to run them in a container eg: 
 
 ### Continuous Integration
 
-Jenkins runs the scripts from `scripts/ci/` and is viewable at https://apm-ci.elastic.co/.
+Jenkins runs the scripts from `.ci/scripts` and is viewable at https://apm-ci.elastic.co/.
 
 Those scripts shut down any existing testing containers and start a fresh new environment before running tests unless the `REUSE_CONTAINERS` environment variable is set.
 
