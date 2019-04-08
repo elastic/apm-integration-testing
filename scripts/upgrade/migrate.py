@@ -20,7 +20,7 @@ def chase(cause):
 
 def main():
     source_index = sys.argv[1]
-    dest_index = sys.argv[2] if len(sys.argv) > 2 else source_index.replace("6.6.0", "7.0.0") + "-migrated"
+    dest_index = sys.argv[2] if len(sys.argv) > 2 else source_index.replace("6.6.2", "7.0.0") + "-migrated"
     pipeline_id = pipeline.put()
     es = elasticsearch.Elasticsearch()
     es.indices.delete(dest_index, expand_wildcards='none', ignore_unavailable=True)
