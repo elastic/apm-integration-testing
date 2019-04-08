@@ -67,6 +67,23 @@ if (context != null) {
           ctx._source.http.version = http_version;
         }
 
+        if (request.containsKey("headers")) {
+            // copy user-agent header
+            def ua;
+            for (entry in request["headers"].entrySet()) {
+                if (entry.getKey().toLowerCase() == "user-agent") {
+                    ua = entry.getValue();
+                }
+            }
+            if (ua != null) {
+              ctx._source.user_agent = new HashMap();
+              // setting original and original.text is not possible in painless
+              // as original is a keyword in ES template we cannot set it to a HashMap here,
+              // so the following is the only possible solution:
+              ctx._source.user_agent.original = ua.substring(0, Integer.min(1024, ua.length()));
+            }
+        }
+
         // context.request.socket -> request.socket
         def socket = request.remove("socket");
         if (socket != null) {
@@ -193,6 +210,7 @@ if (context != null) {
         }
 
         // move user-agent info
+        // this will overwrite the value from http.request.headers if set
         def ua = user.remove("user-agent");
         if (ua != null) {
           ctx._source.user_agent = new HashMap();
@@ -519,6 +537,7 @@ def error(es, exp, dst, body):
         # error transaction.type only introduced in 7.0, can't make it up before then
         if want.get("transaction", {}).get("type"):
             del(want["transaction"]["type"])
+
         common(i, w, g)
 
 
@@ -582,5 +601,19 @@ def common(i, w, g):
         got.pop("@timestamp")
         want["timestamp"].pop("us")
         got["timestamp"].pop("us")
+
+    # headers keys are canonicalized in 7.0, values are always arrays
+    if "http" in want:
+        for r in ["request", "response"]:
+            if r not in want["http"] or "headers" not in want["http"][r]:
+                continue
+            want["http"][r]["headers"] = {k.lower(): v if isinstance(v, list) else [v] for k, v in
+                                          want["http"][r].pop("headers").items()}
+            got["http"][r]["headers"] = {k.lower(): v if isinstance(v, list) else [v] for k, v in
+                                         got["http"][r].pop("headers").items()}
+
+    # user_agent.original not set by v1
+    if "user_agent" in got and "user_agent" not in want:
+        got.pop("user_agent")
 
     assert want == got
