@@ -118,6 +118,6 @@
     "id" : "485d031b7db843bab5c6f37c6426d966"
   },
   "ecs": {
-    "version": "1.0.0-beta2"
+    "version": "1.1.0-dev"
   }
 }

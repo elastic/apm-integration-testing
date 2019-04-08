@@ -61,7 +61,7 @@
   },
   "@timestamp": "2019-02-13T23:28:06.949Z",
   "ecs": {
-    "version": "1.0.0-beta2"
+    "version": "1.1.0-dev"
   },
   "service": {
     "name": "apm-server",

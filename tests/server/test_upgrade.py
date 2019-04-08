@@ -1,6 +1,6 @@
 MIGRATION_SCRIPT = """    
 // add ecs version
-ctx._source.ecs = ['version': '1.0.0-beta2'];
+ctx._source.ecs = ['version': '1.1.0-dev'];
 
 // beat -> observer
 def beat = ctx._source.remove("beat");
