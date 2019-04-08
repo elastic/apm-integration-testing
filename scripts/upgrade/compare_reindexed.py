@@ -23,15 +23,19 @@ def main():
     es = elasticsearch.Elasticsearch()
     old_exclude_rum = {'query': {'bool': {'must_not': [{'term': {'context.service.agent.name': 'js-base'}}]}}}
     exclude_rum = {'query': {'bool': {'must_not': [{'term': {'agent.name': 'js-base'}}]}}}
-    orig = es.search(index=idx.replace("7.0.0", "6.6.2"), body=old_exclude_rum, sort="timestamp.us:asc,@timestamp:asc,context.service.agent.name:asc", size=num+1)["hits"]["hits"][num]["_source"]
+    try:
+        orig = es.search(index=idx.replace("7.0.0", "6.6.2"), body=old_exclude_rum, sort="timestamp.us:asc,@timestamp:asc,context.service.agent.name:asc", size=num+1)["hits"]["hits"][num]["_source"]
+    except elasticsearch.exceptions.NotFoundError:
+        orig = None
     want = es.search(index=idx, body=exclude_rum, sort="timestamp.us:asc,@timestamp:asc,agent.name:asc", size=num+1)["hits"]["hits"][num]["_source"]
     got = es.search(index=idx+"-migrated", body=exclude_rum, sort="timestamp.us:asc,@timestamp:asc,agent.name:asc", size=num+1)["hits"]["hits"][num]["_source"]
 
     print("Diff:")
     print(jsondiff.JsonDiffer(syntax='symmetric', dump=True, dumper=jsondiff.JsonDumper(indent=True)).diff(want, got))
     print()
-    print("Original:")
-    json.dump(orig, sys.stdout, sort_keys=True)
+    if orig:
+        print("Original:")
+        json.dump(orig, sys.stdout, sort_keys=True)
     print()
     print("Wanted:")
     json.dump(want, sys.stdout, sort_keys=True)
