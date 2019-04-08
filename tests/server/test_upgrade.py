@@ -339,6 +339,19 @@ if (context != null) {
     }
 }
 
+// per https://github.com/elastic/apm/issues/21
+//  if kubernetes.node.name is set, copy it to host.hostname
+//  else if other kubernetes.* is set, remove host.hostname
+//  else leave it alone
+if (ctx._source.kubernetes?.node?.name != null) {
+    if (! ctx._source.containsKey("host")) {
+        ctx._source.host = new HashMap();
+    }
+    ctx._source.host.hostname = ctx._source.kubernetes.node.name;
+} else if (ctx._source.containsKey("kubernetes")) {
+    ctx._source.host.remove("hostname");
+}
+
 if (ctx._source.processor.event == "span") {
     def hex_id = ctx._source.span.remove("hex_id");
     def span_id = ctx._source.span.remove("id");
