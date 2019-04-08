@@ -3,7 +3,6 @@ from __future__ import print_function
 import unittest
 import yaml
 
-
 from ..compose import (AgentGoNetHttp, AgentJavaSpring, AgentNodejsExpress,
                        AgentPythonDjango, AgentPythonFlask, AgentRubyRails)
 
@@ -29,13 +28,16 @@ class AgentServiceTest(ServiceTest):
                         dockerfile: Dockerfile
                         context: docker/go/nethttp
                     container_name: gonethttpapp
+                    depends_on:
+                        apm-server:
+                            condition: 'service_healthy'
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_FLUSH_INTERVAL: 500ms
                         ELASTIC_APM_SERVICE_NAME: gonethttpapp
                         ELASTIC_APM_TRANSACTION_IGNORE_NAMES: healthcheck
                     healthcheck:
-                        interval: 5s
+                        interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://gonethttpapp:8080/healthcheck"]
                     ports:
@@ -56,12 +58,15 @@ class AgentServiceTest(ServiceTest):
                         dockerfile: Dockerfile
                         context: docker/nodejs/express
                     container_name: expressapp
+                    depends_on:
+                        apm-server:
+                            condition: 'service_healthy'
                     command: bash -c "npm install elastic-apm-node && node app.js"
                     environment:
                         EXPRESS_SERVICE_NAME: expressapp
                         EXPRESS_PORT: "8010"
                     healthcheck:
-                        interval: 5s
+                        interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://expressapp:8010/healthcheck"]
                     ports:
@@ -87,11 +92,14 @@ class AgentServiceTest(ServiceTest):
                         context: docker/python/django
                     command: bash -c "pip install -q -U elastic-apm && python testapp/manage.py runserver 0.0.0.0:8003"
                     container_name: djangoapp
+                    depends_on:
+                        apm-server:
+                            condition: 'service_healthy'
                     environment:
                         DJANGO_SERVICE_NAME: djangoapp
                         DJANGO_PORT: 8003
                     healthcheck:
-                        interval: 5s
+                        interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://djangoapp:8003/healthcheck"]
                     ports:
@@ -113,11 +121,14 @@ class AgentServiceTest(ServiceTest):
                         context: docker/python/flask
                     command: bash -c "pip install -q -U elastic-apm && gunicorn app:app"
                     container_name: flaskapp
+                    depends_on:
+                        apm-server:
+                            condition: 'service_healthy'
                     environment:
                         FLASK_SERVICE_NAME: flaskapp
                         GUNICORN_CMD_ARGS: "-w 4 -b 0.0.0.0:8001"
                     healthcheck:
-                        interval: 5s
+                        interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://flaskapp:8001/healthcheck"]
                     ports:
@@ -138,6 +149,9 @@ class AgentServiceTest(ServiceTest):
                         dockerfile: Dockerfile
                         context: docker/ruby/rails
                     container_name: railsapp
+                    depends_on:
+                        apm-server:
+                            condition: 'service_healthy'
                     command: bash -c "bundle install && RAILS_ENV=production bundle exec rails s -b 0.0.0.0 -p 8020"
                     environment:
                         APM_SERVER_URL: http://apm-server:8200
@@ -172,11 +186,14 @@ class AgentServiceTest(ServiceTest):
                         dockerfile: Dockerfile
                         context: docker/java/spring
                     container_name: javaspring
+                    depends_on:
+                        apm-server:
+                            condition: 'service_healthy'
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_SERVICE_NAME: springapp
                     healthcheck:
-                        interval: 5s
+                        interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output",
                         "/dev/null", "http://javaspring:8090/healthcheck"]
@@ -191,12 +208,6 @@ class AgentServiceTest(ServiceTest):
 
 
 class ApmServerServiceTest(ServiceTest):
-    def test_default_buildcandidate(self):
-        apm_server = ApmServer(version="6.3.100", bc=True).render()["apm-server"]
-        self.assertEqual(
-            apm_server["image"], "docker.elastic.co/apm/apm-server:6.3.100"
-        )
-
     def test_default_snapshot(self):
         apm_server = ApmServer(version="6.3.100", snapshot=True).render()["apm-server"]
         self.assertEqual(
@@ -207,12 +218,6 @@ class ApmServerServiceTest(ServiceTest):
         apm_server = ApmServer(version="6.3.100", release=True).render()["apm-server"]
         self.assertEqual(
             apm_server["image"], "docker.elastic.co/apm/apm-server:6.3.100"
-        )
-
-    def test_oss_buildcandidate(self):
-        apm_server = ApmServer(version="6.3.100", oss=True, bc="123").render()["apm-server"]
-        self.assertEqual(
-            apm_server["image"], "docker.elastic.co/apm/apm-server-oss:6.3.100"
         )
 
     def test_oss_snapshot(self):
@@ -512,7 +517,7 @@ class KafkaServiceTest(ServiceTest):
         self.assertEqual(
             kafka, yaml.load("""
                 kafka:
-                    image: confluentinc/cp-kafka:4.1.0
+                    image: confluentinc/cp-kafka:4.1.3
                     container_name: localtesting_6.2.4_kafka
                     depends_on:
                         - zookeeper
@@ -548,7 +553,7 @@ class KibanaServiceTest(ServiceTest):
                             max-file: '5'
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://kibana:5601/api/status"]
-                        interval: 5s
+                        interval: 10s
                         retries: 20
                     depends_on:
                         elasticsearch:
@@ -578,7 +583,7 @@ class KibanaServiceTest(ServiceTest):
                             max-file: '5'
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://kibana:5601/api/status"]
-                        interval: 5s
+                        interval: 10s
                         retries: 20
                     depends_on:
                         elasticsearch:
@@ -609,7 +614,7 @@ class LogstashServiceTest(ServiceTest):
             environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200'}
             healthcheck:
                 test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://logstash:9600/"]
-                interval: 5s
+                interval: 10s
                 retries: 12
             image: docker.elastic.co/logstash/logstash:6.3.0
             labels: [co.elatic.apm.stack-version=6.3.0]

@@ -107,7 +107,7 @@ def load_images(urls, cache_dir):
         sys.exit(1)
 
 
-DEFAULT_HEALTHCHECK_INTERVAL = "5s"
+DEFAULT_HEALTHCHECK_INTERVAL = "10s"
 DEFAULT_HEALTHCHECK_RETRIES = 12
 
 
@@ -122,29 +122,44 @@ def curl_healthcheck(port, host="localhost", path="/healthcheck",
     }
 
 
-bcs = {}
+build_manifests = {}  # version -> manifest cache
 
 
-def resolve_bc(version, kind):
-    if kind != "latest":
-        return kind
-    if bcs.get(version):
-        return bcs[version]
-    branch = ".".join(version.split(".", 2)[:2])
-    rsp = urlopen("https://staging.elastic.co/latest/{}.json".format(branch))
+def latest_build_manifest(version):
+    minor_version = ".".join(version.split(".", 2)[:2])
+    rsp = urlopen("https://staging.elastic.co/latest/{}.json".format(minor_version))
     if rsp.code != 200:
         raise Exception("failed to query build candidates at {}: {}".format(rsp.geturl(), rsp.info()))
     encoding = "utf-8"  # python2 rsp.headers.get_content_charset("utf-8")
     info = json.load(codecs.getreader(encoding)(rsp))
     if "summary_url" in info:
-        print("found latest build candidate for {} - {}".format(version, info["summary_url"]))
-    try:
-        build_id = info["build_id"]
-        bc = build_id[build_id.rfind("-")+1:]
-        bcs[version] = bc
-        return bc
-    except Exception:
-        raise Exception("failed to find matching build in: {}".format(info))
+        print("found latest build candidate for {} - {} at {}".format(minor_version, info["summary_url"], rsp.geturl()))
+    return info["manifest_url"]
+
+
+def resolve_bc(version, build_id):
+    """construct or discover build candidate manifest url"""
+    if build_id is None:
+        return
+
+    # check cache
+    if version in build_manifests:
+        return build_manifests[version]
+
+    if build_id == "latest":
+        manifest_url = latest_build_manifest(version)
+    else:
+        manifest_url = "https://staging.elastic.co/{patch_version}-{sha}/manifest-{patch_version}.json".format(
+            patch_version=version,
+            sha=build_id,
+        )
+    rsp = urlopen(manifest_url)
+    if rsp.code != 200:
+        raise Exception("failed to fetch build manifest at {}: {}".format(rsp.geturl(), rsp.info()))
+    encoding = "utf-8"  # python2 rsp.headers.get_content_charset("utf-8")
+    manifest = json.load(codecs.getreader(encoding)(rsp))
+    build_manifests[version] = manifest  # fill cache
+    return manifest
 
 
 def parse_version(version):
@@ -309,20 +324,30 @@ class Service(object):
 class StackService(object):
     """Mix in for Elastic services that have public docker images built but not available in a registry [yet]"""
 
+    def build_candidate_manifest(self):
+        version = self.version
+        image = self.docker_name
+        if self.oss:
+            image += "-oss"
+        key = "{image}-{version}-docker-image.tar.gz".format(
+            image=image,
+            version=version,
+        )
+        try:
+            return self.bc["projects"][self.docker_name]["packages"][key]
+        except KeyError:
+            # help debug manifest issues
+            print(json.dumps(self.bc))
+            raise
+
     def image_download_url(self):
         # Elastic releases are public
         if self.release or not self.bc:
             return
 
-        version = self.version
-        image = self.docker_name
-        if self.oss:
-            image += "-oss"
-        return "https://staging.elastic.co/{version}-{sha}/docker/{image}-{version}.tar.gz".format(
-            sha=self.bc,
-            image=image,
-            version=version,
-        )
+        info = self.build_candidate_manifest()
+        assert info["type"] == "docker"
+        return info["url"]
 
     @classmethod
     def add_arguments(cls, parser):
@@ -413,7 +438,7 @@ class ApmServer(StackService, Service):
         def add_es_config(args, prefix="output"):
             """add elasticsearch configuration options."""
             default_apm_server_creds = {"username": "apm_server_user", "password": "changeme"}
-            args.append((prefix+".elasticsearch.hosts", json.dumps(es_urls)))
+            args.append((prefix + ".elasticsearch.hosts", json.dumps(es_urls)))
             for cfg in ("username", "password"):
                 es_opt = "apm_server_elasticsearch_{}".format(cfg)
                 if self.options.get(es_opt):
@@ -517,6 +542,28 @@ class ApmServer(StackService, Service):
             help=argparse.SUPPRESS,
             # help="tee proxied traffic instead of load balancing.  Only for  7.0upgrade testing atm.",
         )
+
+    def build_candidate_manifest(self):
+        version = self.version
+        image = self.docker_name
+        if self.oss:
+            image += "-oss"
+
+        key = "{image}-{version}-docker-image.tar.gz".format(
+            image=image,
+            version=version,
+        )
+        try:
+            if key not in self.bc["projects"][self.docker_name]["packages"]:
+                key = "{image}-{version}-linux-amd64-docker-image.tar.gz".format(
+                    image=image,
+                    version=version,
+                )
+            return self.bc["projects"][self.docker_name]["packages"][key]
+        except KeyError:
+            # help debug manifest issues
+            print(json.dumps(self.bc))
+            raise
 
     def _content(self):
         command_args = []
@@ -749,6 +796,28 @@ class BeatMixin(object):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
         super(BeatMixin, self).__init__(**options)
 
+    def build_candidate_manifest(self):
+        version = self.version
+        image = self.docker_name
+        if self.oss:
+            image += "-oss"
+
+        key = "{image}-{version}-docker-image.tar.gz".format(
+            image=image,
+            version=version,
+        )
+        try:
+            if key not in self.bc["projects"]["beats"]["packages"]:
+                key = "{image}-{version}-linux-amd64-docker-image.tar.gz".format(
+                    image=image,
+                    version=version,
+                )
+            return self.bc["projects"]["beats"]["packages"][key]
+        except KeyError:
+            # help debug manifest issues
+            print(json.dumps(self.bc))
+            raise
+
 
 class Filebeat(BeatMixin, StackService, Service):
     DEFAULT_COMMAND = "filebeat -e --strict.perms=false"
@@ -818,7 +887,7 @@ class Kibana(StackService, Service):
 
     def _content(self):
         return dict(
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/api/status", interval="5s", retries=20),
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/api/status", retries=20),
             depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
                 "enable_elasticsearch", True) else {},
             environment=self.environment,
@@ -832,6 +901,17 @@ class Kibana(StackService, Service):
 
 class Logstash(StackService, Service):
     SERVICE_PORT = 5044
+
+    def build_candidate_manifest(self):
+        version = self.version
+        image = self.docker_name
+        if self.oss:
+            image += "-oss"
+        key = "{image}-{version}-docker-image.tar.gz".format(
+            image=image,
+            version=version,
+        )
+        return self.bc["projects"]["logstash-docker"]["packages"][key]
 
     def _content(self):
         return dict(
@@ -876,7 +956,7 @@ class Kafka(Service):
                 "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR": 1,
                 "KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
             },
-            image="confluentinc/cp-kafka:4.1.0",
+            image="confluentinc/cp-kafka:4.1.3",
             labels=None,
             logging=None,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
@@ -895,7 +975,6 @@ class Postgres(Service):
             labels=None,
             ports=[self.publish_port(self.port, self.SERVICE_PORT, expose=True)],
             volumes=["./docker/opbeans/sql:/docker-entrypoint-initdb.d", "pgdata:/var/lib/postgresql/data"],
-
         )
 
 
@@ -935,12 +1014,15 @@ class Zookeeper(Service):
 class AgentRUMJS(Service):
     SERVICE_PORT = 8000
     DEFAULT_AGENT_BRANCH = "master"
-    DEFAULT_AGENT_REPO = "elastic/apm-agent-js-base"
+    DEFAULT_AGENT_REPO = "elastic/apm-agent-rum-js"
 
     def __init__(self, **options):
         super(AgentRUMJS, self).__init__(**options)
         self.agent_branch = options.get("rum_agent_branch", self.DEFAULT_AGENT_BRANCH)
         self.agent_repo = options.get("rum_agent_repo", self.DEFAULT_AGENT_REPO)
+        self.depends_on = {
+            "apm-server": {"condition": "service_healthy"},
+        }
 
     @classmethod
     def add_arguments(cls, parser):
@@ -962,6 +1044,7 @@ class AgentRUMJS(Service):
                 args=[
                     "RUM_AGENT_BRANCH=" + self.agent_branch,
                     "RUM_AGENT_REPO=" + self.agent_repo,
+                    "APM_SERVER_URL=" + self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL)
                 ]
             ),
             container_name="rum",
@@ -970,8 +1053,10 @@ class AgentRUMJS(Service):
             logging=None,
             environment={
                 "ELASTIC_APM_SERVICE_NAME": "rum",
-                "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
+                "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL)
             },
+            depends_on=self.depends_on,
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "rum", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
@@ -992,6 +1077,9 @@ class AgentGoNetHttp(Service):
     def __init__(self, **options):
         super(AgentGoNetHttp, self).__init__(**options)
         self.agent_version = options.get("go_agent_version", self.DEFAULT_AGENT_VERSION)
+        self.depends_on = {
+            "apm-server": {"condition": "service_healthy"},
+        }
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
@@ -1014,6 +1102,7 @@ class AgentGoNetHttp(Service):
                 "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "gonethttpapp"),
+            depends_on=self.depends_on,
             image=None,
             labels=None,
             logging=None,
@@ -1029,6 +1118,9 @@ class AgentNodejsExpress(Service):
     def __init__(self, **options):
         super(AgentNodejsExpress, self).__init__(**options)
         self.agent_package = options.get("nodejs_agent_package", self.DEFAULT_AGENT_PACKAGE)
+        self.depends_on = {
+            "apm-server": {"condition": "service_healthy"},
+        }
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1050,6 +1142,7 @@ class AgentNodejsExpress(Service):
                 self.agent_package, self.SERVICE_PORT),
             container_name="expressapp",
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "expressapp"),
+            depends_on=self.depends_on,
             image=None,
             labels=None,
             logging=None,
@@ -1068,6 +1161,9 @@ class AgentPython(Service):
     def __init__(self, **options):
         super(AgentPython, self).__init__(**options)
         self.agent_package = options.get("python_agent_package", self.DEFAULT_AGENT_PACKAGE)
+        self.depends_on = {
+            "apm-server": {"condition": "service_healthy"},
+        }
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1105,6 +1201,7 @@ class AgentPythonDjango(AgentPython):
                 "DJANGO_SERVICE_NAME": "djangoapp",
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "djangoapp"),
+            depends_on=self.depends_on,
             image=None,
             labels=None,
             logging=None,
@@ -1132,6 +1229,7 @@ class AgentPythonFlask(AgentPython):
                 "GUNICORN_CMD_ARGS": "-w 4 -b 0.0.0.0:{}".format(self.SERVICE_PORT),
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "flaskapp"),
+            depends_on=self.depends_on,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
@@ -1159,6 +1257,9 @@ class AgentRubyRails(Service):
         super(AgentRubyRails, self).__init__(**options)
         self.agent_version = options.get("ruby_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_version_state = options.get("ruby_agent_version_state", self.DEFAULT_AGENT_VERSION_STATE)
+        self.depends_on = {
+            "apm-server": {"condition": "service_healthy"},
+        }
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
@@ -1179,7 +1280,8 @@ class AgentRubyRails(Service):
                 "RUBY_AGENT_VERSION_STATE": self.agent_version_state,
                 "RUBY_AGENT_VERSION": self.agent_version,
             },
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "railsapp", interval="10s", retries=60),
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "railsapp", retries=60),
+            depends_on=self.depends_on,
             image=None,
             labels=None,
             logging=None,
@@ -1203,6 +1305,9 @@ class AgentJavaSpring(Service):
     def __init__(self, **options):
         super(AgentJavaSpring, self).__init__(**options)
         self.agent_version = options.get("java_agent_version", self.DEFAULT_AGENT_VERSION)
+        self.depends_on = {
+            "apm-server": {"condition": "service_healthy"},
+        }
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
@@ -1226,6 +1331,7 @@ class AgentJavaSpring(Service):
                 "ELASTIC_APM_SERVICE_NAME": "springapp",
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "javaspring"),
+            depends_on=self.depends_on,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
@@ -1252,30 +1358,30 @@ class OpbeansService(Service):
         """add service-specific command line arguments"""
         # allow port overrides
         super(OpbeansService, cls).add_arguments(parser)
+        parser.add_argument(
+            '--' + cls.name() + '-agent-branch',
+            default=None,
+            dest=cls.option_name() + '_agent_branch',
+            help=cls.name() + " branch for agent"
+        )
+        parser.add_argument(
+            '--' + cls.name() + '-agent-repo',
+            default=None,
+            dest=cls.option_name() + '_agent_repo',
+            help=cls.name() + " github repo for agent (in form org/repo)"
+        )
+        parser.add_argument(
+            '--' + cls.name() + '-agent-local-repo',
+            default=None,
+            dest=cls.option_name() + '_agent_local_repo',
+            help=cls.name() + " local repo path for agent"
+        )
         if hasattr(cls, 'DEFAULT_SERVICE_NAME'):
             parser.add_argument(
                 '--' + cls.name() + '-service-name',
                 default=cls.DEFAULT_SERVICE_NAME,
                 dest=cls.option_name() + '_service_name',
                 help=cls.name() + " service name"
-            )
-            parser.add_argument(
-                '--' + cls.name() + '-agent-branch',
-                default=None,
-                dest=cls.option_name() + '_agent_branch',
-                help=cls.name() + " branch for agent"
-            )
-            parser.add_argument(
-                '--' + cls.name() + '-agent-repo',
-                default=None,
-                dest=cls.option_name() + '_agent_repo',
-                help=cls.name() + " github repo for agent (in form org/repo)"
-            )
-            parser.add_argument(
-                '--' + cls.name() + '-agent-local-repo',
-                default=None,
-                dest=cls.option_name() + '_agent_local_repo',
-                help=cls.name() + " local repo path for agent"
             )
 
 
@@ -1346,7 +1452,6 @@ class OpbeansJava(OpbeansService):
 
     def __init__(self, **options):
         super(OpbeansJava, self).__init__(**options)
-        self.service_name = options.get("opbeans_java_service_name", self.DEFAULT_SERVICE_NAME)
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
@@ -1402,11 +1507,10 @@ class OpbeansJava(OpbeansService):
 class OpbeansNode(OpbeansService):
     SERVICE_PORT = 3000
     DEFAULT_LOCAL_REPO = "."
-    DEFAULT_SERVICE_NAME = "opbeans-node"
 
     def __init__(self, **options):
         super(OpbeansNode, self).__init__(**options)
-        self.service_name = options.get("opbeans_node_service_name", self.DEFAULT_SERVICE_NAME)
+        self.service_name = "opbeans-node"
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
@@ -1566,7 +1670,7 @@ class OpbeansRuby(OpbeansService):
             image=None,
             labels=None,
             # lots of retries as the ruby app can take a long time to boot
-            healthcheck=curl_healthcheck(3000, "opbeans-ruby", path="/", retries=100),
+            healthcheck=curl_healthcheck(3000, "opbeans-ruby", path="/", retries=50),
             ports=[self.publish_port(self.port, 3000)],
         )
         if self.agent_local_repo:
@@ -1674,8 +1778,8 @@ class LocalSetup(object):
         '6.3': '6.3.2',
         '6.4': '6.4.3',
         '6.5': '6.5.4',
-        '6.6': '6.6.1',
-        '6.7': '6.7.0',
+        '6.6': '6.6.2',
+        '6.7': '6.7.1',
         '7.0': '7.0.0',
         '7.1': '7.1.0',
         'master': '8.0.0',
@@ -1786,8 +1890,8 @@ class LocalSetup(object):
             argv = sys.argv
         available_versions = ' / '.join(list(self.SUPPORTED_VERSIONS))
         help_text = (
-                "Which version of the stack to start. " +
-                "Available options: {0}".format(available_versions)
+            "Which version of the stack to start. " +
+            "Available options: {0}".format(available_versions)
         )
         parser.add_argument("stack-version", action='store', help=help_text)
 
@@ -1934,7 +2038,8 @@ class LocalSetup(object):
 
         parser.add_argument(
             '--with-services',
-            type=argparse.FileType(mode="r"),
+            action="append",
+            default=[],
             help="merge additional service definitions into the final docker-compose configuration",
         )
 
@@ -2078,8 +2183,9 @@ class LocalSetup(object):
         for service in selections:
             services.update(service.render())
 
-        if args['with_services']:
-            services.update(json.load(args['with_services']))
+        for addl_services in args['with_services']:
+            with open(addl_services) as f:
+                services.update(json.load(f))
 
         # expose a list of enabled opbeans services to all opbeans services. This allows them to talk amongst each other
         # and have a jolly good distributed time
@@ -2111,12 +2217,14 @@ class LocalSetup(object):
         if hasattr(docker_compose_path, "name") and os.path.isdir(os.path.dirname(docker_compose_path.name)):
             docker_compose_path.close()
             print("Starting stack services..\n")
+            docker_compose_cmd = ["docker-compose", "-f", docker_compose_path.name]
+            if not sys.stdin.isatty():
+                docker_compose_cmd.extend(["--no-ansi", "--log-level", "ERROR"])
 
             # always build if possible, should be quick for rebuilds
             build_services = [name for name, service in compose["services"].items() if 'build' in service]
             if build_services:
-                docker_compose_build = ["docker-compose", "-f", docker_compose_path.name,
-                                        "--no-ansi", "--log-level", "ERROR", "build", "--pull"]
+                docker_compose_build = docker_compose_cmd + ["build", "--pull"]
                 if args["force_build"]:
                     docker_compose_build.append("--no-cache")
                 if args["build_parallel"]:
@@ -2127,14 +2235,17 @@ class LocalSetup(object):
             image_services = [name for name, service in compose["services"].items() if
                               'image' in service and name not in services_to_load]
             if image_services and not args["skip_download"]:
-                subprocess.call(["docker-compose", "-f", docker_compose_path.name,
-                                "--no-ansi", "--log-level", "ERROR", "pull"] + image_services)
+                pull_params = ["pull"]
+                if not sys.stdin.isatty():
+                    pull_params.extend(["-q"])
+                subprocess.call(docker_compose_cmd + pull_params + image_services)
             # really start
-            docker_compose_up = ["docker-compose", "-f", docker_compose_path.name,
-                                "--no-ansi", "--log-level", "ERROR", "up", "-d"]
+            up_params = ["up", "-d"]
             if args["remove_orphans"]:
-                docker_compose_up.append("--remove-orphans")
-            subprocess.call(docker_compose_up)
+                up_params.append("--remove-orphans")
+            if not sys.stdin.isatty():
+                up_params.extend(["--quiet-pull"])
+            subprocess.call(docker_compose_cmd + up_params)
 
     @staticmethod
     def status_handler():
@@ -2144,7 +2255,7 @@ class LocalSetup(object):
     @staticmethod
     def stop_handler():
         print("Stopping all stack services..\n")
-        subprocess.call(['docker-compose', "--no-ansi", "--log-level", "ERROR", 'stop'])
+        subprocess.call(['docker-compose', "--no-ansi", "--log-level", "ERROR", "-q", 'stop'])
 
     def upload_sourcemaps_handler(self):
         service_name = self.args.opbeans_frontend_service_name
@@ -2203,7 +2314,7 @@ class LocalSetup(object):
             server_url=self.args.apm_server_url,
         )
         cmd = "docker run --rm --network apm-integration-testing " + \
-            "-v {}:/tmp/sourcemap centos:7 ".format(sourcemap_file) + cmd
+              "-v {}:/tmp/sourcemap centos:7 ".format(sourcemap_file) + cmd
         subprocess.check_output(cmd, shell=True).decode('utf8').strip()
 
     @staticmethod

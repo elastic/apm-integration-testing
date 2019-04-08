@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-@Library('apm@v1.0.9') _
+@Library('apm@current') _
 
 import co.elastic.matrix.*
 import groovy.transform.Field
@@ -19,6 +19,7 @@ import groovy.transform.Field
   'nodejs': 'tests/versions/nodejs.yml',
   'python': 'tests/versions/python.yml',
   'ruby': 'tests/versions/ruby.yml',
+  'rum': 'tests/versions/rum.yml',
   'server': 'tests/versions/apm_server.yml'
 ]
 
@@ -31,6 +32,7 @@ import groovy.transform.Field
   'nodejs': 'NODEJS_AGENT',
   'python': 'PYTHON_AGENT',
   'ruby': 'RUBY_AGENT',
+  'rum': 'RUM_AGENT',
   'server': 'APM_SERVER'
 ]
 
@@ -43,11 +45,13 @@ import groovy.transform.Field
   'Node.js': 'nodejs',
   'Python': 'python',
   'Ruby': 'ruby',
-  'All': 'all'
+  'RUM': 'rum',
+  'All': 'all',
+  'UI': 'ui'
 ]
 
 pipeline {
-  agent any
+  agent { label 'linux && immutable && docker' }
   environment {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
     REPO="git@github.com:elastic/apm-integration-testing.git"
@@ -59,7 +63,7 @@ pipeline {
   }
   options {
     timeout(time: 1, unit: 'HOURS')
-    buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '100', daysToKeepStr: '30'))
+    buildDiscarder(logRotator(numToKeepStr: '300', artifactNumToKeepStr: '300', daysToKeepStr: '30'))
     timestamps()
     ansiColor('xterm')
     disableResume()
@@ -67,7 +71,7 @@ pipeline {
   }
   parameters {
     choice(name: 'agent_integration_test', choices: ['Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.6 --release", description: "Elastic Stack Git branch/tag to use")
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "7.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "master", description: "Integration testing Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     string(name: 'UPSTREAM_BUILD', defaultValue: "", description: "upstream build info to show in the description.")
@@ -78,7 +82,6 @@ pipeline {
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout'){
-      agent { label 'flyweight' }
       options { skipDefaultCheckout() }
       steps {
         deleteDir()
@@ -105,11 +108,11 @@ pipeline {
       launch integration tests.
     */
     stage("Integration Tests"){
-      agent { label 'flyweight' }
-      options { skipDefaultCheckout() }
       when {
-        beforeAgent true
-        expression { return params.agent_integration_test != 'All' }
+        expression {
+          return (params.agent_integration_test != 'All'
+            && params.agent_integration_test != 'UI')
+        }
       }
       steps {
         deleteDir()
@@ -134,9 +137,7 @@ pipeline {
       }
     }
     stage("All") {
-      agent { label 'linux && immutable' }
       when {
-        beforeAgent true
         expression { return params.agent_integration_test == 'All' }
       }
       environment {
@@ -152,7 +153,27 @@ pipeline {
       }
       post {
         always {
-          wrappingup('-all')
+          wrappingup('all')
+        }
+      }
+    }
+    stage("UI") {
+      when {
+        expression { return params.agent_integration_test == 'UI' }
+      }
+      environment {
+        TMPDIR = "${WORKSPACE}/${BASE_DIR}"
+        HOME = "${WORKSPACE}/${BASE_DIR}"
+      }
+      steps {
+        deleteDir()
+        unstash "source"
+        dir("${BASE_DIR}"){
+          script {
+            docker.image('node:11').inside() {
+              sh(label: "Check Schema", script: "./scripts/ci/ui.sh")
+            }
+          }
         }
       }
     }
@@ -198,6 +219,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
     'nodejs': 'APM_AGENT_NODEJS_VERSION',
     'python': 'APM_AGENT_PYTHON_VERSION',
     'ruby': 'APM_AGENT_RUBY_VERSION',
+    'rum': 'APM_AGENT_RUM_VERSION',
     'server': 'APM_SERVER_BRANCH'
   ]
 
@@ -255,16 +277,14 @@ def runScript(Map params = [:]){
 
 def wrappingup(label){
   dir("${BASE_DIR}"){
-    def stepName = "-" + label.replace(";","_")
-      .replace("#","_")
-      .replace(":","_")
-      .replace("-","_")
+    def stepName = label.replace(";","/")
+      .replace("--","_")
       .replace(".","_")
     sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
     sh('make stop-env || echo 0')
     archiveArtifacts(
         allowEmptyArchive: true,
-        artifacts: 'docker-info*/**',
+        artifacts: 'docker-info/**,**/tests/results/data-*.json',
         defaultExcludes: false)
     junit(
       allowEmptyResults: false,

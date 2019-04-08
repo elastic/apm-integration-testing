@@ -2,7 +2,9 @@
 **/*.pyc
 .cache
 **/__pycache__
-/.idea
+**/.idea
+**/target
+*.iml
 **/tmp
 **/log
 **/.images
@@ -13,3 +15,6 @@ docker-compose.yml
 htmlcov/
 tests/results/
 docker/opbeans/node/sourcemaps/*.map
+.DS_Store
+node_modules
+**/.vscode/settings.json

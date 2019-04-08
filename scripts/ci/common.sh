@@ -27,11 +27,11 @@ if [ -n "${APM_SERVER_BRANCH}" ]; then
  fi
 fi
 
-if [ -z "${DISABLE_BUILD_PARALLEL}" ]; then
+if [ -z "${DISABLE_BUILD_PARALLEL}" -o "${DISABLE_BUILD_PARALLEL}" = "false" ]; then
  BUILD_OPTS="${BUILD_OPTS} --build-parallel"
 fi
 
-ELASTIC_STACK_VERSION=${ELASTIC_STACK_VERSION:-'master'}
+ELASTIC_STACK_VERSION=${ELASTIC_STACK_VERSION:-'7.0.0'}
 
 # assume we're under CI if BUILD_NUMBER is set
 if [ -n "${BUILD_NUMBER}" ]; then

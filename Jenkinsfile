@@ -1,9 +1,9 @@
 #!/usr/bin/env groovy
 
-@Library('apm@v1.0.9') _
+@Library('apm@current') _
 
 pipeline {
-  agent any
+  agent none
   environment {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
     NOTIFY_TO = credentials('notify-to')
@@ -16,11 +16,13 @@ pipeline {
   }
   options {
     timeout(time: 1, unit: 'HOURS')
-    buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20', daysToKeepStr: '30'))
+    buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '100', daysToKeepStr: '30'))
     timestamps()
     ansiColor('xterm')
     disableResume()
     durabilityHint('PERFORMANCE_OPTIMIZED')
+    rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
+    quietPeriod(10)
   }
   parameters {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "7.0.0", description: "Elastic Stack Git branch/tag to use")
@@ -32,78 +34,42 @@ pipeline {
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout'){
-      agent { label 'flyweight' }
-      options { skipDefaultCheckout() }
+      agent { label 'master || immutable' }
       steps {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
-        dir("${BASE_DIR}"){
-          sh '''
-          echo "GIT_COMMIT=${GIT_COMMIT}"
-          git rev-list HEAD -4 || echo KO
-          git reflog -4 || echo KO
-          '''
-        }
-      }
-    }
-
-    stage("All Test Only") {
-      agent { label 'flyweight' }
-      options { skipDefaultCheckout() }
-      when {
-        beforeAgent true
-        changeRequest()
-      }
-      steps {
-        runJob('All')
       }
     }
     /**
       launch integration tests.
     */
     stage("Integration Tests") {
-      agent { label 'flyweight' }
-      options { skipDefaultCheckout() }
-      when {
-        beforeAgent true
-        allOf {
-          anyOf {
-            not {
-              changeRequest()
-            }
-            branch 'master'
-            branch "\\d+\\.\\d+"
-            branch "v\\d?"
-            tag "v\\d+\\.\\d+\\.\\d+*"
-            environment name: 'Run_As_Master_Branch', value: 'true'
-          }
-        }
-      }
+      agent none
       steps {
         log(level: "INFO", text: "Launching Agent tests in parallel")
         /*
           Declarative pipeline's parallel stages lose the reference to the downstream job,
           because of that, I use the parallel step. It is probably a bug.
+          https://issues.jenkins-ci.org/browse/JENKINS-56562
         */
         script {
-          parallel(
-            "Go": {
-              runJob('Go')
-            },
-            "Java": {
-              runJob('Java')
-            },
-            "Node.js": {
-              runJob('Node.js')
-            },
-            "Ruby": {
-              runJob('Ruby')
-            },
-            "All": {
-              runJob('All')
-            }
-          )
+          def downstreamJobs = [:]
+          if(env?.CHANGE_ID != null && !params.Run_As_Master_Branch){
+            downstreamJobs = ['All': {runJob('All')}]
+          } else {
+            downstreamJobs = [
+            'All': {runJob('All')},
+            'Go': {runJob('Go')},
+            'Java': {runJob('Java')},
+            'Node.js': {runJob('Node.js')},
+            'Python': {runJob('Python')},
+            'Ruby': {runJob('Ruby')},
+            'RUM': {runJob('RUM')},
+            'UI': {runJob('UI')}
+            ]
+          }
+          parallel(downstreamJobs)
         }
       }
     }
@@ -116,8 +82,10 @@ pipeline {
       echoColor(text: '[ABORTED]', colorfg: 'magenta', colorbg: 'default')
     }
     failure {
-      echoColor(text: '[FAILURE]', colorfg: 'red', colorbg: 'default')
-      step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
+      node('master'){
+        echoColor(text: '[FAILURE]', colorfg: 'red', colorbg: 'default')
+        step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
+      }
     }
     unstable {
       echoColor(text: '[UNSTABLE]', colorfg: 'yellow', colorbg: 'default')
@@ -131,9 +99,9 @@ def runJob(agentName, buildOpts = ''){
     string(name: 'agent_integration_test', value: agentName),
     string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
     string(name: 'INTEGRATION_TESTING_VERSION', value: env.GIT_BASE_COMMIT),
-    string(name: 'BUILD_OPTS', value: buildOpts),
+    string(name: 'BUILD_OPTS', value: "${params.BUILD_OPTS} ${buildOpts}"),
     string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
-    booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: true)],
+    booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: '')],
     propagate: true,
     quietPeriod: 10,
     wait: true)
