@@ -31,7 +31,6 @@
     },
     "system": {
       "architecture": "amd64",
-      "hostname": "localhost.localdomain",
       "ip": "192.168.96.1",
       "platform": "darwin"
     },
