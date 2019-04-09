@@ -794,6 +794,10 @@ class BeatMixin(object):
         if options.get("enable_kibana", True):
             self.command += " -E setup.dashboards.enabled=true"
             self.depends_on["kibana"] = {"condition": "service_healthy"}
+        self.environment = {}
+        if options.get("xpack_secure"):
+            self.environment["ELASTICSEARCH_PASSWORD"] = "changeme"
+            self.environment["ELASTICSEARCH_USERNAME"] = "{}_user".format(self.name())
         super(BeatMixin, self).__init__(**options)
 
     def build_candidate_manifest(self):
@@ -832,6 +836,7 @@ class Filebeat(BeatMixin, StackService, Service):
         return dict(
             command=self.command,
             depends_on=self.depends_on,
+            environment=self.environment,
             labels=None,
             user="root",
             volumes=[
@@ -856,6 +861,7 @@ class Heartbeat(BeatMixin, StackService, Service):
         return dict(
             command=self.command,
             depends_on=self.depends_on,
+            environment=self.environment,
             labels=None,
             user="root",
             volumes=[
@@ -932,6 +938,7 @@ class Metricbeat(BeatMixin, StackService, Service):
         return dict(
             command=self.command,
             depends_on=self.depends_on,
+            environment=self.environment,
             labels=None,
             user="root",
             volumes=[

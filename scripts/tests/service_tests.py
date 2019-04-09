@@ -469,6 +469,7 @@ class FilebeatServiceTest(ServiceTest):
                     container_name: localtesting_6.0.4_filebeat
                     user: root
                     command: filebeat -e --strict.perms=false -E setup.dashboards.enabled=true
+                    environment: {}
                     logging:
                         driver: 'json-file'
                         options:
@@ -494,6 +495,7 @@ class FilebeatServiceTest(ServiceTest):
                     container_name: localtesting_6.1.1_filebeat
                     user: root
                     command: filebeat -e --strict.perms=false -E setup.dashboards.enabled=true
+                    environment: {}
                     logging:
                         driver: 'json-file'
                         options:
@@ -637,6 +639,7 @@ class MetricbeatServiceTest(ServiceTest):
                     container_name: localtesting_6.2.4_metricbeat
                     user: root
                     command: metricbeat -e --strict.perms=false -E setup.dashboards.enabled=true
+                    environment: {}
                     logging:
                         driver: 'json-file'
                         options:
