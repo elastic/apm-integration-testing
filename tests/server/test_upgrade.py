@@ -417,7 +417,8 @@ if (ctx._source.processor.event == "error") {
 }
 """  # noqa
 
-import os, json
+import json
+import os
 from elasticsearch import helpers
 
 
@@ -513,8 +514,7 @@ def metric(es, exp, dst, body):
 
 
 def span(es, exp, dst, body):
-    wants, gots = query_for(es, exp, dst, body,
-                            "span.id:asc,span.start.us:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc,span.duration.us")
+    wants, gots = query_for(es, exp, dst, body, "span.id:asc,span.start.us:asc,timestamp.us:asc,@timestamp:asc,agent.name:asc,span.duration.us") # noqa
     print("checking span - comparing {} with {}".format(exp, dst))
 
     assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
@@ -548,7 +548,6 @@ def error(es, exp, dst, body):
     assert len(wants) == len(gots), "{} docs expected, got {}".format(len(wants), len(gots))
     for i, (w, g) in enumerate(zip(wants, gots)):
         want = w["_source"]
-        got = g["_source"]
 
         # error transaction.type only introduced in 7.0, can't make it up before then
         if want.get("transaction", {}).get("type"):
