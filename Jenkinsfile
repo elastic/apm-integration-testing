@@ -11,7 +11,7 @@ pipeline {
     PIPELINE_LOG_LEVEL='INFO'
   }
   triggers {
-    cron 'H H(3-4) * * 1-5'
+    cron 'H * * * 1-5'
     issueCommentTrigger('.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
   }
   options {
@@ -26,7 +26,7 @@ pipeline {
   }
   parameters {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "7.0.0", description: "Elastic Stack Git branch/tag to use")
-    string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
+    string(name: 'BUILD_OPTS', defaultValue: "--apm-server-count=2", description: "Addicional build options to passing compose.py")
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
   }
   stages{
@@ -59,14 +59,14 @@ pipeline {
             downstreamJobs = ['All': {runJob('All')}]
           } else {
             downstreamJobs = [
-            'All': {runJob('All')},
-            'Go': {runJob('Go')},
+            // 'All': {runJob('All')},
+            // 'Go': {runJob('Go')},
             'Java': {runJob('Java')},
-            'Node.js': {runJob('Node.js')},
-            'Python': {runJob('Python')},
+            // 'Node.js': {runJob('Node.js')},
+            // 'Python': {runJob('Python')},
             'Ruby': {runJob('Ruby')},
-            'RUM': {runJob('RUM')},
-            'UI': {runJob('UI')}
+            // 'RUM': {runJob('RUM')},
+            // 'UI': {runJob('UI')}
             ]
           }
           parallel(downstreamJobs)
