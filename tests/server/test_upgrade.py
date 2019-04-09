@@ -419,9 +419,11 @@ if (ctx._source.processor.event == "error") {
 
 import json
 import os
+
 from elasticsearch import helpers
+import pytest
 
-
+@pytest.mark.upgradetest
 def test_reindex_v1(es):
     def index_docs(path):
         for entry in os.scandir(path):
@@ -452,6 +454,7 @@ def test_reindex_v1(es):
         verify(es, event_type, exp, dst)
 
 
+@pytest.mark.upgradetest
 def test_reindex_v2(es):
     # first migrate all indices
     migrations = run_migration(es)
