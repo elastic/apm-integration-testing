@@ -343,13 +343,16 @@ if (context != null) {
 //  if kubernetes.node.name is set, copy it to host.hostname
 //  else if other kubernetes.* is set, remove host.hostname
 //  else leave it alone
+// relies on system.hostname -> host.hostname already happening earlier in this script
 if (ctx._source.kubernetes?.node?.name != null) {
     if (! ctx._source.containsKey("host")) {
         ctx._source.host = new HashMap();
     }
     ctx._source.host.hostname = ctx._source.kubernetes.node.name;
 } else if (ctx._source.containsKey("kubernetes")) {
-    ctx._source.host.remove("hostname");
+    if (ctx._source.host?.hostname != null) {
+        ctx._source.host.remove("hostname");
+    }
 }
 
 if (ctx._source.processor.event == "span") {
