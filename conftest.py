@@ -14,6 +14,22 @@ from tests.fixtures.agents import java_spring
 from tests.fixtures.agents import rum
 
 
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--run-upgrade", action="store_true", default=False, help="run upgrade tests"
+    )
+
+
+def pytest_collection_modifyitems(config, items):
+    if config.getoption("--run-upgrade"):
+        return
+    skip_upgrade = pytest.mark.skip(reason="need --run-upgrade option to run")
+    for item in items:
+        if item.get_marker("upgradetest"):
+            item.add_marker(skip_upgrade)
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_logreport(report):
     yield

@@ -475,6 +475,7 @@ class ApmServer(StackService, Service):
                 ])
 
         self.apm_server_count = options.get("apm_server_count", 1)
+        self.apm_server_tee = options.get("apm_server_tee", False)
 
     @classmethod
     def add_arguments(cls, parser):
@@ -507,7 +508,7 @@ class ApmServer(StackService, Service):
             '--apm-server-count',
             type=int,
             default=1,
-            help="apm-server count. >1 adds a load balancer service to round robin traffic between servers.",
+            help="apm-server count. >1 adds a load balancer service to distribute traffic between servers.",
         )
         parser.add_argument(
             '--apm-server-elasticsearch-url',
@@ -533,6 +534,13 @@ class ApmServer(StackService, Service):
             action="store_false",
             dest="apm_server_dashboards",
             help="skip loading apm-server dashboards (setup.dashboards.enabled=false)",
+        )
+        parser.add_argument(
+            '--apm-server-tee',
+            action="store_true",
+            default=False,
+            help=argparse.SUPPRESS,
+            # help="tee proxied traffic instead of load balancing.  Only for  7.0upgrade testing atm.",
         )
 
     def build_candidate_manifest(self):
@@ -609,12 +617,29 @@ class ApmServer(StackService, Service):
         single["ports"] = [p.rsplit(":", 1)[-1] for p in single["ports"]]
 
         # render proxy + backends
-        ren = self.render_proxy()
+        if self.apm_server_tee:
+            ren = self.render_tee()
+        else:
+            ren = self.render_proxy()
+
         # individualize each backend instance
         for i in range(1, self.apm_server_count + 1):
             backend = dict(single)
             backend["container_name"] = backend["container_name"] + "-" + str(i)
+            if self.apm_server_tee and i == 2:
+                # always build 7.0
+                backend["build"] = {
+                    "args": {
+                        "apm_server_base_image": "docker.elastic.co/apm/apm-server:7.0.0-SNAPSHOT",
+                        "apm_server_branch": "7.0",
+                        "apm_server_repo": "https://github.com/elastic/apm-server.git"
+                    },
+                    "context": "docker/apm-server"
+                }
+                backend["labels"] = ["co.elatic.apm.stack-version=7.0.0"]
+                del(backend["image"])  # use the built one instead
             ren.update({"-".join([self.name(), str(i)]): backend})
+
         return ren
 
     def render_proxy(self):
@@ -625,6 +650,21 @@ class ApmServer(StackService, Service):
             depends_on={"apm-server-{}".format(i): condition for i in range(1, self.apm_server_count + 1)},
             environment={"APM_SERVER_COUNT": self.apm_server_count},
             healthcheck={"test": ["CMD", "haproxy", "-c", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]},
+            ports=[
+                self.publish_port(self.port, self.SERVICE_PORT),
+            ],
+        )
+        return {self.name(): content}
+
+    def render_tee(self):
+        condition = {"condition": "service_healthy"}
+        content = dict(
+            build={"context": "docker/apm-server/teeproxy"},
+            # TODO: support > 1 backup server
+            command=["teeproxy", "-l", "0.0.0.0:8200", "-a", "apm-server-1:8200", "-b", "apm-server-2:8200"],
+            container_name=self.default_container_name() + "-tee",
+            depends_on={"apm-server-{}".format(i): condition for i in range(1, self.apm_server_count + 1)},
+            healthcheck={"test": ["CMD", "pgrep", "teeproxy"]},
             ports=[
                 self.publish_port(self.port, self.SERVICE_PORT),
             ],
@@ -1965,6 +2005,14 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
+            '--remove-orphans',
+            action='store_true',
+            help='remove services that no longer exist',
+            dest='remove_orphans',
+            default=False,
+        )
+
+        parser.add_argument(
             '--all',
             action='store_true',
             help='run all opbeans services',
@@ -2200,6 +2248,8 @@ class LocalSetup(object):
                 subprocess.call(docker_compose_cmd + pull_params + image_services)
             # really start
             up_params = ["up", "-d"]
+            if args["remove_orphans"]:
+                up_params.append("--remove-orphans")
             if not sys.stdin.isatty():
                 up_params.extend(["--quiet-pull"])
             subprocess.call(docker_compose_cmd + up_params)
