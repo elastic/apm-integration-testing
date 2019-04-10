@@ -423,6 +423,7 @@ import os
 from elasticsearch import helpers
 import pytest
 
+
 @pytest.mark.upgradetest
 def test_reindex_v1(es):
     def index_docs(path):
