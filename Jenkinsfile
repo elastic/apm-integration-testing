@@ -84,7 +84,7 @@ pipeline {
     failure {
       node('master'){
         echoColor(text: '[FAILURE]', colorfg: 'red', colorbg: 'default')
-        step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
+        //step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
       }
     }
     unstable {
