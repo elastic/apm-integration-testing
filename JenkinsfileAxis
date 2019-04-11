@@ -284,7 +284,7 @@ def wrappingup(label){
     sh('make stop-env || echo 0')
     archiveArtifacts(
         allowEmptyArchive: true,
-        artifacts: 'docker-info/**,**/tests/results/data-*.json',
+        artifacts: 'docker-info/**,**/tests/results/data-*.json,**/tests/results/packetbeat-*.json',
         defaultExcludes: false)
     junit(
       allowEmptyResults: false,

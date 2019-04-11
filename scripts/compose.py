@@ -907,6 +907,30 @@ class Metricbeat(BeatMixin, StackService, Service):
             ]
         )
 
+# TODO make it configurable
+# TODO make tests
+class Packetbeat(BeatMixin, StackService, Service):
+    """Stars a Packetbeat container to grab the network traffic"""
+    DEFAULT_COMMAND = "packetbeat -e --strict.perms=false -E \"packetbeat.interfaces.device=eth0\""
+    docker_path = "beats"
+
+    def _content(self):
+        return dict(
+            command=self.command,
+            #command="/bin/bash -c 'sleep 3600'",
+            depends_on=self.depends_on,
+            environment=self.environment,
+            labels=None,
+            user="root",
+            privileged="true",
+            cap_add=["NET_ADMIN", "NET_RAW"],
+            network_mode="service:apm-server",
+            volumes=[
+                "./docker/packetbeat/packetbeat.yml:/usr/share/packetbeat/packetbeat.yml",
+                "/var/run/docker.sock:/var/run/docker.sock",
+            ]
+        )
+
 
 #
 # Supporting Services

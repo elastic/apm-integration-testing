@@ -5,10 +5,18 @@ RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-ke
     apt-get -yqq update && \
     apt-get -yqq install google-chrome-unstable && \
     rm -rf /var/lib/apt/lists/*
+
 RUN curl -SLO https://chromedriver.storage.googleapis.com/$(curl -o- https://chromedriver.storage.googleapis.com/LATEST_RELEASE)/chromedriver_linux64.zip && \
     apt-get -yqq update && apt install -yqq --no-install-recommends unzip && \
     unzip -d /usr/local/bin/ chromedriver_linux64.zip chromedriver && \
     rm -rf /var/lib/apt/lists/*
+
+#Install elasticdump
+RUN curl -sL https://deb.nodesource.com/setup_11.x | bash - &&\
+    apt-get -yqq update && \
+    apt-get install -y nodejs &&\
+    rm -rf /var/lib/apt/lists/* &&\
+    npm install elasticdump -g
 
 COPY requirements.txt requirements.txt
 RUN pip install -q -r requirements.txt
