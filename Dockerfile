@@ -1,14 +1,14 @@
 FROM python:3.7
 # install latest Google Chrome & Chromedriver
-RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get -yqq update \
-    && apt-get -yqq --allow-unauthenticated install google-chrome-unstable
+#RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+#    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
+#    && apt-get -yqq update \
+#    && apt-get -yqq --allow-unauthenticated install google-chrome-unstable
 
-RUN curl -SLO https://chromedriver.storage.googleapis.com/$(curl -o- https://chromedriver.storage.googleapis.com/LATEST_RELEASE)/chromedriver_linux64.zip \
-    && apt-get -yqq update \
-    && apt install -yqq --no-install-recommends unzip \
-    && unzip -d /usr/local/bin/ chromedriver_linux64.zip chromedriver
+#RUN curl -SLO https://chromedriver.storage.googleapis.com/$(curl -o- https://chromedriver.storage.googleapis.com/LATEST_RELEASE)/chromedriver_linux64.zip \
+#    && apt-get -yqq update \
+#    && apt install -yqq --no-install-recommends unzip \
+#    && unzip -d /usr/local/bin/ chromedriver_linux64.zip chromedriver
 
 #Install elasticdump
 RUN curl -sL https://deb.nodesource.com/setup_11.x | bash - \
