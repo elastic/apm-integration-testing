@@ -18,15 +18,14 @@ from tests.fixtures.agents import rum
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_logreport(report):
     yield
-    name = report.nodeid.split(":", 2)[-1]
-    subprocess.call(['elasticdump',
-                     '--input=http://elasticsearch:9200/apm-*',
-                     '--output=/app/tests/results/data-{}.json'.format(name)])
-    subprocess.call(['elasticdump',
-                     '--input=http://elasticsearch:9200/packetbeat-*',
-                     '--output=/app/tests/results/packetbeat-{}.json'.format(name)])
-
     if report.when == "call" and report.failed:
+        name = report.nodeid.split(":", 2)[-1]
+        subprocess.call(['elasticdump',
+                         '--input=http://elasticsearch:9200/apm-*',
+                         '--output=/app/tests/results/data-{}.json'.format(name)])
+        subprocess.call(['elasticdump',
+                         '--input=http://elasticsearch:9200/packetbeat-*',
+                         '--output=/app/tests/results/packetbeat-{}.json'.format(name)])
         rs = es().es.search(index="apm-*", size=10000)
         try:
             with open("/app/tests/results/data-b-{}.json".format(name), 'w') as outFile:
