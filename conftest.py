@@ -21,10 +21,10 @@ def pytest_runtest_logreport(report):
     name = report.nodeid.split(":", 2)[-1]
     subprocess.call(['elasticdump',
                      '--input=http://elasticsearch:9200/apm-*',
-                     '--output=/app/tests/results/data-{}.json'.format(name)], shell=True)
+                     '--output=/app/tests/results/data-{}.json'.format(name)])
     subprocess.call(['elasticdump',
                      '--input=http://elasticsearch:9200/packetbeat-*',
-                     '--output=/app/tests/results/packetbeat-{}.json'.format(name)], shell=True)
+                     '--output=/app/tests/results/packetbeat-{}.json'.format(name)])
 
     if report.when == "call" and report.failed:
         rs = es().es.search(index="apm-*", size=10000)
@@ -33,4 +33,3 @@ def pytest_runtest_logreport(report):
                 json.dump(rs, outFile, sort_keys=True, indent=4, ensure_ascii=False)
         except IOError:
             pass
-
