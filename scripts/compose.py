@@ -33,7 +33,7 @@ except ImportError:
 PACKAGE_NAME = 'localmanager'
 __version__ = "4.0.0"
 
-DEFAULT_STACK_VERSION = "6.3.3"
+DEFAULT_STACK_VERSION = "7.0"
 DEFAULT_APM_SERVER_URL = "http://apm-server:8200"
 
 
@@ -1787,7 +1787,7 @@ class LocalSetup(object):
         '6.5': '6.5.4',
         '6.6': '6.6.2',
         '6.7': '6.7.1',
-        '7.0': '7.0.0',
+        '7.0': '7.0.1',
         '7.1': '7.1.0',
         'master': '8.0.0',
     }
