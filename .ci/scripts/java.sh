@@ -6,10 +6,10 @@ test -z "$srcdir" && srcdir=.
 . ${srcdir}/common.sh
 
 if [ -n "${APM_AGENT_JAVA_VERSION}" ]; then
-  APM_AGENT_JAVA_VERSION=${APM_AGENT_JAVA_VERSION/'github;'/''}
-  APM_AGENT_JAVA_VERSION=${APM_AGENT_JAVA_VERSION/'release;'/''}
-  APM_AGENT_JAVA_VERSION=${APM_AGENT_JAVA_VERSION/'commit;'/''}
-  BUILD_OPTS="${BUILD_OPTS} --java-agent-version='${APM_AGENT_JAVA_VERSION}'"
+  EXTRA_OPTS=${APM_AGENT_JAVA_VERSION/'github;'/'--java-agent-version='}
+  EXTRA_OPTS=${APM_AGENT_JAVA_VERSION/'release;'/'--java-agent-release='}
+  EXTRA_OPTS=${APM_AGENT_JAVA_VERSION/'commit;'/'--java-agent-version='}
+  BUILD_OPTS="${BUILD_OPTS} ${EXTRA_OPTS}"
 fi
 
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} --no-apm-server-dashboards --no-apm-server-self-instrument --no-kibana --with-agent-java-spring --force-build"
