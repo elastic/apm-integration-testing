@@ -73,6 +73,7 @@ pipeline {
     choice(name: 'agent_integration_test', choices: ['Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "7.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "master", description: "Integration testing Git branch/tag to use")
+    string(name: 'CHANGE_TARGET', defaultValue: "master", description: "Git branch/tag to merge before building")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     string(name: 'UPSTREAM_BUILD', defaultValue: "", description: "upstream build info to show in the description.")
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', defaultValue: true, description: "Disable the build parallel option on compose.py, disable it is better for error detection.")
@@ -86,16 +87,12 @@ pipeline {
       steps {
         deleteDir()
         dir("${BASE_DIR}"){
-          checkout([$class: 'GitSCM',
-            branches: [[name: "${params.INTEGRATION_TESTING_VERSION}"]],
-            doGenerateSubmoduleConfigurations: false,
-            extensions: [],
-            submoduleCfg: [],
-            userRemoteConfigs: [[
-              refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pr/*',
-              url: "${REPO}",
-              credentialsId: "${JOB_GIT_CREDENTIALS}"]]
-          ])
+          gitCheckout(basedir: "${BASE_DIR}",
+            branch: "${params.INTEGRATION_TESTING_VERSION}",
+            repo: "${REPO}",
+            credentialsId: "${JOB_GIT_CREDENTIALS}",
+            mergeTarget: "${params.CHANGE_TARGET}"
+            reference: '/var/lib/jenkins/apm-integration-testing.git')
         }
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script{
