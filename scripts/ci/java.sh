@@ -7,8 +7,8 @@ test -z "$srcdir" && srcdir=.
 
 if [ -n "${APM_AGENT_JAVA_VERSION}" ]; then
   EXTRA_OPTS=${APM_AGENT_JAVA_VERSION/'github;'/'--java-agent-version='}
-  EXTRA_OPTS=${APM_AGENT_JAVA_VERSION/'release;'/'--java-agent-release='}
-  EXTRA_OPTS=${APM_AGENT_JAVA_VERSION/'commit;'/'--java-agent-version='}
+  EXTRA_OPTS=${EXTRA_OPTS/'release;'/'--java-agent-release='}
+  EXTRA_OPTS=${EXTRA_OPTS/'commit;'/'--java-agent-version='}
   BUILD_OPTS="${BUILD_OPTS} ${EXTRA_OPTS}"
 fi
 
