@@ -28,7 +28,7 @@ class AgentServiceTest(ServiceTest):
                         dockerfile: Dockerfile
                         context: docker/go/nethttp
                     container_name: gonethttpapp
-                    depends_on: 
+                    depends_on:
                         apm-server:
                             condition: 'service_healthy'
                     environment:
@@ -58,7 +58,7 @@ class AgentServiceTest(ServiceTest):
                         dockerfile: Dockerfile
                         context: docker/nodejs/express
                     container_name: expressapp
-                    depends_on: 
+                    depends_on:
                         apm-server:
                             condition: 'service_healthy'
                     command: bash -c "npm install elastic-apm-node && node app.js"
@@ -92,7 +92,7 @@ class AgentServiceTest(ServiceTest):
                         context: docker/python/django
                     command: bash -c "pip install -q -U elastic-apm && python testapp/manage.py runserver 0.0.0.0:8003"
                     container_name: djangoapp
-                    depends_on: 
+                    depends_on:
                         apm-server:
                             condition: 'service_healthy'
                     environment:
@@ -121,7 +121,7 @@ class AgentServiceTest(ServiceTest):
                         context: docker/python/flask
                     command: bash -c "pip install -q -U elastic-apm && gunicorn app:app"
                     container_name: flaskapp
-                    depends_on: 
+                    depends_on:
                         apm-server:
                             condition: 'service_healthy'
                     environment:
@@ -149,7 +149,7 @@ class AgentServiceTest(ServiceTest):
                         dockerfile: Dockerfile
                         context: docker/ruby/rails
                     container_name: railsapp
-                    depends_on: 
+                    depends_on:
                         apm-server:
                             condition: 'service_healthy'
                     command: bash -c "bundle install && RAILS_ENV=production bundle exec rails s -b 0.0.0.0 -p 8020"
@@ -183,10 +183,11 @@ class AgentServiceTest(ServiceTest):
                     build:
                         args:
                             JAVA_AGENT_BRANCH: master
+                            JAVA_AGENT_BUILT_VERSION: ""
                         dockerfile: Dockerfile
                         context: docker/java/spring
                     container_name: javaspring
-                    depends_on: 
+                    depends_on:
                         apm-server:
                             condition: 'service_healthy'
                     environment:

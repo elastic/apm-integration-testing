@@ -1283,6 +1283,7 @@ class AgentRubyRails(Service):
 class AgentJavaSpring(Service):
     SERVICE_PORT = 8090
     DEFAULT_AGENT_VERSION = "master"
+    DEFAULT_AGENT_RELEASE = ""
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1292,10 +1293,16 @@ class AgentJavaSpring(Service):
             default=cls.DEFAULT_AGENT_VERSION,
             help='Use Java agent version (master, 0.5, v.0.7.1, ...)',
         )
+        parser.add_argument(
+            "--java-agent-release",
+            default=cls.DEFAULT_AGENT_RELEASE,
+            help='Use Java agent release version (1.6.0, 0.6.2, ...)',
+        )
 
     def __init__(self, **options):
         super(AgentJavaSpring, self).__init__(**options)
         self.agent_version = options.get("java_agent_version", self.DEFAULT_AGENT_VERSION)
+        self.agent_release = options.get("java_agent_release", self.DEFAULT_AGENT_RELEASE)
         self.depends_on = {
             "apm-server": {"condition": "service_healthy"},
         }
@@ -1311,6 +1318,7 @@ class AgentJavaSpring(Service):
                 "dockerfile": "Dockerfile",
                 "args": {
                     "JAVA_AGENT_BRANCH": self.agent_version,
+                    "JAVA_AGENT_BUILT_VERSION": self.agent_release,
                 }
             },
             container_name="javaspring",
