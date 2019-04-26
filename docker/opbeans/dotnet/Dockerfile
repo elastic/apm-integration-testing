@@ -16,7 +16,7 @@ RUN dotnet publish -c Release -o build
 # JAVA_AGENT_VERSION parameterise the DOTNET agent version to be used
 #   if unset then it uses the build generated above. (TODO: to be done)
 FROM mcr.microsoft.com/dotnet/core/sdk:2.2 AS opbeans-dotnet
-ARG JAVA_AGENT_VERSION=0.0.1-alpha
+ARG JAVA_AGENT_VERSION=0.0.2-alpha
 ENV OPBEANS_DOTNET_REPO=elastic/opbeans-dotnet
 ENV OPBEANS_DOTNET_BRANCH=master
 RUN git clone https://github.com/${OPBEANS_DOTNET_REPO}.git /src -b ${OPBEANS_DOTNET_BRANCH}
@@ -34,5 +34,6 @@ FROM mcr.microsoft.com/dotnet/core/aspnet:2.2 AS runtime
 WORKDIR /app
 COPY --from=opbeans-dotnet /src/opbeans-dotnet/build ./
 COPY --from=opbeans/opbeans-frontend:latest /app/build /opbeans-frontend
+COPY appsettings.json .
 EXPOSE 80
 ENTRYPOINT ["dotnet", "opbeans-dotnet.dll"]
