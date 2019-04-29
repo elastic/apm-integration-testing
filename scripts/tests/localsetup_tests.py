@@ -9,7 +9,7 @@ import yaml
 from .. import compose
 
 from ..compose import (OpbeansPython, OpbeansRum, OpbeansGo, OpbeansJava,
-                       OpbeansNode, OpbeansRuby, OpbeansLoadGenerator)
+                       OpbeansNode, OpbeansRuby, OpbeansLoadGenerator, OpbeansDotnet)
 
 from ..compose import (ApmServer, Kibana, Elasticsearch)
 
@@ -43,6 +43,42 @@ def opbeans_services():
 
 
 class OpbeansServiceTest(ServiceTest):
+    def test_opbeans_dotnet(self):
+        opbeans_go = OpbeansDotnet(version="6.3.10").render()
+        self.assertEqual(
+            opbeans_go, yaml.load("""
+                opbeans-dotnet:
+                    build:
+                      dockerfile: Dockerfile
+                      context: docker/opbeans/dotnet
+                      args:
+                        - DOTNET_AGENT_BRANCH=master
+                        - DOTNET_AGENT_REPO=elastic/apm-agent-dotnet
+                        - DOTNET_AGENT_VERSION=
+                    container_name: localtesting_6.3.10_opbeans-dotnet
+                    ports:
+                      - "127.0.0.1:3004:80"
+                    environment:
+                      - ELASTIC_APM_SERVICE_NAME=opbeans-dotnet
+                      - ELASTIC_APM_SERVER_URLS=http://apm-server:8200
+                      - ELASTIC_APM_JS_SERVER_URL=http://apm-server:8200
+                      - ELASTIC_APM_FLUSH_INTERVAL=5
+                      - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
+                      - ELASTIC_APM_SAMPLE_RATE=1
+                      - ELASTICSEARCH_URL=http://elasticsearch:9200
+                      - OPBEANS_DT_PROBABILITY=0.50
+                    logging:
+                      driver: 'json-file'
+                      options:
+                          max-size: '2m'
+                          max-file: '5'
+                    depends_on:
+                      elasticsearch:
+                        condition: service_healthy
+                      apm-server:
+                        condition: service_healthy""")
+        )
+
     def test_opbeans_go(self):
         opbeans_go = OpbeansGo(version="6.3.10").render()
         self.assertEqual(

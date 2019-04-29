@@ -1400,6 +1400,51 @@ class OpbeansService(Service):
             )
 
 
+class OpbeansDotnet(OpbeansService):
+    SERVICE_PORT = 3004
+    DEFAULT_AGENT_BRANCH = "master"
+    DEFAULT_AGENT_REPO = "elastic/apm-agent-dotnet"
+    DEFAULT_SERVICE_NAME = "opbeans-dotnet"
+    DEFAULT_AGENT_VERSION = ""
+
+    @add_agent_environment([
+        ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
+    ])
+    def _content(self):
+        depends_on = { }
+        if self.options.get("enable_apm_server", True):
+            depends_on["apm-server"] = {"condition": "service_healthy"}
+        if self.options.get("enable_elasticsearch", True):
+            depends_on["elasticsearch"] = {"condition": "service_healthy"}
+
+        content = dict(
+            build=dict(
+                context="docker/opbeans/dotnet",
+                dockerfile="Dockerfile",
+                args=[
+                    "DOTNET_AGENT_BRANCH=" + (self.agent_branch or self.DEFAULT_AGENT_BRANCH),
+                    "DOTNET_AGENT_REPO=" + (self.agent_repo or self.DEFAULT_AGENT_REPO),
+                    "DOTNET_AGENT_VERSION=" + (self.agent_repo or self.DEFAULT_AGENT_VERSION),
+                ]
+            ),
+            environment=[
+                "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
+                "ELASTIC_APM_SERVER_URLS={}".format(self.apm_server_url),
+                "ELASTIC_APM_JS_SERVER_URL={}".format(self.apm_js_server_url),
+                "ELASTIC_APM_FLUSH_INTERVAL=5",
+                "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
+                "ELASTIC_APM_SAMPLE_RATE=1",
+                "ELASTICSEARCH_URL=http://elasticsearch:9200",
+                "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
+            ],
+            depends_on=depends_on,
+            image=None,
+            labels=None,
+            ports=[self.publish_port(self.port, 80)],
+        )
+        return content
+
+
 class OpbeansGo(OpbeansService):
     SERVICE_PORT = 3003
     DEFAULT_AGENT_BRANCH = "master"
@@ -1634,7 +1679,7 @@ class OpbeansPython(OpbeansService):
             image=None,
             labels=None,
             healthcheck=curl_healthcheck(3000, "opbeans-python", path="/"),
-            ports=[self.publish_port(self.port, 3000)],
+                ports=[self.publish_port(self.port, 3000)],
         )
         if self.agent_local_repo:
             content["volumes"] = [
