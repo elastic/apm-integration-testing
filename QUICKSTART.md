@@ -35,7 +35,7 @@ This repo is tested with Python 3 but best effort is made to make starting/stopp
 
 ### Starting an Environment
 
-The tool that we use to start and stop the environment is `./scripts/compose.py`.  This provides a handy cli for starting an APM environment using docker-compose. 
+The tool that we use to start and stop the environment is `./scripts/compose.py`.  This provides a handy cli for starting an APM environment using docker-compose.
 
 #### TL;DR
 
@@ -60,6 +60,7 @@ There are many other configuration options, but this is a quickstart.  See the [
 
 If you want to see what services are available to start, you can run: `./scripts/compose.py start --help | grep "^  --with-opbeans"` which will filter out a list of the agent envs:
 ```console
+  --with-opbeans-dotnet Enable opbeans-dotnet
   --with-opbeans-go     Enable opbeans-go
   --with-opbeans-java   Enable opbeans-java
   --with-opbeans-node   Enable opbeans-node
@@ -86,6 +87,7 @@ Here is a tablular view, excluding non-essentials:
 |--------------------------------------------|----------------------------------------|
 |`localtesting_6.4.0_opbeans-rum`            |[opbeans-rum](http://localhost:9222) (note - this needs chrome)   |
 |`localtesting_6.4.0_opbeans-java`           |[opbeans-java](http://localhost:3002)   |
+|`localtesting_6.4.0_opbeans-dotnet`         |[opbeans-dotnet](http://localhost:3004) |
 |`localtesting_6.4.0_opbeans-go`             |[opbeans-go](http://localhost:3003)     |
 |`localtesting_6.4.0_opbeans-node`           |[opbeans-node](http://localhost:3000)   |
 |`localtesting_6.4.0_opbeans-ruby`           |[opbeans-ruby](http://localhost:3001)   |
@@ -129,4 +131,3 @@ All services:
 
 docker-compose down
 ```
-

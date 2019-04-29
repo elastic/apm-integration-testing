@@ -14,6 +14,7 @@ import groovy.transform.Field
   YAML files to get agent versions and exclusions.
 */
 @Field Map ymlFiles = [
+  'dotnet': 'tests/versions/dotnet.yml',
   'go': 'tests/versions/go.yml',
   'java': 'tests/versions/java.yml',
   'nodejs': 'tests/versions/nodejs.yml',
@@ -27,6 +28,7 @@ import groovy.transform.Field
   Key which contains the agent versions.
 */
 @Field Map agentYamlVar = [
+  'dotnet': 'DOTNET_AGENT',
   'go': 'GO_AGENT',
   'java': 'JAVA_AGENT',
   'nodejs': 'NODEJS_AGENT',
@@ -40,6 +42,7 @@ import groovy.transform.Field
   translate from human agent name to an ID.
 */
 @Field Map mapAgentsIDs = [
+  '.NET': 'dotnet',
   'Go': 'go',
   'Java': 'java',
   'Node.js': 'nodejs',
@@ -70,7 +73,7 @@ pipeline {
     durabilityHint('PERFORMANCE_OPTIMIZED')
   }
   parameters {
-    choice(name: 'agent_integration_test', choices: ['Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
+    choice(name: 'agent_integration_test', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "7.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "master", description: "Integration testing Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
@@ -214,6 +217,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
     Enviroment variable to put the agent version before run tests.
   */
   public Map agentEnvVar = [
+    'dotnet': 'APM_AGENT_DOTNET_VERSION',
     'go': 'APM_AGENT_GO_VERSION',
     'java': 'APM_AGENT_JAVA_VERSION',
     'nodejs': 'APM_AGENT_NODEJS_VERSION',
