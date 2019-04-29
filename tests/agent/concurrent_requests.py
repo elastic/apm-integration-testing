@@ -49,6 +49,8 @@ class Concurrent:
                 self.agent = "go"
             elif self.app_name in ("springapp",):
                 self.agent = "java"
+            elif self.app_name in ("dotnettestapp",):
+                self.agent = "dotnet"
             else:
                 raise Exception(
                     "Missing agent for app {}".format(app_name))

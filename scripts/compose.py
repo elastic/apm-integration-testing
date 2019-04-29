@@ -1380,7 +1380,7 @@ class AgentDotnet(Service):
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
-        ("apm_server_url", "ELASTIC_APM_SERVER_URL"),
+        ("apm_server_url", "ELASTIC_APM_SERVER_URLS"),
     ])
     def _content(self):
         return dict(
@@ -1395,7 +1395,8 @@ class AgentDotnet(Service):
             container_name="dotnettestapp",
             environment={
                 "ELASTIC_APM_API_REQUEST_TIME": "3s",
-                "ELASTIC_APM_FLUSH_INTERVAL": "500ms",
+                "ELASTIC_APM_FLUSH_INTERVAL": "5",
+                "ELASTIC_APM_SAMPLE_RATE": "1",
                 "ELASTIC_APM_SERVICE_NAME": "dotnettestapp",
                 "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
             },

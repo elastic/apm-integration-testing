@@ -11,6 +11,8 @@ KIBANA_URL = "http://localhost:5601"
 
 DJANGO_SERVICE_NAME = "djangoapp"
 DJANGO_URL = "http://localhost:8003"
+DOTNET_SERVICE_NAME = "dotnettestapp"
+DOTNET_URL = "http://localhost:80"
 EXPRESS_SERVICE_NAME = "expressapp"
 EXPRESS_URL = "http://localhost:8010"
 FLASK_SERVICE_NAME = "flaskapp"
