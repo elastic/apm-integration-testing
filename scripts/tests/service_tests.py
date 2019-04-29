@@ -224,8 +224,9 @@ class AgentServiceTest(ServiceTest):
                             condition: 'service_healthy'
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
+                        ELASTIC_APM_FLUSH_INTERVAL: '5'
+                        ELASTIC_APM_SAMPLE_RATE: '1'
                         ELASTIC_APM_SERVICE_NAME: dotnettestapp
-                        ELASTIC_APM_FLUSH_INTERVAL: '500ms'
                         ELASTIC_APM_TRANSACTION_IGNORE_NAMES: 'healthcheck'
                     healthcheck:
                         interval: 10s
@@ -239,7 +240,7 @@ class AgentServiceTest(ServiceTest):
 
         # test overrides
         agent = AgentDotnet(apm_server_url="http://foo").render()["agent-dotnet"]
-        self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"])
+        self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URLS"])
 
 
 class ApmServerServiceTest(ServiceTest):
