@@ -1401,7 +1401,7 @@ class AgentDotnet(Service):
                 "ELASTIC_APM_SERVICE_NAME": "dotnetapp",
                 "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
             },
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "dotnetapp"),
+            healthcheck=curl_healthcheck(self.INTERNAL_SERVICE_PORT, "dotnetapp"),
             depends_on=self.depends_on,
             image=None,
             labels=None,
