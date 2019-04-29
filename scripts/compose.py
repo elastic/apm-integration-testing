@@ -1470,7 +1470,7 @@ class OpbeansDotnet(OpbeansService):
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
     ])
     def _content(self):
-        depends_on = { }
+        depends_on = {}
         if self.options.get("enable_apm_server", True):
             depends_on["apm-server"] = {"condition": "service_healthy"}
         if self.options.get("enable_elasticsearch", True):
@@ -1739,7 +1739,7 @@ class OpbeansPython(OpbeansService):
             image=None,
             labels=None,
             healthcheck=curl_healthcheck(3000, "opbeans-python", path="/"),
-                ports=[self.publish_port(self.port, 3000)],
+            ports=[self.publish_port(self.port, 3000)],
         )
         if self.agent_local_repo:
             content["volumes"] = [
