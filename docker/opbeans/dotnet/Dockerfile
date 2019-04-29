@@ -1,6 +1,6 @@
 
 # Stage 0: clone opbeans-dotnet and build the project
-# JAVA_AGENT_VERSION parameterise the DOTNET agent version to be used
+# DOTNET_AGENT_VERSION parameterise the DOTNET agent version to be used
 #   if unset then it uses the build generated above. (TODO: to be done)
 # DOTNET_AGENT_REPO and DOTNET_AGENT_BRANCH parameterise the DOTNET agent
 # repo and branch (or commit) to use.
