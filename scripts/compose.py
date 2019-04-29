@@ -1351,6 +1351,63 @@ class AgentJavaSpring(Service):
         )
 
 
+class AgentDotnet(Service):
+    SERVICE_PORT = 80
+    DEFAULT_AGENT_VERSION = "master"
+    DEFAULT_AGENT_RELEASE = ""
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(AgentDotnet, cls).add_arguments(parser)
+        parser.add_argument(
+            "--dotnet-agent-version",
+            default=cls.DEFAULT_AGENT_VERSION,
+            help='Use .NET agent version (master, 0.0.0.2, 0.0.0.1, ...)',
+        )
+        parser.add_argument(
+            "--dotnet-agent-release",
+            default=cls.DEFAULT_AGENT_RELEASE,
+            help='Use .NET agent release version (0.0.1-alpha, 0.0.2-alpha, ...)',
+        )
+
+    def __init__(self, **options):
+        super(AgentDotnet, self).__init__(**options)
+        self.agent_version = options.get("dotnet_agent_version", self.DEFAULT_AGENT_VERSION)
+        self.agent_release = options.get("dotnet_agent_release", self.DEFAULT_AGENT_RELEASE)
+        self.depends_on = {
+            "apm-server": {"condition": "service_healthy"},
+        }
+
+    @add_agent_environment([
+        ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
+        ("apm_server_url", "ELASTIC_APM_SERVER_URL"),
+    ])
+    def _content(self):
+        return dict(
+            build={
+                "context": "docker/dotnet",
+                "dockerfile": "Dockerfile",
+                "args": {
+                    "DOTNET_AGENT_BRANCH": self.agent_version,
+                    "DOTNET_AGENT_VERSION": self.agent_release,
+                },
+            },
+            container_name="dotnettestapp",
+            environment={
+                "ELASTIC_APM_API_REQUEST_TIME": "3s",
+                "ELASTIC_APM_FLUSH_INTERVAL": "500ms",
+                "ELASTIC_APM_SERVICE_NAME": "dotnettestapp",
+                "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
+            },
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "dotnettestapp"),
+            depends_on=self.depends_on,
+            image=None,
+            labels=None,
+            logging=None,
+            ports=[self.publish_port(self.port, self.SERVICE_PORT)],
+        )
+
+
 #
 # Opbeans Services
 #
