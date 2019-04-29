@@ -218,7 +218,7 @@ class AgentServiceTest(ServiceTest):
                             DOTNET_AGENT_VERSION: ""
                         dockerfile: Dockerfile
                         context: docker/dotnet
-                    container_name: dotnettestapp
+                    container_name: dotnetapp
                     depends_on:
                         apm-server:
                             condition: 'service_healthy'
@@ -226,13 +226,13 @@ class AgentServiceTest(ServiceTest):
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_FLUSH_INTERVAL: '5'
                         ELASTIC_APM_SAMPLE_RATE: '1'
-                        ELASTIC_APM_SERVICE_NAME: dotnettestapp
+                        ELASTIC_APM_SERVICE_NAME: dotnetapp
                         ELASTIC_APM_TRANSACTION_IGNORE_NAMES: 'healthcheck'
                     healthcheck:
                         interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output",
-                        "/dev/null", "http://dotnettestapp:80/healthcheck"]
+                        "/dev/null", "http://dotnetapp:80/healthcheck"]
                     ports:
                         - 127.0.0.1:80:80
             """)

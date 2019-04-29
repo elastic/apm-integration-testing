@@ -49,7 +49,7 @@ class Concurrent:
                 self.agent = "go"
             elif self.app_name in ("springapp",):
                 self.agent = "java"
-            elif self.app_name in ("dotnettestapp",):
+            elif self.app_name in ("dotnetapp",):
                 self.agent = "dotnet"
             else:
                 raise Exception(
