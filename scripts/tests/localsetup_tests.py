@@ -78,7 +78,7 @@ class OpbeansServiceTest(ServiceTest):
                       apm-server:
                         condition: service_healthy
                     healthcheck:
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-dotnet:80/api/customers"]
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-dotnet:80/"]
                         interval: 10s
                         retries: 36""")
         )

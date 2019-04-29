@@ -1499,7 +1499,7 @@ class OpbeansDotnet(OpbeansService):
             depends_on=depends_on,
             image=None,
             labels=None,
-            healthcheck=curl_healthcheck(80, "opbeans-dotnet", path="/api/customers", retries=36),
+            healthcheck=curl_healthcheck(80, "opbeans-dotnet", path="/", retries=36),
             ports=[self.publish_port(self.port, 80)],
         )
         return content
