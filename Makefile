@@ -98,7 +98,7 @@ dockerized-test:
 	  -e ES_URL=http://elasticsearch:9200 \
 	  -e KIBANA_URL=http://kibana:5601 \
 	  -e DJANGO_URL="http://djangoapp:8003" \
-	  -e DOTNET_URL="http://dotnetapp:8100" \
+	  -e DOTNET_URL="http://dotnetapp:80" \
 	  -e EXPRESS_URL="http://expressapp:8010" \
 	  -e FLASK_URL="http://flaskapp:8001" \
 	  -e GO_NETHTTP_URL="http://gonethttpapp:8080" \
