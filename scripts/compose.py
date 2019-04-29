@@ -1353,7 +1353,7 @@ class AgentJavaSpring(Service):
 
 class AgentDotnet(Service):
     INTERNAL_SERVICE_PORT = 80
-    SERVICE_PORT = 8100
+    SERVICE_PORT = 80
     DEFAULT_AGENT_VERSION = "master"
     DEFAULT_AGENT_RELEASE = ""
 

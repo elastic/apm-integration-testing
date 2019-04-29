@@ -234,7 +234,7 @@ class AgentServiceTest(ServiceTest):
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output",
                         "/dev/null", "http://dotnetapp:80/healthcheck"]
                     ports:
-                        - 127.0.0.1:8100:80
+                        - 127.0.0.1:80:80
             """)
         )
 
