@@ -113,6 +113,7 @@ Host gcptunnel
     LocalForward 3001 127.0.0.1:3001
     LocalForward 3002 127.0.0.1:3002
     LocalForward 3003 127.0.0.1:3003
+    LocalForward 3004 127.0.0.1:80
     LocalForward 5601 127.0.0.1:5601
     LocalForward 8000 127.0.0.1:8000
     LocalForward 9200 127.0.0.1:9200
