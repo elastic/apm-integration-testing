@@ -19,6 +19,6 @@ RUN ./run.sh
 ## FROM mcr.microsoft.com/dotnet/core/aspnet:2.2-alpine AS runtime
 FROM mcr.microsoft.com/dotnet/core/aspnet:2.2 AS runtime
 WORKDIR /app
-COPY --from=build /src/app/testapp/build ./
+COPY --from=build /src/aspnetcore/build ./
 EXPOSE 80
-ENTRYPOINT ["dotnet", "testapp.dll"]
+ENTRYPOINT ["dotnet", "TestAspNetCoreApp.dll"]
