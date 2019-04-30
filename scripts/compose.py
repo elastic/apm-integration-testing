@@ -1352,7 +1352,6 @@ class AgentJavaSpring(Service):
 
 
 class AgentDotnet(Service):
-    INTERNAL_SERVICE_PORT = 80
     SERVICE_PORT = 8100
     DEFAULT_AGENT_VERSION = "master"
     DEFAULT_AGENT_RELEASE = ""
@@ -1401,12 +1400,12 @@ class AgentDotnet(Service):
                 "ELASTIC_APM_SERVICE_NAME": "dotnetapp",
                 "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
             },
-            healthcheck=curl_healthcheck(self.INTERNAL_SERVICE_PORT, "dotnetapp"),
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "dotnetapp"),
             depends_on=self.depends_on,
             image=None,
             labels=None,
             logging=None,
-            ports=[self.publish_port(self.port, self.INTERNAL_SERVICE_PORT)],
+            ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
 

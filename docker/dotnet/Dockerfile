@@ -20,5 +20,5 @@ RUN ./run.sh
 FROM mcr.microsoft.com/dotnet/core/aspnet:2.2 AS runtime
 WORKDIR /app
 COPY --from=build /src/aspnetcore/build ./
-EXPOSE 80
-ENTRYPOINT ["dotnet", "TestAspNetCoreApp.dll"]
+EXPOSE 8100
+ENTRYPOINT ["dotnet", "TestAspNetCoreApp.dll", "--urls=http://0.0.0.0:8100"]
