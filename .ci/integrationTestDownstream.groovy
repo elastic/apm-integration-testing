@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-@Library('apm@v1.0.9') _
+@Library('apm@current') _
 
 import co.elastic.matrix.*
 import groovy.transform.Field
@@ -46,11 +46,12 @@ import groovy.transform.Field
   'Python': 'python',
   'Ruby': 'ruby',
   'RUM': 'rum',
-  'All': 'all'
+  'All': 'all',
+  'UI': 'ui'
 ]
 
 pipeline {
-  agent { label 'linux && immutable' }
+  agent { label 'linux && immutable && docker' }
   environment {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
     REPO="git@github.com:elastic/apm-integration-testing.git"
@@ -108,7 +109,10 @@ pipeline {
     */
     stage("Integration Tests"){
       when {
-        expression { return params.agent_integration_test != 'All' }
+        expression {
+          return (params.agent_integration_test != 'All'
+            && params.agent_integration_test != 'UI')
+        }
       }
       steps {
         deleteDir()
@@ -144,12 +148,32 @@ pipeline {
         deleteDir()
         unstash "source"
         dir("${BASE_DIR}"){
-          sh "./scripts/ci/all.sh"
+          sh ".ci/scripts/all.sh"
         }
       }
       post {
         always {
           wrappingup('all')
+        }
+      }
+    }
+    stage("UI") {
+      when {
+        expression { return params.agent_integration_test == 'UI' }
+      }
+      environment {
+        TMPDIR = "${WORKSPACE}/${BASE_DIR}"
+        HOME = "${WORKSPACE}/${BASE_DIR}"
+      }
+      steps {
+        deleteDir()
+        unstash "source"
+        dir("${BASE_DIR}"){
+          script {
+            docker.image('node:11').inside() {
+              sh(label: "Check Schema", script: ".ci/scripts/ui.sh")
+            }
+          }
         }
       }
     }
@@ -245,7 +269,7 @@ def runScript(Map params = [:]){
     withEnv(env){
       sh """#!/bin/bash
       export TMPDIR="${WORKSPACE}"
-      ./scripts/ci/${agentType}.sh
+      .ci/scripts/${agentType}.sh
       """
     }
   }
