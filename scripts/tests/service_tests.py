@@ -7,7 +7,7 @@ from ..compose import (AgentGoNetHttp, AgentJavaSpring, AgentNodejsExpress,
                        AgentPythonDjango, AgentPythonFlask, AgentRubyRails)
 
 from ..compose import (ApmServer, Kibana, Elasticsearch, Filebeat, Metricbeat,
-                       Logstash, Kafka)
+                       Packetbeat, Logstash, Kafka)
 
 from ..compose import Zookeeper
 
@@ -654,6 +654,36 @@ class MetricbeatServiceTest(ServiceTest):
                     volumes:
                         - ./docker/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
                         - /var/run/docker.sock:/var/run/docker.sock""")
+        )
+
+
+class PacketbeatServiceTest(ServiceTest):
+    def test_packetbeat(self):
+        packetbeat = Packetbeat(version="6.2.4", release=True).render()
+        self.assertEqual(
+            packetbeat, yaml.load("""
+                packetbeat:
+                    image: docker.elastic.co/beats/packetbeat:6.2.4
+                    container_name: localtesting_6.2.4_packetbeat
+                    user: root
+                    command: packetbeat -e --strict.perms=false -E packetbeat.interfaces.device=eth0 -E setup.dashboards.enabled=true
+                    environment: {}
+                    logging:
+                        driver: 'json-file'
+                        options:
+                            max-size: '2m'
+                            max-file: '5'
+                    depends_on:
+                        elasticsearch:
+                            condition: service_healthy
+                        kibana:
+                            condition: service_healthy
+                    volumes:
+                        - ./docker/packetbeat/packetbeat.yml:/usr/share/packetbeat/packetbeat.yml
+                        - /var/run/docker.sock:/var/run/docker.sock
+                    network_mode: 'service:apm-server'
+                    privileged: 'true'
+                    cap_add: ['NET_ADMIN', 'NET_RAW']""") # noqa: 501
         )
 
 
