@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import unittest
+import json
 import yaml
 
 from ..compose import (AgentGoNetHttp, AgentJavaSpring, AgentNodejsExpress,
@@ -343,6 +344,34 @@ class ApmServerServiceTest(ServiceTest):
         self.assertFalse(
             any(e.startswith("output.elasticsearch.pipelines") for e in apm_server["command"]),
             "output.elasticsearch.pipelines set while apm_server_enable_pipeline=False in version < 6.5"
+        )
+
+    def test_queue_file(self):
+        cases = [
+            (
+                dict(),
+                {"file": {"path": "$${path.data}/spool.dat"}},
+            ),
+            (
+                dict(apm_server_queue_file_size="200MiB"),
+                {"file": {"path": "$${path.data}/spool.dat", "size": "200MiB"}},
+            ),
+            (
+                dict(apm_server_queue_write_flush_timeout="0s"),
+                {"file": {"path": "$${path.data}/spool.dat"}, "write":{"flush.timeout": "0s"}},
+            ),
+        ]
+        for opts, want in cases:
+            apm_server = ApmServer(version="7.1.10", apm_server_queue="file", **opts).render()["apm-server"]
+            got = [e.split("=", 1)[1] for e in apm_server["command"] if e.startswith("queue.spool=")]
+            self.assertEqual(1, len(got))
+            self.assertEqual(json.loads(got[0]), want)
+
+    def test_queue_mem(self):
+        apm_server = ApmServer(version="7.1.10", apm_server_queue="mem").render()["apm-server"]
+        self.assertFalse(
+            any(e.startswith("queue.") for e in apm_server["command"]),
+            "no queue settings with memory queue (for now)"
         )
 
     def test_apm_server_build_branch(self):

@@ -431,6 +431,24 @@ class ApmServer(StackService, Service):
         self.apm_server_monitor_port = options.get("apm_server_monitor_port", self.DEFAULT_MONITOR_PORT)
         self.apm_server_output = options.get("apm_server_output", self.DEFAULT_OUTPUT)
 
+        if options.get("apm_server_queue", "mem") == "file":
+            # enable file spool queue
+            q = {"file": {"path": "$${path.data}/spool.dat"}, "write": {}}
+            # override defaults
+            if options.get("apm_server_queue_file_size"):
+                q["file"]["size"] = options["apm_server_queue_file_size"]
+            if options.get("apm_server_queue_file_page_size"):
+                q["file"]["page_size"] = options["apm_server_queue_file_page_size"]
+            if options.get("apm_server_queue_write_buffer_size"):
+                q["write"]["buffer_size"] = options["apm_server_queue_write_buffer_size"]
+            if options.get("apm_server_queue_write_flush_events"):
+                q["write"]["flush.events"] = options["apm_server_queue_write_flush_events"]
+            if options.get("apm_server_queue_write_flush_timeout"):
+                q["write"]["flush.timeout"] = options["apm_server_queue_write_flush_timeout"]
+            if not q["write"]:
+                q.pop("write")
+            self.apm_server_command_args.append(("queue.spool", json.dumps(q)))
+
         es_urls = self.options.get("apm_server_elasticsearch_urls")
         if not es_urls:
             es_urls = ["elasticsearch:9200"]
@@ -526,6 +544,38 @@ class ApmServer(StackService, Service):
         parser.add_argument(
             '--apm-server-elasticsearch-password',
             help="apm-server elasticsearch output password.",
+        )
+        parser.add_argument(
+            "--apm-server-queue",
+            choices=("file", "mem"),
+            default="mem",
+            help="apm-server queue type.",
+        )
+        parser.add_argument(
+            "--apm-server-queue-file-size",
+            help="apm-server file spool size (eg 128MiB).",
+        )
+        parser.add_argument(
+            "--apm-server-queue-file-page-size",
+            help="apm-server file spool page size (eg 16KiB).",
+        )
+        parser.add_argument(
+            "--apm-server-queue-write-buffer-size",
+            help="apm-server file write buffer size (eg 10MiB).",
+        )
+        parser.add_argument(
+            "--apm-server-queue-write-codec",
+            choices=("cbor", "json"),
+            default="cbor",
+            help="apm-server file write codec.",
+        )
+        parser.add_argument(
+            "--apm-server-queue-write-flush-events",
+            help="apm-server file write flush event count.",
+        )
+        parser.add_argument(
+            "--apm-server-queue-write-flush-timeout",
+            help="apm-server file write flush timeout.",
         )
         parser.add_argument(
             '--apm-server-secret-token',
