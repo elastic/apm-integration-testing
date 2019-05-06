@@ -474,6 +474,9 @@ class ApmServer(StackService, Service):
                     ("output.logstash.hosts", "[\"logstash:5044\"]"),
                 ])
 
+        for opt in options.get("apm_server_opt", []):
+            self.apm_server_command_args.append(opt.split("=", 1))
+
         self.apm_server_count = options.get("apm_server_count", 1)
         self.apm_server_tee = options.get("apm_server_tee", False)
 
@@ -541,6 +544,12 @@ class ApmServer(StackService, Service):
             default=False,
             help=argparse.SUPPRESS,
             # help="tee proxied traffic instead of load balancing.  Only for  7.0upgrade testing atm.",
+        )
+        parser.add_argument(
+            "--apm-server-opt",
+            action="append",
+            default=[],
+            help="arbitrary additional configuration to set for apm-server"
         )
 
     def build_candidate_manifest(self):

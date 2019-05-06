@@ -309,6 +309,17 @@ class ApmServerServiceTest(ServiceTest):
         for o in kafka_options:
             self.assertTrue(o in apm_server["command"], "{} not set while output=kafka".format(o))
 
+    def test_opt(self):
+        apm_server = ApmServer(version="7.1.10", apm_server_opt=("an.opt=foo", "opt2=bar")).render()["apm-server"]
+        self.assertTrue(
+            any(e.startswith("an.opt") for e in apm_server["command"]),
+            "some.option should be set "
+        )
+        self.assertTrue(
+            any(e.startswith("opt2") for e in apm_server["command"]),
+            "some.option should be set "
+        )
+
     def test_pipeline(self):
         apm_server = ApmServer(version="6.5.10").render()["apm-server"]
         self.assertTrue(
