@@ -15,3 +15,7 @@ require (
 	golang.org/x/tools v0.0.0-20190503185657-3b6f9c0030f7 // indirect
 	gopkg.in/yaml.v2 v2.2.2 // indirect
 )
+
+replace go.elastic.co/apm => /src/apm-agent-go
+
+replace go.elastic.co/apm/module/apmhttp => /src/apm-agent-go/module/apmhttp
