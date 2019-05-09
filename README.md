@@ -161,6 +161,7 @@ These are the scripts available to execute:
 
 * `all.sh:` runs all test on apm-server and every agent type.
 * `common.sh:` common scripts variables and functions, it does not execute anything.
+* `dotnet.sh:` runs .NET tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `go.sh:` runs Go tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `java.sh:` runs Java tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `kibana.sh:` runs kibana agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
@@ -178,6 +179,7 @@ It is possible to configure some options and versions to run by defining environ
 * `BUILD_OPTS`: aggregates arguments to default arguments passing to compose.py see the compose.py help to know which ones you can use.
 * `ELASTIC_STACK_VERSION`: selects the Elastic Stack version to use on tests, by default is is used the master branch. You can choose any branch or tag from the Github repo.
 * `APM_SERVER_BRANCH`: selects the APM Server version to use on tests, by default it uses the master branch. You can choose any branch or tag from the Github repo.
+* `APM_AGENT_DOTNET_VERSION`: selects the agent .NET version to use, by default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
 * `APM_AGENT_GO_VERSION`: selects the agent Go version to use, by default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
 * `APM_AGENT_JAVA_VERSION`: selects the agent Java version to use, by default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
 * `APM_AGENT_NODEJS_VERSION`: selects the agent Nodejs version to use, by default it uses the master branch. See [specify an agent version](#specify-an-agent-version)

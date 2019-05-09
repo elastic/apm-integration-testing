@@ -1127,6 +1127,64 @@ class AgentJavaSpring(Service):
         )
 
 
+class AgentDotnet(Service):
+    SERVICE_PORT = 8100
+    DEFAULT_AGENT_VERSION = "master"
+    DEFAULT_AGENT_RELEASE = ""
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(AgentDotnet, cls).add_arguments(parser)
+        parser.add_argument(
+            "--dotnet-agent-version",
+            default=cls.DEFAULT_AGENT_VERSION,
+            help='Use .NET agent version (master, 0.0.0.2, 0.0.0.1, ...)',
+        )
+        parser.add_argument(
+            "--dotnet-agent-release",
+            default=cls.DEFAULT_AGENT_RELEASE,
+            help='Use .NET agent release version (0.0.1-alpha, 0.0.2-alpha, ...)',
+        )
+
+    def __init__(self, **options):
+        super(AgentDotnet, self).__init__(**options)
+        self.agent_version = options.get("dotnet_agent_version", self.DEFAULT_AGENT_VERSION)
+        self.agent_release = options.get("dotnet_agent_release", self.DEFAULT_AGENT_RELEASE)
+        self.depends_on = {
+            "apm-server": {"condition": "service_healthy"},
+        }
+
+    @add_agent_environment([
+        ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
+        ("apm_server_url", "ELASTIC_APM_SERVER_URLS"),
+    ])
+    def _content(self):
+        return dict(
+            build={
+                "context": "docker/dotnet",
+                "dockerfile": "Dockerfile",
+                "args": {
+                    "DOTNET_AGENT_BRANCH": self.agent_version,
+                    "DOTNET_AGENT_VERSION": self.agent_release,
+                },
+            },
+            container_name="dotnetapp",
+            environment={
+                "ELASTIC_APM_API_REQUEST_TIME": "3s",
+                "ELASTIC_APM_FLUSH_INTERVAL": "5",
+                "ELASTIC_APM_SAMPLE_RATE": "1",
+                "ELASTIC_APM_SERVICE_NAME": "dotnetapp",
+                "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
+            },
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "dotnetapp"),
+            depends_on=self.depends_on,
+            image=None,
+            labels=None,
+            logging=None,
+            ports=[self.publish_port(self.port, self.SERVICE_PORT)],
+        )
+
+
 #
 # Opbeans Services
 #
@@ -1174,6 +1232,52 @@ class OpbeansService(Service):
                 dest=cls.option_name() + '_agent_local_repo',
                 help=cls.name() + " local repo path for agent"
             )
+
+
+class OpbeansDotnet(OpbeansService):
+    SERVICE_PORT = 3004
+    DEFAULT_AGENT_BRANCH = "master"
+    DEFAULT_AGENT_REPO = "elastic/apm-agent-dotnet"
+    DEFAULT_SERVICE_NAME = "opbeans-dotnet"
+    DEFAULT_AGENT_VERSION = ""
+
+    @add_agent_environment([
+        ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
+    ])
+    def _content(self):
+        depends_on = {}
+        if self.options.get("enable_apm_server", True):
+            depends_on["apm-server"] = {"condition": "service_healthy"}
+        if self.options.get("enable_elasticsearch", True):
+            depends_on["elasticsearch"] = {"condition": "service_healthy"}
+
+        content = dict(
+            build=dict(
+                context="docker/opbeans/dotnet",
+                dockerfile="Dockerfile",
+                args=[
+                    "DOTNET_AGENT_BRANCH=" + (self.agent_branch or self.DEFAULT_AGENT_BRANCH),
+                    "DOTNET_AGENT_REPO=" + (self.agent_repo or self.DEFAULT_AGENT_REPO),
+                    "DOTNET_AGENT_VERSION=" + (self.agent_repo or self.DEFAULT_AGENT_VERSION),
+                ]
+            ),
+            environment=[
+                "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
+                "ELASTIC_APM_SERVER_URLS={}".format(self.apm_server_url),
+                "ELASTIC_APM_JS_SERVER_URL={}".format(self.apm_js_server_url),
+                "ELASTIC_APM_FLUSH_INTERVAL=5",
+                "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
+                "ELASTIC_APM_SAMPLE_RATE=1",
+                "ELASTICSEARCH_URL=http://elasticsearch:9200",
+                "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
+            ],
+            depends_on=depends_on,
+            image=None,
+            labels=None,
+            healthcheck=curl_healthcheck(80, "opbeans-dotnet", path="/", retries=36),
+            ports=[self.publish_port(self.port, 80)],
+        )
+        return content
 
 
 class OpbeansGo(OpbeansService):

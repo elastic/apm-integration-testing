@@ -39,7 +39,12 @@ namespace TestAspNetCoreApp
 			app.Run(async context => { await context.Response.WriteAsync("OK"); });
 
 		private static void Foo(IApplicationBuilder app) =>
-			app.Run(async context => { await context.Response.WriteAsync("foo"); });
+			app.Run(async context => {
+				await context.Response.WriteAsync("foo");
+				await Agent.Tracer.CurrentTransaction.CaptureSpan("foo", "app",
+					async () => { await Task.Delay(50); });
+				await Task.Delay(50);
+			});
 
 		private static void Oof(IApplicationBuilder app) =>
 			app.Run(context =>
@@ -51,8 +56,13 @@ namespace TestAspNetCoreApp
 		private static void Bar(IApplicationBuilder app) =>
 			app.Run(async context =>
 			{
-				await Agent.Tracer.CurrentTransaction.CaptureSpan("barSpan", "sampleType",
-					async () => { await Task.Delay(50); });
+				await Agent.Tracer.CurrentTransaction.CaptureSpan("bar", "app",
+					async () =>
+					{
+						await Agent.Tracer.CurrentTransaction.CaptureSpan("extra", "app",
+							async () => { await Task.Delay(50); });
+						await Task.Delay(50);
+					});
 
 				await context.Response.WriteAsync("bar");
 			});
