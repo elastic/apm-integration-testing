@@ -7,6 +7,8 @@ golang:1.10
 haproxy:1.9
 maven:3.5.3-jdk-10
 openjdk:10-jre-slim
+mcr.microsoft.com/dotnet/core/sdk:2.2
+mcr.microsoft.com/dotnet/core/aspnet:2.2
 node:8
 node:8-slim
 opbeans/opbeans-java:latest

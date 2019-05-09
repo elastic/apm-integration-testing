@@ -4,7 +4,7 @@ import unittest
 import json
 import yaml
 
-from ..compose import (AgentGoNetHttp, AgentJavaSpring, AgentNodejsExpress,
+from ..compose import (AgentDotnet, AgentGoNetHttp, AgentJavaSpring, AgentNodejsExpress,
                        AgentPythonDjango, AgentPythonFlask, AgentRubyRails)
 
 from ..compose import (ApmServer, Kibana, Elasticsearch, Filebeat, Metricbeat,
@@ -207,6 +207,41 @@ class AgentServiceTest(ServiceTest):
         # test overrides
         agent = AgentJavaSpring(apm_server_url="http://foo").render()["agent-java-spring"]
         self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"])
+
+    def test_agent_dotnet(self):
+        agent = AgentDotnet().render()
+        self.assertDictEqual(
+            agent, yaml.load("""
+                agent-dotnet:
+                    build:
+                        args:
+                            DOTNET_AGENT_BRANCH: master
+                            DOTNET_AGENT_VERSION: ""
+                        dockerfile: Dockerfile
+                        context: docker/dotnet
+                    container_name: dotnetapp
+                    depends_on:
+                        apm-server:
+                            condition: 'service_healthy'
+                    environment:
+                        ELASTIC_APM_API_REQUEST_TIME: '3s'
+                        ELASTIC_APM_FLUSH_INTERVAL: '5'
+                        ELASTIC_APM_SAMPLE_RATE: '1'
+                        ELASTIC_APM_SERVICE_NAME: dotnetapp
+                        ELASTIC_APM_TRANSACTION_IGNORE_NAMES: 'healthcheck'
+                    healthcheck:
+                        interval: 10s
+                        retries: 12
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output",
+                        "/dev/null", "http://dotnetapp:8100/healthcheck"]
+                    ports:
+                        - 127.0.0.1:8100:8100
+            """)
+        )
+
+        # test overrides
+        agent = AgentDotnet(apm_server_url="http://foo").render()["agent-dotnet"]
+        self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URLS"])
 
 
 class ApmServerServiceTest(ServiceTest):

@@ -49,6 +49,8 @@ class Concurrent:
                 self.agent = "go"
             elif self.app_name in ("springapp",):
                 self.agent = "java"
+            elif self.app_name in ("dotnetapp",):
+                self.agent = "dotnet"
             else:
                 raise Exception(
                     "Missing agent for app {}".format(app_name))
@@ -234,11 +236,13 @@ class Concurrent:
                 assert framework in ("Ruby on Rails",), service
             elif agent_name == 'go':
                 assert lang == "go", service
-                assert transaction['type'] == 'request'
                 assert search == 'q=1', service
             elif agent_name == 'java':
                 assert lang == "Java", service
-                assert transaction['type'] == 'request'
+                assert search == 'q=1', service
+            elif agent_name == 'dotnet':
+                assert lang == "C#", service
+                assert framework in ("ASP.NET Core",), service
                 assert search == 'q=1', service
             else:
                 raise Exception("Undefined agent {}".format(agent))

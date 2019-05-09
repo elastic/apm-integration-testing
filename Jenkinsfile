@@ -60,6 +60,7 @@ pipeline {
           } else {
             downstreamJobs = [
             'All': {runJob('All')},
+            '.NET': {runJob('.NET')},
             'Go': {runJob('Go')},
             'Java': {runJob('Java')},
             'Node.js': {runJob('Node.js')},
