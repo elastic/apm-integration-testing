@@ -1,5 +1,5 @@
 JAVA_AGENT:
-  - 'github;master'
+  - 'github;c6591a736d49dbf304e731d032114eeda4b7d147'
   - 'release;1.0.1'
   - 'release;1.1.0'
   - 'release;1.2.0'
