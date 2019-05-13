@@ -2,7 +2,8 @@
 
 source /usr/local/bin/bash_standard_lib.sh
 
-DOCKER_IMAGES="golang:1.11
+DOCKER_IMAGES="golang:latest
+golang:1.11
 golang:1.10
 haproxy:1.9
 maven:3.5.3-jdk-10
@@ -28,6 +29,8 @@ ruby:2.4
 ruby:2.3
 jruby:9.2
 jruby:9.1
+node:12
+node:12.0
 node:11
 node:11.0
 node:10
