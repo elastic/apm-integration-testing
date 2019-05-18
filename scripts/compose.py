@@ -846,17 +846,82 @@ class Elasticsearch(StackService, Service):
 
 
 class BeatMixin(object):
+    DEFAULT_OUTPUT = "elasticsearch"
+    OUTPUTS = {"elasticsearch", "kafka", "logstash"}
+
+    @classmethod
+    def add_arguments(cls, parser):
+        parser.add_argument(
+            "--{}-elasticsearch-url".format(cls.name()),
+            action="append",
+            dest="apm_server_elasticsearch_urls",
+            help="{} elasticsearch output url(s).".format(cls.name()),
+        )
+        parser.add_argument(
+            "--{}-elasticsearch-username".format(cls.name()),
+            help="{} elasticsearch output username.".format(cls.name()),
+        )
+        parser.add_argument(
+            "--{}-elasticsearch-password".format(cls.name()),
+            help="{} elasticsearch output password.".format(cls.name()),
+        )
+        parser.add_argument(
+            "--{}-output".format(cls.name()),
+            choices=cls.OUTPUTS,
+            default="elasticsearch",
+            help="{} output".format(cls.name()),
+        )
+
     def __init__(self, **options):
         self.command = self.DEFAULT_COMMAND
         self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if options.get(
             "enable_elasticsearch", True) else {}
         if options.get("enable_kibana", True):
-            self.command += " -E setup.dashboards.enabled=true"
+            self.command.extend(["-E", "setup.dashboards.enabled=true"])
             self.depends_on["kibana"] = {"condition": "service_healthy"}
         self.environment = {}
         if options.get("xpack_secure"):
             self.environment["ELASTICSEARCH_PASSWORD"] = "changeme"
             self.environment["ELASTICSEARCH_USERNAME"] = "{}_user".format(self.name())
+
+        es_urls = options.get("{}_elasticsearch_urls".format(self.name()))
+        if not es_urls:
+            es_urls = ["elasticsearch:9200"]
+
+        def add_es_config(args, prefix="output"):
+            """add elasticsearch configuration options."""
+            default_beat_creds = {"username": "{}_user".format(self.name()), "password": "changeme"}
+            args.append((prefix + ".elasticsearch.hosts", json.dumps(es_urls)))
+            for cfg in ("username", "password"):
+                es_opt = "{}_elasticsearch_{}".format(self.name(), cfg)
+                if options.get(es_opt):
+                    args.append((prefix + ".elasticsearch.{}".format(cfg), options[es_opt]))
+                elif options.get("xpack_secure"):
+                    args.append((prefix + ".elasticsearch.{}".format(cfg), default_beat_creds.get(cfg)))
+
+        command_args = []
+        add_es_config(command_args)
+        beat_output = options.get("{}_output".format(self.name()), self.DEFAULT_OUTPUT)
+        if beat_output == "elasticsearch":
+            command_args.extend([("output.elasticsearch.enabled", "true")])
+        else:
+            command_args.extend([("output.elasticsearch.enabled", "false")])
+            add_es_config(command_args, prefix="xpack.monitoring")
+            if beat_output == "kafka":
+                command_args.extend([
+                    ("output.kafka.enabled", "true"),
+                    ("output.kafka.hosts", "[\"kafka:9092\"]"),
+                    ("output.kafka.topics", "[{default: '{}', topic: '{}'}]".format(self.name(), self.name())),
+                ])
+            elif beat_output == "logstash":
+                command_args.extend([
+                    ("output.logstash.enabled", "true"),
+                    ("output.logstash.hosts", "[\"logstash:5044\"]"),
+                ])
+
+        for param, value in command_args:
+            self.command.extend(["-E", param + "=" + value])
+
         super(BeatMixin, self).__init__(**options)
 
     def build_candidate_manifest(self):
@@ -883,7 +948,7 @@ class BeatMixin(object):
 
 
 class Filebeat(BeatMixin, StackService, Service):
-    DEFAULT_COMMAND = "filebeat -e --strict.perms=false"
+    DEFAULT_COMMAND = ["filebeat", "-e", "--strict.perms=false"]
     docker_path = "beats"
 
     def __init__(self, **options):
@@ -907,7 +972,7 @@ class Filebeat(BeatMixin, StackService, Service):
 
 
 class Heartbeat(BeatMixin, StackService, Service):
-    DEFAULT_COMMAND = "heartbeat -e --strict.perms=false"
+    DEFAULT_COMMAND = ["heartbeat", "-e", "--strict.perms=false"]
     docker_path = "beats"
 
     def __init__(self, **options):
@@ -990,7 +1055,7 @@ class Logstash(StackService, Service):
 
 
 class Metricbeat(BeatMixin, StackService, Service):
-    DEFAULT_COMMAND = "metricbeat -e --strict.perms=false"
+    DEFAULT_COMMAND = ["metricbeat", "-e", "--strict.perms=false"]
     docker_path = "beats"
 
     def _content(self):

@@ -544,7 +544,7 @@ class FilebeatServiceTest(ServiceTest):
                     image: docker.elastic.co/beats/filebeat:6.0.4
                     container_name: localtesting_6.0.4_filebeat
                     user: root
-                    command: filebeat -e --strict.perms=false -E setup.dashboards.enabled=true
+                    command: ["filebeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true"]
                     environment: {}
                     logging:
                         driver: 'json-file'
@@ -570,7 +570,7 @@ class FilebeatServiceTest(ServiceTest):
                     image: docker.elastic.co/beats/filebeat:6.1.1
                     container_name: localtesting_6.1.1_filebeat
                     user: root
-                    command: filebeat -e --strict.perms=false -E setup.dashboards.enabled=true
+                    command: ["filebeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true"]
                     environment: {}
                     logging:
                         driver: 'json-file'
@@ -587,6 +587,17 @@ class FilebeatServiceTest(ServiceTest):
                         - /var/lib/docker/containers:/var/lib/docker/containers
                         - /var/run/docker.sock:/var/run/docker.sock""")
         )
+
+    def test_logstash_output(self):
+        beat = Filebeat(version="6.3.100", filebeat_output="logstash").render()["filebeat"]
+        options = [
+            "output.elasticsearch.enabled=false",
+            "output.logstash.enabled=true",
+            "output.logstash.hosts=[\"logstash:5044\"]",
+            "xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
+        ]
+        for o in options:
+            self.assertTrue(o in beat["command"], "{} not set in {} while output=logstash".format(o, beat["command"]))
 
 
 class KafkaServiceTest(ServiceTest):
@@ -714,7 +725,7 @@ class MetricbeatServiceTest(ServiceTest):
                     image: docker.elastic.co/beats/metricbeat:6.2.4
                     container_name: localtesting_6.2.4_metricbeat
                     user: root
-                    command: metricbeat -e --strict.perms=false -E setup.dashboards.enabled=true
+                    command: ["metricbeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true"]
                     environment: {}
                     logging:
                         driver: 'json-file'
@@ -730,6 +741,17 @@ class MetricbeatServiceTest(ServiceTest):
                         - ./docker/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
                         - /var/run/docker.sock:/var/run/docker.sock""")
         )
+
+    def test_logstash_output(self):
+        beat = Metricbeat(version="6.3.100", metricbeat_output="logstash").render()["metricbeat"]
+        options = [
+            "output.elasticsearch.enabled=false",
+            "output.logstash.enabled=true",
+            "output.logstash.hosts=[\"logstash:5044\"]",
+            "xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
+        ]
+        for o in options:
+            self.assertTrue(o in beat["command"], "{} not set in {} while output=logstash".format(o, beat["command"]))
 
 
 class ZookeeperServiceTest(ServiceTest):
