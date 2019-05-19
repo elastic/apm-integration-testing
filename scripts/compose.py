@@ -847,7 +847,7 @@ class Elasticsearch(StackService, Service):
 
 class BeatMixin(object):
     DEFAULT_OUTPUT = "elasticsearch"
-    OUTPUTS = {"elasticsearch", "kafka", "logstash"}
+    OUTPUTS = {"elasticsearch", "logstash"}
 
     @classmethod
     def add_arguments(cls, parser):
@@ -907,16 +907,17 @@ class BeatMixin(object):
         else:
             command_args.extend([("output.elasticsearch.enabled", "false")])
             add_es_config(command_args, prefix="xpack.monitoring")
-            if beat_output == "kafka":
+            if beat_output == "logstash":
+                command_args.extend([
+                    ("output.logstash.enabled", "true"),
+                    ("output.logstash.hosts", "[\"logstash:5044\"]"),
+                ])
+            elif beat_output == "kafka":
+                # disabled via command line options for now
                 command_args.extend([
                     ("output.kafka.enabled", "true"),
                     ("output.kafka.hosts", "[\"kafka:9092\"]"),
                     ("output.kafka.topics", "[{default: '{}', topic: '{}'}]".format(self.name(), self.name())),
-                ])
-            elif beat_output == "logstash":
-                command_args.extend([
-                    ("output.logstash.enabled", "true"),
-                    ("output.logstash.hosts", "[\"logstash:5044\"]"),
                 ])
 
         for param, value in command_args:
