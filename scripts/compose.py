@@ -873,7 +873,7 @@ class BeatMixin(object):
         )
 
     def __init__(self, **options):
-        self.command = self.DEFAULT_COMMAND
+        self.command = list(self.DEFAULT_COMMAND)
         self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if options.get(
             "enable_elasticsearch", True) else {}
         if options.get("enable_kibana", True):

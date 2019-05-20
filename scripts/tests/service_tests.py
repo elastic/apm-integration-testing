@@ -544,7 +544,7 @@ class FilebeatServiceTest(ServiceTest):
                     image: docker.elastic.co/beats/filebeat:6.0.4
                     container_name: localtesting_6.0.4_filebeat
                     user: root
-                    command: ["filebeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true"]
+                    command: ["filebeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true", "-E", 'output.elasticsearch.hosts=["elasticsearch:9200"]', "-E", "output.elasticsearch.enabled=true"]
                     environment: {}
                     logging:
                         driver: 'json-file'
@@ -570,7 +570,7 @@ class FilebeatServiceTest(ServiceTest):
                     image: docker.elastic.co/beats/filebeat:6.1.1
                     container_name: localtesting_6.1.1_filebeat
                     user: root
-                    command: ["filebeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true"]
+                    command: ["filebeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true", "-E", 'output.elasticsearch.hosts=["elasticsearch:9200"]', "-E", "output.elasticsearch.enabled=true"]
                     environment: {}
                     logging:
                         driver: 'json-file'
@@ -725,7 +725,7 @@ class MetricbeatServiceTest(ServiceTest):
                     image: docker.elastic.co/beats/metricbeat:6.2.4
                     container_name: localtesting_6.2.4_metricbeat
                     user: root
-                    command: ["metricbeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true"]
+                    command: ["metricbeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true", "-E", 'output.elasticsearch.hosts=["elasticsearch:9200"]', "-E", "output.elasticsearch.enabled=true"]
                     environment: {}
                     logging:
                         driver: 'json-file'
