@@ -11,7 +11,7 @@ if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
   dotnet pack -c Release -o /src/local-packages
 
   cd /src/aspnetcore
-  mv ../NuGet.Config .
+  mv /src/NuGet.Config .
   sed -ibck 's#<PropertyGroup>#<PropertyGroup><RestoreSources>$(RestoreSources);/src/local-packages;https://api.nuget.org/v3/index.json</RestoreSources>#' ${CSPROJ}
   DOTNET_AGENT_VERSION=$(cat /src/dotnet-agent/src/Elastic.Apm.All/Elastic.Apm.All.csproj | grep 'PackageVersion' | sed 's#<.*>\(.*\)<.*>#\1#' | tr -d " ")
   dotnet add package Elastic.Apm.All -v ${DOTNET_AGENT_VERSION}
