@@ -46,6 +46,16 @@ filebeat.autodiscover:
                   target: "filebeat"
       - condition:
           contains:
+            docker.container.image: "heartbeat"
+        config:
+          - type: docker
+            containers.ids:
+              - "${data.docker.container.id}"
+            processors:
+              - decode_json_fields:
+                  fields: ["message"]
+      - condition:
+          contains:
             docker.container.image: "kibana"
         config:
           - type: docker
@@ -105,6 +115,9 @@ filebeat.autodiscover:
             - not:
                 contains:
                   docker.container.image: "filebeat"
+            - not:
+                contains:
+                  docker.container.image: "heartbeat"
             - not:
                 contains:
                   docker.container.image: "kibana"
