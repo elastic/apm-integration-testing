@@ -880,9 +880,6 @@ class BeatMixin(object):
             self.command.extend(["-E", "setup.dashboards.enabled=true"])
             self.depends_on["kibana"] = {"condition": "service_healthy"}
         self.environment = {}
-        if options.get("xpack_secure"):
-            self.environment["ELASTICSEARCH_PASSWORD"] = "changeme"
-            self.environment["ELASTICSEARCH_USERNAME"] = "{}_user".format(self.name())
 
         es_urls = options.get("{}_elasticsearch_urls".format(self.name()))
         if not es_urls:
