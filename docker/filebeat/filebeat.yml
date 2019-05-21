@@ -29,10 +29,11 @@ filebeat.autodiscover:
           - type: docker
             containers.ids:
               - "${data.docker.container.id}"
-            processors:
-              - decode_json_fields:
-                  fields: ["message"]
-                  target: "apm-server"
+            fields_under_root: true
+            json.keys_under_root: true
+            json.overwrite_keys: true
+            json.add_error_key: true
+            json.message_key: message
       - condition:
           contains:
             docker.container.image: "filebeat"
@@ -40,10 +41,23 @@ filebeat.autodiscover:
           - type: docker
             containers.ids:
               - "${data.docker.container.id}"
-            processors:
-              - decode_json_fields:
-                  fields: ["message"]
-                  target: "filebeat"
+            fields_under_root: true
+            json.keys_under_root: true
+            json.overwrite_keys: true
+            json.add_error_key: true
+            json.message_key: message
+      - condition:
+          contains:
+            docker.container.image: "heartbeat"
+        config:
+          - type: docker
+            containers.ids:
+              - "${data.docker.container.id}"
+            fields_under_root: true
+            json.keys_under_root: true
+            json.overwrite_keys: true
+            json.add_error_key: true
+            json.message_key: message
       - condition:
           contains:
             docker.container.image: "kibana"
@@ -51,10 +65,11 @@ filebeat.autodiscover:
           - type: docker
             containers.ids:
               - "${data.docker.container.id}"
-            processors:
-              - decode_json_fields:
-                  fields: ["message"]
-                  target: "kibana"
+            fields_under_root: true
+            json.keys_under_root: true
+            json.overwrite_keys: true
+            json.add_error_key: true
+            json.message_key: message
       - condition:
           contains:
             docker.container.image: "metricbeat"
@@ -62,10 +77,11 @@ filebeat.autodiscover:
           - type: docker
             containers.ids:
               - "${data.docker.container.id}"
-            processors:
-              - decode_json_fields:
-                  fields: ["message"]
-                  target: "metricbeat"
+            fields_under_root: true
+            json.keys_under_root: true
+            json.overwrite_keys: true
+            json.add_error_key: true
+            json.message_key: message
       - condition:
           contains:
             docker.container.image: "opbeans-node"
@@ -83,10 +99,11 @@ filebeat.autodiscover:
           - type: docker
             containers.ids:
               - "${data.docker.container.id}"
-            processors:
-              - decode_json_fields:
-                  fields: ["message"]
-                  target: "opbeans-go"
+            fields_under_root: true
+            json.keys_under_root: true
+            json.overwrite_keys: true
+            json.add_error_key: true
+            json.message_key: message
       - condition:
           contains:
             docker.container.image: "postgres"
@@ -105,6 +122,9 @@ filebeat.autodiscover:
             - not:
                 contains:
                   docker.container.image: "filebeat"
+            - not:
+                contains:
+                  docker.container.image: "heartbeat"
             - not:
                 contains:
                   docker.container.image: "kibana"
