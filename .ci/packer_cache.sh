@@ -2,15 +2,25 @@
 
 source /usr/local/bin/bash_standard_lib.sh
 
-DOCKER_IMAGES="golang:1.11
+DOCKER_IMAGES="golang:latest
+golang:1.11
 golang:1.10
 haproxy:1.9
 maven:3.5.3-jdk-10
 openjdk:10-jre-slim
 mcr.microsoft.com/dotnet/core/sdk:2.2
 mcr.microsoft.com/dotnet/core/aspnet:2.2
+node:12
+node:12.0
+node:11
+node:11.0
+node:10
+node:10.0
 node:8
+node:8.1
 node:8-slim
+node:6
+node:6.0
 opbeans/opbeans-java:latest
 opbeans/opbeans-node:latest
 opbeans/opbeans-python:latest
@@ -34,6 +44,7 @@ docker.elastic.co/observability-ci/jruby:9.2-12-jdk
 docker.elastic.co/observability-ci/jruby:9.2-11-jdk
 docker.elastic.co/observability-ci/jruby:9.2-8-jdk
 docker.elastic.co/observability-ci/jruby:9.1-7-jdk
+docker.elastic.co/observability-ci/apm-integration-testing:daily
 "
 
 for di in ${DOCKER_IMAGES}

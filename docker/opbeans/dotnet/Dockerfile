@@ -11,7 +11,7 @@ ARG DOTNET_AGENT_VERSION=
 ENV OPBEANS_DOTNET_REPO=elastic/opbeans-dotnet
 ENV OPBEANS_DOTNET_BRANCH=master
 WORKDIR /src
-COPY run.sh /src
+COPY . /src
 RUN ./run.sh
 
 # Stage 2: Run the opbeans-dotnet app
