@@ -786,9 +786,20 @@ class LocalTest(unittest.TestCase):
             setup()
         docker_compose_yml.seek(0)
         got = yaml.load(docker_compose_yml)
-        services = got["services"]
-        self.assertIn("redis", services)
-        self.assertIn("postgres", services)
+        services = set(got["services"])
+        self.assertSetEqual(services, {
+            "apm-server", "elasticsearch", "kibana",
+            "filebeat", "heartbeat", "metricbeat",
+            "opbeans-dotnet",
+            "opbeans-go",
+            "opbeans-java",
+            "opbeans-load-generator",
+            "opbeans-node",
+            "opbeans-python",
+            "opbeans-ruby",
+            "opbeans-rum",
+            "postgres", "redis",
+        })
 
     @mock.patch(compose.__name__ + '.load_images')
     def test_start_one_opbeans(self, _ignore_load_images):
@@ -804,10 +815,10 @@ class LocalTest(unittest.TestCase):
         self.assertIn("postgres", services)
 
     @mock.patch(compose.__name__ + '.load_images')
-    def test_start_opbeans_no_apm_server(self, _ignore_load_images):
+    def test_start_all_opbeans_no_apm_server(self, _ignore_load_images):
         docker_compose_yml = stringIO()
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--no-apm-server"])
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all-opbeans", "--no-apm-server"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
