@@ -1,7 +1,8 @@
 apm_server:
+  cluster: ["manage_ilm"]
   indices:
     - names: ['apm-*']
-      privileges: ['all']
+      privileges: ['write','create_index','manage','manage_ilm']
 beats:
   cluster: ['manage_index_templates','monitor','manage_ingest_pipelines','manage_ilm']
   indices:
