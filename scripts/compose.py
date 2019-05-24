@@ -1073,7 +1073,7 @@ class Metricbeat(BeatMixin, StackService, Service):
 class Packetbeat(BeatMixin, StackService, Service):
     """Stars a Packetbeat container to grab the network traffic."""
 
-    DEFAULT_COMMAND = "packetbeat -e --strict.perms=false -E packetbeat.interfaces.device=eth0"
+    DEFAULT_COMMAND = ["packetbeat", "-e", "--strict.perms=false", "-E", "packetbeat.interfaces.device=eth0"]
     docker_path = "beats"
 
     def _content(self):
