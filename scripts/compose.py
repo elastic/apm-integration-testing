@@ -1073,7 +1073,7 @@ class Metricbeat(BeatMixin, StackService, Service):
 class Packetbeat(BeatMixin, StackService, Service):
     """Stars a Packetbeat container to grab the network traffic."""
 
-    DEFAULT_COMMAND = "packetbeat -e --strict.perms=false -E packetbeat.interfaces.device=eth0"
+    DEFAULT_COMMAND = ["packetbeat", "-e", "--strict.perms=false", "-E", "packetbeat.interfaces.device=eth0"]
     docker_path = "beats"
 
     def _content(self):
@@ -2272,6 +2272,14 @@ class LocalSetup(object):
         parser.add_argument(
             '--all',
             action='store_true',
+            help='run all services',
+            dest='run_all',
+            default=False,
+        )
+
+        parser.add_argument(
+            '--all-opbeans',
+            action='store_true',
             help='run all opbeans services',
             dest='run_all_opbeans',
             default=False,
@@ -2424,13 +2432,16 @@ class LocalSetup(object):
             args["version"] = self.SUPPORTED_VERSIONS.get(args["stack-version"], args["stack-version"])
 
         selections = set()
-        all_opbeans = args.get('run_all_opbeans')
+        run_all = args.get("run_all")
+        all_opbeans = args.get('run_all_opbeans') or run_all
         any_opbeans = all_opbeans or any(v and k.startswith('enable_opbeans_') for k, v in args.items())
         for service in self.services:
             service_enabled = args.get("enable_" + service.option_name())
             is_opbeans_service = issubclass(service, OpbeansService) or service is OpbeansRum
             is_opbeans_sidecar = service.name() in ('postgres', 'redis', 'opbeans-load-generator')
-            if service_enabled or (all_opbeans and is_opbeans_service) or (any_opbeans and is_opbeans_sidecar):
+            is_obs = issubclass(service, BeatMixin)
+            if service_enabled or (all_opbeans and is_opbeans_service) or (any_opbeans and is_opbeans_sidecar) or \
+                    (run_all and is_obs):
                 selections.add(service(**args))
 
         # `docker load` images if necessary, usually only for build candidates

@@ -763,7 +763,7 @@ class PacketbeatServiceTest(ServiceTest):
                     image: docker.elastic.co/beats/packetbeat:6.2.4
                     container_name: localtesting_6.2.4_packetbeat
                     user: root
-                    command: packetbeat -e --strict.perms=false -E packetbeat.interfaces.device=eth0 -E setup.dashboards.enabled=true
+                    command: ["packetbeat", "-e", "--strict.perms=false", "-E", "packetbeat.interfaces.device=eth0", "-E", "setup.dashboards.enabled=true", "-E", 'output.elasticsearch.hosts=["elasticsearch:9200"]', "-E", "output.elasticsearch.enabled=true"]
                     environment: {}
                     logging:
                         driver: 'json-file'
