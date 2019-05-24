@@ -151,6 +151,21 @@ Tests should always eventually be run within a docker container to ensure a cons
 
 Prefix any of the `test-` targets with `docker-` to run them in a container eg: `make docker-test-server`.
 
+### Network issues diagnose
+
+It is possible to diagnose Network issues related with lost documents
+between APM Agent, APM server, or Elasticsearch,
+in order to do that, you have to add the `--with-packetbeat` argument
+to your command line.
+When you add this argument an additional Docker container running Packetbeat is
+attached to the APM Server Docker container,
+this container will grab information about the communication between APM Agent,
+APM server, and Elasticsearch that you can analyze in case of failure.
+When a test fails, data related to Packetbeat and APM is dumped
+with [elasticdump](https://www.npmjs.com/package/elasticdump) into a couple
+of files `/app/tests/results/data-NAME_OF_THE_TEST.json`
+and `/app/tests/results/packetbeat-NAME_OF_THE_TEST.json`
+
 ### Continuous Integration
 
 Jenkins runs the scripts from `.ci/scripts` and is viewable at https://apm-ci.elastic.co/.
