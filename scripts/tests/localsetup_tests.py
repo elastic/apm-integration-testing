@@ -789,7 +789,7 @@ class LocalTest(unittest.TestCase):
         services = set(got["services"])
         self.assertSetEqual(services, {
             "apm-server", "elasticsearch", "kibana",
-            "filebeat", "heartbeat", "metricbeat",
+            "filebeat", "heartbeat", "metricbeat", "packetbeat",
             "opbeans-dotnet",
             "opbeans-go",
             "opbeans-java",
