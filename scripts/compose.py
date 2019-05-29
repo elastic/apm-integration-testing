@@ -934,15 +934,26 @@ class BeatMixin(object):
         )
         try:
             if key not in self.bc["projects"]["beats"]["packages"]:
+                # This is the old standard based on the format:
+                # ${name}-${version}-${os}-${architecture}-${classifier}.${extension}
                 key = "{image}-{version}-linux-amd64-docker-image.tar.gz".format(
                     image=image,
                     version=version,
                 )
             return self.bc["projects"]["beats"]["packages"][key]
         except KeyError:
-            # help debug manifest issues
-            print(json.dumps(self.bc))
-            raise
+            try:
+                # This is the new standard based on the format:
+                # ${name}-${version}-${classifier}-${os}-${architecture}.${extension}
+                key = "{image}-{version}-docker-image-linux-amd64.tar.gz".format(
+                        image=image,
+                        version=version,
+                )
+                return self.bc["projects"]["beats"]["packages"][key]
+            except KeyError:
+                # help debug manifest issues
+                print(json.dumps(self.bc))
+                raise
 
 
 class Filebeat(BeatMixin, StackService, Service):
