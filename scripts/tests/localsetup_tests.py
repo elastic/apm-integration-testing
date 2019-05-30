@@ -729,6 +729,8 @@ class LocalTest(unittest.TestCase):
         self.assertIn("xpack.security.authc.anonymous.roles=remote_monitoring_collector", es_env)
         ## file based realm
         self.assertIn("xpack.security.authc.realms.file1.type=file", es_env)
+        ## native realm
+        self.assertIn("xpack.security.authc.realms.native1.type=native", es_env)
         # kibana should use user/pass -> es
         kibana_env = got["services"]["kibana"]["environment"]
         self.assertIn("ELASTICSEARCH_PASSWORD", kibana_env)
@@ -757,6 +759,8 @@ class LocalTest(unittest.TestCase):
         self.assertIn("xpack.security.authc.anonymous.roles=remote_monitoring_collector", es_env)
         ## file based realm
         self.assertIn("xpack.security.authc.realms.file.file1.order=0", es_env)
+        ## native realm
+        self.assertIn("xpack.security.authc.realms.native.native1.order=1", es_env)
         # kibana should use user/pass -> es
         kibana_env = got["services"]["kibana"]["environment"]
         self.assertIn("ELASTICSEARCH_PASSWORD", kibana_env)
