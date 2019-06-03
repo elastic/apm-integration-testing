@@ -777,8 +777,11 @@ class Elasticsearch(StackService, Service):
                 self.environment.append("xpack.security.authc.anonymous.roles=remote_monitoring_collector")
                 if self.at_least_version("7.0"):
                     self.environment.append("xpack.security.authc.realms.file.file1.order=0")
+                    self.environment.append("xpack.security.authc.realms.native.native1.order=1")
                 else:
                     self.environment.append("xpack.security.authc.realms.file1.type=file")
+                    self.environment.append("xpack.security.authc.realms.native1.type=native")
+                    self.environment.append("xpack.security.authc.realms.native1.order=1")
             self.environment.append("xpack.security.enabled=" + xpack_security_enabled)
             self.environment.append("xpack.license.self_generated.type=trial")
             if self.at_least_version("6.3"):
