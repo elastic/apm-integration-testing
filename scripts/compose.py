@@ -417,6 +417,9 @@ class ApmServer(StackService, Service):
             "enable_elasticsearch", True) else {}
         self.build = self.options.get("apm_server_build")
 
+        if self.at_least_version("7.2") and not self.oss and not self.options.get("apm_server_ilm_disable"):
+            self.apm_server_command_args.append(("apm-server.ilm.enabled", "true"))
+
         if self.options.get("enable_kibana", True):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
             if options.get("apm_server_dashboards", True) and not self.at_least_version("7.0") \
@@ -506,6 +509,11 @@ class ApmServer(StackService, Service):
             const="https://github.com/elastic/apm-server.git",
             nargs="?",
             help='build apm-server from a git repo[@branch], eg https://github.com/elastic/apm-server.git@v2'
+        )
+        parser.add_argument(
+            "--apm-server-ilm-disable",
+            action="store_true",
+            help='disable ILM (enabled by default in 7.2+)'
         )
         parser.add_argument(
             '--apm-server-output',
