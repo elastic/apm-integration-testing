@@ -300,6 +300,18 @@ class ApmServerServiceTest(ServiceTest):
                             "{} not set while output=elasticsearch and overrides set: ".format(o) + " ".join(
                                 apm_server["command"]))
 
+    def test_ilm_default(self):
+        """enable ILM by default in 7.2+"""
+        apm_server = ApmServer(version="6.3.100").render()["apm-server"]
+        self.assertFalse("apm-server.ilm.enabled=true" in apm_server["command"], "ILM enabled by default in < 7.2")
+
+        apm_server = ApmServer(version="7.2.0").render()["apm-server"]
+        self.assertTrue("apm-server.ilm.enabled=true" in apm_server["command"], "ILM not enabled by default in >= 7.2")
+
+    def test_ilm_disabled(self):
+        apm_server = ApmServer(version="7.2.0", apm_server_ilm_disable=True).render()["apm-server"]
+        self.assertFalse("apm-server.ilm.enabled=true" in apm_server["command"], "ILM enabled but should not be")
+
     def test_logstash_output(self):
         apm_server = ApmServer(version="6.3.100", apm_server_output="logstash").render()["apm-server"]
         options = [
