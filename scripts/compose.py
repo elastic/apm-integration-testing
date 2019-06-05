@@ -474,8 +474,9 @@ class ApmServer(StackService, Service):
                 ("output.elasticsearch.enabled", "true"),
             ])
             if options.get("apm_server_enable_pipeline", True) and self.at_least_version("6.5"):
+                pipeline_name = "apm" if self.at_least_version("7.2") else "apm_user_agent"
                 self.apm_server_command_args.extend([
-                    ("output.elasticsearch.pipelines", "[{pipeline: 'apm_user_agent'}]"),
+                    ("output.elasticsearch.pipelines", "[{pipeline: '%s'}]" % pipeline_name),
                     ("apm-server.register.ingest.pipeline.enabled", "true"),
                 ])
         else:
