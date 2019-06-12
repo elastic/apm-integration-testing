@@ -97,7 +97,7 @@ pipeline {
 def runJob(agentName, buildOpts = ''){
   def job = build(job: 'apm-integration-test-axis-pipeline',
     parameters: [
-    string(name: 'agent_integration_test', value: agentName),
+    string(name: 'AGENT_INTEGRATION_TEST', value: agentName),
     string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
     string(name: 'INTEGRATION_TESTING_VERSION', value: env.GIT_BASE_COMMIT),
     string(name: 'BUILD_OPTS', value: "${params.BUILD_OPTS} ${buildOpts}"),
