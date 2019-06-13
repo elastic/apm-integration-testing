@@ -101,7 +101,7 @@ def runJob(agentName, buildOpts = ''){
     branch = env.CHANGE_TARGET
   }
 
-  def job = build(job: "apm-integration-test-axis-pipeline-mbp-jjbb/job/${branch}",
+  def job = build(job: "apm-integration-test-axis-pipeline-mbp-jjbb/${branch}",
     parameters: [
     string(name: 'AGENT_INTEGRATION_TEST', value: agentName),
     string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
