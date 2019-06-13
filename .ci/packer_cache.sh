@@ -2,7 +2,10 @@
 
 source /usr/local/bin/bash_standard_lib.sh
 
-DOCKER_IMAGES="golang:latest
+DOCKER_IMAGES="alpine:3.4
+busybox:latest
+golang:latest
+golang:1.12
 golang:1.11
 golang:1.10
 haproxy:1.9
