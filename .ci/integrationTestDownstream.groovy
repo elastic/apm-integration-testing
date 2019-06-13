@@ -94,7 +94,7 @@ pipeline {
             branch: "${params.INTEGRATION_TESTING_VERSION}",
             repo: "${REPO}",
             credentialsId: "${JOB_GIT_CREDENTIALS}",
-            mergeTarget: "${params.MERGE_TARGET}"
+            mergeTarget: "${params.MERGE_TARGET}",
             reference: '/var/lib/jenkins/apm-integration-testing.git'
           )
         }
