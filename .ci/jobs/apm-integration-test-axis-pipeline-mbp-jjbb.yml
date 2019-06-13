@@ -7,7 +7,7 @@
     project-type: multibranch
     number-to-keep: '5'
     days-to-keep: '1'
-    script-path: '.ci/integrationTestDownstream.groovy'
+    script-path: .ci/integrationTestDownstream.groovy
     scm:
     - github:
         branch-discovery: all
