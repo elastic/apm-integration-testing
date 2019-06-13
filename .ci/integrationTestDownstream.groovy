@@ -73,9 +73,10 @@ pipeline {
     durabilityHint('PERFORMANCE_OPTIMIZED')
   }
   parameters {
-    choice(name: 'agent_integration_test', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
+    choice(name: 'AGENT_INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "7.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "master", description: "Integration testing Git branch/tag to use")
+    string(name: 'MERGE_TARGET', defaultValue: "master", description: "Integration testing Git branch/tag where to merge this code")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     string(name: 'UPSTREAM_BUILD', defaultValue: "", description: "upstream build info to show in the description.")
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', defaultValue: true, description: "Disable the build parallel option on compose.py, disable it is better for error detection.")
@@ -89,21 +90,18 @@ pipeline {
       steps {
         deleteDir()
         dir("${BASE_DIR}"){
-          checkout([$class: 'GitSCM',
-            branches: [[name: "${params.INTEGRATION_TESTING_VERSION}"]],
-            doGenerateSubmoduleConfigurations: false,
-            extensions: [],
-            submoduleCfg: [],
-            userRemoteConfigs: [[
-              refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pr/*',
-              url: "${REPO}",
-              credentialsId: "${JOB_GIT_CREDENTIALS}"]]
-          ])
+          gitCheckout(basedir: "${BASE_DIR}",
+            branch: "${params.INTEGRATION_TESTING_VERSION}",
+            repo: "${REPO}",
+            credentialsId: "${JOB_GIT_CREDENTIALS}",
+            mergeTarget: "${params.MERGE_TARGET}"
+            reference: '/var/lib/jenkins/apm-integration-testing.git'
+          )
         }
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script{
-          currentBuild.displayName = "apm-agent-${params.agent_integration_test} - ${currentBuild.displayName}"
-          currentBuild.description = "Agent ${params.agent_integration_test} - ${params.UPSTREAM_BUILD}"
+          currentBuild.displayName = "apm-agent-${params.AGENT_INTEGRATION_TEST} - ${currentBuild.displayName}"
+          currentBuild.description = "Agent ${params.AGENT_INTEGRATION_TEST} - ${params.UPSTREAM_BUILD}"
         }
       }
     }
@@ -113,8 +111,8 @@ pipeline {
     stage("Integration Tests"){
       when {
         expression {
-          return (params.agent_integration_test != 'All'
-            && params.agent_integration_test != 'UI')
+          return (params.AGENT_INTEGRATION_TEST != 'All'
+            && params.AGENT_INTEGRATION_TEST != 'UI')
         }
       }
       steps {
@@ -122,7 +120,7 @@ pipeline {
         unstash "source"
         dir("${BASE_DIR}"){
           script {
-            def agentTests = mapAgentsIDs[params.agent_integration_test]
+            def agentTests = mapAgentsIDs[params.AGENT_INTEGRATION_TEST]
             integrationTestsGen = new IntegrationTestingParallelTaskGenerator(
               xKey: agentYamlVar[agentTests],
               yKey: agentYamlVar['server'],
@@ -130,7 +128,7 @@ pipeline {
               yFile: ymlFiles['server'],
               exclusionFile: ymlFiles[agentTests],
               tag: agentTests,
-              name: params.agent_integration_test,
+              name: params.AGENT_INTEGRATION_TEST,
               steps: this
               )
             def mapPatallelTasks = integrationTestsGen.generateParallelTests()
@@ -141,7 +139,7 @@ pipeline {
     }
     stage("All") {
       when {
-        expression { return params.agent_integration_test == 'All' }
+        expression { return params.AGENT_INTEGRATION_TEST == 'All' }
       }
       environment {
         TMPDIR = "${WORKSPACE}"
@@ -162,7 +160,7 @@ pipeline {
     }
     stage("UI") {
       when {
-        expression { return params.agent_integration_test == 'UI' }
+        expression { return params.AGENT_INTEGRATION_TEST == 'UI' }
       }
       environment {
         TMPDIR = "${WORKSPACE}/${BASE_DIR}"
@@ -186,7 +184,7 @@ pipeline {
       script{
         if(integrationTestsGen?.results){
           writeJSON(file: 'results.json', json: toJSON(integrationTestsGen.results), pretty: 2)
-          def mapResults = ["${params.agent_integration_test}": integrationTestsGen.results]
+          def mapResults = ["${params.AGENT_INTEGRATION_TEST}": integrationTestsGen.results]
           def processor = new ResultsProcessor()
           processor.processResults(mapResults)
           archiveArtifacts allowEmptyArchive: true, artifacts: 'results.json,results.html', defaultExcludes: false
