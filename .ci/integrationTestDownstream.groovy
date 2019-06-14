@@ -94,8 +94,8 @@ pipeline {
             branch: "${params.INTEGRATION_TESTING_VERSION}",
             repo: "${REPO}",
             credentialsId: "${JOB_GIT_CREDENTIALS}",
-            mergeTarget: "${params.MERGE_TARGET}"
-            reference: '/var/lib/jenkins/apm-integration-testing.git'
+            mergeTarget: "${params.MERGE_TARGET}",
+            reference: "/var/lib/jenkins/apm-integration-testing.git"
           )
         }
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
@@ -188,21 +188,14 @@ pipeline {
           def processor = new ResultsProcessor()
           processor.processResults(mapResults)
           archiveArtifacts allowEmptyArchive: true, artifacts: 'results.json,results.html', defaultExcludes: false
+          catchError(buildResult: 'SUCCESS') {
+            def datafile = readFile(file: "results.json")
+            def json = getVaultSecret(secret: 'secret/apm-team/ci/apm-server-benchmark-cloud')
+            sendDataToElasticsearch(es: json.data.url, data: datafile, restCall: '/jenkins-builds-test-results/_doc/')
+          }
         }
+        notifyBuildResult()
       }
-    }
-    success {
-      echoColor(text: '[SUCCESS]', colorfg: 'green', colorbg: 'default')
-    }
-    aborted {
-      echoColor(text: '[ABORTED]', colorfg: 'magenta', colorbg: 'default')
-    }
-    failure {
-      echoColor(text: '[FAILURE]', colorfg: 'red', colorbg: 'default')
-      step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
-    }
-    unstable {
-      echoColor(text: '[UNSTABLE]', colorfg: 'yellow', colorbg: 'default')
     }
   }
 }
