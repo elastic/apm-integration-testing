@@ -95,7 +95,7 @@ pipeline {
             repo: "${REPO}",
             credentialsId: "${JOB_GIT_CREDENTIALS}",
             mergeTarget: "${params.MERGE_TARGET}",
-            reference: '/var/lib/jenkins/apm-integration-testing.git'
+            reference: "/var/lib/jenkins/apm-integration-testing.git"
           )
         }
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
