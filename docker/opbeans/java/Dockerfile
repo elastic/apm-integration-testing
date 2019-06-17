@@ -13,7 +13,7 @@ RUN ./build-agent.sh "${JAVA_AGENT_REPO}" "${JAVA_AGENT_BRANCH}"
 
 FROM opbeans/opbeans-java:latest
 # replaces the /agent/elastc-apm-agent.jar if it has been built by build-agent.sh
-COPY --from=0 /agent/* /app
+COPY --from=0 /agent/* /app/
 COPY entrypoint.sh /app/entrypoint.sh
 CMD java -javaagent:/app/elastic-apm-agent.jar -Dspring.profiles.active=customdb\
                                         -Dserver.port=${OPBEANS_SERVER_PORT:-3002}\
