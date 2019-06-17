@@ -40,6 +40,7 @@ pipeline {
     stage('Checkout'){
       agent { label 'master || immutable' }
       steps {
+        githubCheckNotify('PENDING')
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
@@ -81,24 +82,9 @@ pipeline {
   }
   post {
     always {
-      githubCheckNotify()
+      githubCheckNotify(currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILED')
       notifyBuildResult()
     }
-  }
-}
-
-/**
- Notify the GitHub check of the parent stream
-**/
-def githubCheckNotify() {
-  if (params.GITHUB_CHECK_NAME?.trim && params.GITHUB_CHECK_REPO?.trim() && params.GITHUB_CHECK_SHA1?.trim() ) {
-    String statusSuffix =
-    String status =
-    githubNotify context: params.GITHUB_CHECK_NAME,
-                 description: "${params.GITHUB_CHECK_NAME} ${currentBuild.currentResult == 'FAILURE' ? 'failed' : 'passed'}",
-                 status: "${(currentBuild.currentResult == 'SUCCESS') ?: 'FAILED'}",
-                 targetUrl: "${env.RUN_DISPLAY_URL}",
-                 sha: params.GITHUB_CHECK_SHA1, account: 'elastic', repo: params.GITHUB_CHECK_REPO, credentialsId: env.JOB_GIT_CREDENTIALS
   }
 }
 
@@ -114,4 +100,17 @@ def runJob(agentName, buildOpts = ''){
     propagate: true,
     quietPeriod: 10,
     wait: true)
+}
+
+/**
+ Notify the GitHub check of the parent stream
+**/
+def githubCheckNotify(String status) {
+  if (params.GITHUB_CHECK_NAME?.trim() && params.GITHUB_CHECK_REPO?.trim() && params.GITHUB_CHECK_SHA1?.trim()) {
+    githubNotify context: "${params.GITHUB_CHECK_NAME}",
+                 description: "${params.GITHUB_CHECK_NAME} ${status.toLowerCase()}",
+                 status: "${status}",
+                 targetUrl: "${env.RUN_DISPLAY_URL}",
+                 sha: params.GITHUB_CHECK_SHA1, account: 'elastic', repo: params.GITHUB_CHECK_REPO, credentialsId: env.JOB_GIT_CREDENTIALS
+  }
 }
