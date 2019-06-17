@@ -508,7 +508,7 @@ class ApmServer(StackService, Service):
             '--apm-server-build',
             const="https://github.com/elastic/apm-server.git",
             nargs="?",
-            help='build apm-server from a git repo[@branch|#sha], eg https://github.com/elastic/apm-server.git@v2'
+            help='build apm-server from a git repo[@branch|sha], eg https://github.com/elastic/apm-server.git@v2'
         )
         parser.add_argument(
             "--apm-server-ilm-disable",
@@ -653,25 +653,14 @@ class ApmServer(StackService, Service):
 
         if self.build:
             build_spec_parts = self.build.split("@", 1)
-            commit_spec_parts = self.build.split("#", 1)
             repo = build_spec_parts[0]
-            if len(build_spec_parts) > 1:
-                branch = build_spec_parts[1]
-                commit = ""
-            elif len(commit_spec_parts) > 1:
-                branch = ""
-                commit = commit_spec_parts[1]
-                repo = commit_spec_parts[0]
-            else:
-                branch = "master"
-                commit = ""
+            branch = build_spec_parts[1] if len(build_spec_parts) > 1 else "master"
             content.update({
                 "build": {
                     "context": "docker/apm-server",
                     "args": {
                         "apm_server_base_image": self.default_image(),
-                        "apm_server_branch": branch,
-                        "apm_server_commit": commit,
+                        "apm_server_branch_or_commit": branch,
                         "apm_server_repo": repo,
                     }
                 },
