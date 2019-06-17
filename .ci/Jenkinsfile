@@ -117,7 +117,7 @@ def githubCheckNotify() {
     String status =
     githubNotify context: "${params.GITHUB_CHECK_NAME}",
                  description: "${params.GITHUB_CHECK_NAME} ${currentBuild.currentResult == 'FAILURE' ? 'failed' : 'passed'}",
-                 status: "${(currentBuild.currentResult == 'SUCCESS') ?: 'FAILED'}",
+                 status: "${(currentBuild.currentResult == 'SUCCESS') ? 'SUCCESS' : 'FAILED'}",
                  targetUrl: "${env.RUN_DISPLAY_URL}",
                  sha: params.GITHUB_CHECK_SHA1, account: 'elastic', repo: params.GITHUB_CHECK_REPO, credentialsId: env.JOB_GIT_CREDENTIALS
   }
