@@ -82,7 +82,7 @@ pipeline {
   }
   post {
     always {
-      githubCheckNotify(currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILED')
+      githubCheckNotify(currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILURE')
       notifyBuildResult()
     }
   }

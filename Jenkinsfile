@@ -8,7 +8,7 @@ pipeline {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
     NOTIFY_TO = credentials('notify-to')
     JOB_GCS_BUCKET = credentials('gcs-bucket')
-    JOB_GIT_CREDENTIALS = 'f6c7695a-671e-4f4f-a331-acdce44ff9ba'
+    JOB_GIT_CREDENTIALS = '2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken'
     PIPELINE_LOG_LEVEL='INFO'
   }
   triggers {
@@ -82,7 +82,7 @@ pipeline {
   }
   post {
     always {
-      githubCheckNotify(currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILED')
+      githubCheckNotify(currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILURE')
       notifyBuildResult()
     }
   }
