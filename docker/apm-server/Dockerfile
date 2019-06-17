@@ -12,7 +12,8 @@ ENV SRC=/go/src/github.com/elastic/apm-server
 
 # Git clone and checkout given either the branch, commit or both.
 RUN git clone ${apm_server_repo} ${SRC} \
-    && cd ${SRC} && git reset --hard ${apm_server_branch_or_commit}
+    && cd ${SRC} && git fetch -q origin '+refs/pull/*:refs/remotes/origin/pr/*' \
+    && git checkout ${apm_server_branch_or_commit}
 
 RUN cd ${SRC} && git rev-parse HEAD && echo ${apm_server_branch_or_commit}
 
