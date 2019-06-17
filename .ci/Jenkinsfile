@@ -112,7 +112,7 @@ def runJob(agentName, buildOpts = ''){
  Notify the GitHub check of the parent stream
 **/
 def githubCheckNotify() {
-  if (params.GITHUB_CHECK_NAME?.trim && params.GITHUB_CHECK_REPO?.trim() && params.GITHUB_CHECK_SHA1?.trim()) {
+  if (params.GITHUB_CHECK_NAME?.trim() && params.GITHUB_CHECK_REPO?.trim() && params.GITHUB_CHECK_SHA1?.trim()) {
     def status = currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILED'
     githubNotify context: "${params.GITHUB_CHECK_NAME}",
                  description: "${params.GITHUB_CHECK_NAME} ${status.toLowerCase()}",
