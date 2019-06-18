@@ -1727,7 +1727,7 @@ class OpbeansGo(OpbeansService):
 
 class OpbeansJava(OpbeansService):
     SERVICE_PORT = 3002
-    DEFAULT_AGENT_BRANCH = ""
+    DEFAULT_AGENT_BRANCH = "master"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-java"
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = 'opbeans-java'
