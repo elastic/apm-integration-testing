@@ -164,6 +164,7 @@ class AgentServiceTest(ServiceTest):
                         RAILS_PORT: 8020
                         RUBY_AGENT_VERSION: latest
                         RUBY_AGENT_VERSION_STATE: release
+                        RUBY_AGENT_REPO: elastic/apm-agent-ruby
                     healthcheck:
                         interval: 10s
                         retries: 60

@@ -1416,6 +1416,7 @@ class AgentPythonFlask(AgentPython):
 
 
 class AgentRubyRails(Service):
+    DEFAULT_AGENT_REPO = "elastic/apm-agent-ruby"
     DEFAULT_AGENT_VERSION = "latest"
     DEFAULT_AGENT_VERSION_STATE = "release"
     SERVICE_PORT = 8020
@@ -1433,11 +1434,17 @@ class AgentRubyRails(Service):
             default=cls.DEFAULT_AGENT_VERSION_STATE,
             help='Use Ruby agent version state (github or release)',
         )
+        parser.add_argument(
+            "--ruby-agent-repo",
+            default=cls.DEFAULT_AGENT_REPO,
+            help='GitHub repo to be used. Default: elastic/apm-agent-ruby',
+        )
 
     def __init__(self, **options):
         super(AgentRubyRails, self).__init__(**options)
         self.agent_version = options.get("ruby_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_version_state = options.get("ruby_agent_version_state", self.DEFAULT_AGENT_VERSION_STATE)
+        self.agent_repo = options.get("ruby_agent_repo", self.DEFAULT_AGENT_REPO)
         self.depends_on = {
             "apm-server": {"condition": "service_healthy"},
         }
@@ -1460,6 +1467,7 @@ class AgentRubyRails(Service):
                 "RAILS_SERVICE_NAME": "railsapp",
                 "RUBY_AGENT_VERSION_STATE": self.agent_version_state,
                 "RUBY_AGENT_VERSION": self.agent_version,
+                "RUBY_AGENT_REPO": self.agent_repo,
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "railsapp", retries=60),
             depends_on=self.depends_on,
