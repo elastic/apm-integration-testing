@@ -1204,6 +1204,7 @@ class AgentRUMJS(Service):
         parser.add_argument(
             '--rum-agent-repo',
             default=cls.DEFAULT_AGENT_REPO,
+            help="GitHub repo to be used. Default: {}".format(cls.DEFAULT_AGENT_REPO),
         )
         parser.add_argument(
             '--rum-agent-branch',
@@ -1251,6 +1252,7 @@ class AgentGoNetHttp(Service):
         parser.add_argument(
             '--go-agent-repo',
             default=cls.DEFAULT_AGENT_REPO,
+            help="GitHub repo to be used. Default: {}".format(cls.DEFAULT_AGENT_REPO),
         )
 
     def __init__(self, **options):
@@ -1437,7 +1439,7 @@ class AgentRubyRails(Service):
         parser.add_argument(
             "--ruby-agent-repo",
             default=cls.DEFAULT_AGENT_REPO,
-            help='GitHub repo to be used. Default: elastic/apm-agent-ruby',
+            help="GitHub repo to be used. Default: {}".format(cls.DEFAULT_AGENT_REPO),
         )
 
     def __init__(self, **options):
@@ -1500,7 +1502,7 @@ class AgentJavaSpring(Service):
         parser.add_argument(
             "--java-agent-repo",
             default=cls.DEFAULT_AGENT_REPO,
-            help='GitHub repo to be used. Default: elastic/apm-agent-java',
+            help="GitHub repo to be used. Default: {}".format(cls.DEFAULT_AGENT_REPO),
         )
 
     def __init__(self, **options):
@@ -1563,7 +1565,7 @@ class AgentDotnet(Service):
         parser.add_argument(
             "--dotnet-agent-repo",
             default=cls.DEFAULT_AGENT_REPO,
-            help='GitHub repo to be used. Default: elastic/apm-agent-dotnet',
+            help="GitHub repo to be used. Default: {}".format(cls.DEFAULT_AGENT_REPO),
         )
 
     def __init__(self, **options):
