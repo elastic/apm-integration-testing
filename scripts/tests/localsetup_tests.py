@@ -138,7 +138,7 @@ class OpbeansServiceTest(ServiceTest):
                       dockerfile: Dockerfile
                       context: docker/opbeans/java
                       args:
-                        - JAVA_AGENT_BRANCH=master
+                        - JAVA_AGENT_BRANCH=
                         - JAVA_AGENT_REPO=elastic/apm-agent-java
                     container_name: localtesting_6.3.10_opbeans-java
                     ports:
