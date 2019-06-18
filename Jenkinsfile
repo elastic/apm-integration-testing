@@ -8,6 +8,7 @@ pipeline {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
     NOTIFY_TO = credentials('notify-to')
     JOB_GCS_BUCKET = credentials('gcs-bucket')
+    JOB_GIT_CREDENTIALS = '2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken'
     PIPELINE_LOG_LEVEL='INFO'
   }
   triggers {
@@ -26,7 +27,10 @@ pipeline {
   }
   parameters {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "7.0.0", description: "Elastic Stack Git branch/tag to use")
-    string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
+    string(name: 'BUILD_OPTS', defaultValue: "", description: "Additional build options to passing compose.py")
+    string(name: 'GITHUB_CHECK_NAME', defaultValue: '', description: 'Name of the GitHub check to be updated. Only if this build is triggered from another parent stream.')
+    string(name: 'GITHUB_CHECK_REPO', defaultValue: '', description: 'Name of the GitHub repo to be updated. Only if this build is triggered from another parent stream.')
+    string(name: 'GITHUB_CHECK_SHA1', defaultValue: '', description: 'Name of the GitHub repo to be updated. Only if this build is triggered from another parent stream.')
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
   }
   stages{
@@ -36,6 +40,7 @@ pipeline {
     stage('Checkout'){
       agent { label 'master || immutable' }
       steps {
+        githubCheckNotify('PENDING')
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
@@ -77,6 +82,7 @@ pipeline {
   }
   post {
     always {
+      githubCheckNotify(currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILURE')
       notifyBuildResult()
     }
   }
@@ -94,4 +100,17 @@ def runJob(agentName, buildOpts = ''){
     propagate: true,
     quietPeriod: 10,
     wait: true)
+}
+
+/**
+ Notify the GitHub check of the parent stream
+**/
+def githubCheckNotify(String status) {
+  if (params.GITHUB_CHECK_NAME?.trim() && params.GITHUB_CHECK_REPO?.trim() && params.GITHUB_CHECK_SHA1?.trim()) {
+    githubNotify context: "${params.GITHUB_CHECK_NAME}",
+                 description: "${params.GITHUB_CHECK_NAME} ${status.toLowerCase()}",
+                 status: "${status}",
+                 targetUrl: "${env.RUN_DISPLAY_URL}",
+                 sha: params.GITHUB_CHECK_SHA1, account: 'elastic', repo: params.GITHUB_CHECK_REPO, credentialsId: env.JOB_GIT_CREDENTIALS
+  }
 }
