@@ -26,6 +26,7 @@ class AgentServiceTest(ServiceTest):
                     build:
                         args:
                             GO_AGENT_BRANCH: master
+                            GO_AGENT_REPO: elastic/apm-agent-go
                         dockerfile: Dockerfile
                         context: docker/go/nethttp
                     container_name: gonethttpapp
@@ -163,6 +164,7 @@ class AgentServiceTest(ServiceTest):
                         RAILS_PORT: 8020
                         RUBY_AGENT_VERSION: latest
                         RUBY_AGENT_VERSION_STATE: release
+                        RUBY_AGENT_REPO: elastic/apm-agent-ruby
                     healthcheck:
                         interval: 10s
                         retries: 60
@@ -185,6 +187,7 @@ class AgentServiceTest(ServiceTest):
                         args:
                             JAVA_AGENT_BRANCH: master
                             JAVA_AGENT_BUILT_VERSION: ""
+                            JAVA_AGENT_REPO: elastic/apm-agent-java
                         dockerfile: Dockerfile
                         context: docker/java/spring
                     container_name: javaspring
@@ -217,6 +220,7 @@ class AgentServiceTest(ServiceTest):
                         args:
                             DOTNET_AGENT_BRANCH: master
                             DOTNET_AGENT_VERSION: ""
+                            DOTNET_AGENT_REPO: elastic/apm-agent-dotnet
                         dockerfile: Dockerfile
                         context: docker/dotnet
                     container_name: dotnetapp
