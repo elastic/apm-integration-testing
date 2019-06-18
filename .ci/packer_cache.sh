@@ -34,5 +34,5 @@ jruby:9.1
 
 for di in ${DOCKER_IMAGES}
 do
-(retry 2 docker pull ${di}) || echo "Error pulling ${di} Docker image, we continue"
+(retry 2 docker pull ${di}) || echo "Error pulling ${di} Docker image, we continue"
 done

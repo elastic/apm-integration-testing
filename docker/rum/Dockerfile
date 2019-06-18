@@ -28,7 +28,10 @@ RUN apt update -qq \
 ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
 RUN chmod +x /usr/local/bin/dumb-init
 
-RUN git clone -b $RUM_AGENT_BRANCH --single-branch https://github.com/$RUM_AGENT_REPO.git --depth 1 rumjs-integration-test
+RUN git clone https://github.com/${RUM_AGENT_REPO}.git /rumjs-integration-test
+RUN (cd /rumjs-integration-test \
+  && git fetch -q origin '+refs/pull/*:refs/remotes/origin/pr/*' \
+  && git checkout ${RUM_AGENT_BRANCH})
 
 WORKDIR /rumjs-integration-test
 
