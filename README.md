@@ -81,6 +81,17 @@ To disable load generation for a specific service, use the `--no-opbeans-XYZ-loa
 Opbeans RUM does not need a load generation service,
 as it is itself generating load using a headless chrome instance.
 
+#### Start Opbeans with a specific agent branch
+
+You can start Opbeans with an agent which is built from source from a specific branch or PR.
+This is currently only supported with the go and the Java agent.
+
+Example which builds the https://github.com/elastic/apm-agent-java/pull/588 branch from source and uses an APM server built from master: 
+
+    ./scripts/compose.py start master --with-opbeans-java --opbeans-java-agent-branch=pr/588/head --apm-server-build https://github.com/elastic/apm-server.git@master
+
+Note that it may take a while to build the agent from source.
+
 ### Uploading Sourcemaps
 
 The frontend app packaged with opbeans-node runs in a production build, which means the source code is minified. The APM server needs the corresponding sourcemap to unminify the code.
