@@ -17,7 +17,7 @@ RUN git clone ${apm_server_repo} ${SRC} \
 
 RUN cd ${SRC} && git rev-parse HEAD && echo ${apm_server_branch_or_commit}
 
-RUN make -C ${SRC} && update apm-server \
+RUN make -C ${SRC} update apm-server \
 	  && sed -zri -e 's/output.elasticsearch:(\n[^\n]*){5}/output.elasticsearch:\n  hosts: ["elasticsearch:9200"]/' -e 's/  host: "localhost:8200"/  host: "0.0.0.0:8200"/' ${SRC}/apm-server.yml \
 	  && chmod go+r ${SRC}/apm-server.yml
 
