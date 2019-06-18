@@ -1482,6 +1482,7 @@ class AgentJavaSpring(Service):
     SERVICE_PORT = 8090
     DEFAULT_AGENT_VERSION = "master"
     DEFAULT_AGENT_RELEASE = ""
+    DEFAULT_AGENT_REPO = "elastic/apm-agent-java"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1496,11 +1497,17 @@ class AgentJavaSpring(Service):
             default=cls.DEFAULT_AGENT_RELEASE,
             help='Use Java agent release version (1.6.0, 0.6.2, ...)',
         )
+        parser.add_argument(
+            "--java-agent-repo",
+            default=cls.DEFAULT_AGENT_REPO,
+            help='GitHub repo to be used. Default: elastic/apm-agent-java',
+        )
 
     def __init__(self, **options):
         super(AgentJavaSpring, self).__init__(**options)
         self.agent_version = options.get("java_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_release = options.get("java_agent_release", self.DEFAULT_AGENT_RELEASE)
+        self.agent_repo = options.get("java_agent_repo", self.DEFAULT_AGENT_REPO)
         self.depends_on = {
             "apm-server": {"condition": "service_healthy"},
         }
@@ -1517,6 +1524,7 @@ class AgentJavaSpring(Service):
                 "args": {
                     "JAVA_AGENT_BRANCH": self.agent_version,
                     "JAVA_AGENT_BUILT_VERSION": self.agent_release,
+                    "JAVA_AGENT_REPO": self.agent_repo,
                 }
             },
             container_name="javaspring",

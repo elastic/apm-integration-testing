@@ -187,6 +187,7 @@ class AgentServiceTest(ServiceTest):
                         args:
                             JAVA_AGENT_BRANCH: master
                             JAVA_AGENT_BUILT_VERSION: ""
+                            JAVA_AGENT_REPO: elastic/apm-agent-java
                         dockerfile: Dockerfile
                         context: docker/java/spring
                     container_name: javaspring
