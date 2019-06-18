@@ -1238,6 +1238,7 @@ class AgentRUMJS(Service):
 class AgentGoNetHttp(Service):
     SERVICE_PORT = 8080
     DEFAULT_AGENT_VERSION = "master"
+    DEFAULT_AGENT_REPO = "elastic/apm-agent-go"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1247,10 +1248,15 @@ class AgentGoNetHttp(Service):
             default=cls.DEFAULT_AGENT_VERSION,
             help='Use Go agent version (master, 0.5, v0.5.2, ...)',
         )
+        parser.add_argument(
+            '--go-agent-repo',
+            default=cls.DEFAULT_AGENT_REPO,
+        )
 
     def __init__(self, **options):
         super(AgentGoNetHttp, self).__init__(**options)
         self.agent_version = options.get("go_agent_version", self.DEFAULT_AGENT_VERSION)
+        self.agent_repo = options.get("go_agent_repo", self.DEFAULT_AGENT_REPO)
         self.depends_on = {
             "apm-server": {"condition": "service_healthy"},
         }
@@ -1266,6 +1272,7 @@ class AgentGoNetHttp(Service):
                 "dockerfile": "Dockerfile",
                 "args": {
                     "GO_AGENT_BRANCH": self.agent_version,
+                    "GO_AGENT_REPO": self.agent_repo,
                 },
             },
             container_name="gonethttpapp",

@@ -26,6 +26,7 @@ class AgentServiceTest(ServiceTest):
                     build:
                         args:
                             GO_AGENT_BRANCH: master
+                            GO_AGENT_REPO: elastic/apm-agent-go
                         dockerfile: Dockerfile
                         context: docker/go/nethttp
                     container_name: gonethttpapp
