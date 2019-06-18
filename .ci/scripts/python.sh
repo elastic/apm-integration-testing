@@ -11,7 +11,7 @@ if [ -n "${APM_AGENT_PYTHON_VERSION}" ]; then
   if [ "${APM_AGENT_PYTHON_VERSION}" = "elastic-apm==latest" ]; then
     APM_AGENT_PYTHON_VERSION="elastic-apm"
   fi
-  BUILD_OPTS="${BUILD_OPTS} --python-agent-package='${APM_AGENT_PYTHON_VERSION}'"
+  BUILD_OPTS="--python-agent-package='${APM_AGENT_PYTHON_VERSION}' ${BUILD_OPTS}"
 fi
 
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} --no-apm-server-dashboards --no-apm-server-self-instrument --no-kibana --with-agent-python-django --with-agent-python-flask --force-build"

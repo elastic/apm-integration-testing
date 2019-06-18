@@ -8,7 +8,7 @@ test -z "$srcdir" && srcdir=.
 if [ -n "${APM_AGENT_NODEJS_VERSION}" ]; then
   APM_AGENT_NODEJS_VERSION=${APM_AGENT_NODEJS_VERSION/'github;'/'elastic/apm-agent-nodejs#'}
   APM_AGENT_NODEJS_VERSION=${APM_AGENT_NODEJS_VERSION/'release;'/'elastic-apm-node@'}
-  BUILD_OPTS="${BUILD_OPTS} --nodejs-agent-package='${APM_AGENT_NODEJS_VERSION}'"
+  BUILD_OPTS="--nodejs-agent-package='${APM_AGENT_NODEJS_VERSION}' ${BUILD_OPTS}"
 fi
 
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} --no-apm-server-dashboards --no-apm-server-self-instrument --no-kibana --with-agent-nodejs-express --force-build"

@@ -6,7 +6,7 @@ test -z "$srcdir" && srcdir=.
 . ${srcdir}/common.sh
 
 if [ -n "${APM_AGENT_RUBY_VERSION}" ]; then
-  BUILD_OPTS="${BUILD_OPTS} --ruby-agent-version='${APM_AGENT_RUBY_VERSION#*;}' --ruby-agent-version-state='${APM_AGENT_RUBY_VERSION%;*}'"
+  BUILD_OPTS="--ruby-agent-version='${APM_AGENT_RUBY_VERSION#*;}' --ruby-agent-version-state='${APM_AGENT_RUBY_VERSION%;*}' ${BUILD_OPTS}"
 fi
 
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} --no-apm-server-dashboards --no-apm-server-self-instrument --no-kibana --with-agent-ruby-rails --force-build"
