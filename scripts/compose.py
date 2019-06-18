@@ -508,7 +508,7 @@ class ApmServer(StackService, Service):
             '--apm-server-build',
             const="https://github.com/elastic/apm-server.git",
             nargs="?",
-            help='build apm-server from a git repo[@branch], eg https://github.com/elastic/apm-server.git@v2'
+            help='build apm-server from a git repo[@branch|sha], eg https://github.com/elastic/apm-server.git@v2'
         )
         parser.add_argument(
             "--apm-server-ilm-disable",
@@ -660,7 +660,7 @@ class ApmServer(StackService, Service):
                     "context": "docker/apm-server",
                     "args": {
                         "apm_server_base_image": self.default_image(),
-                        "apm_server_branch": branch,
+                        "apm_server_branch_or_commit": branch,
                         "apm_server_repo": repo,
                     }
                 },
