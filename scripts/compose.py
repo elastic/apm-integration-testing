@@ -1545,6 +1545,7 @@ class AgentDotnet(Service):
     SERVICE_PORT = 8100
     DEFAULT_AGENT_VERSION = "master"
     DEFAULT_AGENT_RELEASE = ""
+    DEFAULT_AGENT_REPO = "elastic/apm-agent-dotnet"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1559,11 +1560,17 @@ class AgentDotnet(Service):
             default=cls.DEFAULT_AGENT_RELEASE,
             help='Use .NET agent release version (0.0.1-alpha, 0.0.2-alpha, ...)',
         )
+        parser.add_argument(
+            "--dotnet-agent-repo",
+            default=cls.DEFAULT_AGENT_REPO,
+            help='GitHub repo to be used. Default: elastic/apm-agent-dotnet',
+        )
 
     def __init__(self, **options):
         super(AgentDotnet, self).__init__(**options)
         self.agent_version = options.get("dotnet_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_release = options.get("dotnet_agent_release", self.DEFAULT_AGENT_RELEASE)
+        self.agent_repo = options.get("dotnet_agent_repo", self.DEFAULT_AGENT_REPO)
         self.depends_on = {
             "apm-server": {"condition": "service_healthy"},
         }
@@ -1580,6 +1587,7 @@ class AgentDotnet(Service):
                 "args": {
                     "DOTNET_AGENT_BRANCH": self.agent_version,
                     "DOTNET_AGENT_VERSION": self.agent_release,
+                    "DOTNET_AGENT_REPO": self.agent_repo,
                 },
             },
             container_name="dotnetapp",

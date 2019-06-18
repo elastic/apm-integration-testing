@@ -220,6 +220,7 @@ class AgentServiceTest(ServiceTest):
                         args:
                             DOTNET_AGENT_BRANCH: master
                             DOTNET_AGENT_VERSION: ""
+                            DOTNET_AGENT_REPO: elastic/apm-agent-dotnet
                         dockerfile: Dockerfile
                         context: docker/dotnet
                     container_name: dotnetapp
