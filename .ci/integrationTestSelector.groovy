@@ -90,12 +90,10 @@ pipeline {
           script {
             def agentName = mapAgentsIDs[params.AGENT_INTEGRATION_TEST]
             def agentApp = mapAgentsApps[params.AGENT_INTEGRATION_TEST]
-            withEnv(env){
-              sh """#!/bin/bash
-              export TMPDIR="${WORKSPACE}"
-              .ci/scripts/agent.sh ${agentName} ${agentApp}
-              """
-            }
+            sh """#!/bin/bash
+            export TMPDIR="${WORKSPACE}"
+            .ci/scripts/agent.sh ${agentName} ${agentApp}
+            """
           }
         }
       }
