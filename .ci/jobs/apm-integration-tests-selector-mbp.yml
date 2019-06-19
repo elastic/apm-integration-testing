@@ -6,7 +6,7 @@
     project-type: multibranch
     number-to-keep: '5'
     days-to-keep: '1'
-    script-path: .ci/integrationTestSelector.grrovy
+    script-path: .ci/integrationTestSelector.groovy
     scm:
     - github:
         branch-discovery: all
