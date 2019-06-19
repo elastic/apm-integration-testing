@@ -34,7 +34,7 @@ import groovy.transform.Field
 ]
 
 pipeline {
-  agent none
+  agent { label 'linux && immutable && docker' }
   environment {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
     NOTIFY_TO = credentials('notify-to')
@@ -64,7 +64,6 @@ pipeline {
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout'){
-      agent { label 'master || immutable' }
       steps {
         githubCheckNotify('PENDING')
         deleteDir()
