@@ -23,9 +23,7 @@
         - tags:
             ignore-tags-older-than: -1
             ignore-tags-newer-than: -1
-        - regular-branches: true
-        - change-request:
-            ignore-target-only-changes: false
+        - regular-branches: false
         clean:
           after: true
           before: true
