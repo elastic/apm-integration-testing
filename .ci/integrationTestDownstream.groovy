@@ -89,15 +89,13 @@ pipeline {
       options { skipDefaultCheckout() }
       steps {
         deleteDir()
-        dir("${BASE_DIR}"){
-          gitCheckout(basedir: "${BASE_DIR}",
-            branch: "${params.INTEGRATION_TESTING_VERSION}",
-            repo: "${REPO}",
-            credentialsId: "${JOB_GIT_CREDENTIALS}",
-            mergeTarget: "${params.MERGE_TARGET}",
-            reference: "/var/lib/jenkins/apm-integration-testing.git"
-          )
-        }
+        gitCheckout(basedir: "${BASE_DIR}",
+          branch: "${params.INTEGRATION_TESTING_VERSION}",
+          repo: "${REPO}",
+          credentialsId: "${JOB_GIT_CREDENTIALS}",
+          mergeTarget: "${params.MERGE_TARGET}",
+          reference: "/var/lib/jenkins/apm-integration-testing.git"
+        )
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script{
           currentBuild.displayName = "apm-agent-${params.AGENT_INTEGRATION_TEST} - ${currentBuild.displayName}"
