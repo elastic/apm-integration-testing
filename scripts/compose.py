@@ -996,6 +996,7 @@ class Heartbeat(BeatMixin, StackService, Service):
     docker_path = "beats"
 
     def __init__(self, **options):
+        options['enable_kibana'] = False
         super(Heartbeat, self).__init__(**options)
         config = "heartbeat.yml"
         self.heartbeat_config_path = os.path.join(".", "docker", "heartbeat", config)
