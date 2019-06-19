@@ -2109,6 +2109,11 @@ class LocalSetup(object):
     def __init__(self, argv=None, services=None):
         self.available_options = set()
 
+        if not any(os.access(os.path.join(path, "docker-compose"), os.X_OK) for path in os.environ["PATH"].split(os.pathsep)):
+            # If not, exit immediately
+            print('Make sure Docker Compose has been installed correctly.')
+            sys.exit(1)
+
         if services is None:
             services = discover_services()
         self.services = services

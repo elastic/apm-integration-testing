@@ -9,6 +9,7 @@ This repo contains tools for end to end (eg agent -> apm server -> elasticsearch
 The basic requirements for starting a local environment are:
 
 - Docker
+- Docker compose
 - Python (version 3 preferred)
 
 This repo is tested with Python 3 but best effort is made to make starting/stopping environments work with Python 2.7.
@@ -16,6 +17,9 @@ This repo is tested with Python 3 but best effort is made to make starting/stopp
 ### Docker
 
 [Installation instructions](https://www.docker.com/community-edition)
+
+### Docker compose
+[Installation instructions](https://docs.docker.com/compose/install/)
 
 ### Python 3
 
@@ -86,7 +90,7 @@ as it is itself generating load using a headless chrome instance.
 You can start Opbeans with an agent which is built from source from a specific branch or PR.
 This is currently only supported with the go and the Java agent.
 
-Example which builds the https://github.com/elastic/apm-agent-java/pull/588 branch from source and uses an APM server built from master: 
+Example which builds the https://github.com/elastic/apm-agent-java/pull/588 branch from source and uses an APM server built from master:
 
     ./scripts/compose.py start master --with-opbeans-java --opbeans-java-agent-branch=pr/588/head --apm-server-build https://github.com/elastic/apm-server.git@master
 
