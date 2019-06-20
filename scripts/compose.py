@@ -2109,11 +2109,6 @@ class LocalSetup(object):
     def __init__(self, argv=None, services=None):
         self.available_options = set()
 
-        if not any(os.access(os.path.join(path, "docker-compose"), os.X_OK) for path in os.environ["PATH"].split(os.pathsep)):
-            # If not, exit immediately
-            print('Make sure Docker Compose has been installed correctly.')
-            sys.exit(1)
-
         if services is None:
             services = discover_services()
         self.services = services
@@ -2566,7 +2561,11 @@ class LocalSetup(object):
                     docker_compose_build.append("--no-cache")
                 if args["build_parallel"]:
                     docker_compose_build.append("--parallel")
-                subprocess.call(docker_compose_build + build_services)
+                try:
+                    subprocess.call(docker_compose_build + build_services)
+                except OSError as err:
+                    print('ERROR: Docker Compose might be missing. See below for further details.\n')
+                    raise OSError(err)
 
             # pull any images
             image_services = [name for name, service in compose["services"].items() if
@@ -2575,14 +2574,23 @@ class LocalSetup(object):
                 pull_params = ["pull"]
                 if not sys.stdin.isatty():
                     pull_params.extend(["-q"])
-                subprocess.call(docker_compose_cmd + pull_params + image_services)
+                try:
+                    subprocess.call(docker_compose_cmd + pull_params + image_services)
+                except OSError as err:
+                    print('ERROR: Docker Compose might be missing. See below for further details.\n')
+                    raise OSError(err)
+
             # really start
             up_params = ["up", "-d"]
             if args["remove_orphans"]:
                 up_params.append("--remove-orphans")
             if not sys.stdin.isatty():
                 up_params.extend(["--quiet-pull"])
-            subprocess.call(docker_compose_cmd + up_params)
+            try:
+                subprocess.call(docker_compose_cmd + up_params)
+            except OSError as err:
+                print('ERROR: Docker Compose might be missing. See below for further details.\n')
+                raise OSError(err)
 
     @staticmethod
     def status_handler():
