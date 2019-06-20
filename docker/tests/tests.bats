@@ -4,12 +4,13 @@ load 'test_helper/bats-support/load'
 load 'test_helper/bats-assert/load'
 load test_helpers
 
-IMAGE="apm-integration-testing-tests-${DOCKERFILE}"
-CONTAINER="apm-integration-testing-tests-${DOCKERFILE}"
+IMAGE="apm-integration-testing-tests-${DOCKERFILE//\//-}"
+CONTAINER="apm-integration-testing-tests-${DOCKERFILE//\//-}"
 
 @test "${DOCKERFILE} - build image" {
 	cd $BATS_TEST_DIRNAME/..
 	docker build -t ${IMAGE} ${DOCKERFILE}
+	assert_success
 }
 
 @test "${DOCKERFILE} - clean test containers" {
