@@ -87,6 +87,28 @@ pipeline {
       }
     }
     /**
+      Validate docker images.
+    */
+    stage('Docker Tests'){
+      agent { label 'linux && immutable && docker' }
+      steps {
+        withGithubNotify(context: 'Docker Tests', tab: 'tests') {
+          deleteDir()
+          unstash 'source'
+          dir("${BASE_DIR}"){
+            sh "make -C docker all-tests"
+          }
+        }
+      }
+      post {
+        always {
+          junit(allowEmptyResults: true,
+            keepLongStdio: true,
+            testResults: "${BASE_DIR}/**/junit-*.xml")
+        }
+      }
+    }
+    /**
       launch integration tests.
     */
     stage("Integration Tests") {
