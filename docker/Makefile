@@ -21,7 +21,7 @@ prepare-test: bats ## Prepare the bats dependencies
 test-%: prepare-test ## Run the tests for the app
 	@DOCKERFILE=$* bats/bin/bats --tap tests | tee target/results.tap
 	@docker run --rm  -v "${PWD}":/usr/src/app -w /usr/src/app node:${LTS_ALPINE} \
-					sh -c 'npm install tap-xunit -g && cat docker/target/results.tap | tap-xunit --package="co.elastic.apm.integration.testing" > docker/target/junit-$*-results.xml'
+					sh -c 'npm install tap-xunit -g && cat docker/target/results.tap | tap-xunit --package="co.elastic.apm.integration.testing.$*" > docker/target/junit-$*-results.xml'
 
 all-tests: test-apm-server test-dotnet ## Run the tests for all the apps
 	echo 'done'
