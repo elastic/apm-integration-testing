@@ -20,3 +20,7 @@ node_modules
 **/.vscode/settings.json
 **/obj
 **/bin
+
+# For the BATS testing
+bats/
+target/
