@@ -1,7 +1,7 @@
 FROM node:8-slim
 
-ARG RUM_AGENT_BRANCH
-ARG RUM_AGENT_REPO
+ARG RUM_AGENT_BRANCH=master
+ARG RUM_AGENT_REPO=elastic/apm-agent-rum-js
 ARG APM_SERVER_URL
 
 RUN apt-get -qq update \
