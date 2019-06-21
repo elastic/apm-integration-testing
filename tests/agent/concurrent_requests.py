@@ -276,9 +276,7 @@ class Concurrent:
                         "number of frames not expected, got {}, but this assertion might be too strict".format(
                             len(stacktrace))
 
-                    fns = [frame['function'] for frame in stacktrace]
-                    assert all(fns), fns
-                    for attr in ['abs_path', 'line', 'filename']:
+                    for attr in ['filename']:
                         assert all(
                             frame.get(attr) for frame in stacktrace), stacktrace[0].keys()
 
