@@ -41,6 +41,29 @@ pipeline {
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
+
+    /**
+      Validate UTs and lint the app
+    */
+    stage('Unit Tests'){
+      agent { label 'linux && immutable && docker' }
+      steps {
+        withGithubNotify(context: 'Unit Tests', tab: 'tests') {
+          deleteDir()
+          unstash 'source'
+          dir("${BASE_DIR}"){
+            sh "make test-compose lint"
+          }
+        }
+      }
+      post {
+        always {
+          junit(allowEmptyResults: true,
+            keepLongStdio: true,
+            testResults: "${BASE_DIR}/**/junit-*.xml")
+        }
+      }
+    }
     /**
       launch integration tests.
     */
