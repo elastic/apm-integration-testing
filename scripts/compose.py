@@ -9,6 +9,7 @@ from abc import abstractmethod
 import argparse
 import codecs
 import collections
+from collections import OrderedDict
 import datetime
 import functools
 import glob
@@ -2060,7 +2061,7 @@ class OpbeansLoadGenerator(Service):
     def __init__(self, **options):
         super(OpbeansLoadGenerator, self).__init__(**options)
         self.loadgen_services = []
-        self.loadgen_rpms = {}
+        self.loadgen_rpms = OrderedDict()
         # create load for opbeans services
         run_all_opbeans = options.get('run_all_opbeans')
         excluded = ('opbeans_load_generator', 'opbeans_rum', 'opbeans_node')
