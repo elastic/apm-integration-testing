@@ -76,20 +76,8 @@ pipeline {
     }
   }
   post {
-    success {
-      echoColor(text: '[SUCCESS]', colorfg: 'green', colorbg: 'default')
-    }
-    aborted {
-      echoColor(text: '[ABORTED]', colorfg: 'magenta', colorbg: 'default')
-    }
-    failure {
-      node('master'){
-        echoColor(text: '[FAILURE]', colorfg: 'red', colorbg: 'default')
-        step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: "${NOTIFY_TO}", sendToIndividuals: false])
-      }
-    }
-    unstable {
-      echoColor(text: '[UNSTABLE]', colorfg: 'yellow', colorbg: 'default')
+    always {
+      notifyBuildResult()
     }
   }
 }
@@ -97,7 +85,7 @@ pipeline {
 def runJob(agentName, buildOpts = ''){
   def job = build(job: 'apm-integration-test-axis-pipeline',
     parameters: [
-    string(name: 'agent_integration_test', value: agentName),
+    string(name: 'AGENT_INTEGRATION_TEST', value: agentName),
     string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
     string(name: 'INTEGRATION_TESTING_VERSION', value: env.GIT_BASE_COMMIT),
     string(name: 'BUILD_OPTS', value: "${params.BUILD_OPTS} ${buildOpts}"),

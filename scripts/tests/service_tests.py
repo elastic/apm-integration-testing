@@ -26,6 +26,7 @@ class AgentServiceTest(ServiceTest):
                     build:
                         args:
                             GO_AGENT_BRANCH: master
+                            GO_AGENT_REPO: elastic/apm-agent-go
                         dockerfile: Dockerfile
                         context: docker/go/nethttp
                     container_name: gonethttpapp
@@ -49,6 +50,14 @@ class AgentServiceTest(ServiceTest):
         # test overrides
         agent = AgentGoNetHttp(apm_server_url="http://foo").render()["agent-go-net-http"]
         self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"], agent)
+
+    def test_agent_go_with_repo(self):
+        agent = AgentGoNetHttp(go_agent_repo="foo/myrepo.git").render()["agent-go-net-http"]
+        self.assertEqual("foo/myrepo.git", agent["build"]["args"]["GO_AGENT_REPO"])
+
+    def test_agent_go_with_version(self):
+        agent = AgentGoNetHttp(go_agent_version="bar").render()["agent-go-net-http"]
+        self.assertEqual("bar", agent["build"]["args"]["GO_AGENT_BRANCH"])
 
     def test_agent_nodejs_express(self):
         agent = AgentNodejsExpress().render()
@@ -163,6 +172,7 @@ class AgentServiceTest(ServiceTest):
                         RAILS_PORT: 8020
                         RUBY_AGENT_VERSION: latest
                         RUBY_AGENT_VERSION_STATE: release
+                        RUBY_AGENT_REPO: elastic/apm-agent-ruby
                     healthcheck:
                         interval: 10s
                         retries: 60
@@ -176,6 +186,18 @@ class AgentServiceTest(ServiceTest):
         agent = AgentRubyRails(apm_server_url="http://foo").render()["agent-ruby-rails"]
         self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"], agent)
 
+    def test_agent_ruby_with_repo(self):
+        agent = AgentRubyRails(ruby_agent_repo="foo/myrepo.git").render()["agent-ruby-rails"]
+        self.assertEqual("foo/myrepo.git", agent["environment"]["RUBY_AGENT_REPO"])
+
+    def test_agent_ruby_with_stage(self):
+        agent = AgentRubyRails(ruby_agent_version_state="github").render()["agent-ruby-rails"]
+        self.assertEqual("github", agent["environment"]["RUBY_AGENT_VERSION_STATE"])
+
+    def test_agent_ruby_with_version(self):
+        agent = AgentRubyRails(ruby_agent_version="1.0").render()["agent-ruby-rails"]
+        self.assertEqual("1.0", agent["environment"]["RUBY_AGENT_VERSION"])
+
     def test_agent_java_spring(self):
         agent = AgentJavaSpring().render()
         self.assertDictEqual(
@@ -185,6 +207,7 @@ class AgentServiceTest(ServiceTest):
                         args:
                             JAVA_AGENT_BRANCH: master
                             JAVA_AGENT_BUILT_VERSION: ""
+                            JAVA_AGENT_REPO: elastic/apm-agent-java
                         dockerfile: Dockerfile
                         context: docker/java/spring
                     container_name: javaspring
@@ -208,6 +231,18 @@ class AgentServiceTest(ServiceTest):
         agent = AgentJavaSpring(apm_server_url="http://foo").render()["agent-java-spring"]
         self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"])
 
+    def test_agent_java_with_repo(self):
+        agent = AgentJavaSpring(java_agent_repo="foo/myrepo.git").render()["agent-java-spring"]
+        self.assertEqual("foo/myrepo.git", agent["build"]["args"]["JAVA_AGENT_REPO"])
+
+    def test_agent_java_with_branch(self):
+        agent = AgentJavaSpring(java_agent_version="bar").render()["agent-java-spring"]
+        self.assertEqual("bar", agent["build"]["args"]["JAVA_AGENT_BRANCH"])
+
+    def test_agent_java_with_release(self):
+        agent = AgentJavaSpring(java_agent_release="1.0").render()["agent-java-spring"]
+        self.assertEqual("1.0", agent["build"]["args"]["JAVA_AGENT_BUILT_VERSION"])
+
     def test_agent_dotnet(self):
         agent = AgentDotnet().render()
         self.assertDictEqual(
@@ -217,6 +252,7 @@ class AgentServiceTest(ServiceTest):
                         args:
                             DOTNET_AGENT_BRANCH: master
                             DOTNET_AGENT_VERSION: ""
+                            DOTNET_AGENT_REPO: elastic/apm-agent-dotnet
                         dockerfile: Dockerfile
                         context: docker/dotnet
                     container_name: dotnetapp
@@ -243,6 +279,17 @@ class AgentServiceTest(ServiceTest):
         agent = AgentDotnet(apm_server_url="http://foo").render()["agent-dotnet"]
         self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URLS"])
 
+    def test_agent_dotnet_with_repo(self):
+        agent = AgentDotnet(dotnet_agent_repo="foo/myrepo.git").render()["agent-dotnet"]
+        self.assertEqual("foo/myrepo.git", agent["build"]["args"]["DOTNET_AGENT_REPO"])
+
+    def test_agent_dotnet_with_branch(self):
+        agent = AgentDotnet(dotnet_agent_version="bar").render()["agent-dotnet"]
+        self.assertEqual("bar", agent["build"]["args"]["DOTNET_AGENT_BRANCH"])
+
+    def test_agent_dotnet_with_release(self):
+        agent = AgentDotnet(dotnet_agent_release="1.0").render()["agent-dotnet"]
+        self.assertEqual("1.0", agent["build"]["args"]["DOTNET_AGENT_VERSION"])
 
 class ApmServerServiceTest(ServiceTest):
     def test_default_snapshot(self):
@@ -437,7 +484,7 @@ class ApmServerServiceTest(ServiceTest):
         self.assertIsNone(apm_server.get("image"))
         self.assertDictEqual(apm_server["build"], {
             'args': {'apm_server_base_image': 'docker.elastic.co/apm/apm-server:6.3.100',
-                     'apm_server_branch': 'bar',
+                     'apm_server_branch_or_commit': 'bar',
                      'apm_server_repo': 'foo.git'},
             'context': 'docker/apm-server'})
 
@@ -446,7 +493,7 @@ class ApmServerServiceTest(ServiceTest):
         self.assertIsNone(apm_server.get("image"))
         self.assertDictEqual(apm_server["build"], {
             'args': {'apm_server_base_image': 'docker.elastic.co/apm/apm-server:6.3.100',
-                     'apm_server_branch': 'master',
+                     'apm_server_branch_or_commit': 'master',
                      'apm_server_repo': 'foo.git'},
             'context': 'docker/apm-server'})
 

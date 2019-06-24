@@ -509,7 +509,7 @@ class ApmServer(StackService, Service):
             '--apm-server-build',
             const="https://github.com/elastic/apm-server.git",
             nargs="?",
-            help='build apm-server from a git repo[@branch], eg https://github.com/elastic/apm-server.git@v2'
+            help='build apm-server from a git repo[@branch|sha], eg https://github.com/elastic/apm-server.git@v2'
         )
         parser.add_argument(
             "--apm-server-ilm-disable",
@@ -661,7 +661,7 @@ class ApmServer(StackService, Service):
                     "context": "docker/apm-server",
                     "args": {
                         "apm_server_base_image": self.default_image(),
-                        "apm_server_branch": branch,
+                        "apm_server_branch_or_commit": branch,
                         "apm_server_repo": repo,
                     }
                 },
@@ -997,7 +997,7 @@ class Heartbeat(BeatMixin, StackService, Service):
     docker_path = "beats"
 
     def __init__(self, **options):
-        del options['enable_kibana']
+        options['enable_kibana'] = False
         super(Heartbeat, self).__init__(**options)
         config = "heartbeat.yml"
         self.heartbeat_config_path = os.path.join(".", "docker", "heartbeat", config)
@@ -1205,6 +1205,7 @@ class AgentRUMJS(Service):
         parser.add_argument(
             '--rum-agent-repo',
             default=cls.DEFAULT_AGENT_REPO,
+            help="GitHub repo to be used. Default: {}".format(cls.DEFAULT_AGENT_REPO),
         )
         parser.add_argument(
             '--rum-agent-branch',
@@ -1239,6 +1240,7 @@ class AgentRUMJS(Service):
 class AgentGoNetHttp(Service):
     SERVICE_PORT = 8080
     DEFAULT_AGENT_VERSION = "master"
+    DEFAULT_AGENT_REPO = "elastic/apm-agent-go"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1248,10 +1250,16 @@ class AgentGoNetHttp(Service):
             default=cls.DEFAULT_AGENT_VERSION,
             help='Use Go agent version (master, 0.5, v0.5.2, ...)',
         )
+        parser.add_argument(
+            '--go-agent-repo',
+            default=cls.DEFAULT_AGENT_REPO,
+            help="GitHub repo to be used. Default: {}".format(cls.DEFAULT_AGENT_REPO),
+        )
 
     def __init__(self, **options):
         super(AgentGoNetHttp, self).__init__(**options)
         self.agent_version = options.get("go_agent_version", self.DEFAULT_AGENT_VERSION)
+        self.agent_repo = options.get("go_agent_repo", self.DEFAULT_AGENT_REPO)
         self.depends_on = {
             "apm-server": {"condition": "service_healthy"},
         }
@@ -1267,6 +1275,7 @@ class AgentGoNetHttp(Service):
                 "dockerfile": "Dockerfile",
                 "args": {
                     "GO_AGENT_BRANCH": self.agent_version,
+                    "GO_AGENT_REPO": self.agent_repo,
                 },
             },
             container_name="gonethttpapp",
@@ -1410,6 +1419,7 @@ class AgentPythonFlask(AgentPython):
 
 
 class AgentRubyRails(Service):
+    DEFAULT_AGENT_REPO = "elastic/apm-agent-ruby"
     DEFAULT_AGENT_VERSION = "latest"
     DEFAULT_AGENT_VERSION_STATE = "release"
     SERVICE_PORT = 8020
@@ -1427,11 +1437,17 @@ class AgentRubyRails(Service):
             default=cls.DEFAULT_AGENT_VERSION_STATE,
             help='Use Ruby agent version state (github or release)',
         )
+        parser.add_argument(
+            "--ruby-agent-repo",
+            default=cls.DEFAULT_AGENT_REPO,
+            help="GitHub repo to be used. Default: {}".format(cls.DEFAULT_AGENT_REPO),
+        )
 
     def __init__(self, **options):
         super(AgentRubyRails, self).__init__(**options)
         self.agent_version = options.get("ruby_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_version_state = options.get("ruby_agent_version_state", self.DEFAULT_AGENT_VERSION_STATE)
+        self.agent_repo = options.get("ruby_agent_repo", self.DEFAULT_AGENT_REPO)
         self.depends_on = {
             "apm-server": {"condition": "service_healthy"},
         }
@@ -1454,6 +1470,7 @@ class AgentRubyRails(Service):
                 "RAILS_SERVICE_NAME": "railsapp",
                 "RUBY_AGENT_VERSION_STATE": self.agent_version_state,
                 "RUBY_AGENT_VERSION": self.agent_version,
+                "RUBY_AGENT_REPO": self.agent_repo,
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "railsapp", retries=60),
             depends_on=self.depends_on,
@@ -1468,6 +1485,7 @@ class AgentJavaSpring(Service):
     SERVICE_PORT = 8090
     DEFAULT_AGENT_VERSION = "master"
     DEFAULT_AGENT_RELEASE = ""
+    DEFAULT_AGENT_REPO = "elastic/apm-agent-java"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1482,11 +1500,17 @@ class AgentJavaSpring(Service):
             default=cls.DEFAULT_AGENT_RELEASE,
             help='Use Java agent release version (1.6.0, 0.6.2, ...)',
         )
+        parser.add_argument(
+            "--java-agent-repo",
+            default=cls.DEFAULT_AGENT_REPO,
+            help="GitHub repo to be used. Default: {}".format(cls.DEFAULT_AGENT_REPO),
+        )
 
     def __init__(self, **options):
         super(AgentJavaSpring, self).__init__(**options)
         self.agent_version = options.get("java_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_release = options.get("java_agent_release", self.DEFAULT_AGENT_RELEASE)
+        self.agent_repo = options.get("java_agent_repo", self.DEFAULT_AGENT_REPO)
         self.depends_on = {
             "apm-server": {"condition": "service_healthy"},
         }
@@ -1503,6 +1527,7 @@ class AgentJavaSpring(Service):
                 "args": {
                     "JAVA_AGENT_BRANCH": self.agent_version,
                     "JAVA_AGENT_BUILT_VERSION": self.agent_release,
+                    "JAVA_AGENT_REPO": self.agent_repo,
                 }
             },
             container_name="javaspring",
@@ -1523,6 +1548,7 @@ class AgentDotnet(Service):
     SERVICE_PORT = 8100
     DEFAULT_AGENT_VERSION = "master"
     DEFAULT_AGENT_RELEASE = ""
+    DEFAULT_AGENT_REPO = "elastic/apm-agent-dotnet"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1537,11 +1563,17 @@ class AgentDotnet(Service):
             default=cls.DEFAULT_AGENT_RELEASE,
             help='Use .NET agent release version (0.0.1-alpha, 0.0.2-alpha, ...)',
         )
+        parser.add_argument(
+            "--dotnet-agent-repo",
+            default=cls.DEFAULT_AGENT_REPO,
+            help="GitHub repo to be used. Default: {}".format(cls.DEFAULT_AGENT_REPO),
+        )
 
     def __init__(self, **options):
         super(AgentDotnet, self).__init__(**options)
         self.agent_version = options.get("dotnet_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_release = options.get("dotnet_agent_release", self.DEFAULT_AGENT_RELEASE)
+        self.agent_repo = options.get("dotnet_agent_repo", self.DEFAULT_AGENT_REPO)
         self.depends_on = {
             "apm-server": {"condition": "service_healthy"},
         }
@@ -1558,6 +1590,7 @@ class AgentDotnet(Service):
                 "args": {
                     "DOTNET_AGENT_BRANCH": self.agent_version,
                     "DOTNET_AGENT_VERSION": self.agent_release,
+                    "DOTNET_AGENT_REPO": self.agent_repo,
                 },
             },
             container_name="dotnetapp",
@@ -1728,7 +1761,7 @@ class OpbeansGo(OpbeansService):
 
 class OpbeansJava(OpbeansService):
     SERVICE_PORT = 3002
-    DEFAULT_AGENT_BRANCH = "master"
+    DEFAULT_AGENT_BRANCH = ""
     DEFAULT_AGENT_REPO = "elastic/apm-agent-java"
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = 'opbeans-java'
