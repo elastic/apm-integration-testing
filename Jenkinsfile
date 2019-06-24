@@ -16,7 +16,7 @@ pipeline {
   }
   options {
     timeout(time: 1, unit: 'HOURS')
-    buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '100'))
+    buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '100', daysToKeepStr: '30'))
     timestamps()
     ansiColor('xterm')
     disableResume()
@@ -25,7 +25,7 @@ pipeline {
     quietPeriod(10)
   }
   parameters {
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "8.0.0", description: "Elastic Stack Git branch/tag to use")
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "7.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
   }
@@ -41,18 +41,21 @@ pipeline {
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
-
-    /**
-      Validate UTs and lint the app
-    */
-    stage('Unit Tests'){
-      agent { label 'linux && immutable && docker' }
-      steps {
-        withGithubNotify(context: 'Unit Tests', tab: 'tests') {
-          deleteDir()
-          unstash 'source'
-          dir("${BASE_DIR}"){
-            sh '.ci/scripts/unit-tests.sh'
+    stage('Run Tests') {
+      parallel {
+        /**
+          Validate UTs and lint the app
+        */
+        stage('Unit Tests'){
+          agent { label 'linux && immutable && docker' }
+          steps {
+            withGithubNotify(context: 'Unit Tests', tab: 'tests') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                sh "make test-compose lint"
+              }
+            }
           }
           post {
             always {
@@ -83,28 +86,6 @@ pipeline {
                 testResults: "${BASE_DIR}/**/junit-*.xml")
             }
           }
-        }
-      }
-    }
-    /**
-      Validate docker images.
-    */
-    stage('Docker Tests'){
-      agent { label 'linux && immutable && docker' }
-      steps {
-        withGithubNotify(context: 'Docker Tests', tab: 'tests') {
-          deleteDir()
-          unstash 'source'
-          dir("${BASE_DIR}"){
-            sh "make -C docker all-tests"
-          }
-        }
-      }
-      post {
-        always {
-          junit(allowEmptyResults: true,
-            keepLongStdio: true,
-            testResults: "${BASE_DIR}/**/junit-*.xml")
         }
       }
     }
@@ -143,25 +124,18 @@ pipeline {
     }
   }
   post {
-    cleanup {
+    always {
       notifyBuildResult()
     }
   }
 }
 
 def runJob(agentName, buildOpts = ''){
-  def branch = env.BRANCH_NAME
-
-  if (env.CHANGE_ID) {
-    branch = env.CHANGE_TARGET
-  }
-
-  def job = build(job: "apm-integration-test-downstream/${branch}",
+  def job = build(job: 'apm-integration-test-axis-pipeline',
     parameters: [
     string(name: 'AGENT_INTEGRATION_TEST', value: agentName),
     string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
     string(name: 'INTEGRATION_TESTING_VERSION', value: env.GIT_BASE_COMMIT),
-    string(name: 'MERGE_TARGET', value: "${branch}"),
     string(name: 'BUILD_OPTS', value: "${params.BUILD_OPTS} ${buildOpts}"),
     string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
     booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: '')],
