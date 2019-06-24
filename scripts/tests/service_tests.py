@@ -156,6 +156,9 @@ class AgentServiceTest(ServiceTest):
             agent, yaml.load("""
                 agent-ruby-rails:
                     build:
+                        args:
+                            RUBY_AGENT_VERSION: latest
+                            RUBY_AGENT_REPO: elastic/apm-agent-ruby
                         dockerfile: Dockerfile
                         context: docker/ruby/rails
                     container_name: railsapp

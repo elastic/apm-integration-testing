@@ -1457,7 +1457,14 @@ class AgentRubyRails(Service):
     ])
     def _content(self):
         return dict(
-            build={"context": "docker/ruby/rails", "dockerfile": "Dockerfile"},
+            build={
+                "context": "docker/ruby/rails",
+                "dockerfile": "Dockerfile",
+                "args": {
+                    "RUBY_AGENT_VERSION": self.agent_version,
+                    "RUBY_AGENT_REPO": self.agent_repo,
+                }
+            },
             command="bash -c \"bundle install && RAILS_ENV=production bundle exec rails s -b 0.0.0.0 -p {}\"".format(
                 self.SERVICE_PORT),
             container_name="railsapp",
