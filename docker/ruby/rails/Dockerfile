@@ -18,7 +18,7 @@ RUN cd /agent/apm-agent-ruby \
 
 RUN cd /agent/apm-agent-ruby \
     && ( git show-ref --verify refs/heads/${RUBY_AGENT_VERSION} \
-          && echo 'export RUBY_AGENT_TYPE=branch' >> /tmp/branch || true )
+          && touch /tmp/branch || true )
 
 RUN mkdir -p /app
 
