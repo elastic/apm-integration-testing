@@ -5,5 +5,5 @@ echo "Cloning Kibana: $OWNER:$BRANCH"
 
 cd ./tmp
 git clone --depth 1 -b $BRANCH https://github.com/$OWNER/kibana.git
-mv ./kibana/x-pack/plugins/apm/typings/es_schemas ./apm-ui-interfaces
+mv ./kibana/x-pack/legacy/plugins/apm/typings/es_schemas ./apm-ui-interfaces
 rm -rf kibana
