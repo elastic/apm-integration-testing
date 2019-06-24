@@ -271,4 +271,14 @@ Build the docker image for a particular app with the usual
 
 Tests are written using [bats](https://github.com/sstephenson/bats) under the docker/tests dir
 
-    make -C docker test-<app>
+    make -C docker test-app-<app>
+    make -C docker test-opbeans-<agent>
+    make -C docker test-agent-<agent>
+
+Test all the docker images for the Opbeans
+
+    make -C docker all-opbeans-tests
+
+Test all the docker images for the agents
+
+    make -C docker all-agents-tests
