@@ -28,5 +28,9 @@ if ENV['RUBY_AGENT_VERSION_STATE']=='release'
     gem 'elastic-apm', "~> #{ENV['RUBY_AGENT_VERSION']}"
   end
 else
-  gem 'elastic-apm', git: "https://github.com/#{ENV['RUBY_AGENT_REPO']}.git", branch: ENV['RUBY_AGENT_VERSION']
+  if File.exist?('/tmp/branch')
+    gem 'elastic-apm', git: "https://github.com/#{ENV['RUBY_AGENT_REPO']}.git", branch: ENV['RUBY_AGENT_VERSION']
+  else
+    gem 'elastic-apm', git: "https://github.com/#{ENV['RUBY_AGENT_REPO']}.git", ref: ENV['RUBY_AGENT_VERSION']
+  end
 end

@@ -9,6 +9,7 @@ from abc import abstractmethod
 import argparse
 import codecs
 import collections
+from collections import OrderedDict
 import datetime
 import functools
 import glob
@@ -1855,6 +1856,7 @@ class OpbeansNode(OpbeansService):
                 "ELASTIC_APM_SOURCE_LINES_SPAN_LIBRARY_FRAMES",
                 "WORKLOAD_ELASTIC_APM_APP_NAME=workload",
                 "WORKLOAD_ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
+                "WORKLOAD_DISABLED={}".format(self.options.get("no_opbeans_node_loadgen", False)),
                 "OPBEANS_SERVER_PORT=3000",
                 "OPBEANS_SERVER_HOSTNAME=opbeans-node",
                 "NODE_ENV=production",
@@ -2059,7 +2061,7 @@ class OpbeansLoadGenerator(Service):
     def __init__(self, **options):
         super(OpbeansLoadGenerator, self).__init__(**options)
         self.loadgen_services = []
-        self.loadgen_rpms = {}
+        self.loadgen_rpms = OrderedDict()
         # create load for opbeans services
         run_all_opbeans = options.get('run_all_opbeans')
         excluded = ('opbeans_load_generator', 'opbeans_rum', 'opbeans_node')
