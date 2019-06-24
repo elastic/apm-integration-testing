@@ -1855,6 +1855,7 @@ class OpbeansNode(OpbeansService):
                 "ELASTIC_APM_SOURCE_LINES_SPAN_LIBRARY_FRAMES",
                 "WORKLOAD_ELASTIC_APM_APP_NAME=workload",
                 "WORKLOAD_ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
+                "WORKLOAD_DISABLED={}".format(self.options.get("no_opbeans_node_loadgen", False)),
                 "OPBEANS_SERVER_PORT=3000",
                 "OPBEANS_SERVER_HOSTNAME=opbeans-node",
                 "NODE_ENV=production",
