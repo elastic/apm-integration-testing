@@ -9,7 +9,6 @@ from abc import abstractmethod
 import argparse
 import codecs
 import collections
-from collections import OrderedDict
 import datetime
 import functools
 import glob
@@ -2069,7 +2068,7 @@ class OpbeansLoadGenerator(Service):
     def __init__(self, **options):
         super(OpbeansLoadGenerator, self).__init__(**options)
         self.loadgen_services = []
-        self.loadgen_rpms = OrderedDict()
+        self.loadgen_rpms = {}
         # create load for opbeans services
         run_all_opbeans = options.get('run_all_opbeans')
         excluded = ('opbeans_load_generator', 'opbeans_rum', 'opbeans_node')
@@ -2083,12 +2082,13 @@ class OpbeansLoadGenerator(Service):
                         self.loadgen_rpms[service_name.replace('_', '-')] = rpm
 
     def _content(self):
+        sorted_loadgen_rpms = sorted(self.loadgen_rpms.items(), key=lambda x: x[1])
         content = dict(
             image="opbeans/opbeans-loadgen:latest",
             depends_on={service: {'condition': 'service_healthy'} for service in self.loadgen_services},
             environment=[
                 "OPBEANS_URLS={}".format(','.join('{0}:http://{0}:3000'.format(s) for s in self.loadgen_services)),
-                "OPBEANS_RPMS={}".format(','.join('{}:{}'.format(k, v) for k, v in self.loadgen_rpms.items()))
+                "OPBEANS_RPMS={}".format(','.join('{}:{}'.format(k, v) for k, v in sorted_loadgen_rpms))
             ],
             labels=None,
         )

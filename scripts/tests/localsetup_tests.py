@@ -413,7 +413,7 @@ class OpbeansServiceTest(ServiceTest):
                     opbeans-ruby: {condition: service_healthy}
                 environment:
                  - 'OPBEANS_URLS=opbeans-python:http://opbeans-python:3000,opbeans-ruby:http://opbeans-ruby:3000'
-                 - 'OPBEANS_RPMS=opbeans-python:50,opbeans-ruby:10'
+                 - 'OPBEANS_RPMS=opbeans-ruby:10,opbeans-python:50'
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}""")
