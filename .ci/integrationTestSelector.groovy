@@ -7,13 +7,13 @@ import groovy.transform.Field
   translate from human agent name to its app name .
 */
 @Field Map mapAgentsApps = [
-  '.NET': 'dotnet',
-  'Go': 'go-net-http',
-  'Java': 'java-spring',
-  'Node.js': 'nodejs-express',
-  'Python': 'python-django',
-  'Ruby': 'ruby-rails',
-  'RUM': 'rumjs',
+  '.NET': ['dotnet'],
+  'Go': ['go-net-http'],
+  'Java': ['java-spring'],
+  'Node.js': ['nodejs-express'],
+  'Python': ['python-django','python-flask'],
+  'Ruby': ['ruby-rails'],
+  'RUM': ['rumjs'],
   'All': 'all',
   'UI': 'ui'
 ]
@@ -88,12 +88,16 @@ pipeline {
         unstash "source"
         dir("${BASE_DIR}"){
           script {
+            mapParallelTasks = [:]
             def agentName = mapAgentsIDs[params.AGENT_INTEGRATION_TEST]
-            def agentApp = mapAgentsApps[params.AGENT_INTEGRATION_TEST]
-            sh """#!/bin/bash
-            export TMPDIR="${WORKSPACE}"
-            .ci/scripts/agent.sh ${agentName} ${agentApp}
-            """
+            def agentApps = mapAgentsApps[params.AGENT_INTEGRATION_TEST]
+            agentApps.each { app ->
+              mapParallelTasks[app] = sh """#!/bin/bash
+                export TMPDIR="${WORKSPACE}"
+                .ci/scripts/agent.sh ${agentName} ${app}
+                """
+            }
+            parallel(mapParallelTasks)
           }
         }
       }
