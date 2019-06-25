@@ -30,11 +30,10 @@ test-opbeans-%: prepare-test ## Run the tests for the opbeans
 
 test-agents-%: prepare-test ## Run the tests for the app
 	@DOCKERFILE=$* bats/bin/bats --tap tests | tee target/results.tap
-	APP=$*; docker run --rm -e APP=$${APP} -v "${PWD}":/usr/src/app -w /usr/src/app node:${LTS_ALPINE} \
+	@APP=$*; docker run --rm -e APP=$${APP} -v "${PWD}":/usr/src/app -w /usr/src/app node:${LTS_ALPINE} \
 					sh -c 'npm install tap-xunit -g && cat docker/target/results.tap | tap-xunit --package="co.elastic.apm.integration.testing.agents.$${APP}" > docker/target/junit-agents-$${APP}-results.xml'
 
-# TODO: cannot run docker containers for  test-agents-nodejs-express test-agents-python-django test-agents-python-flask test-agents-ruby-rails
-all-agents-tests: test-agents-dotnet test-agents-go-nethttp test-agents-java-spring ## Run the tests for all the agents
+all-agents-tests: test-agents-dotnet test-agents-go-nethttp test-agents-java-spring test-agents-nodejs-express test-agents-python-django test-agents-python-flask test-agents-ruby-rails test-agents-rum ## Run the tests for all the agents
 
 # TODO: cannot run docker containers for test-opbeans-go
 all-opbeans-tests: test-opbeans-dotnet test-opbeans-frontend test-opbeans-java test-opbeans-node test-opbeans-python test-opbeans-ruby test-opbeans-rum ## Run the tests for all the opbeans
