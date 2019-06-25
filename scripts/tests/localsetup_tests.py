@@ -405,18 +405,19 @@ class OpbeansServiceTest(ServiceTest):
             opbeans_ruby_loadgen_rpm=10,
         ).render()["opbeans-load-generator"]
 
-        assert "opbeans/opbeans-loadgen:latest" == opbeans_load_gen["image"]
-        assert "localtesting_6.3.1_opbeans-load-generator" == opbeans_load_gen["container_name"]
-        assert "json-file" == opbeans_load_gen["logging"]["driver"]
-        assert {"opbeans-python", "opbeans-ruby"} == set(opbeans_load_gen["depends_on"].keys())
+        self.assertEqual("opbeans/opbeans-loadgen:latest", opbeans_load_gen["image"])
+        self.assertEqual("localtesting_6.3.1_opbeans-load-generator", opbeans_load_gen["container_name"])
 
         value = [e for e in opbeans_load_gen["environment"] if e.startswith("OPBEANS_URLS")]
         listOfValues = value[0].replace("OPBEANS_URLS=", "").split(",")
-        assert {"opbeans-python:http://opbeans-python:3000", "opbeans-ruby:http://opbeans-ruby:3000"} == set(listOfValues)
+        self.assertSetEqual({"opbeans-python:http://opbeans-python:3000", "opbeans-ruby:http://opbeans-ruby:3000"}, set(listOfValues))
 
         value = [e for e in opbeans_load_gen["environment"] if e.startswith("OPBEANS_RPMS")]
         listOfValues = value[0].replace("OPBEANS_RPMS=", "").split(",")
-        assert {"opbeans-python:50", "opbeans-ruby:10"} == set(listOfValues)
+        self.assertSetEqual({"opbeans-python:50", "opbeans-ruby:10"}, set(listOfValues))
+
+        self.assertSetEqual({"opbeans-python", "opbeans-ruby"}, set(opbeans_load_gen["depends_on"].keys()))
+        self.assertEqual("json-file", opbeans_load_gen["logging"]["driver"])
 
 class PostgresServiceTest(ServiceTest):
     def test_postgres(self):
