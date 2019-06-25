@@ -9,7 +9,11 @@ CONTAINER="apm-integration-testing-tests-${DOCKERFILE//\//-}"
 
 @test "${DOCKERFILE} - build image" {
 	cd $BATS_TEST_DIRNAME/..
-	docker build -t ${IMAGE} ${DOCKERFILE}
+	# Simplify the makefile as it does fail with '/bin/sh: 1: Bad substitution' in the CI
+	if [ ! -e ${DOCKERFILE} ] ; then
+		DOCKERFILE="${DOCKERFILE//-/\/}"
+	fi
+	run docker build -t ${IMAGE} ${DOCKERFILE}
 	assert_success
 }
 

@@ -7,6 +7,6 @@
 )>&2
 
 function cleanup {
-	docker kill "$1" &>/dev/null ||:
+    docker kill "$1" &>/dev/null ||:
     docker rm -fv "$1" &>/dev/null ||:
 }
