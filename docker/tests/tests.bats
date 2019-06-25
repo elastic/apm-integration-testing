@@ -11,7 +11,7 @@ CONTAINER="apm-integration-testing-tests-${DOCKERFILE//\//-}"
 	cd $BATS_TEST_DIRNAME/..
 	# Simplify the makefile as it does fail with '/bin/sh: 1: Bad substitution' in the CI
 	if [ ! -e ${DOCKERFILE} ] ; then
-		DOCKERFILE="${DOCKERFILE//-/\/}"
+		DOCKERFILE="${DOCKERFILE//-//}"
 	fi
 	run docker build -t ${IMAGE} ${DOCKERFILE}
 	assert_success
@@ -26,10 +26,10 @@ CONTAINER="apm-integration-testing-tests-${DOCKERFILE//\//-}"
 	assert_success
 }
 
-@test "${DOCKERFILE} - test container is running" {
+@test "${DOCKERFILE} - test container with 0 as exitcode" {
 	sleep 1
-	run docker inspect -f {{.State.Running}} $CONTAINER
-	assert_output --partial 'true'
+	run docker inspect -f {{.State.ExitCode}} $CONTAINER
+	assert_output '0'
 }
 
 @test "${DOCKERFILE} - clean test containers" {
