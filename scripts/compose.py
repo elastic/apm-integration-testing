@@ -2083,13 +2083,12 @@ class OpbeansLoadGenerator(Service):
                         self.loadgen_rpms[service_name.replace('_', '-')] = rpm
 
     def _content(self):
-        keys_order_loadgen_rpms = OrderedDict(sorted(self.loadgen_rpms.items()))
         content = dict(
             image="opbeans/opbeans-loadgen:latest",
             depends_on={service: {'condition': 'service_healthy'} for service in self.loadgen_services},
             environment=[
                 "OPBEANS_URLS={}".format(','.join('{0}:http://{0}:3000'.format(s) for s in self.loadgen_services)),
-                "OPBEANS_RPMS={}".format(','.join('{}:{}'.format(k, v) for k, v in keys_order_loadgen_rpms.items()))
+                "OPBEANS_RPMS={}".format(','.join('{}:{}'.format(k, v) for k, v in sorted(self.loadgen_rpms.items())))
             ],
             labels=None,
         )
