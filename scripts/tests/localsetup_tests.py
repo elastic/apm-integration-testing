@@ -403,21 +403,21 @@ class OpbeansServiceTest(ServiceTest):
             no_opbeans_node_loadgen=True,
             opbeans_python_loadgen_rpm=50,
             opbeans_ruby_loadgen_rpm=10,
-        ).render()
-        assert opbeans_load_gen == yaml.load("""
-            opbeans-load-generator:
-                image: opbeans/opbeans-loadgen:latest
-                container_name: localtesting_6.3.1_opbeans-load-generator
-                depends_on:
-                    opbeans-python: {condition: service_healthy}
-                    opbeans-ruby: {condition: service_healthy}
-                environment:
-                 - 'OPBEANS_URLS=opbeans-python:http://opbeans-python:3000,opbeans-ruby:http://opbeans-ruby:3000'
-                 - 'OPBEANS_RPMS=opbeans-python:50,opbeans-ruby:10'
-                logging:
-                    driver: json-file
-                    options: {max-file: '5', max-size: 2m}""")
+        ).render()["opbeans-load-generator"]
 
+        self.assertEqual("opbeans/opbeans-loadgen:latest", opbeans_load_gen["image"])
+        self.assertEqual("localtesting_6.3.1_opbeans-load-generator", opbeans_load_gen["container_name"])
+
+        value = [e for e in opbeans_load_gen["environment"] if e.startswith("OPBEANS_URLS")]
+        listOfValues = value[0].replace("OPBEANS_URLS=", "").split(",")
+        self.assertSetEqual({"opbeans-python:http://opbeans-python:3000", "opbeans-ruby:http://opbeans-ruby:3000"}, set(listOfValues))
+
+        value = [e for e in opbeans_load_gen["environment"] if e.startswith("OPBEANS_RPMS")]
+        listOfValues = value[0].replace("OPBEANS_RPMS=", "").split(",")
+        self.assertSetEqual({"opbeans-python:50", "opbeans-ruby:10"}, set(listOfValues))
+
+        self.assertSetEqual({"opbeans-python", "opbeans-ruby"}, set(opbeans_load_gen["depends_on"].keys()))
+        self.assertEqual("json-file", opbeans_load_gen["logging"]["driver"])
 
 class PostgresServiceTest(ServiceTest):
     def test_postgres(self):
