@@ -265,15 +265,11 @@ See `version*` in https://github.com/elastic/apm-integration-testing/tree/master
 
 ### Testing docker images
 
-Build the docker image for a particular app with the usual
-
-    make -C docker build-<app>
-
 Tests are written using [bats](https://github.com/sstephenson/bats) under the docker/tests dir
 
-    make -C docker test-app-<app>
+    make -C docker test-<app>
     make -C docker test-opbeans-<agent>
-    make -C docker test-agent-<agent>
+    make -C docker test-<agent>
 
 Test all the docker images for the Opbeans
 

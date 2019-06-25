@@ -27,7 +27,7 @@ CONTAINER="apm-integration-testing-tests-${DOCKERFILE//\//-}"
 }
 
 @test "${DOCKERFILE} - test container with 0 as exitcode" {
-	if [ ${DOCKERFILE} = "opbeans/go" ]; then
+	if [ ${DOCKERFILE} = "opbeans-go" ]; then
 		skip "${DOCKERFILE} does require some other docker services."
 	fi
 	sleep 1
