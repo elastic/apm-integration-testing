@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-@Library('apm@v1.0.9') _
+@Library('apm@current') _
 
 import co.elastic.matrix.*
 import groovy.transform.Field
@@ -155,7 +155,7 @@ pipeline {
     }
   }
   post {
-    always{
+    cleanup {
       script{
         if(integrationTestsGen?.results){
           writeJSON(file: 'results.json', json: toJSON(integrationTestsGen.results), pretty: 2)
