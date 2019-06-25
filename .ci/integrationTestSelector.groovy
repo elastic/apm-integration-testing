@@ -137,7 +137,7 @@ pipeline {
         unstash "source"
         dir("${BASE_DIR}"){
           script {
-            docker.image('node:11').inside() {
+            docker.image('node:12').inside() {
               sh(label: "Check Schema", script: ".ci/scripts/ui.sh")
             }
           }
@@ -151,7 +151,7 @@ pipeline {
     }
   }
   post {
-    always {
+    cleanup {
       githubCheckNotify(currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILURE')
       notifyBuildResult()
     }
