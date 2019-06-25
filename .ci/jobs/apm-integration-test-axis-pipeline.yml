@@ -23,5 +23,3 @@
           reference-repo: /var/lib/jenkins/.git-references/apm-integration-testing-axis-pipeline.git
           branches:
           - $INTEGRATION_TESTING_VERSION
-    triggers:
-    - timed: '@daily'

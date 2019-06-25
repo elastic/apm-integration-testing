@@ -4,8 +4,6 @@
     display-name: APM Integration Test MBP
     description: APM Integration Test Multi Branch Pipeline
     project-type: multibranch
-    number-to-keep: '5'
-    days-to-keep: '1'
     script-path: .ci/Jenkinsfile
     scm:
     - github:
