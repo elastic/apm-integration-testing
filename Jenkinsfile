@@ -75,7 +75,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh 'make -C docker all-tests all-agents-tests'
+                sh 'make -C docker all-tests'
               }
             }
           }
