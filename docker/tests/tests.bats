@@ -13,7 +13,7 @@ CONTAINER="apm-integration-testing-tests-${DOCKERFILE//\//-}"
 	if [ ! -e ${DOCKERFILE} ] ; then
 		DOCKERFILE="${DOCKERFILE//-//}"
 	fi
-	run docker build -t ${IMAGE} ${DOCKERFILE}
+	run docker build --rm -t ${IMAGE} ${DOCKERFILE}
 	assert_success
 }
 
