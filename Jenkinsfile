@@ -75,18 +75,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh """#!/bin/bash -xe
-                make -C docker test-opbeans-dotnet
-                make -C docker test-opbeans-frontend
-                make -C docker test-opbeans-java
-                make -C docker test-opbeans-node
-                make -C docker test-opbeans-python
-                make -C docker test-opbeans-ruby
-                make -C docker test-opbeans-rum
-                make -C docker test-agents-dotnet
-                make -C docker test-agents-go-nethttp
-                make -C docker test-agents-java-spring
-                """
+                sh 'make -C docker all-tests'
               }
             }
           }
