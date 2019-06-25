@@ -35,8 +35,7 @@ test-agents-%: prepare-test ## Run the tests for the app
 
 all-agents-tests: test-agents-dotnet test-agents-go-nethttp test-agents-java-spring test-agents-nodejs-express test-agents-python-django test-agents-python-flask test-agents-ruby-rails test-agents-rum ## Run the tests for all the agents
 
-# TODO: cannot run docker containers for test-opbeans-go
-all-opbeans-tests: test-opbeans-dotnet test-opbeans-frontend test-opbeans-java test-opbeans-node test-opbeans-python test-opbeans-ruby test-opbeans-rum ## Run the tests for all the opbeans
+all-opbeans-tests: test-opbeans-dotnet test-opbeans-frontend test-opbeans-go test-opbeans-java test-opbeans-node test-opbeans-python test-opbeans-ruby test-opbeans-rum ## Run the tests for all the opbeans
 
 all-tests: test-apps-apm-server all-opbeans-tests all-agents-tests ## Run the tests for all the apps
 
