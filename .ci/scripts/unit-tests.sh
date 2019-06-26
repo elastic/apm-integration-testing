@@ -7,4 +7,4 @@ test -z "$srcdir" && srcdir=.
 
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} --no-apm-server-dashboards --no-apm-server-self-instrument --no-kibana"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
-runTests test-compose lint test-helps
+runTests env-server test-compose lint test-helps
