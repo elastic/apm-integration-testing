@@ -402,7 +402,7 @@ class OpbeansServiceTest(ServiceTest):
             enable_opbeans_node=True,
             no_opbeans_node_loadgen=True,
             opbeans_python_loadgen_rpm=50,
-            opbeans_ruby_loadgen_rpm=10,
+            opbeans_ruby_loadgen_rpm=100,
         ).render()
         assert opbeans_load_gen == yaml.load("""
             opbeans-load-generator:
@@ -413,7 +413,7 @@ class OpbeansServiceTest(ServiceTest):
                     opbeans-ruby: {condition: service_healthy}
                 environment:
                  - 'OPBEANS_URLS=opbeans-python:http://opbeans-python:3000,opbeans-ruby:http://opbeans-ruby:3000'
-                 - 'OPBEANS_RPMS=opbeans-python:50,opbeans-ruby:10'
+                 - 'OPBEANS_RPMS=opbeans-python:50,opbeans-ruby:100'
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}""")
