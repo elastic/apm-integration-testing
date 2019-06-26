@@ -2,56 +2,12 @@
 @Library('apm@current') _
 
 import co.elastic.matrix.*
-import groovy.transform.Field
 
 /**
   This is the parallel tasks generator,
   it is need as field to store the results of the tests.
 */
 @Field def integrationTestsGen
-
-/**
-  YAML files to get agent versions and exclusions.
-*/
-@Field Map ymlFiles = [
-  'dotnet': 'tests/versions/dotnet.yml',
-  'go': 'tests/versions/go.yml',
-  'java': 'tests/versions/java.yml',
-  'nodejs': 'tests/versions/nodejs.yml',
-  'python': 'tests/versions/python.yml',
-  'ruby': 'tests/versions/ruby.yml',
-  'rum': 'tests/versions/rum.yml',
-  'server': 'tests/versions/apm_server.yml'
-]
-
-/**
-  Key which contains the agent versions.
-*/
-@Field Map agentYamlVar = [
-  'dotnet': 'DOTNET_AGENT',
-  'go': 'GO_AGENT',
-  'java': 'JAVA_AGENT',
-  'nodejs': 'NODEJS_AGENT',
-  'python': 'PYTHON_AGENT',
-  'ruby': 'RUBY_AGENT',
-  'rum': 'RUM_AGENT',
-  'server': 'APM_SERVER'
-]
-
-/**
-  translate from human agent name to an ID.
-*/
-@Field Map mapAgentsIDs = [
-  '.NET': 'dotnet',
-  'Go': 'go',
-  'Java': 'java',
-  'Node.js': 'nodejs',
-  'Python': 'python',
-  'Ruby': 'ruby',
-  'RUM': 'rum',
-  'All': 'all',
-  'UI': 'ui'
-]
 
 pipeline {
   agent { label 'linux && immutable && docker' }
@@ -118,13 +74,13 @@ pipeline {
         unstash "source"
         dir("${BASE_DIR}"){
           script {
-            def agentTests = mapAgentsIDs[params.AGENT_INTEGRATION_TEST]
+            def agentTests = its.mapAgentsIDs(params.AGENT_INTEGRATION_TEST)
             integrationTestsGen = new IntegrationTestingParallelTaskGenerator(
-              xKey: agentYamlVar[agentTests],
-              yKey: agentYamlVar['server'],
-              xFile: ymlFiles[agentTests],
-              yFile: ymlFiles['server'],
-              exclusionFile: ymlFiles[agentTests],
+              xKey: its.agentYamlVar(agentTests),
+              yKey: its.agentYamlVar('server'),
+              xFile: its.ymlFiles(agentTests),
+              yFile: its.ymlFiles('server'),
+              exclusionFile: its.ymlFiles(agentTests),
               tag: agentTests,
               name: params.AGENT_INTEGRATION_TEST,
               steps: this
@@ -202,19 +158,6 @@ pipeline {
   Parallel task generator for the integration tests.
 */
 class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerator {
-  /**
-    Enviroment variable to put the agent version before run tests.
-  */
-  public Map agentEnvVar = [
-    'dotnet': 'APM_AGENT_DOTNET_VERSION',
-    'go': 'APM_AGENT_GO_VERSION',
-    'java': 'APM_AGENT_JAVA_VERSION',
-    'nodejs': 'APM_AGENT_NODEJS_VERSION',
-    'python': 'APM_AGENT_PYTHON_VERSION',
-    'ruby': 'APM_AGENT_RUBY_VERSION',
-    'rum': 'APM_AGENT_RUM_VERSION',
-    'server': 'APM_SERVER_BRANCH'
-  ]
 
   public IntegrationTestingParallelTaskGenerator(Map params){
     super(params)
@@ -228,7 +171,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
     return {
       steps.node('linux && immutable'){
         def env = ["APM_SERVER_BRANCH=${y}",
-          "${agentEnvVar[tag]}=${x}",
+          "${its.agentEnvVar(tag)}=${x}",
           "REUSE_CONTAINERS=true"
           ]
         def label = "${tag}-${x}-${y}"
