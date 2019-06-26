@@ -2073,7 +2073,7 @@ class OpbeansLoadGenerator(Service):
         # create load for opbeans services
         run_all_opbeans = options.get('run_all_opbeans')
         excluded = ('opbeans_load_generator', 'opbeans_rum', 'opbeans_node')
-        for flag, value in sorted(options.items()):
+        for flag, value in options.items():
             if (value or run_all_opbeans) and flag.startswith('enable_opbeans_'):
                 service_name = flag[len('enable_'):]
                 if not options.get('no_{}_loadgen'.format(service_name)) and service_name not in excluded:
