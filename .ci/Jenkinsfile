@@ -52,7 +52,7 @@ pipeline {
           deleteDir()
           unstash 'source'
           dir("${BASE_DIR}"){
-            sh '.ci/scripts/unit-tests.sh'
+            sh 'scripts/ci/unit-tests.sh'
           }
         }
       }
