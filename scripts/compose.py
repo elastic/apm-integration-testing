@@ -9,6 +9,7 @@ from abc import abstractmethod
 import argparse
 import codecs
 import collections
+from collections import OrderedDict
 import datetime
 import functools
 import glob
@@ -474,8 +475,9 @@ class ApmServer(StackService, Service):
                 ("output.elasticsearch.enabled", "true"),
             ])
             if options.get("apm_server_enable_pipeline", True) and self.at_least_version("6.5"):
+                pipeline_name = "apm" if self.at_least_version("7.2") else "apm_user_agent"
                 self.apm_server_command_args.extend([
-                    ("output.elasticsearch.pipelines", "[{pipeline: 'apm_user_agent'}]"),
+                    ("output.elasticsearch.pipelines", "[{pipeline: '%s'}]" % pipeline_name),
                     ("apm-server.register.ingest.pipeline.enabled", "true"),
                 ])
         else:
@@ -1456,7 +1458,14 @@ class AgentRubyRails(Service):
     ])
     def _content(self):
         return dict(
-            build={"context": "docker/ruby/rails", "dockerfile": "Dockerfile"},
+            build={
+                "context": "docker/ruby/rails",
+                "dockerfile": "Dockerfile",
+                "args": {
+                    "RUBY_AGENT_VERSION": self.agent_version,
+                    "RUBY_AGENT_REPO": self.agent_repo,
+                }
+            },
             command="bash -c \"bundle install && RAILS_ENV=production bundle exec rails s -b 0.0.0.0 -p {}\"".format(
                 self.SERVICE_PORT),
             container_name="railsapp",
@@ -1855,6 +1864,7 @@ class OpbeansNode(OpbeansService):
                 "ELASTIC_APM_SOURCE_LINES_SPAN_LIBRARY_FRAMES",
                 "WORKLOAD_ELASTIC_APM_APP_NAME=workload",
                 "WORKLOAD_ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
+                "WORKLOAD_DISABLED={}".format(self.options.get("no_opbeans_node_loadgen", False)),
                 "OPBEANS_SERVER_PORT=3000",
                 "OPBEANS_SERVER_HOSTNAME=opbeans-node",
                 "NODE_ENV=production",
@@ -2059,7 +2069,7 @@ class OpbeansLoadGenerator(Service):
     def __init__(self, **options):
         super(OpbeansLoadGenerator, self).__init__(**options)
         self.loadgen_services = []
-        self.loadgen_rpms = {}
+        self.loadgen_rpms = OrderedDict()
         # create load for opbeans services
         run_all_opbeans = options.get('run_all_opbeans')
         excluded = ('opbeans_load_generator', 'opbeans_rum', 'opbeans_node')
@@ -2078,7 +2088,7 @@ class OpbeansLoadGenerator(Service):
             depends_on={service: {'condition': 'service_healthy'} for service in self.loadgen_services},
             environment=[
                 "OPBEANS_URLS={}".format(','.join('{0}:http://{0}:3000'.format(s) for s in self.loadgen_services)),
-                "OPBEANS_RPMS={}".format(','.join('{}:{}'.format(k, v) for k, v in self.loadgen_rpms.items()))
+                "OPBEANS_RPMS={}".format(','.join('{}:{}'.format(k, v) for k, v in sorted(self.loadgen_rpms.items())))
             ],
             labels=None,
         )

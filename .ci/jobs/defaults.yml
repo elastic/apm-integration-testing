@@ -11,7 +11,7 @@
     view: APM-CI
     logrotate:
       daysToKeep: 30
-      numToKeep: 100
+      numToKeep: 300
     node: linux
     concurrent: true
     publishers:

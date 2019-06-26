@@ -202,6 +202,7 @@ class OpbeansServiceTest(ServiceTest):
                         - ELASTIC_APM_SOURCE_LINES_SPAN_LIBRARY_FRAMES
                         - WORKLOAD_ELASTIC_APM_APP_NAME=workload
                         - WORKLOAD_ELASTIC_APM_SERVER_URL=http://apm-server:8200
+                        - WORKLOAD_DISABLED=False
                         - OPBEANS_SERVER_PORT=3000
                         - OPBEANS_SERVER_HOSTNAME=opbeans-node
                         - NODE_ENV=production
@@ -227,6 +228,11 @@ class OpbeansServiceTest(ServiceTest):
                     volumes:
                         - ./docker/opbeans/node/sourcemaps:/sourcemaps""")  # noqa: 501
         )
+
+    def test_opbeans_node_without_loadgen(self):
+        opbeans_node = OpbeansNode(no_opbeans_node_loadgen=True).render()["opbeans-node"]
+        value = [e for e in opbeans_node["environment"] if e.startswith("WORKLOAD_DISABLED")]
+        self.assertEqual(value, ["WORKLOAD_DISABLED=True"])
 
     def test_opbeans_python(self):
         opbeans_python = OpbeansPython(version="6.2.4").render()

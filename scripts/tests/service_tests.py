@@ -156,6 +156,9 @@ class AgentServiceTest(ServiceTest):
             agent, yaml.load("""
                 agent-ruby-rails:
                     build:
+                        args:
+                            RUBY_AGENT_VERSION: latest
+                            RUBY_AGENT_REPO: elastic/apm-agent-ruby
                         dockerfile: Dockerfile
                         context: docker/ruby/rails
                     container_name: railsapp
@@ -416,11 +419,22 @@ class ApmServerServiceTest(ServiceTest):
         )
 
     def test_pipeline(self):
+        def get_pipelines(command):
+            # also checks that output.elasticsearch.pipeline isn't set
+            got = [e.split("=", 1) for e in command if e.startswith("output.elasticsearch.pipeline")]
+            # ensure single output.elasticsearch.pipeline setting, should be output.elasticsearch.pipelines=
+            self.assertEqual(1, len(got))
+            directive, setting = got[0]
+            self.assertEqual("output.elasticsearch.pipelines", directive)
+            return yaml.load(setting)
+
         apm_server = ApmServer(version="6.5.10").render()["apm-server"]
-        self.assertTrue(
-            any(e.startswith("output.elasticsearch.pipelines") for e in apm_server["command"]),
-            "output.elasticsearch.pipelines should be set by default in version >= 6.5"
-        )
+        self.assertEqual(get_pipelines(apm_server["command"]), [{'pipeline': 'apm_user_agent'}],
+                         "output.elasticsearch.pipelines should be set to apm_user_agent in 7.2 > version >= 6.5")
+
+        apm_server = ApmServer(version="7.2.0", apm_server_enable_pipeline=True).render()["apm-server"]
+        self.assertEqual(get_pipelines(apm_server["command"]), [{'pipeline': 'apm'}],
+                         "output.elasticsearch.pipelines should be set to apm in version >= 7.2")
 
         apm_server = ApmServer(version="6.5.10", apm_server_enable_pipeline=False).render()["apm-server"]
         self.assertFalse(

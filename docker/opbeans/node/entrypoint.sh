@@ -1,4 +1,7 @@
 #!/bin/bash -e
+
+set -x
+
 if [[ -f /local-install/package.json ]]; then
     echo "Installing from local folder"
     # copy to folder inside container to ensure were not poluting the local folder

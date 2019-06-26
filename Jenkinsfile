@@ -42,6 +42,28 @@ pipeline {
       }
     }
     /**
+      Validate UTs and lint the app
+    */
+    stage('Unit Tests'){
+      agent { label 'linux && immutable && docker' }
+      steps {
+        withGithubNotify(context: 'Unit Tests', tab: 'tests') {
+          deleteDir()
+          unstash 'source'
+          dir("${BASE_DIR}"){
+            sh '.ci/scripts/unit-tests.sh'
+          }
+        }
+      }
+      post {
+        always {
+          junit(allowEmptyResults: true,
+            keepLongStdio: true,
+            testResults: "${BASE_DIR}/**/*junit.xml")
+        }
+      }
+    }
+    /**
       launch integration tests.
     */
     stage("Integration Tests") {

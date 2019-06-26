@@ -178,7 +178,7 @@ pipeline {
     }
   }
   post {
-    always{
+    cleanup {
       script{
         if(integrationTestsGen?.results){
           writeJSON(file: 'results.json', json: toJSON(integrationTestsGen.results), pretty: 2)
