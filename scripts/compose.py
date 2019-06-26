@@ -2597,7 +2597,7 @@ class LocalSetup(object):
     @staticmethod
     def stop_handler():
         print("Stopping all stack services..\n")
-        subprocess.call(['docker-compose', "--no-ansi", "--log-level", "ERROR", "-q", 'stop'])
+        subprocess.call(['docker-compose', "--no-ansi", "--log-level", "ERROR", 'stop'])
 
     def upload_sourcemaps_handler(self):
         service_name = self.args.opbeans_frontend_service_name
