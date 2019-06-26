@@ -2088,7 +2088,7 @@ class OpbeansLoadGenerator(Service):
             depends_on={service: {'condition': 'service_healthy'} for service in self.loadgen_services},
             environment=[
                 "OPBEANS_URLS={}".format(','.join('{0}:http://{0}:3000'.format(s) for s in self.loadgen_services)),
-                "OPBEANS_RPMS={}".format(','.join('{}:{}'.format(k, v) for k, v in self.loadgen_rpms.items()))
+                "OPBEANS_RPMS={}".format(','.join('{}:{}'.format(k, v) for k, v in sorted(self.loadgen_rpms.items())))
             ],
             labels=None,
         )
