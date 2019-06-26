@@ -51,10 +51,7 @@ pipeline {
           deleteDir()
           unstash 'source'
           dir("${BASE_DIR}"){
-            sh """
-              python script/compose.py start ${params.ELASTIC_STACK_VERSION} --no-apm-server-dashboards --no-apm-server-self-instrument --no-kibana
-              TARGET="test-compose lint test-helps" make dockerized-test
-            """
+            sh '.ci/scripts/unit-tests.sh'
           }
         }
       }
