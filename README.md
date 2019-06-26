@@ -86,7 +86,7 @@ as it is itself generating load using a headless chrome instance.
 You can start Opbeans with an agent which is built from source from a specific branch or PR.
 This is currently only supported with the go and the Java agent.
 
-Example which builds the https://github.com/elastic/apm-agent-java/pull/588 branch from source and uses an APM server built from master: 
+Example which builds the https://github.com/elastic/apm-agent-java/pull/588 branch from source and uses an APM server built from master:
 
     ./scripts/compose.py start master --with-opbeans-java --opbeans-java-agent-branch=pr/588/head --apm-server-build https://github.com/elastic/apm-server.git@master
 
@@ -195,6 +195,7 @@ These are the scripts available to execute:
 * `python.sh:` runs Python agent tests, you can choose the versions to run see the [environment variables](environment-variables) configuration.
 * `ruby.sh:` runs Ruby agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `server.sh:` runs APM Server tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
+* `unit-tests.sh:` runs the unit tests for the apm-integration-testing app and validate the linting, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 
 #### Environment Variables
 
