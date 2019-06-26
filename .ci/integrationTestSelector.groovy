@@ -56,8 +56,8 @@ pipeline {
         unstash "source"
         dir("${BASE_DIR}"){
           script {
-            def agentName = its.mapAgentsIDs(params.AGENT_INTEGRATION_TEST)
-              def agentApp = its.mapAgentsApps(params.AGENT_INTEGRATION_TEST)
+            def agentName = agentMapping.mapAgentsIDs(params.AGENT_INTEGRATION_TEST)
+              def agentApp = agentMapping.mapAgentsApps(params.AGENT_INTEGRATION_TEST)
             sh """#!/bin/bash
             export TMPDIR="${WORKSPACE}"
             .ci/scripts/agent.sh ${agentName} ${agentApp}
@@ -128,7 +128,7 @@ pipeline {
 
 def wrappingup(){
   dir("${BASE_DIR}"){
-    def stepName = its.mapAgentsIDs(params.AGENT_INTEGRATION_TEST)
+    def stepName = agentMapping.mapAgentsIDs(params.AGENT_INTEGRATION_TEST)
     sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
     sh('make stop-env || echo 0')
     archiveArtifacts(

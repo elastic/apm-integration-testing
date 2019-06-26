@@ -74,13 +74,13 @@ pipeline {
         unstash "source"
         dir("${BASE_DIR}"){
           script {
-            def agentTests = its.mapAgentsIDs(params.AGENT_INTEGRATION_TEST)
+            def agentTests = agentMapping.mapAgentsIDs(params.AGENT_INTEGRATION_TEST)
             integrationTestsGen = new IntegrationTestingParallelTaskGenerator(
-              xKey: its.agentYamlVar(agentTests),
-              yKey: its.agentYamlVar('server'),
-              xFile: its.ymlFiles(agentTests),
-              yFile: its.ymlFiles('server'),
-              exclusionFile: its.ymlFiles(agentTests),
+              xKey: agentMapping.agentYamlVar(agentTests),
+              yKey: agentMapping.agentYamlVar('server'),
+              xFile: agentMapping.ymlFiles(agentTests),
+              yFile: agentMapping.ymlFiles('server'),
+              exclusionFile: agentMapping.ymlFiles(agentTests),
               tag: agentTests,
               name: params.AGENT_INTEGRATION_TEST,
               steps: this
