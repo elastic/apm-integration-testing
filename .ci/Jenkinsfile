@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 
-@Library('apm@test-itsmaps') _
+@Library('apm@current') _
 
 pipeline {
   agent none
