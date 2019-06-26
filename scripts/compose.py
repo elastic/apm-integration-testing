@@ -2087,7 +2087,7 @@ class OpbeansLoadGenerator(Service):
             image="opbeans/opbeans-loadgen:latest",
             depends_on={service: {'condition': 'service_healthy'} for service in self.loadgen_services},
             environment=[
-                "OPBEANS_URLS={}".format(','.join('{0}:http://{0}:3000'.format(s) for s in self.loadgen_services)),
+                "OPBEANS_URLS={}".format(','.join('{0}:http://{0}:3000'.format(s) for s in sorted(self.loadgen_services))),  # noqa: E501
                 "OPBEANS_RPMS={}".format(','.join('{}:{}'.format(k, v) for k, v in sorted(self.loadgen_rpms.items())))
             ],
             labels=None,
@@ -2610,7 +2610,7 @@ class LocalSetup(object):
     @staticmethod
     def stop_handler():
         print("Stopping all stack services..\n")
-        subprocess.call(['docker-compose', "--no-ansi", "--log-level", "ERROR", "-q", 'stop'])
+        subprocess.call(['docker-compose', "--no-ansi", "--log-level", "ERROR", 'stop'])
 
     def upload_sourcemaps_handler(self):
         service_name = self.args.opbeans_frontend_service_name
