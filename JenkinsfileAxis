@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-@Library('apm@current') _
+@Library('apm@test-itsmaps') _
 
 import co.elastic.matrix.*
 
