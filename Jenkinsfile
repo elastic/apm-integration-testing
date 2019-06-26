@@ -51,7 +51,7 @@ pipeline {
           deleteDir()
           unstash 'source'
           dir("${BASE_DIR}"){
-            sh "make test-compose lint"
+            sh 'make docker-test-all'
           }
         }
       }
