@@ -6,6 +6,7 @@ DOCKER_IMAGES="alpine:3.4
 busybox:latest
 golang:latest
 golang:1.12
+golang:1.12.4
 golang:1.11
 golang:1.10
 haproxy:1.9
@@ -48,6 +49,7 @@ docker.elastic.co/observability-ci/jruby:9.2-11-jdk
 docker.elastic.co/observability-ci/jruby:9.2-8-jdk
 docker.elastic.co/observability-ci/jruby:9.1-7-jdk
 docker.elastic.co/observability-ci/apm-integration-testing:daily
+docker.elastic.co/observability-ci/golang-mage:1.12.4
 "
 
 for di in ${DOCKER_IMAGES}
