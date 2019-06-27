@@ -2,6 +2,7 @@
 @Library('apm@current') _
 
 import co.elastic.matrix.*
+import groovy.transform.Field
 
 /**
   This is the parallel tasks generator,
