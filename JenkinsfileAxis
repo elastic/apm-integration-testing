@@ -78,13 +78,13 @@ pipeline {
         unstash "source"
         dir("${BASE_DIR}"){
           script {
-            def agentTests = agentMapping.mapAgentsIDs(params.AGENT_INTEGRATION_TEST)
+            def agentTests = agentMapping.id(params.AGENT_INTEGRATION_TEST)
             integrationTestsGen = new IntegrationTestingParallelTaskGenerator(
-              xKey: agentMapping.agentYamlVar(agentTests),
-              yKey: agentMapping.agentYamlVar('server'),
-              xFile: agentMapping.ymlFiles(agentTests),
-              yFile: agentMapping.ymlFiles('server'),
-              exclusionFile: agentMapping.ymlFiles(agentTests),
+              xKey: agentMapping.agentVar(agentTests),
+              yKey: agentMapping.agentVar('server'),
+              xFile: agentMapping.yamlVersionFile(agentTests),
+              yFile: agentMapping.yamlVersionFile('server'),
+              exclusionFile: agentMapping.yamlVersionFile(agentTests),
               tag: agentTests,
               name: params.AGENT_INTEGRATION_TEST,
               steps: this
@@ -175,7 +175,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
     return {
       steps.node('linux && immutable'){
         def env = ["APM_SERVER_BRANCH=${y}",
-          "${its.agentEnvVar(tag)}=${x}",
+          "${agentMapping.envVar(tag)}=${x}",
           "REUSE_CONTAINERS=true"
           ]
         def label = "${tag}-${x}-${y}"
