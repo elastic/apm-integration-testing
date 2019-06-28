@@ -34,7 +34,7 @@ except ImportError:
 PACKAGE_NAME = 'localmanager'
 __version__ = "4.0.0"
 
-DEFAULT_STACK_VERSION = "7.0"
+DEFAULT_STACK_VERSION = "8.0"
 DEFAULT_APM_SERVER_URL = "http://apm-server:8200"
 
 
@@ -696,11 +696,11 @@ class ApmServer(StackService, Service):
             backend = dict(single)
             backend["container_name"] = backend["container_name"] + "-" + str(i)
             if self.apm_server_tee and i == 2:
-                # always build 7.0
+                # always build 8.0
                 backend["build"] = {
                     "args": {
                         "apm_server_base_image": "docker.elastic.co/apm/apm-server:8.0.0-SNAPSHOT",
-                        "apm_server_branch": "7.0",
+                        "apm_server_branch": "8.0",
                         "apm_server_repo": "https://github.com/elastic/apm-server.git"
                     },
                     "context": "docker/apm-server"
