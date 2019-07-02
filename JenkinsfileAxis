@@ -202,7 +202,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
     return {
       steps.node('linux && immutable'){
         def env = ["APM_SERVER_BRANCH=${y}",
-          "${agentEnvVar[tag]}=${x}",
+          "${steps.agentEnvVar[tag]}=${x}",
           "REUSE_CONTAINERS=true"
           ]
         def label = "${tag}-${x}-${y}"
