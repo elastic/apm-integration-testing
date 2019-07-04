@@ -25,7 +25,7 @@ pipeline {
     quietPeriod(10)
   }
   parameters {
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "7.0.0", description: "Elastic Stack Git branch/tag to use")
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "8.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
   }
@@ -41,51 +41,25 @@ pipeline {
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
-    stage('Run Tests') {
-      parallel {
-        /**
-          Validate UTs and lint the app
-        */
-        stage('Unit Tests'){
-          agent { label 'linux && immutable && docker' }
-          steps {
-            withGithubNotify(context: 'Unit Tests', tab: 'tests') {
-              deleteDir()
-              unstash 'source'
-              dir("${BASE_DIR}"){
-                sh "make test-compose lint"
-              }
-            }
-          }
-          post {
-            always {
-              junit(allowEmptyResults: true,
-                keepLongStdio: true,
-                testResults: "${BASE_DIR}/**/*junit.xml")
-            }
+    /**
+      Validate UTs and lint the app
+    */
+    stage('Unit Tests'){
+      agent { label 'linux && immutable && docker' }
+      steps {
+        withGithubNotify(context: 'Unit Tests', tab: 'tests') {
+          deleteDir()
+          unstash 'source'
+          dir("${BASE_DIR}"){
+            sh '.ci/scripts/unit-tests.sh'
           }
         }
-        /**
-          Validate docker images.
-        */
-        stage('Docker Tests'){
-          agent { label 'linux && immutable && docker' }
-          steps {
-            withGithubNotify(context: 'Docker Tests', tab: 'tests') {
-              deleteDir()
-              unstash 'source'
-              dir("${BASE_DIR}"){
-                sh 'make -C docker all-tests'
-              }
-            }
-          }
-          post {
-            always {
-              junit(allowEmptyResults: true,
-                keepLongStdio: true,
-                testResults: "${BASE_DIR}/**/junit-*.xml")
-            }
-          }
+      }
+      post {
+        always {
+          junit(allowEmptyResults: true,
+            keepLongStdio: true,
+            testResults: "${BASE_DIR}/**/*junit.xml")
         }
       }
     }
