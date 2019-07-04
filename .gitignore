@@ -22,5 +22,5 @@ node_modules
 **/bin
 
 # For the BATS testing
-bats/
+bats-core/
 target/
