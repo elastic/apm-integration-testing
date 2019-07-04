@@ -41,7 +41,6 @@ pipeline {
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
-
     /**
       Validate UTs and lint the app
     */
@@ -54,14 +53,18 @@ pipeline {
           dir("${BASE_DIR}"){
             sh '.ci/scripts/unit-tests.sh'
           }
-          post {
-            always {
-              junit(allowEmptyResults: true,
-                keepLongStdio: true,
-                testResults: "${BASE_DIR}/**/*junit.xml")
-            }
-          }
         }
+      }
+      post {
+        always {
+          junit(allowEmptyResults: true,
+            keepLongStdio: true,
+            testResults: "${BASE_DIR}/**/*junit.xml")
+        }
+      }
+    }
+    stage('Run Tests') {
+      parallel {
         /**
           Validate docker images.
         */
@@ -84,60 +87,38 @@ pipeline {
             }
           }
         }
-      }
-    }
-    /**
-      Validate docker images.
-    */
-    stage('Docker Tests'){
-      agent { label 'linux && immutable && docker' }
-      steps {
-        withGithubNotify(context: 'Docker Tests', tab: 'tests') {
-          deleteDir()
-          unstash 'source'
-          dir("${BASE_DIR}"){
-            sh "make -C docker all-tests"
-          }
-        }
-      }
-      post {
-        always {
-          junit(allowEmptyResults: true,
-            keepLongStdio: true,
-            testResults: "${BASE_DIR}/**/junit-*.xml")
-        }
-      }
-    }
-    /**
-      launch integration tests.
-    */
-    stage("Integration Tests") {
-      agent none
-      steps {
-        log(level: "INFO", text: "Launching Agent tests in parallel")
-        /*
-          Declarative pipeline's parallel stages lose the reference to the downstream job,
-          because of that, I use the parallel step. It is probably a bug.
-          https://issues.jenkins-ci.org/browse/JENKINS-56562
+        /**
+          launch integration tests.
         */
-        script {
-          def downstreamJobs = [:]
-          if(env?.CHANGE_ID != null && !params.Run_As_Master_Branch){
-            downstreamJobs = ['All': {runJob('All')}]
-          } else {
-            downstreamJobs = [
-            'All': {runJob('All')},
-            '.NET': {runJob('.NET')},
-            'Go': {runJob('Go')},
-            'Java': {runJob('Java')},
-            'Node.js': {runJob('Node.js')},
-            'Python': {runJob('Python')},
-            'Ruby': {runJob('Ruby')},
-            'RUM': {runJob('RUM')},
-            'UI': {runJob('UI')}
-            ]
+        stage("Integration Tests") {
+          agent none
+          steps {
+            log(level: "INFO", text: "Launching Agent tests in parallel")
+            /*
+              Declarative pipeline's parallel stages lose the reference to the downstream job,
+              because of that, I use the parallel step. It is probably a bug.
+              https://issues.jenkins-ci.org/browse/JENKINS-56562
+            */
+            script {
+              def downstreamJobs = [:]
+              if(env?.CHANGE_ID != null && !params.Run_As_Master_Branch){
+                downstreamJobs = ['All': {runJob('All')}]
+              } else {
+                downstreamJobs = [
+                'All': {runJob('All')},
+                '.NET': {runJob('.NET')},
+                'Go': {runJob('Go')},
+                'Java': {runJob('Java')},
+                'Node.js': {runJob('Node.js')},
+                'Python': {runJob('Python')},
+                'Ruby': {runJob('Ruby')},
+                'RUM': {runJob('RUM')},
+                'UI': {runJob('UI')}
+                ]
+              }
+              parallel(downstreamJobs)
+            }
           }
-          parallel(downstreamJobs)
         }
       }
     }
