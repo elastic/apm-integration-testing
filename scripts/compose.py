@@ -403,8 +403,6 @@ class ApmServer(StackService, Service):
             ("apm-server.read_timeout", "1m"),
             ("apm-server.shutdown_timeout", "2m"),
             ("apm-server.write_timeout", "1m"),
-            ("apm-server.kibana.enabled", "true"),
-            ("apm-server.kibana.host", "kibana:5601"),
             ("logging.json", "true"),
             ("logging.metrics.enabled", "false"),
             ("setup.kibana.host", "kibana:5601"),
@@ -427,6 +425,10 @@ class ApmServer(StackService, Service):
 
         if self.options.get("disable_acm"):
             self.apm_server_command_args.append(("apm-server.kibana.enabled", "false"))
+        elif self.at_least_version("7.3"):
+            self.apm_server_command_args.extend([
+                ("apm-server.kibana.enabled", "true"),
+                ("apm-server.kibana.host", "kibana:5601")])
 
         if self.options.get("enable_kibana", True):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
@@ -620,7 +622,6 @@ class ApmServer(StackService, Service):
         )
         parser.add_argument(
             "--apm-server-disable-acm",
-            action="store_false",
             dest="disable_acm",
             help="disable Agent Config Management",
         )
