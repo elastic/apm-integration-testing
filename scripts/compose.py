@@ -622,6 +622,7 @@ class ApmServer(StackService, Service):
         )
         parser.add_argument(
             "--apm-server-disable-acm",
+            action="store_true",
             dest="disable_acm",
             help="disable Agent Config Management",
         )
