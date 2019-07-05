@@ -77,7 +77,7 @@ pipeline {
           agent { label 'linux && immutable && docker' }
           when {
             beforeAgent true
-            expression { return env.DOCKER_UPDATED != "false" }
+            expression { return env.DOCKER_UPDATED == "true" }
           }
           steps {
             withGithubNotify(context: 'Docker Tests', tab: 'tests') {
