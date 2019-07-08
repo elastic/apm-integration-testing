@@ -429,7 +429,7 @@ class ApmServer(StackService, Service):
         elif self.at_least_version("7.3"):
             self.apm_server_command_args.extend([
                 ("apm-server.kibana.enabled", "true"),
-                ("apm-server.kibana.host",self.DEFAULT_KIBANA_HOST)])
+                ("apm-server.kibana.host", self.DEFAULT_KIBANA_HOST)])
 
         if self.options.get("enable_kibana", True):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
