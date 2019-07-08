@@ -637,7 +637,7 @@ class LocalTest(unittest.TestCase):
     def test_start_master_default(self):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
             setup = LocalSetup(argv=self.common_setup_args + ["master", "--image-cache-dir", image_cache_dir])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
@@ -655,10 +655,11 @@ class LocalTest(unittest.TestCase):
                     -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
                     -E, xpack.monitoring.elasticsearch=true, -E, xpack.monitoring.enabled=true,
+                    -E, apm-server.kibana.enabled=true, -E, 'apm-server.kibana.host=kibana:5601',
                     -E, 'output.elasticsearch.hosts=["elasticsearch:9200"]', -E, output.elasticsearch.enabled=true,
-                    -E, "output.elasticsearch.pipelines=[{pipeline: 'apm_user_agent'}]", -E, 'apm-server.register.ingest.pipeline.enabled=true'
+                    -E, "output.elasticsearch.pipelines=[{pipeline: 'apm'}]", -E, 'apm-server.register.ingest.pipeline.enabled=true'
                     ]
-                container_name: localtesting_7.0.10-alpha1_apm-server
+                container_name: localtesting_8.0.0_apm-server
                 depends_on:
                     elasticsearch: {condition: service_healthy}
                     kibana: {condition: service_healthy}
@@ -666,22 +667,22 @@ class LocalTest(unittest.TestCase):
                     interval: 10s
                     retries: 12
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://localhost:8200/']
-                image: docker.elastic.co/apm/apm-server:7.0.10-alpha1-SNAPSHOT
-                labels: [co.elatic.apm.stack-version=7.0.10-alpha1]
+                image: docker.elastic.co/apm/apm-server:8.0.0-SNAPSHOT
+                labels: [co.elatic.apm.stack-version=8.0.0]
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
                 ports: ['127.0.0.1:8200:8200', '127.0.0.1:6060:6060']
 
             elasticsearch:
-                container_name: localtesting_7.0.10-alpha1_elasticsearch
-                environment: [bootstrap.memory_lock=true, cluster.name=docker-cluster, cluster.routing.allocation.disk.threshold_enabled=false, discovery.type=single-node, path.repo=/usr/share/elasticsearch/data/backups, 'ES_JAVA_OPTS=-XX:UseAVX=2 -Xms1g -Xmx1g', path.data=/usr/share/elasticsearch/data/7.0.10-alpha1, xpack.security.enabled=false, xpack.license.self_generated.type=trial, xpack.monitoring.collection.enabled=true]
+                container_name: localtesting_8.0.0_elasticsearch
+                environment: [bootstrap.memory_lock=true, cluster.name=docker-cluster, cluster.routing.allocation.disk.threshold_enabled=false, discovery.type=single-node, path.repo=/usr/share/elasticsearch/data/backups, 'ES_JAVA_OPTS=-XX:UseAVX=2 -Xms1g -Xmx1g', path.data=/usr/share/elasticsearch/data/8.0.0, xpack.security.enabled=false, xpack.license.self_generated.type=trial, xpack.monitoring.collection.enabled=true]
                 healthcheck:
                     interval: '20'
                     retries: 10
                     test: [CMD-SHELL, 'curl -s http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
-                image: docker.elastic.co/elasticsearch/elasticsearch:7.0.10-alpha1-SNAPSHOT
-                labels: [co.elatic.apm.stack-version=7.0.10-alpha1]
+                image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0-SNAPSHOT
+                labels: [co.elatic.apm.stack-version=8.0.0]
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
@@ -691,7 +692,7 @@ class LocalTest(unittest.TestCase):
                 volumes: ['esdata:/usr/share/elasticsearch/data']
 
             kibana:
-                container_name: localtesting_7.0.10-alpha1_kibana
+                container_name: localtesting_8.0.0_kibana
                 depends_on:
                     elasticsearch: {condition: service_healthy}
                 environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
@@ -699,8 +700,8 @@ class LocalTest(unittest.TestCase):
                     interval: 10s
                     retries: 20
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
-                image: docker.elastic.co/kibana/kibana:7.0.10-alpha1-SNAPSHOT
-                labels: [co.elatic.apm.stack-version=7.0.10-alpha1]
+                image: docker.elastic.co/kibana/kibana:8.0.0-SNAPSHOT
+                labels: [co.elatic.apm.stack-version=8.0.0]
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
@@ -747,7 +748,7 @@ class LocalTest(unittest.TestCase):
     @mock.patch(compose.__name__ + '.load_images')
     def test_start_7_0_xpack_secure(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
             setup = LocalSetup(argv=self.common_setup_args + ["master", "--xpack-secure"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
@@ -777,7 +778,7 @@ class LocalTest(unittest.TestCase):
     @mock.patch(compose.__name__ + '.load_images')
     def test_start_no_elasticesarch(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master':'8.0.0'}):
             setup = LocalSetup(argv=self.common_setup_args + ["master", "--no-elasticsearch"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
@@ -790,7 +791,7 @@ class LocalTest(unittest.TestCase):
     @mock.patch(compose.__name__ + '.load_images')
     def test_start_all(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
             setup = LocalSetup(argv=self.common_setup_args + ["master", "--all"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
@@ -814,7 +815,7 @@ class LocalTest(unittest.TestCase):
     @mock.patch(compose.__name__ + '.load_images')
     def test_start_one_opbeans(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
             setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-node"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
@@ -827,7 +828,7 @@ class LocalTest(unittest.TestCase):
     @mock.patch(compose.__name__ + '.load_images')
     def test_start_all_opbeans_no_apm_server(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '7.0.10-alpha1'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
             setup = LocalSetup(argv=self.common_setup_args + ["master", "--all-opbeans", "--no-apm-server"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()

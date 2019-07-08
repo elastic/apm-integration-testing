@@ -379,6 +379,7 @@ class ApmServer(StackService, Service):
     DEFAULT_MONITOR_PORT = "6060"
     DEFAULT_OUTPUT = "elasticsearch"
     OUTPUTS = {"elasticsearch", "kafka", "logstash"}
+    DEFAULT_KIBANA_HOST = "kibana:5601"
 
     def __init__(self, **options):
         super(ApmServer, self).__init__(**options)
@@ -405,7 +406,7 @@ class ApmServer(StackService, Service):
             ("apm-server.write_timeout", "1m"),
             ("logging.json", "true"),
             ("logging.metrics.enabled", "false"),
-            ("setup.kibana.host", "kibana:5601"),
+            ("setup.kibana.host", self.DEFAULT_KIBANA_HOST),
             ("setup.template.settings.index.number_of_replicas", "0"),
             ("setup.template.settings.index.number_of_shards", "1"),
             ("setup.template.settings.index.refresh_interval", "1ms"),
@@ -418,8 +419,17 @@ class ApmServer(StackService, Service):
             "enable_elasticsearch", True) else {}
         self.build = self.options.get("apm_server_build")
 
-        if self.at_least_version("7.2") and not self.oss and not self.options.get("apm_server_ilm_disable"):
+        if self.options.get("apm_server_ilm_disable"):
+            self.apm_server_command_args.append(("apm-server.ilm.enabled", "false"))
+        elif self.at_least_version("7.2") and not self.at_least_version("7.3") and not self.oss:
             self.apm_server_command_args.append(("apm-server.ilm.enabled", "true"))
+
+        if self.options.get("apm_server_acm_disable"):
+            self.apm_server_command_args.append(("apm-server.kibana.enabled", "false"))
+        elif self.at_least_version("7.3"):
+            self.apm_server_command_args.extend([
+                ("apm-server.kibana.enabled", "true"),
+                ("apm-server.kibana.host", self.DEFAULT_KIBANA_HOST)])
 
         if self.options.get("enable_kibana", True):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
@@ -610,6 +620,11 @@ class ApmServer(StackService, Service):
             action="append",
             default=[],
             help="arbitrary additional configuration to set for apm-server"
+        )
+        parser.add_argument(
+            "--apm-server-acm-disable",
+            action="store_true",
+            help="disable Agent Config Management",
         )
 
     def build_candidate_manifest(self):
