@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Elastic.Apm;
-using Elastic.Apm.All;
+using Elastic.Apm.NetCoreAll;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -17,10 +17,10 @@ namespace TestAspNetCoreApp
 
 		public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 		{
-			// /healthcheck is mapped before app.UseElasticApm -> as specified in the spec, it won't be traced.
+			// /healthcheck is mapped before app.UseAllElasticApm -> as specified in the spec, it won't be traced.
 			app.Map("/healthcheck", HealthCheck);
 
-			app.UseElasticApm(_configuration);
+			app.UseAllElasticApm(_configuration);
 
 			app.Map("/bar", Bar);
 			app.Map("/foo", Foo);
