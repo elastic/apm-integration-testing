@@ -9,6 +9,7 @@ This repo contains tools for end to end (eg agent -> apm server -> elasticsearch
 The basic requirements for starting a local environment are:
 
 - Docker
+- Docker compose
 - Python (version 3 preferred)
 
 This repo is tested with Python 3 but best effort is made to make starting/stopping environments work with Python 2.7.
@@ -16,6 +17,9 @@ This repo is tested with Python 3 but best effort is made to make starting/stopp
 ### Docker
 
 [Installation instructions](https://www.docker.com/community-edition)
+
+### Docker compose
+[Installation instructions](https://docs.docker.com/compose/install/)
 
 ### Python 3
 

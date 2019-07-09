@@ -2421,6 +2421,13 @@ class LocalSetup(object):
 
         return parser
 
+    def run_docker_compose_process(self, docker_compose_cmd):
+        try:
+            subprocess.call(docker_compose_cmd)
+        except OSError as err:
+            print('ERROR: Docker Compose might be missing. See below for further details.\n')
+            raise OSError(err)
+
     @staticmethod
     def init_sourcemap_parser(parser):
         parser.add_argument(
@@ -2599,7 +2606,7 @@ class LocalSetup(object):
                     docker_compose_build.append("--no-cache")
                 if args["build_parallel"]:
                     docker_compose_build.append("--parallel")
-                subprocess.call(docker_compose_build + build_services)
+                self.run_docker_compose_process(docker_compose_build + build_services)
 
             # pull any images
             image_services = [name for name, service in compose["services"].items() if
@@ -2608,14 +2615,15 @@ class LocalSetup(object):
                 pull_params = ["pull"]
                 if not sys.stdin.isatty():
                     pull_params.extend(["-q"])
-                subprocess.call(docker_compose_cmd + pull_params + image_services)
+                self.run_docker_compose_process(docker_compose_cmd + pull_params + image_services)
+
             # really start
             up_params = ["up", "-d"]
             if args["remove_orphans"]:
                 up_params.append("--remove-orphans")
             if not sys.stdin.isatty():
                 up_params.extend(["--quiet-pull"])
-            subprocess.call(docker_compose_cmd + up_params)
+            self.run_docker_compose_process(docker_compose_cmd + up_params)
 
     @staticmethod
     def status_handler():
