@@ -84,6 +84,11 @@ class OpbeansServiceTest(ServiceTest):
                         retries: 36""")
         )
 
+    def test_opbeans_dotnet_version(self):
+        opbeans_node = OpbeansDotnet(opbeans_dotnet_version="1.0").render()["opbeans-dotnet"]
+        value = [e for e in opbeans_node["build"]["args"] if e.startswith("DOTNET_AGENT_VERSION")]
+        self.assertEqual(value, ["DOTNET_AGENT_VERSION=1.0"])
+
     def test_opbeans_go(self):
         opbeans_go = OpbeansGo(version="6.3.10").render()
         self.assertEqual(
