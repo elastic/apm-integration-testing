@@ -29,7 +29,7 @@ WORKDIR /rumjs-integration-test
 
 RUN npm install
 
-RUN npx lerna run build && npx lerna run build:e2e
+RUN npx lerna run --scope=@elastic/apm-rum build && npx lerna run build:e2e
 
 # Add user so we don't need --no-sandbox.
 RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
