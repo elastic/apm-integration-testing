@@ -1674,6 +1674,18 @@ class OpbeansDotnet(OpbeansService):
     DEFAULT_SERVICE_NAME = "opbeans-dotnet"
     DEFAULT_AGENT_VERSION = ""
 
+    @classmethod
+    def add_arguments(cls, parser):
+        super(OpbeansDotnet, cls).add_arguments(parser)
+        parser.add_argument(
+            '--opbeans-dotnet-version',
+            default=cls.DEFAULT_AGENT_VERSION,
+        )
+
+    def __init__(self, **options):
+        super(OpbeansDotnet, self).__init__(**options)
+        self.agent_version = options.get('opbeans_dotnet_version')
+
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
     ])
@@ -1691,7 +1703,7 @@ class OpbeansDotnet(OpbeansService):
                 args=[
                     "DOTNET_AGENT_BRANCH=" + (self.agent_branch or self.DEFAULT_AGENT_BRANCH),
                     "DOTNET_AGENT_REPO=" + (self.agent_repo or self.DEFAULT_AGENT_REPO),
-                    "DOTNET_AGENT_VERSION=" + (self.agent_repo or self.DEFAULT_AGENT_VERSION),
+                    "DOTNET_AGENT_VERSION=" + (self.agent_version or self.DEFAULT_AGENT_VERSION),
                 ]
             ),
             environment=[
