@@ -1,38 +1,6 @@
 #!/usr/bin/env groovy
 @Library('apm@current') _
 
-import groovy.transform.Field
-
-/**
-  translate from human agent name to its app name .
-*/
-@Field Map mapAgentsApps = [
-  '.NET': 'dotnet',
-  'Go': 'go-net-http',
-  'Java': 'java-spring',
-  'Node.js': 'nodejs-express',
-  'Python': 'python-django',
-  'Ruby': 'ruby-rails',
-  'RUM': 'rumjs',
-  'All': 'all',
-  'UI': 'ui'
-]
-
-/**
-  translate from human agent name to an ID.
-*/
-@Field Map mapAgentsIDs = [
-  '.NET': 'dotnet',
-  'Go': 'go',
-  'Java': 'java',
-  'Node.js': 'nodejs',
-  'Python': 'python',
-  'Ruby': 'ruby',
-  'RUM': 'rum',
-  'All': 'all',
-  'UI': 'ui'
-]
-
 pipeline {
   agent { label 'linux && immutable && docker' }
   environment {
@@ -53,7 +21,7 @@ pipeline {
   }
   parameters {
     choice(name: 'AGENT_INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "7.0.0", description: "Elastic Stack Git branch/tag to use")
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "8.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     string(name: 'GITHUB_CHECK_NAME', defaultValue: '', description: 'Name of the GitHub check to be updated. Only if this build is triggered from another parent stream.')
     string(name: 'GITHUB_CHECK_REPO', defaultValue: '', description: 'Name of the GitHub repo to be updated. Only if this build is triggered from another parent stream.')
@@ -88,8 +56,8 @@ pipeline {
         unstash "source"
         dir("${BASE_DIR}"){
           script {
-            def agentName = mapAgentsIDs[params.AGENT_INTEGRATION_TEST]
-            def agentApp = mapAgentsApps[params.AGENT_INTEGRATION_TEST]
+            def agentName = agentMapping.id(params.AGENT_INTEGRATION_TEST)
+            def agentApp = agentMapping.app(params.AGENT_INTEGRATION_TEST)
             sh """#!/bin/bash
             export TMPDIR="${WORKSPACE}"
             .ci/scripts/agent.sh ${agentName} ${agentApp}
@@ -160,7 +128,7 @@ pipeline {
 
 def wrappingup(){
   dir("${BASE_DIR}"){
-    def stepName = mapAgentsIDs[params.AGENT_INTEGRATION_TEST]
+    def stepName = agentMapping.id(params.AGENT_INTEGRATION_TEST)
     sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
     sh('make stop-env || echo 0')
     archiveArtifacts(

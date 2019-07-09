@@ -34,7 +34,7 @@ except ImportError:
 PACKAGE_NAME = 'localmanager'
 __version__ = "4.0.0"
 
-DEFAULT_STACK_VERSION = "7.0"
+DEFAULT_STACK_VERSION = "8.0"
 DEFAULT_APM_SERVER_URL = "http://apm-server:8200"
 
 
@@ -379,6 +379,7 @@ class ApmServer(StackService, Service):
     DEFAULT_MONITOR_PORT = "6060"
     DEFAULT_OUTPUT = "elasticsearch"
     OUTPUTS = {"elasticsearch", "kafka", "logstash"}
+    DEFAULT_KIBANA_HOST = "kibana:5601"
 
     def __init__(self, **options):
         super(ApmServer, self).__init__(**options)
@@ -405,7 +406,7 @@ class ApmServer(StackService, Service):
             ("apm-server.write_timeout", "1m"),
             ("logging.json", "true"),
             ("logging.metrics.enabled", "false"),
-            ("setup.kibana.host", "kibana:5601"),
+            ("setup.kibana.host", self.DEFAULT_KIBANA_HOST),
             ("setup.template.settings.index.number_of_replicas", "0"),
             ("setup.template.settings.index.number_of_shards", "1"),
             ("setup.template.settings.index.refresh_interval", "1ms"),
@@ -418,8 +419,17 @@ class ApmServer(StackService, Service):
             "enable_elasticsearch", True) else {}
         self.build = self.options.get("apm_server_build")
 
-        if self.at_least_version("7.2") and not self.oss and not self.options.get("apm_server_ilm_disable"):
+        if self.options.get("apm_server_ilm_disable"):
+            self.apm_server_command_args.append(("apm-server.ilm.enabled", "false"))
+        elif self.at_least_version("7.2") and not self.at_least_version("7.3") and not self.oss:
             self.apm_server_command_args.append(("apm-server.ilm.enabled", "true"))
+
+        if self.options.get("apm_server_acm_disable"):
+            self.apm_server_command_args.append(("apm-server.kibana.enabled", "false"))
+        elif self.at_least_version("7.3"):
+            self.apm_server_command_args.extend([
+                ("apm-server.kibana.enabled", "true"),
+                ("apm-server.kibana.host", self.DEFAULT_KIBANA_HOST)])
 
         if self.options.get("enable_kibana", True):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
@@ -611,6 +621,11 @@ class ApmServer(StackService, Service):
             default=[],
             help="arbitrary additional configuration to set for apm-server"
         )
+        parser.add_argument(
+            "--apm-server-acm-disable",
+            action="store_true",
+            help="disable Agent Config Management",
+        )
 
     def build_candidate_manifest(self):
         version = self.version
@@ -696,16 +711,16 @@ class ApmServer(StackService, Service):
             backend = dict(single)
             backend["container_name"] = backend["container_name"] + "-" + str(i)
             if self.apm_server_tee and i == 2:
-                # always build 7.0
+                # always build 8.0
                 backend["build"] = {
                     "args": {
-                        "apm_server_base_image": "docker.elastic.co/apm/apm-server:7.0.0-SNAPSHOT",
-                        "apm_server_branch": "7.0",
+                        "apm_server_base_image": "docker.elastic.co/apm/apm-server:8.0.0-SNAPSHOT",
+                        "apm_server_branch": "8.0",
                         "apm_server_repo": "https://github.com/elastic/apm-server.git"
                     },
                     "context": "docker/apm-server"
                 }
-                backend["labels"] = ["co.elatic.apm.stack-version=7.0.0"]
+                backend["labels"] = ["co.elatic.apm.stack-version=8.0.0"]
                 del(backend["image"])  # use the built one instead
             ren.update({"-".join([self.name(), str(i)]): backend})
 
@@ -1674,6 +1689,18 @@ class OpbeansDotnet(OpbeansService):
     DEFAULT_SERVICE_NAME = "opbeans-dotnet"
     DEFAULT_AGENT_VERSION = ""
 
+    @classmethod
+    def add_arguments(cls, parser):
+        super(OpbeansDotnet, cls).add_arguments(parser)
+        parser.add_argument(
+            '--opbeans-dotnet-version',
+            default=cls.DEFAULT_AGENT_VERSION,
+        )
+
+    def __init__(self, **options):
+        super(OpbeansDotnet, self).__init__(**options)
+        self.agent_version = options.get('opbeans_dotnet_version')
+
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
     ])
@@ -1691,7 +1718,7 @@ class OpbeansDotnet(OpbeansService):
                 args=[
                     "DOTNET_AGENT_BRANCH=" + (self.agent_branch or self.DEFAULT_AGENT_BRANCH),
                     "DOTNET_AGENT_REPO=" + (self.agent_repo or self.DEFAULT_AGENT_REPO),
-                    "DOTNET_AGENT_VERSION=" + (self.agent_repo or self.DEFAULT_AGENT_VERSION),
+                    "DOTNET_AGENT_VERSION=" + (self.agent_version or self.DEFAULT_AGENT_VERSION),
                 ]
             ),
             environment=[
@@ -2112,7 +2139,8 @@ class LocalSetup(object):
         '6.8': '6.8.1',
         '7.0': '7.0.1',
         '7.1': '7.1.1',
-        '7.2': '7.2.0',
+        '7.2': '7.2.1',
+        '7.3': '7.3.0',
         'master': '8.0.0',
     }
 

@@ -353,10 +353,16 @@ class ApmServerServiceTest(ServiceTest):
     def test_ilm_default(self):
         """enable ILM by default in 7.2+"""
         apm_server = ApmServer(version="6.3.100").render()["apm-server"]
-        self.assertFalse("apm-server.ilm.enabled=true" in apm_server["command"], "ILM enabled by default in < 7.2")
+        self.assertFalse("apm-server.ilm.enabled=true" in
+                         apm_server["command"], "ILM not enabled by default in < 7.2")
 
         apm_server = ApmServer(version="7.2.0").render()["apm-server"]
-        self.assertTrue("apm-server.ilm.enabled=true" in apm_server["command"], "ILM not enabled by default in >= 7.2")
+        self.assertTrue("apm-server.ilm.enabled=true" in apm_server["command"],
+                        "ILM enabled by default in = 7.2")
+
+        apm_server = ApmServer(version="7.3.0").render()["apm-server"]
+        self.assertTrue("apm-server.ilm.enabled" not in apm_server["command"],
+                        "ILM auto by default in >= 7.3")
 
     def test_ilm_disabled(self):
         apm_server = ApmServer(version="7.2.0", apm_server_ilm_disable=True).render()["apm-server"]
@@ -542,6 +548,17 @@ class ApmServerServiceTest(ServiceTest):
             any(e.startswith("setup.dashboards.enabled=") for e in apm_server["command"]),
             "setup.dashboards.enabled while enable_kibana=False"
         )
+
+    def test_apm_server_acm(self):
+        apm_server = ApmServer(version="7.3").render()["apm-server"]
+        self.assertTrue("apm-server.kibana.enabled=true" in apm_server["command"],
+                        "APM Server Kbana enabled by default")
+        self.assertTrue("apm-server.kibana.host=kibana:5601" in apm_server["command"],
+                        "APM Server Kibana host set by default")
+
+        apm_server = ApmServer(version="7.3", apm_server_acm_disable=True).render()["apm-server"]
+        self.assertTrue("apm-server.kibana.enabled=false" in apm_server["command"],
+                        "APM Server Kibana disabled when apm_server_disable_kibana=True")
 
 
 class ElasticsearchServiceTest(ServiceTest):
