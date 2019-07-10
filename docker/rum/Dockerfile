@@ -10,7 +10,7 @@ RUN apt-get -qq update \
     && curl -L https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
     && apt-get -qq update \
-    && apt-get -qq install -y google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst ttf-freefont \
+    && apt-get -qq install -y google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst ttf-freefont python g++ build-essential \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get -qq purge --auto-remove -y \
