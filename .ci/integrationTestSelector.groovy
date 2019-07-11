@@ -136,7 +136,7 @@ def wrappingup(){
         artifacts: 'docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
         defaultExcludes: false)
     junit(
-      allowEmptyResults: false,
+      allowEmptyResults: true,
       keepLongStdio: true,
       testResults: "**/tests/results/*-junit*.xml")
   }
