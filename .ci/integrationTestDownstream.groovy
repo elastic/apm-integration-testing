@@ -237,7 +237,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
           saveResult(x, y, 1)
         } catch (e){
           saveResult(x, y, 0)
-          error("${label} tests failed : ${e.toString()}\n")
+          steps.error("${label} tests failed : ${e.toString()}\n")
         } finally {
           steps.wrappingup(label)
         }
@@ -280,7 +280,7 @@ def wrappingup(label){
         artifacts: 'docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
         defaultExcludes: false)
     junit(
-      allowEmptyResults: false,
+      allowEmptyResults: true,
       keepLongStdio: true,
       testResults: "**/tests/results/*-junit*.xml")
   }
