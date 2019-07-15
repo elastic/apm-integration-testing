@@ -35,6 +35,6 @@ CONTAINER="apm-integration-testing-tests-${DOCKERFILE//\//-}"
 	assert_output '0'
 }
 
-@test "${DOCKERFILE} - clean test containers" {
+@test "${DOCKERFILE} - clean test containers afterwards" {
 	cleanup $CONTAINER
 }
