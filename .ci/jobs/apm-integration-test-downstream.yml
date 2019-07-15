@@ -1,7 +1,7 @@
 ---
 - job:
     name: apm-integration-test-downstream
-    display-name: APM Integration Test Downstream MBP
+    display-name: APM Integration Test Downstream
     description: APM Integration Tests downstream job that runs an Agent version matrix
       tests in a multibranch pipeline
     project-type: multibranch
