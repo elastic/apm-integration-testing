@@ -145,6 +145,7 @@ class Concurrent:
                 count = ep.count("span") * it / len(ep.span_names)
                 spans_sum += count
                 assert_count([
+                    ("processor.event", "span"),
                     ("span.name", span_name),
                     ("service.name", ep.app_name),
                 ], count)
@@ -152,6 +153,7 @@ class Concurrent:
             count = ep.count("transaction") * it
             transactions_sum += count
             assert_count([
+                ("processor.event", "transaction"),
                 ("service.name", ep.app_name),
                 ("transaction.name", ep.transaction_name),
             ], count)
@@ -166,6 +168,7 @@ class Concurrent:
         slack = timedelta(seconds=2) if slack is None else slack
         for ep in self.endpoints:
             q = self.elasticsearch.term_q([
+                ("processor.event", "transaction"),
                 ("service.name", ep.app_name),
                 ("transaction.name", ep.transaction_name),
             ])
