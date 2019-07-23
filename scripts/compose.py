@@ -1702,6 +1702,8 @@ class OpbeansDotnet(OpbeansService):
     DEFAULT_AGENT_REPO = "elastic/apm-agent-dotnet"
     DEFAULT_SERVICE_NAME = "opbeans-dotnet"
     DEFAULT_AGENT_VERSION = ""
+    DEFAULT_OPBEANS_BRANCH = "master"
+    DEFAULT_OPBEANS_REPO = "elastic/opbeans-dotnet"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1733,6 +1735,8 @@ class OpbeansDotnet(OpbeansService):
                     "DOTNET_AGENT_BRANCH=" + (self.agent_branch or self.DEFAULT_AGENT_BRANCH),
                     "DOTNET_AGENT_REPO=" + (self.agent_repo or self.DEFAULT_AGENT_REPO),
                     "DOTNET_AGENT_VERSION=" + (self.agent_version or self.DEFAULT_AGENT_VERSION),
+                    "OPBEANS_DOTNET_BRANCH=" + (self.opbeans_branch or self.DEFAULT_OPBEANS_BRANCH),
+                    "OPBEANS_DOTNET_REPO=" + (self.opbeans_repo or self.DEFAULT_OPBEANS_REPO),
                 ]
             ),
             environment=[

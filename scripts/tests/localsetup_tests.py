@@ -55,6 +55,8 @@ class OpbeansServiceTest(ServiceTest):
                         - DOTNET_AGENT_BRANCH=master
                         - DOTNET_AGENT_REPO=elastic/apm-agent-dotnet
                         - DOTNET_AGENT_VERSION=
+                        - OPBEANS_DOTNET_BRANCH=master
+                        - OPBEANS_DOTNET_REPO=elastic/opbeans-dotnet
                     container_name: localtesting_6.3.10_opbeans-dotnet
                     ports:
                       - "127.0.0.1:3004:80"
@@ -84,9 +86,19 @@ class OpbeansServiceTest(ServiceTest):
         )
 
     def test_opbeans_dotnet_version(self):
-        opbeans_node = OpbeansDotnet(opbeans_dotnet_version="1.0").render()["opbeans-dotnet"]
-        value = [e for e in opbeans_node["build"]["args"] if e.startswith("DOTNET_AGENT_VERSION")]
+        opbeans = OpbeansDotnet(opbeans_dotnet_version="1.0").render()["opbeans-dotnet"]
+        value = [e for e in opbeans["build"]["args"] if e.startswith("DOTNET_AGENT_VERSION")]
         self.assertEqual(value, ["DOTNET_AGENT_VERSION=1.0"])
+
+    def test_opbeans_go_branch(self):
+        opbeans = OpbeansDotnet(opbeans_dotnet_branch="1.x").render()["opbeans-dotnet"]
+        branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_DOTNET_BRANCH")]
+        self.assertEqual(branch, ["OPBEANS_DOTNET_BRANCH=1.x"])
+
+    def test_opbeans_go_repo(self):
+        opbeans = OpbeansDotnet(opbeans_dotnet_repo="foo/bar").render()["opbeans-dotnet"]
+        branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_DOTNET_REPO")]
+        self.assertEqual(branch, ["OPBEANS_DOTNET_REPO=foo/bar"])
 
     def test_opbeans_go(self):
         opbeans_go = OpbeansGo(version="6.3.10").render()
@@ -137,13 +149,13 @@ class OpbeansServiceTest(ServiceTest):
         )
 
     def test_opbeans_go_branch(self):
-        opbeans_go = OpbeansGo(opbeans_go_branch="1.x").render()["opbeans-go"]
-        branch = [e for e in opbeans_go["build"]["args"] if e.startswith("OPBEANS_GO_BRANCH")]
+        opbeans = OpbeansGo(opbeans_go_branch="1.x").render()["opbeans-go"]
+        branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_GO_BRANCH")]
         self.assertEqual(branch, ["OPBEANS_GO_BRANCH=1.x"])
 
     def test_opbeans_go_repo(self):
-        opbeans_go = OpbeansGo(opbeans_go_repo="foo/bar").render()["opbeans-go"]
-        branch = [e for e in opbeans_go["build"]["args"] if e.startswith("OPBEANS_GO_REPO")]
+        opbeans = OpbeansGo(opbeans_go_repo="foo/bar").render()["opbeans-go"]
+        branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_GO_REPO")]
         self.assertEqual(branch, ["OPBEANS_GO_REPO=foo/bar"])
 
     def test_opbeans_java(self):
@@ -302,7 +314,7 @@ class OpbeansServiceTest(ServiceTest):
             """)  # noqa: 501
         )
 
-    def test_opbeans_python_branch(self):
+    def test_opbeans_python_agent_branch(self):
         opbeans_python_6_1 = OpbeansPython(version="6.1", opbeans_python_agent_branch="1.x").render()["opbeans-python"]
         branch = [e for e in opbeans_python_6_1["environment"] if e.startswith("PYTHON_AGENT_BRANCH")]
         self.assertEqual(branch, ["PYTHON_AGENT_BRANCH=1.x"])
@@ -311,7 +323,7 @@ class OpbeansServiceTest(ServiceTest):
         branch = [e for e in opbeans_python_master["environment"] if e.startswith("PYTHON_AGENT_BRANCH")]
         self.assertEqual(branch, ["PYTHON_AGENT_BRANCH=2.x"])
 
-    def test_opbeans_python_repo(self):
+    def test_opbeans_python_agent_repo(self):
         agent_repo_default = OpbeansPython().render()["opbeans-python"]
         branch = [e for e in agent_repo_default["environment"] if e.startswith("PYTHON_AGENT_REPO")]
         self.assertEqual(branch, ["PYTHON_AGENT_REPO="])
@@ -320,7 +332,7 @@ class OpbeansServiceTest(ServiceTest):
         branch = [e for e in agent_repo_override["environment"] if e.startswith("PYTHON_AGENT_REPO")]
         self.assertEqual(branch, ["PYTHON_AGENT_REPO=myrepo"])
 
-    def test_opbeans_python_local_repo(self):
+    def test_opbeans_python_agent_local_repo(self):
         agent_repo_default = OpbeansPython().render()["opbeans-python"]
         assert "volumes" not in agent_repo_default
 
@@ -370,7 +382,6 @@ class OpbeansServiceTest(ServiceTest):
                       test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-ruby:3000/"]
                       interval: 10s
                       retries: 50""")  # noqa: 501
-
         )
 
     def test_opbeans_rum(self):
