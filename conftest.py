@@ -14,7 +14,7 @@ from tests.fixtures.agents import rails
 from tests.fixtures.agents import go_nethttp
 from tests.fixtures.agents import java_spring
 from tests.fixtures.agents import rum
-
+from tests.fixtures import default
 
 
 def pytest_addoption(parser):
@@ -38,11 +38,12 @@ def pytest_runtest_logreport(report):
     if report.when == "call" and report.failed:
         name = report.nodeid.split(":", 2)[-1]
         try:
+            es_url = default.from_env("ES_URL")
             subprocess.call(['elasticdump',
-                             '--input=http://elasticsearch:9200/apm-*',
+                             '--input={}/apm-*'.format(es_url),
                              '--output=/app/tests/results/data-{}.json'.format(name)])
             subprocess.call(['elasticdump',
-                             '--input=http://elasticsearch:9200/packetbeat-*',
+                             '--input={}/packetbeat-*'.format(es_url),
                              '--output=/app/tests/results/packetbeat-{}.json'.format(name)])
         except IOError:
             pass
