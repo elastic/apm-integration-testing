@@ -5,9 +5,15 @@
 FROM golang:latest
 ENV GO111MODULE=on
 ENV CGO_ENABLED=0
+ARG OPBEANS_GO_REPO=elastic/opbeans-go
+ARG OPBEANS_GO_BRANCH=master
 WORKDIR /src/opbeans-go
-RUN git clone https://github.com/elastic/opbeans-go.git .
+
+RUN git clone https://github.com/${OPBEANS_GO_REPO}.git . \
+    && git fetch -q origin '+refs/pull/*:refs/remotes/origin/pr/*' \
+    && git checkout ${OPBEANS_GO_BRANCH}
 RUN rm -fr vendor/go.elastic.co/apm
+
 ARG GO_AGENT_REPO=elastic/apm-agent-go
 ARG GO_AGENT_BRANCH=master
 # adding this file will invalidate the layer cache when the branch head changes

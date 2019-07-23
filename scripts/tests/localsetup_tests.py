@@ -99,6 +99,8 @@ class OpbeansServiceTest(ServiceTest):
                       args:
                         - GO_AGENT_BRANCH=master
                         - GO_AGENT_REPO=elastic/apm-agent-go
+                        - OPBEANS_GO_BRANCH=master
+                        - OPBEANS_GO_REPO=elastic/opbeans-go
                     container_name: localtesting_6.3.10_opbeans-go
                     ports:
                       - "127.0.0.1:3003:3000"
@@ -133,6 +135,16 @@ class OpbeansServiceTest(ServiceTest):
                       apm-server:
                         condition: service_healthy""")  # noqa: 501
         )
+
+    def test_opbeans_go_branch(self):
+        opbeans_go = OpbeansGo(opbeans_go_branch="1.x").render()["opbeans-go"]
+        branch = [e for e in opbeans_go["build"]["args"] if e.startswith("OPBEANS_GO_BRANCH")]
+        self.assertEqual(branch, ["OPBEANS_GO_BRANCH=1.x"])
+
+    def test_opbeans_go_repo(self):
+        opbeans_go = OpbeansGo(opbeans_go_repo="foo/bar").render()["opbeans-go"]
+        branch = [e for e in opbeans_go["build"]["args"] if e.startswith("OPBEANS_GO_REPO")]
+        self.assertEqual(branch, ["OPBEANS_GO_REPO=foo/bar"])
 
     def test_opbeans_java(self):
         opbeans_java = OpbeansJava(version="6.3.10").render()

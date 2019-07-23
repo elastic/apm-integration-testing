@@ -1649,6 +1649,8 @@ class OpbeansService(Service):
         self.agent_branch = options.get(self.option_name() + "_agent_branch") or ""
         self.agent_repo = options.get(self.option_name() + "_agent_repo") or ""
         self.agent_local_repo = options.get(self.option_name() + "_agent_local_repo")
+        self.opbeans_branch = options.get(self.option_name() + "_branch") or ""
+        self.opbeans_repo = options.get(self.option_name() + "_repo") or ""
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1672,6 +1674,18 @@ class OpbeansService(Service):
             default=None,
             dest=cls.option_name() + '_agent_local_repo',
             help=cls.name() + " local repo path for agent"
+        )
+        parser.add_argument(
+            '--' + cls.name() + '-branch',
+            default=None,
+            dest=cls.option_name() + '_branch',
+            help=cls.name() + " branch for the opbeans"
+        )
+        parser.add_argument(
+            '--' + cls.name() + '-repo',
+            default=None,
+            dest=cls.option_name() + '_repo',
+            help=cls.name() + " github repo for the opbeans (in form org/repo)"
         )
         if hasattr(cls, 'DEFAULT_SERVICE_NAME'):
             parser.add_argument(
@@ -1744,6 +1758,8 @@ class OpbeansGo(OpbeansService):
     SERVICE_PORT = 3003
     DEFAULT_AGENT_BRANCH = "master"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-go"
+    DEFAULT_OPBEANS_BRANCH = "master"
+    DEFAULT_OPBEANS_REPO = "elastic/opbeans-go"
     DEFAULT_SERVICE_NAME = "opbeans-go"
 
     @add_agent_environment([
@@ -1767,6 +1783,8 @@ class OpbeansGo(OpbeansService):
                 args=[
                     "GO_AGENT_BRANCH=" + (self.agent_branch or self.DEFAULT_AGENT_BRANCH),
                     "GO_AGENT_REPO=" + (self.agent_repo or self.DEFAULT_AGENT_REPO),
+                    "OPBEANS_GO_BRANCH=" + (self.opbeans_branch or self.DEFAULT_OPBEANS_BRANCH),
+                    "OPBEANS_GO_REPO=" + (self.opbeans_repo or self.DEFAULT_OPBEANS_REPO),
                 ]
             ),
             environment=[
