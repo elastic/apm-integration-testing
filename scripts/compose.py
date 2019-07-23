@@ -220,6 +220,8 @@ class Service(object):
         # bc depends on version for resolution
         self._bc = resolve_bc(self._version, options.get(self.option_name() + "_bc") or options.get("bc"))
 
+        self.depends_on = {}
+
     @property
     def bc(self):
         return self._bc
@@ -1034,7 +1036,10 @@ class Heartbeat(BeatMixin, StackService, Service):
 
 
 class Kibana(StackService, Service):
-    default_environment = {"SERVER_NAME": "kibana.example.org", "ELASTICSEARCH_URL": "http://elasticsearch:9200"}
+    default_environment = {
+        "SERVER_NAME": "kibana.example.org",
+        "ELASTICSEARCH_URL": "http://elasticsearch:9200"
+        }
 
     SERVICE_PORT = 5601
 
@@ -1211,9 +1216,10 @@ class AgentRUMJS(Service):
         super(AgentRUMJS, self).__init__(**options)
         self.agent_branch = options.get("rum_agent_branch", self.DEFAULT_AGENT_BRANCH)
         self.agent_repo = options.get("rum_agent_repo", self.DEFAULT_AGENT_REPO)
-        self.depends_on = {
-            "apm-server": {"condition": "service_healthy"},
-        }
+        if options.get("enable_apm_server", True):
+            self.depends_on = {
+                "apm-server": {"condition": "service_healthy"},
+            }
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1276,9 +1282,10 @@ class AgentGoNetHttp(Service):
         super(AgentGoNetHttp, self).__init__(**options)
         self.agent_version = options.get("go_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_repo = options.get("go_agent_repo", self.DEFAULT_AGENT_REPO)
-        self.depends_on = {
-            "apm-server": {"condition": "service_healthy"},
-        }
+        if options.get("enable_apm_server", True):
+            self.depends_on = {
+                "apm-server": {"condition": "service_healthy"},
+            }
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
@@ -1318,9 +1325,10 @@ class AgentNodejsExpress(Service):
     def __init__(self, **options):
         super(AgentNodejsExpress, self).__init__(**options)
         self.agent_package = options.get("nodejs_agent_package", self.DEFAULT_AGENT_PACKAGE)
-        self.depends_on = {
-            "apm-server": {"condition": "service_healthy"},
-        }
+        if options.get("enable_apm_server", True):
+            self.depends_on = {
+                "apm-server": {"condition": "service_healthy"},
+            }
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1361,9 +1369,10 @@ class AgentPython(Service):
     def __init__(self, **options):
         super(AgentPython, self).__init__(**options)
         self.agent_package = options.get("python_agent_package", self.DEFAULT_AGENT_PACKAGE)
-        self.depends_on = {
-            "apm-server": {"condition": "service_healthy"},
-        }
+        if options.get("enable_apm_server", True):
+            self.depends_on = {
+                "apm-server": {"condition": "service_healthy"},
+            }
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1464,9 +1473,10 @@ class AgentRubyRails(Service):
         self.agent_version = options.get("ruby_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_version_state = options.get("ruby_agent_version_state", self.DEFAULT_AGENT_VERSION_STATE)
         self.agent_repo = options.get("ruby_agent_repo", self.DEFAULT_AGENT_REPO)
-        self.depends_on = {
-            "apm-server": {"condition": "service_healthy"},
-        }
+        if options.get("enable_apm_server", True):
+            self.depends_on = {
+                "apm-server": {"condition": "service_healthy"},
+            }
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
@@ -1534,9 +1544,10 @@ class AgentJavaSpring(Service):
         self.agent_version = options.get("java_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_release = options.get("java_agent_release", self.DEFAULT_AGENT_RELEASE)
         self.agent_repo = options.get("java_agent_repo", self.DEFAULT_AGENT_REPO)
-        self.depends_on = {
-            "apm-server": {"condition": "service_healthy"},
-        }
+        if options.get("enable_apm_server", True):
+            self.depends_on = {
+                "apm-server": {"condition": "service_healthy"},
+            }
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
@@ -1597,9 +1608,10 @@ class AgentDotnet(Service):
         self.agent_version = options.get("dotnet_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_release = options.get("dotnet_agent_release", self.DEFAULT_AGENT_RELEASE)
         self.agent_repo = options.get("dotnet_agent_repo", self.DEFAULT_AGENT_REPO)
-        self.depends_on = {
-            "apm-server": {"condition": "service_healthy"},
-        }
+        if options.get("enable_apm_server", True):
+            self.depends_on = {
+                "apm-server": {"condition": "service_healthy"},
+            }
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
