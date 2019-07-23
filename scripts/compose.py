@@ -557,7 +557,7 @@ class ApmServer(StackService, Service):
             '--apm-server-elasticsearch-url',
             action="append",
             dest="apm_server_elasticsearch_urls",
-            help="apm-server elasticsearch output url(s).",
+            help="apm-server elasticsearch output url(s)."
         )
         parser.add_argument(
             '--apm-server-elasticsearch-username',
@@ -1036,10 +1036,7 @@ class Heartbeat(BeatMixin, StackService, Service):
 
 
 class Kibana(StackService, Service):
-    default_environment = {
-        "SERVER_NAME": "kibana.example.org",
-        "ELASTICSEARCH_URL": "http://elasticsearch:9200"
-        }
+    default_environment = {"SERVER_NAME": "kibana.example.org"}
 
     SERVICE_PORT = 5601
 
@@ -1056,6 +1053,19 @@ class Kibana(StackService, Service):
                 self.environment["ELASTICSEARCH_PASSWORD"] = "changeme"
                 self.environment["ELASTICSEARCH_USERNAME"] = "kibana_system_user"
                 self.environment["STATUS_ALLOWANONYMOUS"] = "true"
+        self.es_urls = self.options.get("kibana_elasticsearch_urls")
+        if not self.es_urls:
+            self.es_urls = ["http://elasticsearch:9200"]
+        self.environment["ELASTICSEARCH_URL"] = self.es_urls
+
+    @classmethod
+    def add_arguments(cls, parser):
+        parser.add_argument(
+            "--kibana-elasticsearch-url",
+            action="append",
+            dest="kibana_elasticsearch_urls",
+            help="kibana elasticsearch output url(s)."
+        )
 
     def _content(self):
         return dict(
@@ -1086,13 +1096,27 @@ class Logstash(StackService, Service):
         return self.bc["projects"]["logstash-docker"]["packages"][key]
 
     def _content(self):
+        self.es_urls = self.options.get("logstash_elasticsearch_urls")
+        if not self.es_urls:
+            self.es_urls = ["http://elasticsearch:9200"]
         return dict(
             depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
                 "enable_elasticsearch", True) else {},
-            environment={"ELASTICSEARCH_URL": "http://elasticsearch:9200"},
+            environment={
+                "ELASTICSEARCH_URL={}".format(self.es_urls),
+                },
             healthcheck=curl_healthcheck(9600, "logstash", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT), "9600"],
             volumes=["./docker/logstash/pipeline/:/usr/share/logstash/pipeline/"]
+        )
+
+    @classmethod
+    def add_arguments(cls, parser):
+        parser.add_argument(
+            "--logstash-elasticsearch-url",
+            action="append",
+            dest="logstash_elasticsearch_urls",
+            help="logstash elasticsearch output url(s)."
         )
 
 
@@ -1663,6 +1687,9 @@ class OpbeansService(Service):
         self.agent_local_repo = options.get(self.option_name() + "_agent_local_repo")
         self.opbeans_branch = options.get(self.option_name() + "_branch") or ""
         self.opbeans_repo = options.get(self.option_name() + "_repo") or ""
+        self.es_urls = self.options.get("opbeans_elasticsearch_urls")
+        if not self.es_urls:
+            self.es_urls = ["http://elasticsearch:9200"]
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1686,6 +1713,12 @@ class OpbeansService(Service):
             default=None,
             dest=cls.option_name() + '_agent_local_repo',
             help=cls.name() + " local repo path for agent"
+        )
+        parser.add_argument(
+            "--{}-elasticsearch-url".format(cls.name()),
+            default=None,
+            dest="opbeans_elasticsearch_urls",
+            help="opbeans elasticsearch output url(s)."
         )
         if hasattr(cls, 'DEFAULT_SERVICE_NAME'):
             parser.add_argument(
@@ -1758,7 +1791,7 @@ class OpbeansDotnet(OpbeansService):
                 "ELASTIC_APM_FLUSH_INTERVAL=5",
                 "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
                 "ELASTIC_APM_SAMPLE_RATE=1",
-                "ELASTICSEARCH_URL=http://elasticsearch:9200",
+                "ELASTICSEARCH_URL={}".format(self.es_urls),
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
             ],
             depends_on=depends_on,
@@ -1826,7 +1859,7 @@ class OpbeansGo(OpbeansService):
                 "ELASTIC_APM_FLUSH_INTERVAL=5",
                 "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
                 "ELASTIC_APM_SAMPLE_RATE=1",
-                "ELASTICSEARCH_URL=http://elasticsearch:9200",
+                "ELASTICSEARCH_URL={}".format(self.es_urls),
                 "OPBEANS_CACHE=redis://redis:6379",
                 "OPBEANS_PORT=3000",
                 "PGHOST=postgres",
@@ -1907,7 +1940,7 @@ class OpbeansJava(OpbeansService):
                 "DATABASE_DIALECT=POSTGRESQL",
                 "DATABASE_DRIVER=org.postgresql.Driver",
                 "REDIS_URL=redis://redis:6379",
-                "ELASTICSEARCH_URL=http://elasticsearch:9200",
+                "ELASTICSEARCH_URL={}".format(self.es_urls),
                 "OPBEANS_SERVER_PORT=3000",
                 "JAVA_AGENT_VERSION",
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
@@ -2079,7 +2112,7 @@ class OpbeansPython(OpbeansService):
                 "ELASTIC_APM_SOURCE_LINES_ERROR_LIBRARY_FRAMES",
                 "ELASTIC_APM_SOURCE_LINES_SPAN_LIBRARY_FRAMES",
                 "REDIS_URL=redis://redis:6379",
-                "ELASTICSEARCH_URL=http://elasticsearch:9200",
+                "ELASTICSEARCH_URL={}".format(self.es_urls),
                 "OPBEANS_SERVER_URL=http://opbeans-python:3000",
                 "PYTHON_AGENT_BRANCH=" + self.agent_branch,
                 "PYTHON_AGENT_REPO=" + self.agent_repo,
@@ -2155,7 +2188,7 @@ class OpbeansRuby(OpbeansService):
                 "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
                 "DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans-ruby",
                 "REDIS_URL=redis://redis:6379",
-                "ELASTICSEARCH_URL=http://elasticsearch:9200",
+                "ELASTICSEARCH_URL={}".format(self.es_urls),
                 "OPBEANS_SERVER_URL=http://opbeans-ruby:3000",
                 "RAILS_ENV=production",
                 "RAILS_LOG_TO_STDOUT=1",
