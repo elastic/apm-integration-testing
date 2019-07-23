@@ -1,0 +1,87 @@
+repos:
+-   repo: git://github.com/pre-commit/pre-commit-hooks
+    rev: v2.2.3
+    hooks:
+    -   id: check-case-conflict
+        exclude: ^target/
+    -   id: check-executables-have-shebangs
+        exclude: ^target/
+    -   id: check-json
+        exclude: ^target/
+    -   id: check-merge-conflict
+        exclude: ^target/
+    -   id: check-yaml
+        exclude: ^target/
+    -   id: check-xml
+        exclude: ^target/
+    -   id: end-of-file-fixer
+        exclude: ^target/
+
+-   repo: https://github.com/detailyang/pre-commit-shell.git
+    rev: master
+    hooks:
+    -   id: shell-lint
+        name: "Shellscript: lint"
+        stages: [commit]
+        types: [shell]
+        exclude: (^mvnw$|^target/)
+
+-   repo: https://github.com/adrienverge/yamllint.git
+    rev: master
+    hooks:
+    -   id: yamllint
+        name: "Yaml: lint"
+        args: ['-c','.ci/.yamlint.yml']
+        stages: [commit]
+        types: [yaml]
+        exclude: (^.pre-commit-config.yaml$|^.ci/.yamlint.yml$|^target/)
+
+-   repo: local
+    hooks:
+    -   id: check-bash-syntax
+        name: Check Shell scripts syntax corectness
+        language: system
+        entry: bash -n
+        files: \.sh$
+        exclude: ^target/
+    -   id: forbid-abstract-classes-and-traits
+        name: Ensure neither abstract classes nor traits are used
+        language: pygrep
+        entry: "^(abstract|trait) "
+        files: ^src/.*\.groovy$
+        exclude: ^target/
+    -   id: force-JsonSlurperClassic
+        name: Ensure JsonSlurperClassic is used instead of non-serializable JsonSlurper
+        language: pygrep
+        entry: JsonSlurper[^C]
+        files: \.groovy$
+        exclude: ^target/
+    -   id: Jenkinsfile-linter
+        name: Check syntax of the Jenkinsfiles
+        description: Check Jenkinsfile following the scripted-pipeline syntax using Jenkins API
+        files: ^.ci/(.*\.groovy|Jenkinsfile)$
+        entry: .ci/scripts/validate.sh
+        language: script
+        verbose: true
+        exclude: ^target/
+    -   id: forbid-unicode-non-breaking-spaces
+        name: Detect unicode non-breaking space character U+00A0 aka M-BM-
+        language: system
+        entry: perl -ne 'print if $m = /\xc2\xa0/; $t ||= $m; END{{exit $t}}'
+    -   id: remove-unicode-non-breaking-spaces
+        name: Remove unicode non-breaking space character U+00A0 aka M-BM-
+        language: system
+        entry: perl -pi* -e 's/\xc2\xa0/ /g && ($t = 1) && print STDERR $_; END{{exit
+            $t}}'
+        exclude: ^target/
+    -   id: forbid-en-dashes
+        name: Detect the EXTREMELY confusing unicode character U+2013
+        language: system
+        entry: perl -ne 'print if $m = /\xe2\x80\x93/; $t ||= $m; END{{exit $t}}'
+        exclude: ^target/
+    -   id: remove-en-dashes
+        name: Remove the EXTREMELY confusing unicode character U+2013
+        language: system
+        entry: perl -pi* -e 's/\xe2\x80\x93/-/g && ($t = 1) && print STDERR $_; END{{exit
+            $t}}'
+        exclude: ^target/
