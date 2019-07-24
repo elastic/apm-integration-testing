@@ -2456,6 +2456,14 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
+            '--skip-pull',
+            action='store_true',
+            help='skip pulling a newer version of the image',
+            dest='skip_pull',
+            default=False,
+        )
+
+        parser.add_argument(
             '--remove-orphans',
             action='store_true',
             help='remove services that no longer exist',
@@ -2700,7 +2708,9 @@ class LocalSetup(object):
             # always build if possible, should be quick for rebuilds
             build_services = [name for name, service in compose["services"].items() if 'build' in service]
             if build_services:
-                docker_compose_build = docker_compose_cmd + ["build", "--pull"]
+                docker_compose_build = docker_compose_cmd + ["build"]
+                if not args["skip_pull"]:
+                    docker_compose_build.append("--pull")
                 if args["force_build"]:
                     docker_compose_build.append("--no-cache")
                 if args["build_parallel"]:
