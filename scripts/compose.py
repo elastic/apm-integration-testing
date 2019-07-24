@@ -1675,18 +1675,6 @@ class OpbeansService(Service):
             dest=cls.option_name() + '_agent_local_repo',
             help=cls.name() + " local repo path for agent"
         )
-        parser.add_argument(
-            '--' + cls.name() + '-branch',
-            default=None,
-            dest=cls.option_name() + '_branch',
-            help=cls.name() + " branch for the opbeans"
-        )
-        parser.add_argument(
-            '--' + cls.name() + '-repo',
-            default=None,
-            dest=cls.option_name() + '_repo',
-            help=cls.name() + " github repo for the opbeans (in form org/repo)"
-        )
         if hasattr(cls, 'DEFAULT_SERVICE_NAME'):
             parser.add_argument(
                 '--' + cls.name() + '-service-name',
@@ -1711,6 +1699,18 @@ class OpbeansDotnet(OpbeansService):
         parser.add_argument(
             '--opbeans-dotnet-version',
             default=cls.DEFAULT_AGENT_VERSION,
+        )
+        parser.add_argument(
+            '--' + cls.name() + '-branch',
+            default=cls.DEFAULT_OPBEANS_BRANCH,
+            dest=cls.option_name() + '_branch',
+            help=cls.name() + " branch for the opbeans dotnet"
+        )
+        parser.add_argument(
+            '--' + cls.name() + '-repo',
+            default=cls.DEFAULT_OPBEANS_REPO,
+            dest=cls.option_name() + '_repo',
+            help=cls.name() + " github repo for the opbeans dotnet (in form org/repo)"
         )
 
     def __init__(self, **options):
@@ -1765,6 +1765,22 @@ class OpbeansGo(OpbeansService):
     DEFAULT_OPBEANS_BRANCH = "master"
     DEFAULT_OPBEANS_REPO = "elastic/opbeans-go"
     DEFAULT_SERVICE_NAME = "opbeans-go"
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(OpbeansGo, cls).add_arguments(parser)
+        parser.add_argument(
+            '--' + cls.name() + '-branch',
+            default=cls.DEFAULT_OPBEANS_BRANCH,
+            dest=cls.option_name() + '_branch',
+            help=cls.name() + " branch for the opbeans go"
+        )
+        parser.add_argument(
+            '--' + cls.name() + '-repo',
+            default=cls.DEFAULT_OPBEANS_REPO,
+            dest=cls.option_name() + '_repo',
+            help=cls.name() + " github repo for the opbeans go (in form org/repo)"
+        )
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
