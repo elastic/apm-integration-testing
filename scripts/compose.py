@@ -1053,9 +1053,7 @@ class Kibana(StackService, Service):
                 self.environment["ELASTICSEARCH_PASSWORD"] = "changeme"
                 self.environment["ELASTICSEARCH_USERNAME"] = "kibana_system_user"
                 self.environment["STATUS_ALLOWANONYMOUS"] = "true"
-        self.es_urls = self.options.get("kibana_elasticsearch_urls")
-        if not self.es_urls:
-            self.es_urls = ["http://elasticsearch:9200"]
+        self.es_urls = self.options.get("kibana_elasticsearch_urls") or ["http://elasticsearch:9200"]
         self.environment["ELASTICSEARCH_URL"] = self.es_urls
 
     @classmethod
@@ -1096,9 +1094,7 @@ class Logstash(StackService, Service):
         return self.bc["projects"]["logstash-docker"]["packages"][key]
 
     def _content(self):
-        self.es_urls = self.options.get("logstash_elasticsearch_urls")
-        if not self.es_urls:
-            self.es_urls = ["http://elasticsearch:9200"]
+        self.es_urls = self.options.get("logstash_elasticsearch_urls") or ["http://elasticsearch:9200"]
         return dict(
             depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
                 "enable_elasticsearch", True) else {},
