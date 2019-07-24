@@ -1,8 +1,10 @@
-FROM maven:3.5.3-jdk-10
+ARG OPBEANS_JAVA_IMAGE=latest
 # setting --build-arg JAVA_AGENT_BRANCH=<branch> causes the agent to be built from source
 # instead of using the agent which comes pre-built with opbeans-java:latest
 ARG JAVA_AGENT_REPO=elastic/apm-agent-java
 ARG JAVA_AGENT_BRANCH=
+
+FROM maven:3.5.3-jdk-10
 
 RUN mkdir /agent \
   # making sure there is at least one file to COPY (otherwise docker complains)
@@ -11,7 +13,6 @@ COPY build-agent.sh .
 # noop if JAVA_AGENT_BRANCH is not set
 RUN ./build-agent.sh "${JAVA_AGENT_REPO}" "${JAVA_AGENT_BRANCH}"
 
-ARG OPBEANS_JAVA_IMAGE=latest
 FROM opbeans/opbeans-java:${OPBEANS_JAVA_IMAGE}
 # replaces the /agent/elastc-apm-agent.jar if it has been built by build-agent.sh
 COPY --from=0 /agent/* /app/
