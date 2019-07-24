@@ -239,7 +239,7 @@ class Service(object):
         return image
 
     def default_labels(self):
-        return ["co.elatic.apm.stack-version=" + self.version]
+        return ["co.elastic.apm.stack-version=" + self.version]
 
     @staticmethod
     def default_logging():
@@ -661,7 +661,7 @@ class ApmServer(StackService, Service):
             command=["apm-server", "-e", "--httpprof", ":{}".format(self.apm_server_monitor_port)] + command_args,
             depends_on=self.depends_on,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, path=healthcheck_path),
-            labels=["co.elatic.apm.stack-version=" + self.version],
+            labels=["co.elastic.apm.stack-version=" + self.version],
             ports=[
                 self.publish_port(self.port, self.SERVICE_PORT),
                 self.publish_port(self.apm_server_monitor_port, self.DEFAULT_MONITOR_PORT),
@@ -720,7 +720,7 @@ class ApmServer(StackService, Service):
                     },
                     "context": "docker/apm-server"
                 }
-                backend["labels"] = ["co.elatic.apm.stack-version=8.0.0"]
+                backend["labels"] = ["co.elastic.apm.stack-version=8.0.0"]
                 del(backend["image"])  # use the built one instead
             ren.update({"-".join([self.name(), str(i)]): backend})
 
@@ -2597,7 +2597,7 @@ class LocalSetup(object):
     def dashboards_handler():
         cmd = (
                 'docker ps --filter "name=kibana" -q | xargs docker inspect ' +
-                '-f \'{{ index .Config.Labels "co.elatic.apm.stack-version" }}\''
+                '-f \'{{ index .Config.Labels "co.elastic.apm.stack-version" }}\''
         )
 
         # Check if Docker is running and get running containers
@@ -2801,7 +2801,7 @@ class LocalSetup(object):
         )
         cmd = (
             'docker ps --filter "name=localtesting" -q | xargs docker inspect '
-            '-f \'{{ index .Config.Labels "co.elatic.apm.stack-version" }}\\t{{ .Image }}\\t{{ .Name }}\''
+            '-f \'{{ index .Config.Labels "co.elastic.apm.stack-version" }}\\t{{ .Image }}\\t{{ .Name }}\''
         )
 
         # Check if Docker is running and get running containers

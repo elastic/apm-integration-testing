@@ -42,25 +42,49 @@ pipeline {
       }
     }
 
-    /**
-      Validate UTs and lint the app
-    */
-    stage('Unit Tests'){
-      agent { label 'linux && immutable && docker' }
-      steps {
-        withGithubNotify(context: 'Unit Tests', tab: 'tests') {
-          deleteDir()
-          unstash 'source'
-          dir("${BASE_DIR}"){
-            sh '.ci/scripts/unit-tests.sh'
+    stage('Tests'){
+      parallel {
+        /**
+          Validate UTs and lint the app
+        */
+        stage('Unit Tests'){
+          agent { label 'linux && immutable && docker' }
+          steps {
+            withGithubNotify(context: 'Unit Tests', tab: 'tests') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                sh '.ci/scripts/unit-tests.sh'
+              }
+            }
+          }
+          post {
+            always {
+              junit(allowEmptyResults: true,
+                keepLongStdio: true,
+                testResults: "${BASE_DIR}/**/*junit.xml")
+            }
           }
         }
-      }
-      post {
-        always {
-          junit(allowEmptyResults: true,
-            keepLongStdio: true,
-            testResults: "${BASE_DIR}/**/*junit.xml")
+        stage('Check pre-commit') {
+          agent { label 'linux && immutable && docker' }
+          environment {
+            PATH = "${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.WORKSPACE}/bin:${env.PATH}"
+            HOME = "${env.WORKSPACE}"
+          }
+          steps {
+            withGithubNotify(context: 'Check pre-commit') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                sh '''
+                  env | sort
+                  curl https://pre-commit.com/install-local.py | python -
+                  git diff-tree --no-commit-id --name-only -r ${GIT_BASE_COMMIT} | xargs pre-commit run --files
+                '''
+              }
+            }
+          }
         }
       }
     }
