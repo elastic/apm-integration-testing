@@ -534,7 +534,7 @@ class ApmServerServiceTest(ServiceTest):
         apm_server = ApmServer(version="6.3.100", apm_server_version="6.12.0", release=True).render()["apm-server"]
         self.assertEqual(apm_server["image"], "docker.elastic.co/apm/apm-server:6.12.0")
         self.assertEqual(apm_server["image"], "docker.elastic.co/apm/apm-server:6.12.0")
-        self.assertEqual(apm_server["labels"], ["co.elatic.apm.stack-version=6.12.0"])
+        self.assertEqual(apm_server["labels"], ["co.elastic.apm.stack-version=6.12.0"])
 
     def test_dashboards(self):
         apm_server = ApmServer(version="6.3.100", apm_server_dashboards=False).render()["apm-server"]
@@ -738,7 +738,7 @@ class KibanaServiceTest(ServiceTest):
                         elasticsearch:
                             condition: service_healthy
                     labels:
-                        - co.elatic.apm.stack-version=6.2.4""")  # noqa: 501
+                        - co.elastic.apm.stack-version=6.2.4""")  # noqa: 501
         )
 
     def test_6_3_release(self):
@@ -768,7 +768,7 @@ class KibanaServiceTest(ServiceTest):
                         elasticsearch:
                             condition: service_healthy
                     labels:
-                        - co.elatic.apm.stack-version=6.3.5""")  # noqa: 501
+                        - co.elastic.apm.stack-version=6.3.5""")  # noqa: 501
         )
 
 
@@ -796,7 +796,7 @@ class LogstashServiceTest(ServiceTest):
                 interval: 10s
                 retries: 12
             image: docker.elastic.co/logstash/logstash:6.3.0
-            labels: [co.elatic.apm.stack-version=6.3.0]
+            labels: [co.elastic.apm.stack-version=6.3.0]
             logging:
                 driver: json-file
                 options: {max-file: '5', max-size: 2m}

@@ -515,7 +515,7 @@ class LocalTest(unittest.TestCase):
                     retries: 12
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
                 image: docker.elastic.co/apm/apm-server:6.2.10-SNAPSHOT
-                labels: [co.elatic.apm.stack-version=6.2.10]
+                labels: [co.elastic.apm.stack-version=6.2.10]
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
@@ -529,7 +529,7 @@ class LocalTest(unittest.TestCase):
                     retries: 10
                     test: [CMD-SHELL, 'curl -s http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
                 image: docker.elastic.co/elasticsearch/elasticsearch-platinum:6.2.10-SNAPSHOT
-                labels: [co.elatic.apm.stack-version=6.2.10]
+                labels: [co.elastic.apm.stack-version=6.2.10]
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
@@ -548,7 +548,7 @@ class LocalTest(unittest.TestCase):
                     retries: 20
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
                 image: docker.elastic.co/kibana/kibana-x-pack:6.2.10-SNAPSHOT
-                labels: [co.elatic.apm.stack-version=6.2.10]
+                labels: [co.elastic.apm.stack-version=6.2.10]
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
@@ -592,7 +592,7 @@ class LocalTest(unittest.TestCase):
                     retries: 12
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
                 image: docker.elastic.co/apm/apm-server:6.3.10-SNAPSHOT
-                labels: [co.elatic.apm.stack-version=6.3.10]
+                labels: [co.elastic.apm.stack-version=6.3.10]
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
@@ -606,7 +606,7 @@ class LocalTest(unittest.TestCase):
                     retries: 10
                     test: [CMD-SHELL, 'curl -s http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
                 image: docker.elastic.co/elasticsearch/elasticsearch:6.3.10-SNAPSHOT
-                labels: [co.elatic.apm.stack-version=6.3.10]
+                labels: [co.elastic.apm.stack-version=6.3.10]
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
@@ -625,7 +625,7 @@ class LocalTest(unittest.TestCase):
                     retries: 20
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
                 image: docker.elastic.co/kibana/kibana:6.3.10-SNAPSHOT
-                labels: [co.elatic.apm.stack-version=6.3.10]
+                labels: [co.elastic.apm.stack-version=6.3.10]
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
@@ -673,7 +673,7 @@ class LocalTest(unittest.TestCase):
                     retries: 12
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://localhost:8200/']
                 image: docker.elastic.co/apm/apm-server:8.0.0-SNAPSHOT
-                labels: [co.elatic.apm.stack-version=8.0.0]
+                labels: [co.elastic.apm.stack-version=8.0.0]
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
@@ -687,7 +687,7 @@ class LocalTest(unittest.TestCase):
                     retries: 10
                     test: [CMD-SHELL, 'curl -s http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
                 image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0-SNAPSHOT
-                labels: [co.elatic.apm.stack-version=8.0.0]
+                labels: [co.elastic.apm.stack-version=8.0.0]
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
@@ -706,7 +706,7 @@ class LocalTest(unittest.TestCase):
                     retries: 20
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
                 image: docker.elastic.co/kibana/kibana:8.0.0-SNAPSHOT
-                labels: [co.elatic.apm.stack-version=8.0.0]
+                labels: [co.elastic.apm.stack-version=8.0.0]
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
