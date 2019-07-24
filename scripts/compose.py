@@ -193,6 +193,9 @@ def add_agent_environment(mappings):
 class Service(object):
     """encapsulate docker-compose service definition"""
 
+    DEFAULT_ELASTICSEARCH_HOSTS = "elasticsearch:9200"
+    DEFAULT_KIBANA_HOST = "kibana:5601"
+
     # is this a side car service for opbeans. If yes, it will automatically
     # start if any opbeans service starts
     opbeans_side_car = False
@@ -381,7 +384,6 @@ class ApmServer(StackService, Service):
     DEFAULT_MONITOR_PORT = "6060"
     DEFAULT_OUTPUT = "elasticsearch"
     OUTPUTS = {"elasticsearch", "kafka", "logstash"}
-    DEFAULT_KIBANA_HOST = "kibana:5601"
 
     def __init__(self, **options):
         super(ApmServer, self).__init__(**options)
@@ -465,9 +467,7 @@ class ApmServer(StackService, Service):
                 q.pop("write")
             self.apm_server_command_args.append(("queue.spool", json.dumps(q)))
 
-        es_urls = self.options.get("apm_server_elasticsearch_urls")
-        if not es_urls:
-            es_urls = ["elasticsearch:9200"]
+        es_urls = []
 
         def add_es_config(args, prefix="output"):
             """add elasticsearch configuration options."""
@@ -480,9 +480,10 @@ class ApmServer(StackService, Service):
                 elif self.options.get("xpack_secure"):
                     args.append((prefix + ".elasticsearch.{}".format(cfg), default_apm_server_creds.get(cfg)))
 
-        add_es_config(self.apm_server_command_args)
+        es_urls = self.options.get("apm_server_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS]
 
         if self.apm_server_output == "elasticsearch":
+            add_es_config(self.apm_server_command_args)
             self.apm_server_command_args.extend([
                 ("output.elasticsearch.enabled", "true"),
             ])
@@ -493,10 +494,10 @@ class ApmServer(StackService, Service):
                     ("apm-server.register.ingest.pipeline.enabled", "true"),
                 ])
         else:
+            add_es_config(self.apm_server_command_args, prefix="xpack.monitoring")
             self.apm_server_command_args.extend([
                 ("output.elasticsearch.enabled", "false"),
             ])
-            add_es_config(self.apm_server_command_args, prefix="xpack.monitoring")
             if self.apm_server_output == "kafka":
                 self.apm_server_command_args.extend([
                     ("output.kafka.enabled", "true"),
@@ -557,7 +558,7 @@ class ApmServer(StackService, Service):
             '--apm-server-elasticsearch-url',
             action="append",
             dest="apm_server_elasticsearch_urls",
-            help="apm-server elasticsearch output url(s) (e.g. 'http://es1.example.com,http://es2.example.com')."
+            help="apm-server elasticsearch output url(s)."
         )
         parser.add_argument(
             '--apm-server-elasticsearch-username',
@@ -884,9 +885,8 @@ class BeatMixin(object):
         parser.add_argument(
             "--{}-elasticsearch-url".format(cls.name()),
             action="append",
-            dest="apm_server_elasticsearch_urls",
-            help="{} elasticsearch output url(s) (e.g. 'http://es1.example.com,http://es2.example.com')."
-                 .format(cls.name()),
+            dest="{}_elasticsearch_urls".format(cls.name()),
+            help="{} elasticsearch output url(s).".format(cls.name())
         )
         parser.add_argument(
             "--{}-elasticsearch-username".format(cls.name()),
@@ -904,6 +904,7 @@ class BeatMixin(object):
         )
 
     def __init__(self, **options):
+        super(BeatMixin, self).__init__(**options)
         self.command = list(self.DEFAULT_COMMAND)
         self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if options.get(
             "enable_elasticsearch", True) else {}
@@ -912,12 +913,9 @@ class BeatMixin(object):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
         self.environment = {}
 
-        es_urls = options.get("{}_elasticsearch_urls".format(self.name()))
-        if not es_urls:
-            es_urls = ["elasticsearch:9200"]
-
         def add_es_config(args, prefix="output"):
             """add elasticsearch configuration options."""
+            es_urls = options.get("{}_elasticsearch_urls".format(self.name())) or [self.DEFAULT_ELASTICSEARCH_HOSTS]
             default_beat_creds = {"username": "{}_user".format(self.name()), "password": "changeme"}
             args.append((prefix + ".elasticsearch.hosts", json.dumps(es_urls)))
             for cfg in ("username", "password"):
@@ -950,8 +948,6 @@ class BeatMixin(object):
 
         for param, value in command_args:
             self.command.extend(["-E", param + "=" + value])
-
-        super(BeatMixin, self).__init__(**options)
 
     def build_candidate_manifest(self):
         version = self.version
@@ -1054,8 +1050,8 @@ class Kibana(StackService, Service):
                 self.environment["ELASTICSEARCH_PASSWORD"] = "changeme"
                 self.environment["ELASTICSEARCH_USERNAME"] = "kibana_system_user"
                 self.environment["STATUS_ALLOWANONYMOUS"] = "true"
-        self.es_urls = self.options.get("kibana_elasticsearch_urls") or ["http://elasticsearch:9200"]
-        self.environment["ELASTICSEARCH_URL"] = self.es_urls
+        self.environment["ELASTICSEARCH_URL"] = ",".join(self.options.get(
+            "kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1063,7 +1059,7 @@ class Kibana(StackService, Service):
             "--kibana-elasticsearch-url",
             action="append",
             dest="kibana_elasticsearch_urls",
-            help="kibana elasticsearch output url(s) (e.g. 'http://es1.example.com,http://es2.example.com')."
+            help="kibana elasticsearch output url(s)."
         )
 
     def _content(self):
@@ -1095,12 +1091,13 @@ class Logstash(StackService, Service):
         return self.bc["projects"]["logstash-docker"]["packages"][key]
 
     def _content(self):
-        self.es_urls = self.options.get("logstash_elasticsearch_urls") or ["http://elasticsearch:9200"]
+        self.es_urls = ",".join(self.options.get(
+            "logstash_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
         return dict(
             depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
                 "enable_elasticsearch", True) else {},
             environment={
-                "ELASTICSEARCH_URL={}".format(self.es_urls),
+                "ELASTICSEARCH_URL": self.es_urls,
                 },
             healthcheck=curl_healthcheck(9600, "logstash", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT), "9600"],
@@ -1109,11 +1106,12 @@ class Logstash(StackService, Service):
 
     @classmethod
     def add_arguments(cls, parser):
+        super(Logstash, cls).add_arguments(parser)
         parser.add_argument(
             "--logstash-elasticsearch-url",
             action="append",
             dest="logstash_elasticsearch_urls",
-            help="logstash elasticsearch output url(s) (e.g. 'http://es1.example.com,http://es2.example.com')."
+            help="logstash elasticsearch output url(s)."
         )
 
 
@@ -1121,7 +1119,20 @@ class Metricbeat(BeatMixin, StackService, Service):
     DEFAULT_COMMAND = ["metricbeat", "-e", "--strict.perms=false"]
     docker_path = "beats"
 
+    @classmethod
+    def add_arguments(cls, parser):
+        super(Metricbeat, cls).add_arguments(parser)
+        parser.add_argument(
+            "--apm-server-pprof-url",
+            help="apm server profiling url to use.",
+            dest='apm_server_pprof_url',
+            default="apm-server:6060"
+        )
+
     def _content(self):
+        print("*****************----->{}".format(self.options.get('apm_server_pprof_url')))
+
+        self.environment["APM_SERVER_PPROF_HOST"] = json.dumps(self.options.get('apm_server_pprof_url'))
         return dict(
             command=self.command,
             depends_on=self.depends_on,
@@ -1684,7 +1695,7 @@ class OpbeansService(Service):
         self.agent_local_repo = options.get(self.option_name() + "_agent_local_repo")
         self.opbeans_branch = options.get(self.option_name() + "_branch") or ""
         self.opbeans_repo = options.get(self.option_name() + "_repo") or ""
-        self.es_urls = self.options.get("opbeans_elasticsearch_urls") or ["http://elasticsearch:9200"]
+        self.es_urls = ",".join(self.options.get("opbeans_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
 
     @classmethod
     def add_arguments(cls, parser):
@@ -2579,8 +2590,9 @@ class LocalSetup(object):
 
         parser.add_argument(
             "--opbeans-elasticsearch-url",
+            action="append",
             dest="opbeans_elasticsearch_urls",
-            help="opbeans elasticsearch output url(s) (e.g. 'http://es1.example.com,http://es2.example.com')."
+            help="opbeans elasticsearch output url(s)."
         )
 
         parser.add_argument(

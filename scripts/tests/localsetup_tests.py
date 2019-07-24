@@ -67,7 +67,7 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTIC_APM_FLUSH_INTERVAL=5
                       - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
                       - ELASTIC_APM_SAMPLE_RATE=1
-                      - ELASTICSEARCH_URL=http://elasticsearch:9200
+                      - ELASTICSEARCH_URL=elasticsearch:9200
                       - OPBEANS_DT_PROBABILITY=0.50
                     logging:
                       driver: 'json-file'
@@ -123,7 +123,7 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTIC_APM_FLUSH_INTERVAL=5
                       - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
                       - ELASTIC_APM_SAMPLE_RATE=1
-                      - ELASTICSEARCH_URL=http://elasticsearch:9200
+                      - ELASTICSEARCH_URL=elasticsearch:9200
                       - OPBEANS_CACHE=redis://redis:6379
                       - OPBEANS_PORT=3000
                       - PGHOST=postgres
@@ -185,7 +185,7 @@ class OpbeansServiceTest(ServiceTest):
                       - DATABASE_DIALECT=POSTGRESQL
                       - DATABASE_DRIVER=org.postgresql.Driver
                       - REDIS_URL=redis://redis:6379
-                      - ELASTICSEARCH_URL=http://elasticsearch:9200
+                      - ELASTICSEARCH_URL=elasticsearch:9200
                       - OPBEANS_SERVER_PORT=3000
                       - JAVA_AGENT_VERSION
                       - OPBEANS_DT_PROBABILITY=0.50
@@ -320,7 +320,7 @@ class OpbeansServiceTest(ServiceTest):
                         - ELASTIC_APM_SOURCE_LINES_ERROR_LIBRARY_FRAMES
                         - ELASTIC_APM_SOURCE_LINES_SPAN_LIBRARY_FRAMES
                         - REDIS_URL=redis://redis:6379
-                        - ELASTICSEARCH_URL=http://elasticsearch:9200
+                        - ELASTICSEARCH_URL=elasticsearch:9200
                         - OPBEANS_SERVER_URL=http://opbeans-python:3000
                         - PYTHON_AGENT_BRANCH=
                         - PYTHON_AGENT_REPO=
@@ -396,7 +396,7 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTIC_APM_SERVICE_NAME=opbeans-ruby
                       - DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans-ruby
                       - REDIS_URL=redis://redis:6379
-                      - ELASTICSEARCH_URL=http://elasticsearch:9200
+                      - ELASTICSEARCH_URL=elasticsearch:9200
                       - OPBEANS_SERVER_URL=http://opbeans-ruby:3000
                       - RAILS_ENV=production
                       - RAILS_LOG_TO_STDOUT=1
@@ -616,7 +616,7 @@ class LocalTest(unittest.TestCase):
                 container_name: localtesting_6.2.10_kibana
                 depends_on:
                     elasticsearch: {condition: service_healthy}
-                environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true'}
+                environment: {ELASTICSEARCH_URL: 'elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true'}
                 healthcheck:
                     interval: 10s
                     retries: 20
@@ -693,7 +693,7 @@ class LocalTest(unittest.TestCase):
                 container_name: localtesting_6.3.10_kibana
                 depends_on:
                     elasticsearch: {condition: service_healthy}
-                environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
+                environment: {ELASTICSEARCH_URL: 'elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
                 healthcheck:
                     interval: 10s
                     retries: 20
@@ -774,7 +774,7 @@ class LocalTest(unittest.TestCase):
                 container_name: localtesting_8.0.0_kibana
                 depends_on:
                     elasticsearch: {condition: service_healthy}
-                environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
+                environment: {ELASTICSEARCH_URL: 'elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
                 healthcheck:
                     interval: 10s
                     retries: 20

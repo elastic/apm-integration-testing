@@ -721,7 +721,7 @@ class KibanaServiceTest(ServiceTest):
                     container_name: localtesting_6.2.4_kibana
                     environment:
                         SERVER_NAME: kibana.example.org
-                        ELASTICSEARCH_URL: http://elasticsearch:9200
+                        ELASTICSEARCH_URL: elasticsearch:9200
                         XPACK_MONITORING_ENABLED: 'true'
                     ports:
                         - "127.0.0.1:5601:5601"
@@ -750,7 +750,7 @@ class KibanaServiceTest(ServiceTest):
                     container_name: localtesting_6.3.5_kibana
                     environment:
                         SERVER_NAME: kibana.example.org
-                        ELASTICSEARCH_URL: http://elasticsearch:9200
+                        ELASTICSEARCH_URL: elasticsearch:9200
                         XPACK_MONITORING_ENABLED: 'true'
                         XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'
                     ports:
@@ -790,7 +790,7 @@ class LogstashServiceTest(ServiceTest):
             container_name: localtesting_6.3.0_logstash
             depends_on:
                 elasticsearch: {condition: service_healthy}
-            environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200'}
+            environment: {ELASTICSEARCH_URL: 'elasticsearch:9200'}
             healthcheck:
                 test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://logstash:9600/"]
                 interval: 10s
@@ -816,7 +816,7 @@ class MetricbeatServiceTest(ServiceTest):
                     container_name: localtesting_6.2.4_metricbeat
                     user: root
                     command: ["metricbeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true", "-E", 'output.elasticsearch.hosts=["elasticsearch:9200"]', "-E", "output.elasticsearch.enabled=true"]
-                    environment: {}
+                    environment: {APM_SERVER_PPROF_HOST: 'None'}
                     logging:
                         driver: 'json-file'
                         options:

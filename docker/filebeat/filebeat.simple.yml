@@ -4,10 +4,10 @@ setup.template.settings:
   index.number_of_replicas: 0
 
 setup.kibana:
-  host: "kibana:5601"
+  host: "${KIBANA_HOST:kibana:5601}"
 
 output.elasticsearch:
-  hosts: ["elasticsearch:9200"]
+  hosts: ["${ELASTICSEARCH_HOSTS:elasticsearch:9200}"]
 
 logging.json: true
 logging.metrics.enabled: false

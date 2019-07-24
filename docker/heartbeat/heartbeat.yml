@@ -1,8 +1,8 @@
 output.elasticsearch:
-  hosts: ["elasticsearch:9200"]
+  hosts: ["${ELASTICSEARCH_HOSTS:elasticsearch:9200}"]
 
 setup.kibana:
-  host: "kibana:5601"
+  host: "${KIBANA_HOST:kibana:5601}"
 
 heartbeat.monitors:
 - type: icmp
