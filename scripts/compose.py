@@ -1873,7 +1873,7 @@ class OpbeansJava(OpbeansService):
                 args=[
                     "JAVA_AGENT_BRANCH=" + (self.agent_branch or self.DEFAULT_AGENT_BRANCH),
                     "JAVA_AGENT_REPO=" + (self.agent_repo or self.DEFAULT_AGENT_REPO),
-                    "OPBEANS_IMAGE=" + (self.opbeans_image or self.DEFAULT_OPBEANS_IMAGE),
+                    "OPBEANS_JAVA_IMAGE=" + (self.opbeans_image or self.DEFAULT_OPBEANS_IMAGE),
                 ]
             ),
             environment=[
@@ -1941,7 +1941,7 @@ class OpbeansNode(OpbeansService):
                 context="docker/opbeans/node",
                 dockerfile="Dockerfile",
                 args=[
-                    "OPBEANS_IMAGE=" + (self.opbeans_image or self.DEFAULT_OPBEANS_IMAGE),
+                    "OPBEANS_NODE_IMAGE=" + (self.opbeans_image or self.DEFAULT_OPBEANS_IMAGE),
                 ]
             ),
             environment=[
@@ -2027,7 +2027,7 @@ class OpbeansPython(OpbeansService):
                 context="docker/opbeans/python",
                 dockerfile="Dockerfile",
                 args=[
-                    "OPBEANS_IMAGE=" + (self.opbeans_image or self.DEFAULT_OPBEANS_IMAGE),
+                    "OPBEANS_PYTHON_IMAGE=" + (self.opbeans_image or self.DEFAULT_OPBEANS_IMAGE),
                 ]
             ),
             environment=[
@@ -2103,7 +2103,7 @@ class OpbeansRuby(OpbeansService):
                 context="docker/opbeans/ruby",
                 dockerfile="Dockerfile",
                 args=[
-                    "OPBEANS_IMAGE=" + (self.opbeans_image or self.DEFAULT_OPBEANS_IMAGE),
+                    "OPBEANS_RUBY_IMAGE=" + (self.opbeans_image or self.DEFAULT_OPBEANS_IMAGE),
                 ]
             ),
             environment=[

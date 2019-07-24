@@ -1,5 +1,5 @@
-ARG OPBEANS_IMAGE=latest
-FROM opbeans/opbeans-ruby:${OPBEANS_IMAGE}
+ARG OPBEANS_RUBY_IMAGE=latest
+FROM opbeans/opbeans-ruby:${OPBEANS_RUBY_IMAGE}
 
 COPY entrypoint.sh /app/entrypoint.sh
 
