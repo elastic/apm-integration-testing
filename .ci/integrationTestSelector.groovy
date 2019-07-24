@@ -20,7 +20,7 @@ pipeline {
     rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
   }
   parameters {
-    choice(name: 'AGENT_INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
+    choice(name: 'AGENT_INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All', 'Opbeans'], description: 'Name of the APM Agent you want to run the integration tests.')
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "8.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     string(name: 'GITHUB_CHECK_NAME', defaultValue: '', description: 'Name of the GitHub check to be updated. Only if this build is triggered from another parent stream.')
@@ -109,6 +109,27 @@ pipeline {
               sh(label: "Check Schema", script: ".ci/scripts/ui.sh")
             }
           }
+        }
+      }
+      post {
+        always {
+          wrappingup()
+        }
+      }
+    }
+    stage("Opbeans") {
+      when {
+        expression { return params.AGENT_INTEGRATION_TEST == 'Opbeans' }
+      }
+      environment {
+        TMPDIR = "${WORKSPACE}"
+        REUSE_CONTAINERS = "true"
+      }
+      steps {
+        deleteDir()
+        unstash "source"
+        dir("${BASE_DIR}"){
+          sh ".ci/scripts/opbeans.sh"
         }
       }
       post {
