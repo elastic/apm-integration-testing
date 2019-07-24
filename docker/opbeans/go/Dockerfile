@@ -2,7 +2,7 @@
 #
 # GO_AGENT_REPO and GO_AGENT_BRANCH parameterise the Go agent
 # repo and branch (or commit) to use.
-FROM golang:latest
+FROM golang:stretch
 ENV GO111MODULE=on
 WORKDIR /src/opbeans-go
 RUN git clone https://github.com/elastic/opbeans-go.git .
