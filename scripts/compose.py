@@ -1838,13 +1838,20 @@ class OpbeansJava(OpbeansService):
     DEFAULT_AGENT_REPO = "elastic/apm-agent-java"
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = 'opbeans-java'
+    DEFAULT_OPBEANS_IMAGE = 'latest'
 
     @classmethod
     def add_arguments(cls, parser):
         super(OpbeansJava, cls).add_arguments(parser)
+        parser.add_argument(
+            '--' + cls.name() + '-image',
+            default=cls.DEFAULT_OPBEANS_IMAGE,
+            help=cls.name() + " image for the opbeans java"
+        )
 
     def __init__(self, **options):
         super(OpbeansJava, self).__init__(**options)
+        self.opbeans_image = options.get('opbeans_java_image')
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
@@ -1866,6 +1873,7 @@ class OpbeansJava(OpbeansService):
                 args=[
                     "JAVA_AGENT_BRANCH=" + (self.agent_branch or self.DEFAULT_AGENT_BRANCH),
                     "JAVA_AGENT_REPO=" + (self.agent_repo or self.DEFAULT_AGENT_REPO),
+                    "OPBEANS_IMAGE=" + (self.opbeans_image or self.DEFAULT_OPBEANS_IMAGE),
                 ]
             ),
             environment=[
@@ -1900,10 +1908,21 @@ class OpbeansJava(OpbeansService):
 class OpbeansNode(OpbeansService):
     SERVICE_PORT = 3000
     DEFAULT_LOCAL_REPO = "."
+    DEFAULT_OPBEANS_IMAGE = 'latest'
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(OpbeansNode, cls).add_arguments(parser)
+        parser.add_argument(
+            '--' + cls.name() + '-image',
+            default=cls.DEFAULT_OPBEANS_IMAGE,
+            help=cls.name() + " image for the opbeans node"
+        )
 
     def __init__(self, **options):
         super(OpbeansNode, self).__init__(**options)
         self.service_name = "opbeans-node"
+        self.opbeans_image = options.get('opbeans_node_image')
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
@@ -1918,7 +1937,13 @@ class OpbeansNode(OpbeansService):
             depends_on["apm-server"] = {"condition": "service_healthy"}
 
         content = dict(
-            build={"context": "docker/opbeans/node", "dockerfile": "Dockerfile"},
+            build=dict(
+                context="docker/opbeans/node",
+                dockerfile="Dockerfile",
+                args=[
+                    "OPBEANS_IMAGE=" + (self.opbeans_image or self.DEFAULT_OPBEANS_IMAGE),
+                ]
+            ),
             environment=[
                 "ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
                 "ELASTIC_APM_JS_SERVER_URL={}".format(self.apm_js_server_url),
@@ -1964,6 +1989,7 @@ class OpbeansPython(OpbeansService):
     DEFAULT_AGENT_BRANCH = "2.x"
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = 'opbeans-python'
+    DEFAULT_OPBEANS_IMAGE = 'latest'
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1972,6 +1998,15 @@ class OpbeansPython(OpbeansService):
             '--opbeans-python-local-repo',
             default=cls.DEFAULT_LOCAL_REPO,
         )
+        parser.add_argument(
+            '--' + cls.name() + '-image',
+            default=cls.DEFAULT_OPBEANS_IMAGE,
+            help=cls.name() + " image for the opbeans python"
+        )
+
+    def __init__(self, **options):
+        super(OpbeansPython, self).__init__(**options)
+        self.opbeans_image = options.get('opbeans_python_image')
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
@@ -1988,7 +2023,13 @@ class OpbeansPython(OpbeansService):
             depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
         content = dict(
-            build={"context": "docker/opbeans/python", "dockerfile": "Dockerfile"},
+            build=dict(
+                context="docker/opbeans/python",
+                dockerfile="Dockerfile",
+                args=[
+                    "OPBEANS_IMAGE=" + (self.opbeans_image or self.DEFAULT_OPBEANS_IMAGE),
+                ]
+            ),
             environment=[
                 "DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans",
                 "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
@@ -2028,6 +2069,20 @@ class OpbeansRuby(OpbeansService):
     DEFAULT_AGENT_REPO = "elastic/apm-agent-ruby"
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = "opbeans-ruby"
+    DEFAULT_OPBEANS_IMAGE = 'latest'
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(OpbeansRuby, cls).add_arguments(parser)
+        parser.add_argument(
+            '--' + cls.name() + '-image',
+            default=cls.DEFAULT_OPBEANS_IMAGE,
+            help=cls.name() + " image for the opbeans ruby"
+        )
+
+    def __init__(self, **options):
+        super(OpbeansRuby, self).__init__(**options)
+        self.opbeans_image = options.get('opbeans_ruby_image')
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
@@ -2044,7 +2099,13 @@ class OpbeansRuby(OpbeansService):
             depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
         content = dict(
-            build={"context": "docker/opbeans/ruby", "dockerfile": "Dockerfile"},
+            build=dict(
+                context="docker/opbeans/ruby",
+                dockerfile="Dockerfile",
+                args=[
+                    "OPBEANS_IMAGE=" + (self.opbeans_image or self.DEFAULT_OPBEANS_IMAGE),
+                ]
+            ),
             environment=[
                 "ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
                 "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),

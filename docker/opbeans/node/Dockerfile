@@ -1,4 +1,5 @@
-FROM opbeans/opbeans-node:latest
+ARG OPBEANS_IMAGE=latest
+FROM opbeans/opbeans-node:${OPBEANS_IMAGE}
 
 COPY entrypoint.sh /app/entrypoint.sh
 

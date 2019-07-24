@@ -11,7 +11,8 @@ COPY build-agent.sh .
 # noop if JAVA_AGENT_BRANCH is not set
 RUN ./build-agent.sh "${JAVA_AGENT_REPO}" "${JAVA_AGENT_BRANCH}"
 
-FROM opbeans/opbeans-java:latest
+ARG OPBEANS_IMAGE=latest
+FROM opbeans/opbeans-java:${OPBEANS_IMAGE}
 # replaces the /agent/elastc-apm-agent.jar if it has been built by build-agent.sh
 COPY --from=0 /agent/* /app/
 COPY entrypoint.sh /app/entrypoint.sh

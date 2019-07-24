@@ -1,4 +1,5 @@
-FROM opbeans/opbeans-python:latest
+ARG OPBEANS_IMAGE=latest
+FROM opbeans/opbeans-python:${OPBEANS_IMAGE}
 
 COPY entrypoint.sh /app/
 
