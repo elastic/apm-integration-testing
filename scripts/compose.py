@@ -1838,7 +1838,8 @@ class OpbeansJava(OpbeansService):
     DEFAULT_AGENT_REPO = "elastic/apm-agent-java"
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = 'opbeans-java'
-    DEFAULT_OPBEANS_IMAGE = 'latest'
+    DEFAULT_OPBEANS_IMAGE = 'elastic/opbeans-java'
+    DEFAULT_OPBEANS_VERSION = 'latest'
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1848,10 +1849,16 @@ class OpbeansJava(OpbeansService):
             default=cls.DEFAULT_OPBEANS_IMAGE,
             help=cls.name() + " image for the opbeans java"
         )
+        parser.add_argument(
+            '--' + cls.name() + '-version',
+            default=cls.DEFAULT_OPBEANS_VERSION,
+            help=cls.name() + " version for the docker image of opbeans java"
+        )
 
     def __init__(self, **options):
         super(OpbeansJava, self).__init__(**options)
         self.opbeans_image = options.get('opbeans_java_image')
+        self.opbeans_version = options.get('opbeans_java_version')
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
@@ -1874,6 +1881,7 @@ class OpbeansJava(OpbeansService):
                     "JAVA_AGENT_BRANCH=" + (self.agent_branch or self.DEFAULT_AGENT_BRANCH),
                     "JAVA_AGENT_REPO=" + (self.agent_repo or self.DEFAULT_AGENT_REPO),
                     "OPBEANS_JAVA_IMAGE=" + (self.opbeans_image or self.DEFAULT_OPBEANS_IMAGE),
+                    "OPBEANS_JAVA_VERSION=" + (self.opbeans_version or self.DEFAULT_OPBEANS_VERSION),
                 ]
             ),
             environment=[
@@ -1908,7 +1916,8 @@ class OpbeansJava(OpbeansService):
 class OpbeansNode(OpbeansService):
     SERVICE_PORT = 3000
     DEFAULT_LOCAL_REPO = "."
-    DEFAULT_OPBEANS_IMAGE = 'latest'
+    DEFAULT_OPBEANS_IMAGE = 'elastic/opbeans-node'
+    DEFAULT_OPBEANS_VERSION = 'latest'
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1918,11 +1927,17 @@ class OpbeansNode(OpbeansService):
             default=cls.DEFAULT_OPBEANS_IMAGE,
             help=cls.name() + " image for the opbeans node"
         )
+        parser.add_argument(
+            '--' + cls.name() + '-version',
+            default=cls.DEFAULT_OPBEANS_VERSION,
+            help=cls.name() + " version for the docker image of opbeans node"
+        )
 
     def __init__(self, **options):
         super(OpbeansNode, self).__init__(**options)
         self.service_name = "opbeans-node"
         self.opbeans_image = options.get('opbeans_node_image')
+        self.opbeans_version = options.get('opbeans_node_version')
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
@@ -1942,6 +1957,7 @@ class OpbeansNode(OpbeansService):
                 dockerfile="Dockerfile",
                 args=[
                     "OPBEANS_NODE_IMAGE=" + (self.opbeans_image or self.DEFAULT_OPBEANS_IMAGE),
+                    "OPBEANS_NODE_VERSION=" + (self.opbeans_version or self.DEFAULT_OPBEANS_VERSION),
                 ]
             ),
             environment=[
@@ -1989,7 +2005,8 @@ class OpbeansPython(OpbeansService):
     DEFAULT_AGENT_BRANCH = "2.x"
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = 'opbeans-python'
-    DEFAULT_OPBEANS_IMAGE = 'latest'
+    DEFAULT_OPBEANS_IMAGE = 'elastic/opbeans-python'
+    DEFAULT_OPBEANS_VERSION = 'latest'
 
     @classmethod
     def add_arguments(cls, parser):
@@ -2003,10 +2020,16 @@ class OpbeansPython(OpbeansService):
             default=cls.DEFAULT_OPBEANS_IMAGE,
             help=cls.name() + " image for the opbeans python"
         )
+        parser.add_argument(
+            '--' + cls.name() + '-version',
+            default=cls.DEFAULT_OPBEANS_VERSION,
+            help=cls.name() + " version for the docker image of opbeans python"
+        )
 
     def __init__(self, **options):
         super(OpbeansPython, self).__init__(**options)
         self.opbeans_image = options.get('opbeans_python_image')
+        self.opbeans_version = options.get('opbeans_python_version')
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
@@ -2028,6 +2051,7 @@ class OpbeansPython(OpbeansService):
                 dockerfile="Dockerfile",
                 args=[
                     "OPBEANS_PYTHON_IMAGE=" + (self.opbeans_image or self.DEFAULT_OPBEANS_IMAGE),
+                    "OPBEANS_PYTHON_VERSION=" + (self.opbeans_version or self.DEFAULT_OPBEANS_VERSION),
                 ]
             ),
             environment=[
@@ -2069,7 +2093,8 @@ class OpbeansRuby(OpbeansService):
     DEFAULT_AGENT_REPO = "elastic/apm-agent-ruby"
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = "opbeans-ruby"
-    DEFAULT_OPBEANS_IMAGE = 'latest'
+    DEFAULT_OPBEANS_IMAGE = 'elastic/opbeans-ruby'
+    DEFAULT_OPBEANS_VERSION = 'latest'
 
     @classmethod
     def add_arguments(cls, parser):
@@ -2079,10 +2104,16 @@ class OpbeansRuby(OpbeansService):
             default=cls.DEFAULT_OPBEANS_IMAGE,
             help=cls.name() + " image for the opbeans ruby"
         )
+        parser.add_argument(
+            '--' + cls.name() + '-version',
+            default=cls.DEFAULT_OPBEANS_VERSION,
+            help=cls.name() + " version for the docker image of opbeans ruby"
+        )
 
     def __init__(self, **options):
         super(OpbeansRuby, self).__init__(**options)
         self.opbeans_image = options.get('opbeans_ruby_image')
+        self.opbeans_version = options.get('opbeans_ruby_version')
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
@@ -2104,6 +2135,7 @@ class OpbeansRuby(OpbeansService):
                 dockerfile="Dockerfile",
                 args=[
                     "OPBEANS_RUBY_IMAGE=" + (self.opbeans_image or self.DEFAULT_OPBEANS_IMAGE),
+                    "OPBEANS_RUBY_VERSION=" + (self.opbeans_version or self.DEFAULT_OPBEANS_VERSION),
                 ]
             ),
             environment=[
