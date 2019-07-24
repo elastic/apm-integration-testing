@@ -557,7 +557,7 @@ class ApmServer(StackService, Service):
             '--apm-server-elasticsearch-url',
             action="append",
             dest="apm_server_elasticsearch_urls",
-            help="apm-server elasticsearch output url(s)."
+            help="apm-server elasticsearch output url(s) (e.g. 'http://es1.example.com,http://es2.example.com')."
         )
         parser.add_argument(
             '--apm-server-elasticsearch-username',
@@ -885,7 +885,8 @@ class BeatMixin(object):
             "--{}-elasticsearch-url".format(cls.name()),
             action="append",
             dest="apm_server_elasticsearch_urls",
-            help="{} elasticsearch output url(s).".format(cls.name()),
+            help="{} elasticsearch output url(s) (e.g. 'http://es1.example.com,http://es2.example.com')."
+                 .format(cls.name()),
         )
         parser.add_argument(
             "--{}-elasticsearch-username".format(cls.name()),
@@ -1062,7 +1063,7 @@ class Kibana(StackService, Service):
             "--kibana-elasticsearch-url",
             action="append",
             dest="kibana_elasticsearch_urls",
-            help="kibana elasticsearch output url(s)."
+            help="kibana elasticsearch output url(s) (e.g. 'http://es1.example.com,http://es2.example.com')."
         )
 
     def _content(self):
@@ -1112,7 +1113,7 @@ class Logstash(StackService, Service):
             "--logstash-elasticsearch-url",
             action="append",
             dest="logstash_elasticsearch_urls",
-            help="logstash elasticsearch output url(s)."
+            help="logstash elasticsearch output url(s) (e.g. 'http://es1.example.com,http://es2.example.com')."
         )
 
 
@@ -1683,9 +1684,7 @@ class OpbeansService(Service):
         self.agent_local_repo = options.get(self.option_name() + "_agent_local_repo")
         self.opbeans_branch = options.get(self.option_name() + "_branch") or ""
         self.opbeans_repo = options.get(self.option_name() + "_repo") or ""
-        self.es_urls = self.options.get("opbeans_elasticsearch_urls")
-        if not self.es_urls:
-            self.es_urls = ["http://elasticsearch:9200"]
+        self.es_urls = self.options.get("opbeans_elasticsearch_urls") or ["http://elasticsearch:9200"]
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1709,12 +1708,6 @@ class OpbeansService(Service):
             default=None,
             dest=cls.option_name() + '_agent_local_repo',
             help=cls.name() + " local repo path for agent"
-        )
-        parser.add_argument(
-            "--{}-elasticsearch-url".format(cls.name()),
-            default=None,
-            dest="opbeans_elasticsearch_urls",
-            help="opbeans elasticsearch output url(s)."
         )
         if hasattr(cls, 'DEFAULT_SERVICE_NAME'):
             parser.add_argument(
@@ -2582,6 +2575,12 @@ class LocalSetup(object):
             help='server_url to use for Opbeans frontend service',
             dest='opbeans_apm_js_server_url',
             default='http://apm-server:8200',
+        )
+
+        parser.add_argument(
+            "--opbeans-elasticsearch-url",
+            dest="opbeans_elasticsearch_urls",
+            help="opbeans elasticsearch output url(s) (e.g. 'http://es1.example.com,http://es2.example.com')."
         )
 
         parser.add_argument(
