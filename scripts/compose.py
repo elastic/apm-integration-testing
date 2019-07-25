@@ -715,7 +715,7 @@ class ApmServer(StackService, Service):
                 backend["build"] = {
                     "args": {
                         "apm_server_base_image": "docker.elastic.co/apm/apm-server:8.0.0-SNAPSHOT",
-                        "apm_server_branch": "8.0",
+                        "apm_server_branch": "master",
                         "apm_server_repo": "https://github.com/elastic/apm-server.git"
                     },
                     "context": "docker/apm-server"
