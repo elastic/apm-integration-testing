@@ -2,9 +2,8 @@
 #
 # GO_AGENT_REPO and GO_AGENT_BRANCH parameterise the Go agent
 # repo and branch (or commit) to use.
-FROM golang:latest
+FROM golang:stretch
 ENV GO111MODULE=on
-ENV CGO_ENABLED=0
 WORKDIR /src/opbeans-go
 RUN git clone https://github.com/elastic/opbeans-go.git .
 RUN rm -fr vendor/go.elastic.co/apm
