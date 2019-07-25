@@ -808,7 +808,7 @@ class LogstashServiceTest(ServiceTest):
 
 class MetricbeatServiceTest(ServiceTest):
     def test_metricbeat(self):
-        metricbeat = Metricbeat(version="6.2.4", release=True).render()
+        metricbeat = Metricbeat(version="6.2.4", release=True, apm_server_pprof_url='apm-server:6060').render()
         self.assertEqual(
             metricbeat, yaml.load("""
                 metricbeat:
@@ -816,7 +816,7 @@ class MetricbeatServiceTest(ServiceTest):
                     container_name: localtesting_6.2.4_metricbeat
                     user: root
                     command: ["metricbeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true", "-E", 'output.elasticsearch.hosts=["elasticsearch:9200"]', "-E", "output.elasticsearch.enabled=true"]
-                    environment: {APM_SERVER_PPROF_HOST: 'None'}
+                    environment: {APM_SERVER_PPROF_HOST: 'apm-server:6060'}
                     logging:
                         driver: 'json-file'
                         options:

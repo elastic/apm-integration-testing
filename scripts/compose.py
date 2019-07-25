@@ -1125,14 +1125,12 @@ class Metricbeat(BeatMixin, StackService, Service):
         parser.add_argument(
             "--apm-server-pprof-url",
             help="apm server profiling url to use.",
-            dest='apm_server_pprof_url',
+            dest="apm_server_pprof_url",
             default="apm-server:6060"
         )
 
     def _content(self):
-        print("*****************----->{}".format(self.options.get('apm_server_pprof_url')))
-
-        self.environment["APM_SERVER_PPROF_HOST"] = json.dumps(self.options.get('apm_server_pprof_url'))
+        self.environment['APM_SERVER_PPROF_HOST'] = self.options.get("apm_server_pprof_url")
         return dict(
             command=self.command,
             depends_on=self.depends_on,
