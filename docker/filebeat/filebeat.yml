@@ -1,3 +1,4 @@
+---
 setup.template.settings:
   index.number_of_shards: 1
   index.codec: best_compression
@@ -22,125 +23,125 @@ filebeat.autodiscover:
   providers:
     - type: docker
       templates:
-      - condition:
-          contains:
-            docker.container.image: "apm-server"
-        config:
-          - type: docker
-            containers.ids:
-              - "${data.docker.container.id}"
-            fields_under_root: true
-            json.keys_under_root: true
-            json.overwrite_keys: true
-            json.add_error_key: true
-            json.message_key: message
-      - condition:
-          contains:
-            docker.container.image: "filebeat"
-        config:
-          - type: docker
-            containers.ids:
-              - "${data.docker.container.id}"
-            fields_under_root: true
-            json.keys_under_root: true
-            json.overwrite_keys: true
-            json.add_error_key: true
-            json.message_key: message
-      - condition:
-          contains:
-            docker.container.image: "heartbeat"
-        config:
-          - type: docker
-            containers.ids:
-              - "${data.docker.container.id}"
-            fields_under_root: true
-            json.keys_under_root: true
-            json.overwrite_keys: true
-            json.add_error_key: true
-            json.message_key: message
-      - condition:
-          contains:
-            docker.container.image: "kibana"
-        config:
-          - type: docker
-            containers.ids:
-              - "${data.docker.container.id}"
-            fields_under_root: true
-            json.keys_under_root: true
-            json.overwrite_keys: true
-            json.add_error_key: true
-            json.message_key: message
-      - condition:
-          contains:
-            docker.container.image: "metricbeat"
-        config:
-          - type: docker
-            containers.ids:
-              - "${data.docker.container.id}"
-            fields_under_root: true
-            json.keys_under_root: true
-            json.overwrite_keys: true
-            json.add_error_key: true
-            json.message_key: message
-      - condition:
-          contains:
-            docker.container.image: "opbeans-node"
-        config:
-          - type: docker
-            containers.ids:
-              - "${data.docker.container.id}"
-            multiline.pattern: '^ '
-            multiline.negate: false
-            multiline.match: after
-      - condition:
-          contains:
-            docker.container.image: "opbeans-go"
-        config:
-          - type: docker
-            containers.ids:
-              - "${data.docker.container.id}"
-            fields_under_root: true
-            json.keys_under_root: true
-            json.overwrite_keys: true
-            json.add_error_key: true
-            json.message_key: message
-      - condition:
-          contains:
-            docker.container.image: "postgres"
-        config:
-          - type: docker
-            containers.ids:
-              - "${data.docker.container.id}"
-            multiline.pattern: '^\t'
-            multiline.negate: false
-            multiline.match: after
-      - condition:
-          and:
-            - not:
-                contains:
-                  docker.container.image: "apm-server"
-            - not:
-                contains:
-                  docker.container.image: "filebeat"
-            - not:
-                contains:
-                  docker.container.image: "heartbeat"
-            - not:
-                contains:
-                  docker.container.image: "kibana"
-            - not:
-                contains:
-                  docker.container.image: "metricbeat"
-            - not:
-                contains:
-                  docker.container.image: "opbeans-node"
-            - not:
-                contains:
-                  docker.container.image: "opbeans-go"
-            - not:
-                contains:
-                  docker.container.image: "postgres"
-        config:
-          - type: docker
-            containers.ids:
-              - "${data.docker.container.id}"
+        - condition:
+            contains:
+              docker.container.image: "apm-server"
+          config:
+            - type: docker
+              containers.ids:
+                - "${data.docker.container.id}"
+              fields_under_root: true
+              json.keys_under_root: true
+              json.overwrite_keys: true
+              json.add_error_key: true
+              json.message_key: message
+        - condition:
+            contains:
+              docker.container.image: "filebeat"
+          config:
+            - type: docker
+              containers.ids:
+                - "${data.docker.container.id}"
+              fields_under_root: true
+              json.keys_under_root: true
+              json.overwrite_keys: true
+              json.add_error_key: true
+              json.message_key: message
+        - condition:
+            contains:
+              docker.container.image: "heartbeat"
+          config:
+            - type: docker
+              containers.ids:
+                - "${data.docker.container.id}"
+              fields_under_root: true
+              json.keys_under_root: true
+              json.overwrite_keys: true
+              json.add_error_key: true
+              json.message_key: message
+        - condition:
+            contains:
+              docker.container.image: "kibana"
+          config:
+            - type: docker
+              containers.ids:
+                - "${data.docker.container.id}"
+              fields_under_root: true
+              json.keys_under_root: true
+              json.overwrite_keys: true
+              json.add_error_key: true
+              json.message_key: message
+        - condition:
+            contains:
+              docker.container.image: "metricbeat"
+          config:
+            - type: docker
+              containers.ids:
+                - "${data.docker.container.id}"
+              fields_under_root: true
+              json.keys_under_root: true
+              json.overwrite_keys: true
+              json.add_error_key: true
+              json.message_key: message
+        - condition:
+            contains:
+              docker.container.image: "opbeans-node"
+          config:
+            - type: docker
+              containers.ids:
+                - "${data.docker.container.id}"
+              multiline.pattern: '^ '
+              multiline.negate: false
+              multiline.match: after
+        - condition:
+            contains:
+              docker.container.image: "opbeans-go"
+          config:
+            - type: docker
+              containers.ids:
+                - "${data.docker.container.id}"
+              fields_under_root: true
+              json.keys_under_root: true
+              json.overwrite_keys: true
+              json.add_error_key: true
+              json.message_key: message
+        - condition:
+            contains:
+              docker.container.image: "postgres"
+          config:
+            - type: docker
+              containers.ids:
+                - "${data.docker.container.id}"
+              multiline.pattern: '^\t'
+              multiline.negate: false
+              multiline.match: after
+        - condition:
+            and:
+              - not:
+                  contains:
+                    docker.container.image: "apm-server"
+              - not:
+                  contains:
+                    docker.container.image: "filebeat"
+              - not:
+                  contains:
+                    docker.container.image: "heartbeat"
+              - not:
+                  contains:
+                    docker.container.image: "kibana"
+              - not:
+                  contains:
+                    docker.container.image: "metricbeat"
+              - not:
+                  contains:
+                    docker.container.image: "opbeans-node"
+              - not:
+                  contains:
+                    docker.container.image: "opbeans-go"
+              - not:
+                  contains:
+                    docker.container.image: "postgres"
+          config:
+            - type: docker
+              containers.ids:
+                - "${data.docker.container.id}"

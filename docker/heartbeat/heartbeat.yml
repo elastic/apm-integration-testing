@@ -1,3 +1,4 @@
+---
 output.elasticsearch:
   hosts: ["${ELASTICSEARCH_HOSTS:elasticsearch:9200}"]
 
@@ -5,18 +6,18 @@ setup.kibana:
   host: "${KIBANA_HOST:kibana:5601}"
 
 heartbeat.monitors:
-- type: icmp
-  schedule: '*/5 * * * * * *'
-  hosts: ["google.com"]
-- type: tcp
-  schedule: '@every 5s'
-  hosts: ["myhost:7"]  # default TCP Echo Protocol
-  check.send: "Check"
-  check.receive: "Check"
-- type: http
-  schedule: '@every 5s'
-  urls: ["https://www.elastic.co/"]
-  check.response.status: 200
+  - type: icmp
+    schedule: '*/5 * * * * * *'
+    hosts: ["google.com"]
+  - type: tcp
+    schedule: '@every 5s'
+    hosts: ["myhost:7"]  # default TCP Echo Protocol
+    check.send: "Check"
+    check.receive: "Check"
+  - type: http
+    schedule: '@every 5s'
+    urls: ["https://www.elastic.co/"]
+    check.response.status: 200
 heartbeat.scheduler:
   limit: 10
 

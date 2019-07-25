@@ -1,3 +1,4 @@
+---
 setup.template.settings:
   index.number_of_shards: 1
   index.codec: best_compression
@@ -15,7 +16,7 @@ logging.metrics.enabled: false
 filebeat.prospectors:
   - type: log
     paths:
-     - '/var/lib/docker/containers/*/*.log'
+      - '/var/lib/docker/containers/*/*.log'
     json.message_key: log
     json.overwrite_keys: true
     json.keys_under_root: false
