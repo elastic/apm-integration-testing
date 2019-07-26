@@ -73,16 +73,22 @@ pipeline {
             HOME = "${env.WORKSPACE}"
           }
           steps {
-            withGithubNotify(context: 'Check pre-commit') {
+            withGithubNotify(context: 'Check pre-commit', tab: 'tests') {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
                 sh '''
-                  env | sort
                   curl https://pre-commit.com/install-local.py | python -
-                  git diff-tree --no-commit-id --name-only -r ${GIT_BASE_COMMIT} | xargs pre-commit run --files
+                  git diff-tree --no-commit-id --name-only -r ${GIT_BASE_COMMIT} | xargs pre-commit run --files | tee pre-commit.out
                 '''
               }
+            }
+          }
+          post {
+            always {
+              preCommitToJunit(input: "${BASE_DIR}/pre-commit.out", output: "${BASE_DIR}/pre-commit-junit.xml")
+              archiveArtifacts artifacts: "${BASE_DIR}/pre-commit.out", allowEmptyArchive: true, defaultExcludes: false
+              junit testResults: "${BASE_DIR}/pre-commit-junit.xml", allowEmptyResults: true, keepLongStdio: true
             }
           }
         }
