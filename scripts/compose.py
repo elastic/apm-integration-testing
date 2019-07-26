@@ -512,6 +512,9 @@ class ApmServer(StackService, Service):
 
         self.apm_server_count = options.get("apm_server_count", 1)
         self.apm_server_tee = options.get("apm_server_tee", False)
+        # convenience for tee without count
+        if self.apm_server_tee and self.apm_server_count == 1:
+            self.apm_server_count = 2
 
     @classmethod
     def add_arguments(cls, parser):
@@ -613,7 +616,7 @@ class ApmServer(StackService, Service):
             action="store_true",
             default=False,
             help=argparse.SUPPRESS,
-            # help="tee proxied traffic instead of load balancing.  Only for  7.0upgrade testing atm.",
+            # help="tee proxied traffic instead of load balancing.",
         )
         parser.add_argument(
             "--apm-server-opt",
@@ -710,7 +713,7 @@ class ApmServer(StackService, Service):
         for i in range(1, self.apm_server_count + 1):
             backend = dict(single)
             backend["container_name"] = backend["container_name"] + "-" + str(i)
-            if self.apm_server_tee and i == 2:
+            if self.apm_server_tee and i > 1:
                 # always build 8.0
                 backend["build"] = {
                     "args": {
@@ -742,10 +745,13 @@ class ApmServer(StackService, Service):
 
     def render_tee(self):
         condition = {"condition": "service_healthy"}
+        command = ["teeproxy", "-l", "0.0.0.0:8200", "-a", "apm-server-1:8200", "-b", "apm-server-2:8200"]
+        # add extra tee backends
+        for i in range(3, self.apm_server_count + 1):
+            command.extend(["-b", self.name() + "-" + str(i) + ":8200"])
         content = dict(
             build={"context": "docker/apm-server/teeproxy"},
-            # TODO: support > 1 backup server
-            command=["teeproxy", "-l", "0.0.0.0:8200", "-a", "apm-server-1:8200", "-b", "apm-server-2:8200"],
+            command=command,
             container_name=self.default_container_name() + "-tee",
             depends_on={"apm-server-{}".format(i): condition for i in range(1, self.apm_server_count + 1)},
             healthcheck={"test": ["CMD", "pgrep", "teeproxy"]},
