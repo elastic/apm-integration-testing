@@ -511,10 +511,25 @@ class ApmServer(StackService, Service):
             self.apm_server_command_args.append(opt.split("=", 1))
 
         self.apm_server_count = options.get("apm_server_count", 1)
-        self.apm_server_tee = options.get("apm_server_tee", False)
+        apm_server_record = options.get("apm_server_record", False)
+        self.apm_server_tee = options.get("apm_server_tee", apm_server_record)  # tee if requested or if recording
         # convenience for tee without count
         if self.apm_server_tee and self.apm_server_count == 1:
             self.apm_server_count = 2
+        if self.apm_server_tee:
+            if apm_server_record:
+                # TODO: fill in with recorder
+                self.apm_server_tee_build = {}
+            else:
+                # always build 8.0
+                self.apm_server_tee_build = {
+                    "args": {
+                        "apm_server_base_image": "docker.elastic.co/apm/apm-server:8.0.0-SNAPSHOT",
+                        "apm_server_branch": "master",
+                        "apm_server_repo": "https://github.com/elastic/apm-server.git"
+                    },
+                    "context": "docker/apm-server"
+                }
 
     @classmethod
     def add_arguments(cls, parser):
@@ -610,6 +625,13 @@ class ApmServer(StackService, Service):
             action="store_false",
             dest="apm_server_dashboards",
             help="skip loading apm-server dashboards (setup.dashboards.enabled=false)",
+        )
+        parser.add_argument(
+            '--apm-server-record',
+            action="store_true",
+            default=False,
+            help=argparse.SUPPRESS,
+            # help="record apm-server request payloads.",
         )
         parser.add_argument(
             '--apm-server-tee',
@@ -714,15 +736,7 @@ class ApmServer(StackService, Service):
             backend = dict(single)
             backend["container_name"] = backend["container_name"] + "-" + str(i)
             if self.apm_server_tee and i > 1:
-                # always build 8.0
-                backend["build"] = {
-                    "args": {
-                        "apm_server_base_image": "docker.elastic.co/apm/apm-server:8.0.0-SNAPSHOT",
-                        "apm_server_branch": "master",
-                        "apm_server_repo": "https://github.com/elastic/apm-server.git"
-                    },
-                    "context": "docker/apm-server"
-                }
+                backend["build"] = self.apm_server_tee_build
                 backend["labels"] = ["co.elastic.apm.stack-version=8.0.0"]
                 del(backend["image"])  # use the built one instead
             ren.update({"-".join([self.name(), str(i)]): backend})

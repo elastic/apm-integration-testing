@@ -514,6 +514,11 @@ class ApmServerServiceTest(ServiceTest):
         self.assertListEqual(["127.0.0.1:8200:8200"], apm_server_lb["ports"], apm_server_lb["ports"])
         self.assertListEqual(["8200", "6060"], apm_server_2["ports"], apm_server_2["ports"])
 
+    def test_apm_server_record(self):
+        render = ApmServer(version="6.4.100", apm_server_record=True).render()
+        apm_server_lb = render["apm-server"]
+        self.assertIn("build", apm_server_lb)
+
     def test_apm_server_tee(self):
         render = ApmServer(version="6.4.100", apm_server_tee=True).render()
         apm_server_lb = render["apm-server"]
