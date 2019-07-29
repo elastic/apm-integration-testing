@@ -49,6 +49,7 @@ pipeline {
         */
         stage('Unit Tests'){
           agent { label 'linux && immutable && docker' }
+          options { skipDefaultCheckout() }
           steps {
             withGithubNotify(context: 'Unit Tests', tab: 'tests') {
               deleteDir()
@@ -68,6 +69,7 @@ pipeline {
         }
         stage('Sanity checks') {
           agent { label 'linux && immutable && docker' }
+          options { skipDefaultCheckout() }
           environment {
             PATH = "${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.WORKSPACE}/bin:${env.PATH}"
             HOME = "${env.WORKSPACE}"
