@@ -66,29 +66,19 @@ pipeline {
             }
           }
         }
-        stage('Check pre-commit') {
+        stage('Sanity checks') {
           agent { label 'linux && immutable && docker' }
           environment {
             PATH = "${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.WORKSPACE}/bin:${env.PATH}"
             HOME = "${env.WORKSPACE}"
           }
           steps {
-            withGithubNotify(context: 'Check pre-commit', tab: 'tests') {
+            withGithubNotify(context: 'Sanity checks', tab: 'tests') {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh '''
-                  curl https://pre-commit.com/install-local.py | python -
-                  git diff-tree --no-commit-id --name-only -r ${GIT_BASE_COMMIT} | xargs pre-commit run --files | tee pre-commit.out
-                '''
+                preCommitToJunit(commit: "${GIT_BASE_COMMIT}", junit: true)
               }
-            }
-          }
-          post {
-            always {
-              preCommitToJunit(input: "${BASE_DIR}/pre-commit.out", output: "${BASE_DIR}/pre-commit-junit.xml")
-              archiveArtifacts artifacts: "${BASE_DIR}/pre-commit.out", allowEmptyArchive: true, defaultExcludes: false
-              junit testResults: "${BASE_DIR}/pre-commit-junit.xml", allowEmptyResults: true, keepLongStdio: true
             }
           }
         }
