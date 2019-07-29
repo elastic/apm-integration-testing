@@ -79,7 +79,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                preCommitToJunit(commit: "${GIT_BASE_COMMIT}", junit: true)
+                preCommit(commit: "${GIT_BASE_COMMIT}", junit: true)
               }
             }
           }
