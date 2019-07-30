@@ -8,8 +8,8 @@ FROM mcr.microsoft.com/dotnet/core/sdk:2.2 AS opbeans-dotnet
 ARG DOTNET_AGENT_REPO=elastic/apm-agent-dotnet
 ARG DOTNET_AGENT_BRANCH=master
 ARG DOTNET_AGENT_VERSION=
-ENV OPBEANS_DOTNET_REPO=elastic/opbeans-dotnet
-ENV OPBEANS_DOTNET_BRANCH=master
+ARG OPBEANS_DOTNET_REPO=elastic/opbeans-dotnet
+ARG OPBEANS_DOTNET_BRANCH=master
 WORKDIR /src
 COPY . /src
 RUN ./run.sh

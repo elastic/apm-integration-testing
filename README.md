@@ -196,6 +196,7 @@ These are the scripts available to execute:
 * `java.sh:` runs Java tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `kibana.sh:` runs kibana agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `nodejs.sh:` runs Nodejs agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
+* `opbeans.sh:` runs the unit tests for the apm-integration-testing app and validate the linting, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `python.sh:` runs Python agent tests, you can choose the versions to run see the [environment variables](environment-variables) configuration.
 * `ruby.sh:` runs Ruby agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `server.sh:` runs APM Server tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
