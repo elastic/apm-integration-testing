@@ -55,6 +55,8 @@ class OpbeansServiceTest(ServiceTest):
                         - DOTNET_AGENT_BRANCH=master
                         - DOTNET_AGENT_REPO=elastic/apm-agent-dotnet
                         - DOTNET_AGENT_VERSION=
+                        - OPBEANS_DOTNET_BRANCH=master
+                        - OPBEANS_DOTNET_REPO=elastic/opbeans-dotnet
                     container_name: localtesting_6.3.10_opbeans-dotnet
                     ports:
                       - "127.0.0.1:3004:80"
@@ -84,9 +86,19 @@ class OpbeansServiceTest(ServiceTest):
         )
 
     def test_opbeans_dotnet_version(self):
-        opbeans_node = OpbeansDotnet(opbeans_dotnet_version="1.0").render()["opbeans-dotnet"]
-        value = [e for e in opbeans_node["build"]["args"] if e.startswith("DOTNET_AGENT_VERSION")]
+        opbeans = OpbeansDotnet(opbeans_dotnet_version="1.0").render()["opbeans-dotnet"]
+        value = [e for e in opbeans["build"]["args"] if e.startswith("DOTNET_AGENT_VERSION")]
         self.assertEqual(value, ["DOTNET_AGENT_VERSION=1.0"])
+
+    def test_opbeans_go_branch(self):
+        opbeans = OpbeansDotnet(opbeans_dotnet_branch="1.x").render()["opbeans-dotnet"]
+        branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_DOTNET_BRANCH")]
+        self.assertEqual(branch, ["OPBEANS_DOTNET_BRANCH=1.x"])
+
+    def test_opbeans_go_repo(self):
+        opbeans = OpbeansDotnet(opbeans_dotnet_repo="foo/bar").render()["opbeans-dotnet"]
+        branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_DOTNET_REPO")]
+        self.assertEqual(branch, ["OPBEANS_DOTNET_REPO=foo/bar"])
 
     def test_opbeans_go(self):
         opbeans_go = OpbeansGo(version="6.3.10").render()
@@ -99,6 +111,8 @@ class OpbeansServiceTest(ServiceTest):
                       args:
                         - GO_AGENT_BRANCH=master
                         - GO_AGENT_REPO=elastic/apm-agent-go
+                        - OPBEANS_GO_BRANCH=master
+                        - OPBEANS_GO_REPO=elastic/opbeans-go
                     container_name: localtesting_6.3.10_opbeans-go
                     ports:
                       - "127.0.0.1:3003:3000"
@@ -134,6 +148,16 @@ class OpbeansServiceTest(ServiceTest):
                         condition: service_healthy""")  # noqa: 501
         )
 
+    def test_opbeans_go_branch(self):
+        opbeans = OpbeansGo(opbeans_go_branch="1.x").render()["opbeans-go"]
+        branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_GO_BRANCH")]
+        self.assertEqual(branch, ["OPBEANS_GO_BRANCH=1.x"])
+
+    def test_opbeans_go_repo(self):
+        opbeans = OpbeansGo(opbeans_go_repo="foo/bar").render()["opbeans-go"]
+        branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_GO_REPO")]
+        self.assertEqual(branch, ["OPBEANS_GO_REPO=foo/bar"])
+
     def test_opbeans_java(self):
         opbeans_java = OpbeansJava(version="6.3.10").render()
         self.assertEqual(
@@ -145,6 +169,8 @@ class OpbeansServiceTest(ServiceTest):
                       args:
                         - JAVA_AGENT_BRANCH=
                         - JAVA_AGENT_REPO=elastic/apm-agent-java
+                        - OPBEANS_JAVA_IMAGE=elastic/opbeans-java
+                        - OPBEANS_JAVA_VERSION=latest
                     container_name: localtesting_6.3.10_opbeans-java
                     ports:
                       - "127.0.0.1:3002:3000"
@@ -181,14 +207,27 @@ class OpbeansServiceTest(ServiceTest):
                       retries: 36""")  # noqa: 501
         )
 
+    def test_opbeans_java_image(self):
+        opbeans = OpbeansJava(opbeans_java_image="foo").render()["opbeans-java"]
+        branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_JAVA_IMAGE")]
+        self.assertEqual(branch, ["OPBEANS_JAVA_IMAGE=foo"])
+
+    def test_opbeans_java_image(self):
+        opbeans = OpbeansJava(opbeans_java_version="bar").render()["opbeans-java"]
+        branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_JAVA_VERSION")]
+        self.assertEqual(branch, ["OPBEANS_JAVA_VERSION=bar"])
+
     def test_opbeans_node(self):
         opbeans_node = OpbeansNode(version="6.2.4").render()
         self.assertEqual(
             opbeans_node, yaml.load("""
                 opbeans-node:
                     build:
-                        dockerfile: Dockerfile
-                        context: docker/opbeans/node
+                      dockerfile: Dockerfile
+                      context: docker/opbeans/node
+                      args:
+                      - OPBEANS_NODE_IMAGE=elastic/opbeans-node
+                      - OPBEANS_NODE_VERSION=latest
                     container_name: localtesting_6.2.4_opbeans-node
                     ports:
                         - "127.0.0.1:3000:3000"
@@ -234,6 +273,16 @@ class OpbeansServiceTest(ServiceTest):
                         - ./docker/opbeans/node/sourcemaps:/sourcemaps""")  # noqa: 501
         )
 
+    def test_opbeans_node_image(self):
+        opbeans = OpbeansNode(opbeans_node_image="foo").render()["opbeans-node"]
+        branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_NODE_IMAGE")]
+        self.assertEqual(branch, ["OPBEANS_NODE_IMAGE=foo"])
+
+    def test_opbeans_python_version(self):
+        opbeans = OpbeansNode(opbeans_node_version="bar").render()["opbeans-node"]
+        branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_NODE_VERSION")]
+        self.assertEqual(branch, ["OPBEANS_NODE_VERSION=bar"])
+
     def test_opbeans_node_without_loadgen(self):
         opbeans_node = OpbeansNode(no_opbeans_node_loadgen=True).render()["opbeans-node"]
         value = [e for e in opbeans_node["environment"] if e.startswith("WORKLOAD_DISABLED")]
@@ -245,8 +294,11 @@ class OpbeansServiceTest(ServiceTest):
             opbeans_python, yaml.load("""
                 opbeans-python:
                     build:
-                        dockerfile: Dockerfile
-                        context: docker/opbeans/python
+                      dockerfile: Dockerfile
+                      context: docker/opbeans/python
+                      args:
+                      - OPBEANS_PYTHON_IMAGE=elastic/opbeans-python
+                      - OPBEANS_PYTHON_VERSION=latest
                     container_name: localtesting_6.2.4_opbeans-python
                     ports:
                         - "127.0.0.1:8000:3000"
@@ -290,7 +342,7 @@ class OpbeansServiceTest(ServiceTest):
             """)  # noqa: 501
         )
 
-    def test_opbeans_python_branch(self):
+    def test_opbeans_python_agent_branch(self):
         opbeans_python_6_1 = OpbeansPython(version="6.1", opbeans_python_agent_branch="1.x").render()["opbeans-python"]
         branch = [e for e in opbeans_python_6_1["environment"] if e.startswith("PYTHON_AGENT_BRANCH")]
         self.assertEqual(branch, ["PYTHON_AGENT_BRANCH=1.x"])
@@ -299,7 +351,7 @@ class OpbeansServiceTest(ServiceTest):
         branch = [e for e in opbeans_python_master["environment"] if e.startswith("PYTHON_AGENT_BRANCH")]
         self.assertEqual(branch, ["PYTHON_AGENT_BRANCH=2.x"])
 
-    def test_opbeans_python_repo(self):
+    def test_opbeans_python_agent_repo(self):
         agent_repo_default = OpbeansPython().render()["opbeans-python"]
         branch = [e for e in agent_repo_default["environment"] if e.startswith("PYTHON_AGENT_REPO")]
         self.assertEqual(branch, ["PYTHON_AGENT_REPO="])
@@ -308,12 +360,22 @@ class OpbeansServiceTest(ServiceTest):
         branch = [e for e in agent_repo_override["environment"] if e.startswith("PYTHON_AGENT_REPO")]
         self.assertEqual(branch, ["PYTHON_AGENT_REPO=myrepo"])
 
-    def test_opbeans_python_local_repo(self):
+    def test_opbeans_python_agent_local_repo(self):
         agent_repo_default = OpbeansPython().render()["opbeans-python"]
         assert "volumes" not in agent_repo_default
 
         agent_repo_override = OpbeansPython(opbeans_python_agent_local_repo=".").render()["opbeans-python"]
         assert "volumes" in agent_repo_override, agent_repo_override
+
+    def test_opbeans_python_image(self):
+        opbeans = OpbeansPython(opbeans_python_image="foo").render()["opbeans-python"]
+        branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_PYTHON_IMAGE")]
+        self.assertEqual(branch, ["OPBEANS_PYTHON_IMAGE=foo"])
+
+    def test_opbeans_python_version(self):
+        opbeans = OpbeansPython(opbeans_python_version="bar").render()["opbeans-python"]
+        branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_PYTHON_VERSION")]
+        self.assertEqual(branch, ["OPBEANS_PYTHON_VERSION=bar"])
 
     def test_opbeans_ruby(self):
         opbeans_ruby = OpbeansRuby(version="6.3.10").render()
@@ -323,6 +385,9 @@ class OpbeansServiceTest(ServiceTest):
                     build:
                       dockerfile: Dockerfile
                       context: docker/opbeans/ruby
+                      args:
+                        - OPBEANS_RUBY_IMAGE=elastic/opbeans-ruby
+                        - OPBEANS_RUBY_VERSION=latest
                     container_name: localtesting_6.3.10_opbeans-ruby
                     ports:
                       - "127.0.0.1:3001:3000"
@@ -358,8 +423,17 @@ class OpbeansServiceTest(ServiceTest):
                       test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-ruby:3000/"]
                       interval: 10s
                       retries: 50""")  # noqa: 501
-
         )
+
+    def test_opbeans_ruby_image(self):
+        opbeans = OpbeansRuby(opbeans_ruby_image="foo").render()["opbeans-ruby"]
+        branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_RUBY_IMAGE")]
+        self.assertEqual(branch, ["OPBEANS_RUBY_IMAGE=foo"])
+
+    def test_opbeans_ruby_version(self):
+        opbeans = OpbeansRuby(opbeans_ruby_version="bar").render()["opbeans-ruby"]
+        branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_RUBY_VERSION")]
+        self.assertEqual(branch, ["OPBEANS_RUBY_VERSION=bar"])
 
     def test_opbeans_rum(self):
         opbeans_rum = OpbeansRum(version="6.3.10").render()
