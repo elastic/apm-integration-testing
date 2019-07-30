@@ -49,6 +49,7 @@ pipeline {
         */
         stage('Unit Tests'){
           agent { label 'linux && immutable && docker' }
+          options { skipDefaultCheckout() }
           steps {
             withGithubNotify(context: 'Unit Tests', tab: 'tests') {
               deleteDir()
@@ -66,22 +67,19 @@ pipeline {
             }
           }
         }
-        stage('Check pre-commit') {
+        stage('Sanity checks') {
           agent { label 'linux && immutable && docker' }
+          options { skipDefaultCheckout() }
           environment {
             PATH = "${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.WORKSPACE}/bin:${env.PATH}"
             HOME = "${env.WORKSPACE}"
           }
           steps {
-            withGithubNotify(context: 'Check pre-commit') {
+            withGithubNotify(context: 'Sanity checks', tab: 'tests') {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh '''
-                  env | sort
-                  curl https://pre-commit.com/install-local.py | python -
-                  git diff-tree --no-commit-id --name-only -r ${GIT_BASE_COMMIT} | xargs pre-commit run --files
-                '''
+                preCommit(commit: "${GIT_BASE_COMMIT}", junit: true)
               }
             }
           }
