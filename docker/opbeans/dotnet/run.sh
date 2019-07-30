@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -x
-git clone https://github.com/${OPBEANS_DOTNET_REPO}.git /src/opbeans-dotnet -b ${OPBEANS_DOTNET_BRANCH}
+
+git clone https://github.com/"${OPBEANS_DOTNET_REPO}".git /src/opbeans-dotnet
+cd /src/opbeans-dotnet || exit
+git fetch -q origin '+refs/pull/*:refs/remotes/origin/pr/*'
+git checkout "${OPBEANS_DOTNET_BRANCH}"
+
 CSPROJ="opbeans-dotnet.csproj"
 
 PACKAGE=Elastic.Apm.NetCoreAll

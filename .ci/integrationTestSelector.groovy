@@ -27,7 +27,7 @@ pipeline {
     rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
   }
   parameters {
-    choice(name: 'INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All', 'Opbeans'], description: 'Name of the Tests or APM Agent you want to run the integration tests.')
+    choice(name: 'INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All', 'Opbeans'], description: 'Name of the APM Agent you want to run the integration tests.')
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "8.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     string(name: 'GITHUB_CHECK_NAME', defaultValue: '', description: 'Name of the GitHub check to be updated. Only if this build is triggered from another parent stream.')
@@ -74,8 +74,8 @@ pipeline {
         unstash "source"
         dir("${BASE_DIR}"){
           script {
-            def agentName = agentMapping.id(params.AGENT_INTEGRATION_TEST)
-            def agentApp = agentMapping.app(params.AGENT_INTEGRATION_TEST)
+            def agentName = agentMapping.id(params.INTEGRATION_TEST)
+            def agentApp = agentMapping.app(params.INTEGRATION_TEST)
             sh """#!/bin/bash
             export TMPDIR="${WORKSPACE}"
             .ci/scripts/agent.sh ${agentName} ${agentApp}
@@ -141,8 +141,7 @@ pipeline {
       }
       environment {
         TMPDIR = "${WORKSPACE}"
-        ENABLE_ES_DUMP = "true"
-        PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
+        REUSE_CONTAINERS = "true"
       }
       steps {
         deleteDir()
@@ -168,7 +167,7 @@ pipeline {
 
 def wrappingup(){
   dir("${BASE_DIR}"){
-    def stepName = agentMapping.id(params.AGENT_INTEGRATION_TEST)
+    def stepName = agentMapping.id(params.INTEGRATION_TEST)
     sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
     sh('make stop-env || echo 0')
     archiveArtifacts(
