@@ -512,14 +512,15 @@ class ApmServer(StackService, Service):
 
         self.apm_server_count = options.get("apm_server_count", 1)
         apm_server_record = options.get("apm_server_record", False)
-        self.apm_server_tee = options.get("apm_server_tee", apm_server_record)  # tee if requested or if recording
-        # convenience for tee without count
-        if self.apm_server_tee and self.apm_server_count == 1:
-            self.apm_server_count = 2
+        self.apm_server_tee = options.get("apm_server_tee") or apm_server_record  # tee if requested or if recording
         if self.apm_server_tee:
+            # convenience for tee without count
+            if self.apm_server_count == 1:
+                self.apm_server_count = 2
             if apm_server_record:
-                # TODO: fill in with recorder
-                self.apm_server_tee_build = {}
+                self.apm_server_tee_build = {
+                    "context": "docker/apm-server/recorder",
+                }
             else:
                 # always build 8.0
                 self.apm_server_tee_build = {
