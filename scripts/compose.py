@@ -1691,7 +1691,7 @@ class OpbeansDotnet(OpbeansService):
     DEFAULT_SERVICE_NAME = "opbeans-dotnet"
     DEFAULT_AGENT_VERSION = ""
     DEFAULT_OPBEANS_BRANCH = "master"
-    DEFAULT_OPBEANS_REPO = "opbeans/opbeans-dotnet"
+    DEFAULT_OPBEANS_REPO = "elastic/opbeans-dotnet"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1763,7 +1763,7 @@ class OpbeansGo(OpbeansService):
     DEFAULT_AGENT_BRANCH = "master"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-go"
     DEFAULT_OPBEANS_BRANCH = "master"
-    DEFAULT_OPBEANS_REPO = "opbeans/opbeans-go"
+    DEFAULT_OPBEANS_REPO = "elastic/opbeans-go"
     DEFAULT_SERVICE_NAME = "opbeans-go"
 
     @classmethod

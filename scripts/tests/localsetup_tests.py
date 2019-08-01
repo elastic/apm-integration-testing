@@ -56,7 +56,7 @@ class OpbeansServiceTest(ServiceTest):
                         - DOTNET_AGENT_REPO=elastic/apm-agent-dotnet
                         - DOTNET_AGENT_VERSION=
                         - OPBEANS_DOTNET_BRANCH=master
-                        - OPBEANS_DOTNET_REPO=opbeans/opbeans-dotnet
+                        - OPBEANS_DOTNET_REPO=elastic/opbeans-dotnet
                     container_name: localtesting_6.3.10_opbeans-dotnet
                     ports:
                       - "127.0.0.1:3004:80"
@@ -112,7 +112,7 @@ class OpbeansServiceTest(ServiceTest):
                         - GO_AGENT_BRANCH=master
                         - GO_AGENT_REPO=elastic/apm-agent-go
                         - OPBEANS_GO_BRANCH=master
-                        - OPBEANS_GO_REPO=opbeans/opbeans-go
+                        - OPBEANS_GO_REPO=elastic/opbeans-go
                     container_name: localtesting_6.3.10_opbeans-go
                     ports:
                       - "127.0.0.1:3003:3000"
