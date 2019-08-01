@@ -56,7 +56,7 @@ class OpbeansServiceTest(ServiceTest):
                         - DOTNET_AGENT_REPO=elastic/apm-agent-dotnet
                         - DOTNET_AGENT_VERSION=
                         - OPBEANS_DOTNET_BRANCH=master
-                        - OPBEANS_DOTNET_REPO=elastic/opbeans-dotnet
+                        - OPBEANS_DOTNET_REPO=opbeans/opbeans-dotnet
                     container_name: localtesting_6.3.10_opbeans-dotnet
                     ports:
                       - "127.0.0.1:3004:80"
@@ -112,7 +112,7 @@ class OpbeansServiceTest(ServiceTest):
                         - GO_AGENT_BRANCH=master
                         - GO_AGENT_REPO=elastic/apm-agent-go
                         - OPBEANS_GO_BRANCH=master
-                        - OPBEANS_GO_REPO=elastic/opbeans-go
+                        - OPBEANS_GO_REPO=opbeans/opbeans-go
                     container_name: localtesting_6.3.10_opbeans-go
                     ports:
                       - "127.0.0.1:3003:3000"
@@ -169,7 +169,7 @@ class OpbeansServiceTest(ServiceTest):
                       args:
                         - JAVA_AGENT_BRANCH=
                         - JAVA_AGENT_REPO=elastic/apm-agent-java
-                        - OPBEANS_JAVA_IMAGE=elastic/opbeans-java
+                        - OPBEANS_JAVA_IMAGE=opbeans/opbeans-java
                         - OPBEANS_JAVA_VERSION=latest
                     container_name: localtesting_6.3.10_opbeans-java
                     ports:
@@ -226,7 +226,7 @@ class OpbeansServiceTest(ServiceTest):
                       dockerfile: Dockerfile
                       context: docker/opbeans/node
                       args:
-                      - OPBEANS_NODE_IMAGE=elastic/opbeans-node
+                      - OPBEANS_NODE_IMAGE=opbeans/opbeans-node
                       - OPBEANS_NODE_VERSION=latest
                     container_name: localtesting_6.2.4_opbeans-node
                     ports:
@@ -297,7 +297,7 @@ class OpbeansServiceTest(ServiceTest):
                       dockerfile: Dockerfile
                       context: docker/opbeans/python
                       args:
-                      - OPBEANS_PYTHON_IMAGE=elastic/opbeans-python
+                      - OPBEANS_PYTHON_IMAGE=opbeans/opbeans-python
                       - OPBEANS_PYTHON_VERSION=latest
                     container_name: localtesting_6.2.4_opbeans-python
                     ports:
@@ -386,7 +386,7 @@ class OpbeansServiceTest(ServiceTest):
                       dockerfile: Dockerfile
                       context: docker/opbeans/ruby
                       args:
-                        - OPBEANS_RUBY_IMAGE=elastic/opbeans-ruby
+                        - OPBEANS_RUBY_IMAGE=opbeans/opbeans-ruby
                         - OPBEANS_RUBY_VERSION=latest
                     container_name: localtesting_6.3.10_opbeans-ruby
                     ports:
