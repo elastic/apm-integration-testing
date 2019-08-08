@@ -36,8 +36,8 @@ repos:
         types: [yaml]
         exclude: (^.pre-commit-config.yaml$|^.ci/.yamlint.yml$|^target/)
 
--   repo: git@github.com:v1v/apm-pipeline-library
-    rev: feature/precommit-lib
+-   repo: git@github.com:elastic/apm-pipeline-library
+    rev: current
     hooks:
     -   id: check-bash-syntax
     -   id: check-abstract-classes-and-trait
