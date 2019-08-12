@@ -1859,7 +1859,7 @@ class OpbeansJava(OpbeansService):
     DEFAULT_AGENT_REPO = "elastic/apm-agent-java"
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = 'opbeans-java'
-    DEFAULT_OPBEANS_IMAGE = 'elastic/opbeans-java'
+    DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-java'
     DEFAULT_OPBEANS_VERSION = 'latest'
 
     @classmethod
@@ -1937,7 +1937,7 @@ class OpbeansJava(OpbeansService):
 class OpbeansNode(OpbeansService):
     SERVICE_PORT = 3000
     DEFAULT_LOCAL_REPO = "."
-    DEFAULT_OPBEANS_IMAGE = 'elastic/opbeans-node'
+    DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-node'
     DEFAULT_OPBEANS_VERSION = 'latest'
 
     @classmethod
@@ -2026,7 +2026,7 @@ class OpbeansPython(OpbeansService):
     DEFAULT_AGENT_BRANCH = "2.x"
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = 'opbeans-python'
-    DEFAULT_OPBEANS_IMAGE = 'elastic/opbeans-python'
+    DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-python'
     DEFAULT_OPBEANS_VERSION = 'latest'
 
     @classmethod
@@ -2114,7 +2114,7 @@ class OpbeansRuby(OpbeansService):
     DEFAULT_AGENT_REPO = "elastic/apm-agent-ruby"
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = "opbeans-ruby"
-    DEFAULT_OPBEANS_IMAGE = 'elastic/opbeans-ruby'
+    DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-ruby'
     DEFAULT_OPBEANS_VERSION = 'latest'
 
     @classmethod
