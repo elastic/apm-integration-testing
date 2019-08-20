@@ -52,17 +52,17 @@ func payloadRecorder(record syncWriter) http.Handler {
 			return
 		}
 
-		record.Lock()
-		defer record.Unlock()
 		event := map[string]interface{}{
 			"time":   time.Now().UTC(),
 			"method": req.Method,
 			"url":    req.URL.Path,
 		}
 		defer func() {
+			record.Lock()
 			if err := jsonEncoder.Encode(event); err != nil {
 				log.Println(err)
 			}
+			record.Unlock()
 		}()
 		var body io.ReadCloser
 		if br, err := bodyReader(req); err != nil {
