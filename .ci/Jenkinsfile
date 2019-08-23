@@ -1,6 +1,13 @@
 #!/usr/bin/env groovy
-
 @Library('apm@current') _
+
+import groovy.transform.Field
+
+/**
+This is the git commit sha which it's required to be used in different stages.
+It does store the env GIT_BASE_COMMIT
+*/
+@Field def gitBaseCommit
 
 pipeline {
   agent none
@@ -39,6 +46,9 @@ pipeline {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
+        script {
+          gitBaseCommit = env.GIT_BASE_COMMIT
+        }
       }
     }
 
@@ -79,7 +89,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                preCommit(commit: "${GIT_BASE_COMMIT}", junit: true)
+                preCommit(commit: "${gitBaseCommit}", junit: true)
               }
             }
           }
@@ -138,7 +148,7 @@ def runJob(agentName, buildOpts = ''){
     parameters: [
     string(name: 'AGENT_INTEGRATION_TEST', value: agentName),
     string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
-    string(name: 'INTEGRATION_TESTING_VERSION', value: env.GIT_BASE_COMMIT),
+    string(name: 'INTEGRATION_TESTING_VERSION', value: gitBaseCommit),
     string(name: 'MERGE_TARGET', value: "${branch}"),
     string(name: 'BUILD_OPTS', value: "${params.BUILD_OPTS} ${buildOpts}"),
     string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
