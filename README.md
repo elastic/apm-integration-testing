@@ -262,7 +262,7 @@ make test-agent-python
 
 Testing unrelease code for other agents follows a simliar pattern.
 
-See `version*` in https://github.com/elastic/apm-integration-testing/tree/master/scripts/ci for details on how CI tests specific agent/elastic stack version combinations.
+See `version*` in https://github.com/elastic/apm-integration-testing/tree/master/.ci/scripts for details on how CI tests specific agent/elastic stack version combinations.
 
 ### Testing docker images
 
