@@ -197,7 +197,7 @@ These are the scripts available to execute:
 * `kibana.sh:` runs kibana agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `nodejs.sh:` runs Nodejs agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `opbeans.sh:` runs the unit tests for the apm-integration-testing app and validate the linting, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
-* `python.sh:` runs Python agent tests, you can choose the versions to run see the [environment variables](environment-variables) configuration.
+* `python.sh:` runs Python agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `ruby.sh:` runs Ruby agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `server.sh:` runs APM Server tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `unit-tests.sh:` runs the unit tests for the apm-integration-testing app and validate the linting, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
@@ -262,7 +262,7 @@ make test-agent-python
 
 Testing unrelease code for other agents follows a simliar pattern.
 
-See `version*` in https://github.com/elastic/apm-integration-testing/tree/master/scripts/ci for details on how CI tests specific agent/elastic stack version combinations.
+See `version*` in https://github.com/elastic/apm-integration-testing/tree/master/.ci/scripts for details on how CI tests specific agent/elastic stack version combinations.
 
 ### Testing docker images
 
