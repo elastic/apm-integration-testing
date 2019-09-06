@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import os
 import unittest
 import json
 import yaml
@@ -294,6 +295,7 @@ class AgentServiceTest(ServiceTest):
         agent = AgentDotnet(dotnet_agent_release="1.0").render()["agent-dotnet"]
         self.assertEqual("1.0", agent["build"]["args"]["DOTNET_AGENT_VERSION"])
 
+
 class ApmServerServiceTest(ServiceTest):
     def test_default_snapshot(self):
         apm_server = ApmServer(version="6.3.100", snapshot=True).render()["apm-server"]
@@ -367,6 +369,29 @@ class ApmServerServiceTest(ServiceTest):
     def test_ilm_disabled(self):
         apm_server = ApmServer(version="7.2.0", apm_server_ilm_disable=True).render()["apm-server"]
         self.assertFalse("apm-server.ilm.enabled=true" in apm_server["command"], "ILM enabled but should not be")
+
+    def test_file_output(self):
+        apm_server = ApmServer(version="7.3.100", apm_server_output="file").render()["apm-server"]
+        options = [
+            "output.elasticsearch.enabled=false",
+            "output.file.enabled=true",
+            "output.file.path=" + os.devnull,
+            "xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
+        ]
+        for o in options:
+            self.assertTrue(o in apm_server["command"], "{} not set while output=file".format(o))
+
+    def test_file_output_path(self):
+        apm_server = ApmServer(version="7.3.100", apm_server_output="file",
+                               apm_server_output_file="foo").render()["apm-server"]
+        options = [
+            "output.elasticsearch.enabled=false",
+            "output.file.enabled=true",
+            "output.file.path=foo",
+            "xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
+        ]
+        for o in options:
+            self.assertTrue(o in apm_server["command"], "{} not set while output=file".format(o))
 
     def test_logstash_output(self):
         apm_server = ApmServer(version="6.3.100", apm_server_output="logstash").render()["apm-server"]

@@ -378,7 +378,7 @@ class ApmServer(StackService, Service):
     SERVICE_PORT = "8200"
     DEFAULT_MONITOR_PORT = "6060"
     DEFAULT_OUTPUT = "elasticsearch"
-    OUTPUTS = {"elasticsearch", "kafka", "logstash"}
+    OUTPUTS = {"elasticsearch", "file" , "kafka", "logstash"}
     DEFAULT_KIBANA_HOST = "kibana:5601"
 
     def __init__(self, **options):
@@ -506,6 +506,11 @@ class ApmServer(StackService, Service):
                     ("output.logstash.enabled", "true"),
                     ("output.logstash.hosts", "[\"logstash:5044\"]"),
                 ])
+            elif self.apm_server_output == "file":
+                self.apm_server_command_args.extend([
+                    ("output.file.enabled", "true"),
+                    ("output.file.path", self.options.get("apm_server_output_file", os.devnull)),
+                ])
 
         for opt in options.get("apm_server_opt", []):
             self.apm_server_command_args.append(opt.split("=", 1))
@@ -551,6 +556,11 @@ class ApmServer(StackService, Service):
             choices=cls.OUTPUTS,
             default='elasticsearch',
             help='apm-server output'
+        )
+        parser.add_argument(
+            '--apm-server-output-file',
+            default=os.devnull,
+            help='apm-server output path (when output=file)'
         )
         parser.add_argument(
             "--no-apm-server-pipeline",
