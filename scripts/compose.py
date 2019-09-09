@@ -378,7 +378,7 @@ class ApmServer(StackService, Service):
     SERVICE_PORT = "8200"
     DEFAULT_MONITOR_PORT = "6060"
     DEFAULT_OUTPUT = "elasticsearch"
-    OUTPUTS = {"elasticsearch", "file" , "kafka", "logstash"}
+    OUTPUTS = {"elasticsearch", "file", "kafka", "logstash"}
     DEFAULT_KIBANA_HOST = "kibana:5601"
 
     def __init__(self, **options):
