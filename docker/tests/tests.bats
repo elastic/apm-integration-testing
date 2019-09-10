@@ -4,8 +4,8 @@ load 'test_helper/bats-support/load'
 load 'test_helper/bats-assert/load'
 load test_helpers
 
-IMAGE="apm-integration-testing-tests-${DOCKERFILE//\//-}"
-CONTAINER="apm-integration-testing-tests-${DOCKERFILE//\//-}"
+CONTAINER="it_${DOCKERFILE//\//-}"
+IMAGE="docker.elastic.co/observability-ci/${CONTAINER}"
 
 @test "${DOCKERFILE} - build image" {
 	cd $BATS_TEST_DIRNAME/..

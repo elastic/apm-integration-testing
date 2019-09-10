@@ -1,0 +1,7 @@
+window.elasticApmJsBaseServerUrl = '{{ELASTIC_APM_SERVER_URLS}}';
+
+//Disable random failures
+var _mathRamdom = Math.random;
+Math.random = function() {
+  return Math.abs(_mathRamdom() - 0.3);
+};
