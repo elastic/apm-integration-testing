@@ -48,7 +48,8 @@ pipeline {
     stage("Integration Tests"){
       when {
         expression {
-          return (params.AGENT_INTEGRATION_TEST != 'All')
+          return (params.AGENT_INTEGRATION_TEST != 'All' &&
+                  params.AGENT_INTEGRATION_TEST != 'Opbeans')
         }
       }
       steps {
