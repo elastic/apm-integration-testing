@@ -1,0 +1,8 @@
+window.elasticApmJsBaseServerUrl = '{{ELASTIC_APM_SERVER_URLS}}';
+
+// Disable random failures
+// see https://github.com/elastic/opbeans-frontend/blob/472f914f5529d64ccf4aad0fc4a76ec27fa0a135/src/components/ProductDetail/index.js#L9
+var _mathRamdom = Math.random;
+Math.random = function() {
+  return Math.abs(_mathRamdom() - 0.3);
+};
