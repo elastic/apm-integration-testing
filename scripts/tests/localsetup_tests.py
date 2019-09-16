@@ -90,12 +90,12 @@ class OpbeansServiceTest(ServiceTest):
         value = [e for e in opbeans["build"]["args"] if e.startswith("DOTNET_AGENT_VERSION")]
         self.assertEqual(value, ["DOTNET_AGENT_VERSION=1.0"])
 
-    def test_opbeans_go_branch(self):
+    def test_opbeans_dotnet_branch(self):
         opbeans = OpbeansDotnet(opbeans_dotnet_branch="1.x").render()["opbeans-dotnet"]
         branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_DOTNET_BRANCH")]
         self.assertEqual(branch, ["OPBEANS_DOTNET_BRANCH=1.x"])
 
-    def test_opbeans_go_repo(self):
+    def test_opbeans_dotnet_repo(self):
         opbeans = OpbeansDotnet(opbeans_dotnet_repo="foo/bar").render()["opbeans-dotnet"]
         branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_DOTNET_REPO")]
         self.assertEqual(branch, ["OPBEANS_DOTNET_REPO=foo/bar"])
@@ -464,6 +464,45 @@ class OpbeansServiceTest(ServiceTest):
                          retries: 12""")  # noqa: 501
         )
 
+    def test_opbeans_elasticsearch_urls(self):
+        def assertOneElasticsearch(opbean):
+            self.assertTrue("elasticsearch" in opbean['depends_on'])
+            self.assertTrue("ELASTICSEARCH_URL=elasticsearch01:9200" in opbean['environment'])
+
+        def assertTwoElasticsearch(opbean):
+            self.assertTrue("elasticsearch" in opbean['depends_on'])
+            self.assertTrue("ELASTICSEARCH_URL=elasticsearch01:9200,elasticsearch02:9200" in opbean['environment'])
+
+        opbeans = OpbeansDotnet(opbeans_elasticsearch_urls=["elasticsearch01:9200"]).render()["opbeans-dotnet"]
+        assertOneElasticsearch(opbeans)
+        opbeans = OpbeansDotnet(opbeans_elasticsearch_urls=["elasticsearch01:9200", "elasticsearch02:9200"]
+                                ).render()["opbeans-dotnet"]
+        assertTwoElasticsearch(opbeans)
+
+        opbeans = OpbeansGo(opbeans_elasticsearch_urls=["elasticsearch01:9200"]).render()["opbeans-go"]
+        assertOneElasticsearch(opbeans)
+        opbeans = OpbeansGo(opbeans_elasticsearch_urls=["elasticsearch01:9200", "elasticsearch02:9200"]
+                            ).render()["opbeans-go"]
+        assertTwoElasticsearch(opbeans)
+
+        opbeans = OpbeansJava(opbeans_elasticsearch_urls=["elasticsearch01:9200"]).render()["opbeans-java"]
+        assertOneElasticsearch(opbeans)
+        opbeans = OpbeansJava(opbeans_elasticsearch_urls=["elasticsearch01:9200", "elasticsearch02:9200"]
+                              ).render()["opbeans-java"]
+        assertTwoElasticsearch(opbeans)
+
+        opbeans = OpbeansPython(opbeans_elasticsearch_urls=["elasticsearch01:9200"]).render()["opbeans-python"]
+        assertOneElasticsearch(opbeans)
+        opbeans = OpbeansPython(opbeans_elasticsearch_urls=["elasticsearch01:9200", "elasticsearch02:9200"]
+                                ).render()["opbeans-python"]
+        assertTwoElasticsearch(opbeans)
+
+        opbeans = OpbeansRuby(opbeans_elasticsearch_urls=["elasticsearch01:9200"]).render()["opbeans-ruby"]
+        assertOneElasticsearch(opbeans)
+        opbeans = OpbeansRuby(opbeans_elasticsearch_urls=["elasticsearch01:9200", "elasticsearch02:9200"]
+                              ).render()["opbeans-ruby"]
+        assertTwoElasticsearch(opbeans)
+
     def test_opbeans_secret_token(self):
         for cls in opbeans_services():
             services = cls(version="6.5.0", apm_server_secret_token="supersecret").render()
@@ -496,7 +535,6 @@ class OpbeansServiceTest(ServiceTest):
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}""")
-
 
 class PostgresServiceTest(ServiceTest):
     def test_postgres(self):

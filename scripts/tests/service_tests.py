@@ -8,9 +8,11 @@ from ..compose import (AgentDotnet, AgentGoNetHttp, AgentJavaSpring, AgentNodejs
                        AgentPythonDjango, AgentPythonFlask, AgentRubyRails)
 
 from ..compose import (ApmServer, Kibana, Elasticsearch, Filebeat, Metricbeat,
-                       Packetbeat, Logstash, Kafka)
+                       Packetbeat, Logstash, Kafka, Heartbeat)
 
 from ..compose import Zookeeper
+
+
 
 
 class ServiceTest(unittest.TestCase):
@@ -59,6 +61,13 @@ class AgentServiceTest(ServiceTest):
         agent = AgentGoNetHttp(go_agent_version="bar").render()["agent-go-net-http"]
         self.assertEqual("bar", agent["build"]["args"]["GO_AGENT_BRANCH"])
 
+    def test_agent_go_enable_apm_server(self):
+        agent = AgentGoNetHttp(enable_apm_server=True).render()["agent-go-net-http"]
+        self.assertTrue("apm-server" in agent["depends_on"])
+
+        agent = AgentGoNetHttp(enable_apm_server=False).render()["agent-go-net-http"]
+        self.assertFalse("apm-server" in agent["depends_on"])
+
     def test_agent_nodejs_express(self):
         agent = AgentNodejsExpress().render()
         self.assertDictEqual(
@@ -92,6 +101,13 @@ class AgentServiceTest(ServiceTest):
         agent = AgentNodejsExpress(apm_server_url="http://foo").render()["agent-nodejs-express"]
         self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"], agent)
 
+    def test_agent_nodejs_express_enable_apm_server(self):
+        agent = AgentNodejsExpress(enable_apm_server=True).render()["agent-nodejs-express"]
+        self.assertTrue("apm-server" in agent["depends_on"])
+
+        agent = AgentNodejsExpress(enable_apm_server=False).render()["agent-nodejs-express"]
+        self.assertFalse("apm-server" in agent["depends_on"])
+
     def test_agent_python_django(self):
         agent = AgentPythonDjango().render()
         self.assertDictEqual(
@@ -121,6 +137,13 @@ class AgentServiceTest(ServiceTest):
         agent = AgentPythonDjango(apm_server_url="http://foo").render()["agent-python-django"]
         self.assertEqual("http://foo", agent["environment"]["APM_SERVER_URL"], agent)
 
+    def test_agent_python_django_enable_apm_server(self):
+        agent = AgentPythonDjango(enable_apm_server=True).render()["agent-python-django"]
+        self.assertTrue("apm-server" in agent["depends_on"])
+
+        agent = AgentPythonDjango(enable_apm_server=False).render()["agent-python-django"]
+        self.assertFalse("apm-server" in agent["depends_on"])
+
     def test_agent_python_flask(self):
         agent = AgentPythonFlask(version="6.2.4").render()
         self.assertDictEqual(
@@ -149,6 +172,13 @@ class AgentServiceTest(ServiceTest):
         # test overrides
         agent = AgentPythonFlask(apm_server_url="http://foo").render()["agent-python-flask"]
         self.assertEqual("http://foo", agent["environment"]["APM_SERVER_URL"])
+
+    def test_agent_python_flask_enable_apm_server(self):
+        agent = AgentPythonFlask(enable_apm_server=True).render()["agent-python-flask"]
+        self.assertTrue("apm-server" in agent["depends_on"])
+
+        agent = AgentPythonFlask(enable_apm_server=False).render()["agent-python-flask"]
+        self.assertFalse("apm-server" in agent["depends_on"])
 
     def test_agent_ruby_rails(self):
         agent = AgentRubyRails().render()
@@ -201,6 +231,13 @@ class AgentServiceTest(ServiceTest):
         agent = AgentRubyRails(ruby_agent_version="1.0").render()["agent-ruby-rails"]
         self.assertEqual("1.0", agent["environment"]["RUBY_AGENT_VERSION"])
 
+    def test_agent_ruby_enable_apm_server(self):
+        agent = AgentRubyRails(enable_apm_server=True).render()["agent-ruby-rails"]
+        self.assertTrue("apm-server" in agent["depends_on"])
+
+        agent = AgentRubyRails(enable_apm_server=False).render()["agent-ruby-rails"]
+        self.assertFalse("apm-server" in agent["depends_on"])
+
     def test_agent_java_spring(self):
         agent = AgentJavaSpring().render()
         self.assertDictEqual(
@@ -245,6 +282,13 @@ class AgentServiceTest(ServiceTest):
     def test_agent_java_with_release(self):
         agent = AgentJavaSpring(java_agent_release="1.0").render()["agent-java-spring"]
         self.assertEqual("1.0", agent["build"]["args"]["JAVA_AGENT_BUILT_VERSION"])
+
+    def test_agent_java_enable_apm_server(self):
+        agent = AgentJavaSpring(enable_apm_server=True).render()["agent-java-spring"]
+        self.assertTrue("apm-server" in agent["depends_on"])
+
+        agent = AgentJavaSpring(enable_apm_server=False).render()["agent-java-spring"]
+        self.assertFalse("apm-server" in agent["depends_on"])
 
     def test_agent_dotnet(self):
         agent = AgentDotnet().render()
@@ -294,6 +338,13 @@ class AgentServiceTest(ServiceTest):
         agent = AgentDotnet(dotnet_agent_release="1.0").render()["agent-dotnet"]
         self.assertEqual("1.0", agent["build"]["args"]["DOTNET_AGENT_VERSION"])
 
+    def test_agent_dotnet_enable_apm_server(self):
+        agent = AgentDotnet(enable_apm_server=True).render()["agent-dotnet"]
+        self.assertTrue("apm-server" in agent["depends_on"])
+
+        agent = AgentDotnet(enable_apm_server=False).render()["agent-dotnet"]
+        self.assertFalse("apm-server" in agent["depends_on"])
+
 class ApmServerServiceTest(ServiceTest):
     def test_default_snapshot(self):
         apm_server = ApmServer(version="6.3.100", snapshot=True).render()["apm-server"]
@@ -329,6 +380,9 @@ class ApmServerServiceTest(ServiceTest):
             any(e == "output.elasticsearch.enabled=true" for e in apm_server["command"]),
             "output.elasticsearch.enabled not true while output=elasticsearch"
         )
+        self.assertTrue("elasticsearch" in apm_server["depends_on"])
+        self.assertTrue("kibana" in apm_server["depends_on"])
+        self.assertTrue("output.elasticsearch.hosts=[\"elasticsearch:9200\"]" in apm_server["command"])
 
     def test_elasticsearch_output_overrides(self):
         apm_server = ApmServer(version="6.3.100", apm_server_output="elasticsearch",
@@ -678,6 +732,15 @@ class FilebeatServiceTest(ServiceTest):
                         - /var/run/docker.sock:/var/run/docker.sock""")
         )
 
+    def test_filebeat_elasticsearch_urls(self):
+        filebeat = Filebeat(version="6.1.1", release=True, filebeat_elasticsearch_urls=["elasticsearch01:9200"]).render()["filebeat"]
+        self.assertTrue("elasticsearch" in filebeat['depends_on'])
+        self.assertTrue("output.elasticsearch.hosts=[\"elasticsearch01:9200\"]" in filebeat['command'])
+
+        filebeat = Filebeat(version="6.1.1", release=True, filebeat_elasticsearch_urls=["elasticsearch01:9200","elasticsearch02:9200"]).render()["filebeat"]
+        self.assertTrue("elasticsearch" in filebeat['depends_on'])
+        self.assertTrue("output.elasticsearch.hosts=[\"elasticsearch01:9200\", \"elasticsearch02:9200\"]" in filebeat['command'])
+
     def test_logstash_output(self):
         beat = Filebeat(version="6.3.100", filebeat_output="logstash").render()["filebeat"]
         options = [
@@ -771,6 +834,14 @@ class KibanaServiceTest(ServiceTest):
                         - co.elastic.apm.stack-version=6.3.5""")  # noqa: 501
         )
 
+    def test_kibana_elasticsearch_urls(self):
+        kibana = Kibana(version="6.3.5", release=True, kibana_elasticsearch_urls=["elasticsearch01:9200"]).render()["kibana"]
+        self.assertTrue("elasticsearch" in kibana['depends_on'])
+        self.assertEqual("elasticsearch01:9200", kibana['environment']["ELASTICSEARCH_URL"])
+
+        kibana = Kibana(version="6.3.5", release=True, kibana_elasticsearch_urls=["elasticsearch01:9200","elasticsearch02:9200"]).render()["kibana"]
+        self.assertTrue("elasticsearch" in kibana['depends_on'])
+        self.assertEqual("elasticsearch01:9200,elasticsearch02:9200", kibana['environment']["ELASTICSEARCH_URL"])
 
 class LogstashServiceTest(ServiceTest):
     def test_snapshot(self):
@@ -805,6 +876,14 @@ class LogstashServiceTest(ServiceTest):
 
         )
 
+    def test_logstash_elasticsearch_urls(self):
+        logstash = Logstash(version="6.3.5", release=True, logstash_elasticsearch_urls=["elasticsearch01:9200"]).render()["logstash"]
+        self.assertTrue("elasticsearch" in logstash['depends_on'])
+        self.assertEqual("elasticsearch01:9200", logstash['environment']["ELASTICSEARCH_URL"])
+
+        logstash = Logstash(version="6.3.5", release=True, logstash_elasticsearch_urls=["elasticsearch01:9200","elasticsearch02:9200"]).render()["logstash"]
+        self.assertTrue("elasticsearch" in logstash['depends_on'])
+        self.assertEqual("elasticsearch01:9200,elasticsearch02:9200", logstash['environment']["ELASTICSEARCH_URL"])
 
 class MetricbeatServiceTest(ServiceTest):
     def test_metricbeat(self):
@@ -843,6 +922,19 @@ class MetricbeatServiceTest(ServiceTest):
         for o in options:
             self.assertTrue(o in beat["command"], "{} not set in {} while output=logstash".format(o, beat["command"]))
 
+    def test_metricbeat_elasticsearch_urls(self):
+        beat = Metricbeat(version="6.2.4", release=True, metricbeat_elasticsearch_urls=["elasticsearch01:9200"]).render()["metricbeat"]
+        self.assertTrue("elasticsearch" in beat['depends_on'])
+        self.assertTrue("output.elasticsearch.hosts=[\"elasticsearch01:9200\"]" in beat['command'])
+
+        beat = Metricbeat(version="6.2.4", release=True, metricbeat_elasticsearch_urls=["elasticsearch01:9200","elasticsearch02:9200"]).render()["metricbeat"]
+        self.assertTrue("elasticsearch" in beat['depends_on'])
+        self.assertTrue("output.elasticsearch.hosts=[\"elasticsearch01:9200\", \"elasticsearch02:9200\"]" in beat['command'])
+
+    def test_apm_server_pprof_url(self):
+        beat = Metricbeat(version="6.2.4", release=True, apm_server_pprof_url="apm-server:1234").render()["metricbeat"]
+        self.assertEqual("apm-server:1234", beat["environment"]["APM_SERVER_PPROF_HOST"])
+
 
 class PacketbeatServiceTest(ServiceTest):
     def test_packetbeat(self):
@@ -873,6 +965,32 @@ class PacketbeatServiceTest(ServiceTest):
                     cap_add: ['NET_ADMIN', 'NET_RAW']""") # noqa: 501
         )
 
+    def test_packetbeat_elasticsearch_urls(self):
+        beat = Packetbeat(version="6.2.4", release=True,
+                          packetbeat_elasticsearch_urls=["elasticsearch01:9200"]).render()["packetbeat"]
+        self.assertTrue("elasticsearch" in beat['depends_on'])
+        self.assertTrue("output.elasticsearch.hosts=[\"elasticsearch01:9200\"]" in beat['command'])
+
+        beat = Packetbeat(version="6.2.4", release=True,
+                          packetbeat_elasticsearch_urls=["elasticsearch01:9200", "elasticsearch02:9200"]
+                          ).render()["packetbeat"]
+        self.assertTrue("elasticsearch" in beat['depends_on'])
+        self.assertTrue(
+            "output.elasticsearch.hosts=[\"elasticsearch01:9200\", \"elasticsearch02:9200\"]" in beat['command'])
+
+class HeartbeatServiceTest(ServiceTest):
+    def test_heartbeat_elasticsearch_urls(self):
+        beat = Heartbeat(version="6.2.4", release=True,
+                          heartbeat_elasticsearch_urls=["elasticsearch01:9200"]).render()["heartbeat"]
+        self.assertTrue("elasticsearch" in beat['depends_on'])
+        self.assertTrue("output.elasticsearch.hosts=[\"elasticsearch01:9200\"]" in beat['command'])
+
+        beat = Heartbeat(version="6.2.4", release=True,
+                          heartbeat_elasticsearch_urls=["elasticsearch01:9200", "elasticsearch02:9200"]
+                          ).render()["heartbeat"]
+        self.assertTrue("elasticsearch" in beat['depends_on'])
+        self.assertTrue(
+            "output.elasticsearch.hosts=[\"elasticsearch01:9200\", \"elasticsearch02:9200\"]" in beat['command'])
 
 class ZookeeperServiceTest(ServiceTest):
     def test_zookeeper(self):
