@@ -1694,6 +1694,7 @@ class OpbeansService(Service):
         self.opbeans_branch = options.get(self.option_name() + "_branch") or ""
         self.opbeans_repo = options.get(self.option_name() + "_repo") or ""
         self.es_urls = ",".join(self.options.get("opbeans_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
+        self.service_environment = options.get(self.option_name() + "_service_environment") or ""
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1717,6 +1718,12 @@ class OpbeansService(Service):
             default=None,
             dest=cls.option_name() + '_agent_local_repo',
             help=cls.name() + " local repo path for agent"
+        )
+        parser.add_argument(
+            '--' + cls.name() + '-service-environment',
+            default=None,
+            dest=cls.option_name() + '_service_environment',
+            help=cls.name() + " service.environment value to display."
         )
         if hasattr(cls, 'DEFAULT_SERVICE_NAME'):
             parser.add_argument(
@@ -1791,6 +1798,7 @@ class OpbeansDotnet(OpbeansService):
                 "ELASTIC_APM_SAMPLE_RATE=1",
                 "ELASTICSEARCH_URL={}".format(self.es_urls),
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
+                "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
             depends_on=depends_on,
             image=None,
@@ -1866,6 +1874,7 @@ class OpbeansGo(OpbeansService):
                 "PGPASSWORD=verysecure",
                 "PGSSLMODE=disable",
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
+                "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
             depends_on=depends_on,
             image=None,
@@ -1942,6 +1951,7 @@ class OpbeansJava(OpbeansService):
                 "OPBEANS_SERVER_PORT=3000",
                 "JAVA_AGENT_VERSION",
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
+                "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
             depends_on=depends_on,
             image=None,
@@ -2025,6 +2035,7 @@ class OpbeansNode(OpbeansService):
                 "NODE_AGENT_BRANCH=" + self.agent_branch,
                 "NODE_AGENT_REPO=" + self.agent_repo,
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
+                "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
             depends_on=depends_on,
             image=None,
@@ -2116,6 +2127,7 @@ class OpbeansPython(OpbeansService):
                 "PYTHON_AGENT_REPO=" + self.agent_repo,
                 "PYTHON_AGENT_VERSION",
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
+                "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
             depends_on=depends_on,
             image=None,
@@ -2195,6 +2207,7 @@ class OpbeansRuby(OpbeansService):
                 "RUBY_AGENT_REPO=" + self.agent_repo,
                 "RUBY_AGENT_VERSION",
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
+                "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
             depends_on=depends_on,
             image=None,

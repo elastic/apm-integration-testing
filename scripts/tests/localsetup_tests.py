@@ -503,6 +503,43 @@ class OpbeansServiceTest(ServiceTest):
                               ).render()["opbeans-ruby"]
         assertTwoElasticsearch(opbeans)
 
+    def test_opbeans_service_environment(self):
+        def assertWithoutOption(opbean):
+            self.assertTrue("ELASTIC_APM_ENVIRONMENT=" in opbean['environment'])
+
+        def assertWithOption(opbean):
+            self.assertTrue("ELASTIC_APM_ENVIRONMENT=test" in opbean['environment'])
+
+        opbeans = OpbeansDotnet().render()["opbeans-dotnet"]
+        assertWithoutOption(opbeans)
+        opbeans = OpbeansDotnet(opbeans_dotnet_service_environment="test").render()["opbeans-dotnet"]
+        assertWithOption(opbeans)
+
+        opbeans = OpbeansGo().render()["opbeans-go"]
+        assertWithoutOption(opbeans)
+        opbeans = OpbeansGo(opbeans_go_service_environment="test").render()["opbeans-go"]
+        assertWithOption(opbeans)
+
+        opbeans = OpbeansJava().render()["opbeans-java"]
+        assertWithoutOption(opbeans)
+        opbeans = OpbeansJava(opbeans_java_service_environment="test").render()["opbeans-java"]
+        assertWithOption(opbeans)
+
+        opbeans = OpbeansPython().render()["opbeans-python"]
+        assertWithoutOption(opbeans)
+        opbeans = OpbeansPython(opbeans_python_service_environment="test").render()["opbeans-python"]
+        assertWithOption(opbeans)
+
+        opbeans = OpbeansRuby().render()["opbeans-ruby"]
+        assertWithoutOption(opbeans)
+        opbeans = OpbeansRuby(opbeans_ruby_service_environment="test").render()["opbeans-ruby"]
+        assertWithOption(opbeans)
+
+        opbeans = OpbeansNode().render()["opbeans-node"]
+        assertWithoutOption(opbeans)
+        opbeans = OpbeansNode(opbeans_node_service_environment="test").render()["opbeans-node"]
+        assertWithOption(opbeans)
+
     def test_opbeans_secret_token(self):
         for cls in opbeans_services():
             services = cls(version="6.5.0", apm_server_secret_token="supersecret").render()
