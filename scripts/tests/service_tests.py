@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import os
 import unittest
 import json
 import yaml
@@ -345,6 +346,7 @@ class AgentServiceTest(ServiceTest):
         agent = AgentDotnet(enable_apm_server=False).render()["agent-dotnet"]
         self.assertFalse("apm-server" in agent["depends_on"])
 
+
 class ApmServerServiceTest(ServiceTest):
     def test_default_snapshot(self):
         apm_server = ApmServer(version="6.3.100", snapshot=True).render()["apm-server"]
@@ -421,6 +423,29 @@ class ApmServerServiceTest(ServiceTest):
     def test_ilm_disabled(self):
         apm_server = ApmServer(version="7.2.0", apm_server_ilm_disable=True).render()["apm-server"]
         self.assertFalse("apm-server.ilm.enabled=true" in apm_server["command"], "ILM enabled but should not be")
+
+    def test_file_output(self):
+        apm_server = ApmServer(version="7.3.100", apm_server_output="file").render()["apm-server"]
+        options = [
+            "output.elasticsearch.enabled=false",
+            "output.file.enabled=true",
+            "output.file.path=" + os.devnull,
+            "xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
+        ]
+        for o in options:
+            self.assertTrue(o in apm_server["command"], "{} not set while output=file".format(o))
+
+    def test_file_output_path(self):
+        apm_server = ApmServer(version="7.3.100", apm_server_output="file",
+                               apm_server_output_file="foo").render()["apm-server"]
+        options = [
+            "output.elasticsearch.enabled=false",
+            "output.file.enabled=true",
+            "output.file.path=foo",
+            "xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
+        ]
+        for o in options:
+            self.assertTrue(o in apm_server["command"], "{} not set while output=file".format(o))
 
     def test_logstash_output(self):
         apm_server = ApmServer(version="6.3.100", apm_server_output="logstash").render()["apm-server"]
@@ -568,14 +593,31 @@ class ApmServerServiceTest(ServiceTest):
         self.assertListEqual(["127.0.0.1:8200:8200"], apm_server_lb["ports"], apm_server_lb["ports"])
         self.assertListEqual(["8200", "6060"], apm_server_2["ports"], apm_server_2["ports"])
 
+    def test_apm_server_record(self):
+        render = ApmServer(version="6.4.100", apm_server_record=True).render()
+        apm_server_lb = render["apm-server"]
+        self.assertIn("build", apm_server_lb)
+
     def test_apm_server_tee(self):
-        render = ApmServer(version="6.4.100", apm_server_count=2, apm_server_tee=True).render()
+        render = ApmServer(version="6.4.100", apm_server_tee=True).render()
         apm_server_lb = render["apm-server"]
         apm_server_2 = render["apm-server-2"]
         self.assertIn("build", apm_server_lb)
         self.assertDictEqual(apm_server_lb["build"], {"context": "docker/apm-server/teeproxy"})
         self.assertListEqual(["127.0.0.1:8200:8200"], apm_server_lb["ports"], apm_server_lb["ports"])
         self.assertListEqual(["8200", "6060"], apm_server_2["ports"], apm_server_2["ports"])
+
+    def test_apm_server_tee_multi(self):
+        render = ApmServer(version="6.4.100", apm_server_count=4, apm_server_tee=True).render()
+        apm_server_lb = render["apm-server"]
+        apm_server_4 = render["apm-server-4"]
+        self.assertListEqual(apm_server_lb["command"],
+                             ["teeproxy", "-l", "0.0.0.0:8200", "-a", "apm-server-1:8200",
+                              "-b", "apm-server-2:8200", "-b", "apm-server-3:8200", "-b", "apm-server-4:8200"])
+        self.assertIn("build", apm_server_lb)
+        self.assertDictEqual(apm_server_lb["build"], {"context": "docker/apm-server/teeproxy"})
+        self.assertListEqual(["127.0.0.1:8200:8200"], apm_server_lb["ports"], apm_server_lb["ports"])
+        self.assertListEqual(["8200", "6060"], apm_server_4["ports"], apm_server_4["ports"])
 
     def test_apm_server_custom_port(self):
         custom_port = "8203"

@@ -383,7 +383,8 @@ class ApmServer(StackService, Service):
     SERVICE_PORT = "8200"
     DEFAULT_MONITOR_PORT = "6060"
     DEFAULT_OUTPUT = "elasticsearch"
-    OUTPUTS = {"elasticsearch", "kafka", "logstash"}
+    OUTPUTS = {"elasticsearch", "file", "kafka", "logstash"}
+    DEFAULT_KIBANA_HOST = "kibana:5601"
 
     def __init__(self, **options):
         super(ApmServer, self).__init__(**options)
@@ -509,12 +510,36 @@ class ApmServer(StackService, Service):
                     ("output.logstash.enabled", "true"),
                     ("output.logstash.hosts", "[\"logstash:5044\"]"),
                 ])
+            elif self.apm_server_output == "file":
+                self.apm_server_command_args.extend([
+                    ("output.file.enabled", "true"),
+                    ("output.file.path", self.options.get("apm_server_output_file", os.devnull)),
+                ])
 
         for opt in options.get("apm_server_opt", []):
             self.apm_server_command_args.append(opt.split("=", 1))
 
         self.apm_server_count = options.get("apm_server_count", 1)
-        self.apm_server_tee = options.get("apm_server_tee", False)
+        apm_server_record = options.get("apm_server_record", False)
+        self.apm_server_tee = options.get("apm_server_tee") or apm_server_record  # tee if requested or if recording
+        if self.apm_server_tee:
+            # convenience for tee without count
+            if self.apm_server_count == 1:
+                self.apm_server_count = 2
+            if apm_server_record:
+                self.apm_server_tee_build = {
+                    "context": "docker/apm-server/recorder",
+                }
+            else:
+                # always build 8.0
+                self.apm_server_tee_build = {
+                    "args": {
+                        "apm_server_base_image": "docker.elastic.co/apm/apm-server:8.0.0-SNAPSHOT",
+                        "apm_server_branch": "master",
+                        "apm_server_repo": "https://github.com/elastic/apm-server.git"
+                    },
+                    "context": "docker/apm-server"
+                }
 
     @classmethod
     def add_arguments(cls, parser):
@@ -535,6 +560,11 @@ class ApmServer(StackService, Service):
             choices=cls.OUTPUTS,
             default='elasticsearch',
             help='apm-server output'
+        )
+        parser.add_argument(
+            '--apm-server-output-file',
+            default=os.devnull,
+            help='apm-server output path (when output=file)'
         )
         parser.add_argument(
             "--no-apm-server-pipeline",
@@ -612,11 +642,18 @@ class ApmServer(StackService, Service):
             help="skip loading apm-server dashboards (setup.dashboards.enabled=false)",
         )
         parser.add_argument(
+            '--apm-server-record',
+            action="store_true",
+            default=False,
+            help=argparse.SUPPRESS,
+            # help="record apm-server request payloads.",
+        )
+        parser.add_argument(
             '--apm-server-tee',
             action="store_true",
             default=False,
             help=argparse.SUPPRESS,
-            # help="tee proxied traffic instead of load balancing.  Only for  7.0upgrade testing atm.",
+            # help="tee proxied traffic instead of load balancing.",
         )
         parser.add_argument(
             "--apm-server-opt",
@@ -713,16 +750,8 @@ class ApmServer(StackService, Service):
         for i in range(1, self.apm_server_count + 1):
             backend = dict(single)
             backend["container_name"] = backend["container_name"] + "-" + str(i)
-            if self.apm_server_tee and i == 2:
-                # always build 8.0
-                backend["build"] = {
-                    "args": {
-                        "apm_server_base_image": "docker.elastic.co/apm/apm-server:8.0.0-SNAPSHOT",
-                        "apm_server_branch": "8.0",
-                        "apm_server_repo": "https://github.com/elastic/apm-server.git"
-                    },
-                    "context": "docker/apm-server"
-                }
+            if self.apm_server_tee and i > 1:
+                backend["build"] = self.apm_server_tee_build
                 backend["labels"] = ["co.elastic.apm.stack-version=8.0.0"]
                 del(backend["image"])  # use the built one instead
             ren.update({"-".join([self.name(), str(i)]): backend})
@@ -745,10 +774,13 @@ class ApmServer(StackService, Service):
 
     def render_tee(self):
         condition = {"condition": "service_healthy"}
+        command = ["teeproxy", "-l", "0.0.0.0:8200", "-a", "apm-server-1:8200", "-b", "apm-server-2:8200"]
+        # add extra tee backends
+        for i in range(3, self.apm_server_count + 1):
+            command.extend(["-b", self.name() + "-" + str(i) + ":8200"])
         content = dict(
             build={"context": "docker/apm-server/teeproxy"},
-            # TODO: support > 1 backup server
-            command=["teeproxy", "-l", "0.0.0.0:8200", "-a", "apm-server-1:8200", "-b", "apm-server-2:8200"],
+            command=command,
             container_name=self.default_container_name() + "-tee",
             depends_on={"apm-server-{}".format(i): condition for i in range(1, self.apm_server_count + 1)},
             healthcheck={"test": ["CMD", "pgrep", "teeproxy"]},
