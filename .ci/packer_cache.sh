@@ -40,6 +40,7 @@ node:6.0
 node:8
 node:8-slim
 node:8.1
+opbeans/opbeans-frontend:latest
 opbeans/opbeans-java:latest
 opbeans/opbeans-node:latest
 opbeans/opbeans-python:latest
@@ -62,5 +63,5 @@ ruby:latest
 
 for di in ${DOCKER_IMAGES}
 do
-(retry 2 docker pull ${di}) || echo "Error pulling ${di} Docker image, we continue"
+(retry 2 docker pull "${di}") || echo "Error pulling ${di} Docker image, we continue"
 done

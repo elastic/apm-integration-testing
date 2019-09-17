@@ -1,0 +1,25 @@
+server {
+    listen       3000;
+    server_name  localhost;
+    
+    rewrite ^/dashboard(.*)$ /;
+    rewrite ^/products(.*)$ /;
+    rewrite ^/orders(.*)$ /;
+    rewrite ^/customers(.*)$ /;
+
+    location /api/ {
+        proxy_pass {{ELASTIC_OPBEANS_API_SERVER}};
+        proxy_set_header Host      $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+    }
+    
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+}
