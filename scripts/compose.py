@@ -193,6 +193,9 @@ def add_agent_environment(mappings):
 class Service(object):
     """encapsulate docker-compose service definition"""
 
+    DEFAULT_ELASTICSEARCH_HOSTS = "elasticsearch:9200"
+    DEFAULT_KIBANA_HOST = "kibana:5601"
+
     # is this a side car service for opbeans. If yes, it will automatically
     # start if any opbeans service starts
     opbeans_side_car = False
@@ -219,6 +222,8 @@ class Service(object):
 
         # bc depends on version for resolution
         self._bc = resolve_bc(self._version, options.get(self.option_name() + "_bc") or options.get("bc"))
+
+        self.depends_on = {}
 
     @property
     def bc(self):
@@ -379,7 +384,6 @@ class ApmServer(StackService, Service):
     DEFAULT_MONITOR_PORT = "6060"
     DEFAULT_OUTPUT = "elasticsearch"
     OUTPUTS = {"elasticsearch", "kafka", "logstash"}
-    DEFAULT_KIBANA_HOST = "kibana:5601"
 
     def __init__(self, **options):
         super(ApmServer, self).__init__(**options)
@@ -463,9 +467,7 @@ class ApmServer(StackService, Service):
                 q.pop("write")
             self.apm_server_command_args.append(("queue.spool", json.dumps(q)))
 
-        es_urls = self.options.get("apm_server_elasticsearch_urls")
-        if not es_urls:
-            es_urls = ["elasticsearch:9200"]
+        es_urls = []
 
         def add_es_config(args, prefix="output"):
             """add elasticsearch configuration options."""
@@ -478,9 +480,10 @@ class ApmServer(StackService, Service):
                 elif self.options.get("xpack_secure"):
                     args.append((prefix + ".elasticsearch.{}".format(cfg), default_apm_server_creds.get(cfg)))
 
-        add_es_config(self.apm_server_command_args)
+        es_urls = self.options.get("apm_server_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS]
 
         if self.apm_server_output == "elasticsearch":
+            add_es_config(self.apm_server_command_args)
             self.apm_server_command_args.extend([
                 ("output.elasticsearch.enabled", "true"),
             ])
@@ -491,10 +494,10 @@ class ApmServer(StackService, Service):
                     ("apm-server.register.ingest.pipeline.enabled", "true"),
                 ])
         else:
+            add_es_config(self.apm_server_command_args, prefix="xpack.monitoring")
             self.apm_server_command_args.extend([
                 ("output.elasticsearch.enabled", "false"),
             ])
-            add_es_config(self.apm_server_command_args, prefix="xpack.monitoring")
             if self.apm_server_output == "kafka":
                 self.apm_server_command_args.extend([
                     ("output.kafka.enabled", "true"),
@@ -555,7 +558,7 @@ class ApmServer(StackService, Service):
             '--apm-server-elasticsearch-url',
             action="append",
             dest="apm_server_elasticsearch_urls",
-            help="apm-server elasticsearch output url(s).",
+            help="apm-server elasticsearch output url(s)."
         )
         parser.add_argument(
             '--apm-server-elasticsearch-username',
@@ -882,8 +885,8 @@ class BeatMixin(object):
         parser.add_argument(
             "--{}-elasticsearch-url".format(cls.name()),
             action="append",
-            dest="apm_server_elasticsearch_urls",
-            help="{} elasticsearch output url(s).".format(cls.name()),
+            dest="{}_elasticsearch_urls".format(cls.name()),
+            help="{} elasticsearch output url(s).".format(cls.name())
         )
         parser.add_argument(
             "--{}-elasticsearch-username".format(cls.name()),
@@ -901,6 +904,7 @@ class BeatMixin(object):
         )
 
     def __init__(self, **options):
+        super(BeatMixin, self).__init__(**options)
         self.command = list(self.DEFAULT_COMMAND)
         self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if options.get(
             "enable_elasticsearch", True) else {}
@@ -909,12 +913,9 @@ class BeatMixin(object):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
         self.environment = {}
 
-        es_urls = options.get("{}_elasticsearch_urls".format(self.name()))
-        if not es_urls:
-            es_urls = ["elasticsearch:9200"]
-
         def add_es_config(args, prefix="output"):
             """add elasticsearch configuration options."""
+            es_urls = options.get("{}_elasticsearch_urls".format(self.name())) or [self.DEFAULT_ELASTICSEARCH_HOSTS]
             default_beat_creds = {"username": "{}_user".format(self.name()), "password": "changeme"}
             args.append((prefix + ".elasticsearch.hosts", json.dumps(es_urls)))
             for cfg in ("username", "password"):
@@ -947,8 +948,6 @@ class BeatMixin(object):
 
         for param, value in command_args:
             self.command.extend(["-E", param + "=" + value])
-
-        super(BeatMixin, self).__init__(**options)
 
     def build_candidate_manifest(self):
         version = self.version
@@ -1034,7 +1033,7 @@ class Heartbeat(BeatMixin, StackService, Service):
 
 
 class Kibana(StackService, Service):
-    default_environment = {"SERVER_NAME": "kibana.example.org", "ELASTICSEARCH_URL": "http://elasticsearch:9200"}
+    default_environment = {"SERVER_NAME": "kibana.example.org"}
 
     SERVICE_PORT = 5601
 
@@ -1051,6 +1050,17 @@ class Kibana(StackService, Service):
                 self.environment["ELASTICSEARCH_PASSWORD"] = "changeme"
                 self.environment["ELASTICSEARCH_USERNAME"] = "kibana_system_user"
                 self.environment["STATUS_ALLOWANONYMOUS"] = "true"
+        self.environment["ELASTICSEARCH_URL"] = ",".join(self.options.get(
+            "kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
+
+    @classmethod
+    def add_arguments(cls, parser):
+        parser.add_argument(
+            "--kibana-elasticsearch-url",
+            action="append",
+            dest="kibana_elasticsearch_urls",
+            help="kibana elasticsearch output url(s)."
+        )
 
     def _content(self):
         return dict(
@@ -1081,13 +1091,27 @@ class Logstash(StackService, Service):
         return self.bc["projects"]["logstash-docker"]["packages"][key]
 
     def _content(self):
+        self.es_urls = ",".join(self.options.get(
+            "logstash_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
         return dict(
             depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
                 "enable_elasticsearch", True) else {},
-            environment={"ELASTICSEARCH_URL": "http://elasticsearch:9200"},
+            environment={
+                "ELASTICSEARCH_URL": self.es_urls,
+                },
             healthcheck=curl_healthcheck(9600, "logstash", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT), "9600"],
             volumes=["./docker/logstash/pipeline/:/usr/share/logstash/pipeline/"]
+        )
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(Logstash, cls).add_arguments(parser)
+        parser.add_argument(
+            "--logstash-elasticsearch-url",
+            action="append",
+            dest="logstash_elasticsearch_urls",
+            help="logstash elasticsearch output url(s)."
         )
 
 
@@ -1095,7 +1119,18 @@ class Metricbeat(BeatMixin, StackService, Service):
     DEFAULT_COMMAND = ["metricbeat", "-e", "--strict.perms=false"]
     docker_path = "beats"
 
+    @classmethod
+    def add_arguments(cls, parser):
+        super(Metricbeat, cls).add_arguments(parser)
+        parser.add_argument(
+            "--apm-server-pprof-url",
+            help="apm server profiling url to use.",
+            dest="apm_server_pprof_url",
+            default="apm-server:6060"
+        )
+
     def _content(self):
+        self.environment['APM_SERVER_PPROF_HOST'] = self.options.get("apm_server_pprof_url")
         return dict(
             command=self.command,
             depends_on=self.depends_on,
@@ -1211,9 +1246,10 @@ class AgentRUMJS(Service):
         super(AgentRUMJS, self).__init__(**options)
         self.agent_branch = options.get("rum_agent_branch", self.DEFAULT_AGENT_BRANCH)
         self.agent_repo = options.get("rum_agent_repo", self.DEFAULT_AGENT_REPO)
-        self.depends_on = {
-            "apm-server": {"condition": "service_healthy"},
-        }
+        if options.get("enable_apm_server", True):
+            self.depends_on = {
+                "apm-server": {"condition": "service_healthy"},
+            }
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1276,9 +1312,10 @@ class AgentGoNetHttp(Service):
         super(AgentGoNetHttp, self).__init__(**options)
         self.agent_version = options.get("go_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_repo = options.get("go_agent_repo", self.DEFAULT_AGENT_REPO)
-        self.depends_on = {
-            "apm-server": {"condition": "service_healthy"},
-        }
+        if options.get("enable_apm_server", True):
+            self.depends_on = {
+                "apm-server": {"condition": "service_healthy"},
+            }
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
@@ -1318,9 +1355,10 @@ class AgentNodejsExpress(Service):
     def __init__(self, **options):
         super(AgentNodejsExpress, self).__init__(**options)
         self.agent_package = options.get("nodejs_agent_package", self.DEFAULT_AGENT_PACKAGE)
-        self.depends_on = {
-            "apm-server": {"condition": "service_healthy"},
-        }
+        if options.get("enable_apm_server", True):
+            self.depends_on = {
+                "apm-server": {"condition": "service_healthy"},
+            }
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1361,9 +1399,10 @@ class AgentPython(Service):
     def __init__(self, **options):
         super(AgentPython, self).__init__(**options)
         self.agent_package = options.get("python_agent_package", self.DEFAULT_AGENT_PACKAGE)
-        self.depends_on = {
-            "apm-server": {"condition": "service_healthy"},
-        }
+        if options.get("enable_apm_server", True):
+            self.depends_on = {
+                "apm-server": {"condition": "service_healthy"},
+            }
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1464,9 +1503,10 @@ class AgentRubyRails(Service):
         self.agent_version = options.get("ruby_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_version_state = options.get("ruby_agent_version_state", self.DEFAULT_AGENT_VERSION_STATE)
         self.agent_repo = options.get("ruby_agent_repo", self.DEFAULT_AGENT_REPO)
-        self.depends_on = {
-            "apm-server": {"condition": "service_healthy"},
-        }
+        if options.get("enable_apm_server", True):
+            self.depends_on = {
+                "apm-server": {"condition": "service_healthy"},
+            }
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
@@ -1534,9 +1574,10 @@ class AgentJavaSpring(Service):
         self.agent_version = options.get("java_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_release = options.get("java_agent_release", self.DEFAULT_AGENT_RELEASE)
         self.agent_repo = options.get("java_agent_repo", self.DEFAULT_AGENT_REPO)
-        self.depends_on = {
-            "apm-server": {"condition": "service_healthy"},
-        }
+        if options.get("enable_apm_server", True):
+            self.depends_on = {
+                "apm-server": {"condition": "service_healthy"},
+            }
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
@@ -1597,9 +1638,10 @@ class AgentDotnet(Service):
         self.agent_version = options.get("dotnet_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_release = options.get("dotnet_agent_release", self.DEFAULT_AGENT_RELEASE)
         self.agent_repo = options.get("dotnet_agent_repo", self.DEFAULT_AGENT_REPO)
-        self.depends_on = {
-            "apm-server": {"condition": "service_healthy"},
-        }
+        if options.get("enable_apm_server", True):
+            self.depends_on = {
+                "apm-server": {"condition": "service_healthy"},
+            }
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
@@ -1651,6 +1693,7 @@ class OpbeansService(Service):
         self.agent_local_repo = options.get(self.option_name() + "_agent_local_repo")
         self.opbeans_branch = options.get(self.option_name() + "_branch") or ""
         self.opbeans_repo = options.get(self.option_name() + "_repo") or ""
+        self.es_urls = ",".join(self.options.get("opbeans_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1746,7 +1789,7 @@ class OpbeansDotnet(OpbeansService):
                 "ELASTIC_APM_FLUSH_INTERVAL=5",
                 "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
                 "ELASTIC_APM_SAMPLE_RATE=1",
-                "ELASTICSEARCH_URL=http://elasticsearch:9200",
+                "ELASTICSEARCH_URL={}".format(self.es_urls),
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
             ],
             depends_on=depends_on,
@@ -1814,7 +1857,7 @@ class OpbeansGo(OpbeansService):
                 "ELASTIC_APM_FLUSH_INTERVAL=5",
                 "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
                 "ELASTIC_APM_SAMPLE_RATE=1",
-                "ELASTICSEARCH_URL=http://elasticsearch:9200",
+                "ELASTICSEARCH_URL={}".format(self.es_urls),
                 "OPBEANS_CACHE=redis://redis:6379",
                 "OPBEANS_PORT=3000",
                 "PGHOST=postgres",
@@ -1895,7 +1938,7 @@ class OpbeansJava(OpbeansService):
                 "DATABASE_DIALECT=POSTGRESQL",
                 "DATABASE_DRIVER=org.postgresql.Driver",
                 "REDIS_URL=redis://redis:6379",
-                "ELASTICSEARCH_URL=http://elasticsearch:9200",
+                "ELASTICSEARCH_URL={}".format(self.es_urls),
                 "OPBEANS_SERVER_PORT=3000",
                 "JAVA_AGENT_VERSION",
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
@@ -2067,7 +2110,7 @@ class OpbeansPython(OpbeansService):
                 "ELASTIC_APM_SOURCE_LINES_ERROR_LIBRARY_FRAMES",
                 "ELASTIC_APM_SOURCE_LINES_SPAN_LIBRARY_FRAMES",
                 "REDIS_URL=redis://redis:6379",
-                "ELASTICSEARCH_URL=http://elasticsearch:9200",
+                "ELASTICSEARCH_URL={}".format(self.es_urls),
                 "OPBEANS_SERVER_URL=http://opbeans-python:3000",
                 "PYTHON_AGENT_BRANCH=" + self.agent_branch,
                 "PYTHON_AGENT_REPO=" + self.agent_repo,
@@ -2143,7 +2186,7 @@ class OpbeansRuby(OpbeansService):
                 "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
                 "DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans-ruby",
                 "REDIS_URL=redis://redis:6379",
-                "ELASTICSEARCH_URL=http://elasticsearch:9200",
+                "ELASTICSEARCH_URL={}".format(self.es_urls),
                 "OPBEANS_SERVER_URL=http://opbeans-ruby:3000",
                 "RAILS_ENV=production",
                 "RAILS_LOG_TO_STDOUT=1",
@@ -2541,6 +2584,13 @@ class LocalSetup(object):
             help='server_url to use for Opbeans frontend service',
             dest='opbeans_apm_js_server_url',
             default='http://apm-server:8200',
+        )
+
+        parser.add_argument(
+            "--opbeans-elasticsearch-url",
+            action="append",
+            dest="opbeans_elasticsearch_urls",
+            help="opbeans elasticsearch output url(s)."
         )
 
         parser.add_argument(
