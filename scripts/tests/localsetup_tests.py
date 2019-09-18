@@ -69,7 +69,7 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTIC_APM_SAMPLE_RATE=1
                       - ELASTICSEARCH_URL=elasticsearch:9200
                       - OPBEANS_DT_PROBABILITY=0.50
-                      - ELASTIC_APM_ENVIRONMENT=
+                      - ELASTIC_APM_ENVIRONMENT=production
                     logging:
                       driver: 'json-file'
                       options:
@@ -133,7 +133,7 @@ class OpbeansServiceTest(ServiceTest):
                       - PGPASSWORD=verysecure
                       - PGSSLMODE=disable
                       - OPBEANS_DT_PROBABILITY=0.50
-                      - ELASTIC_APM_ENVIRONMENT=
+                      - ELASTIC_APM_ENVIRONMENT=production
                     logging:
                       driver: 'json-file'
                       options:
@@ -191,7 +191,7 @@ class OpbeansServiceTest(ServiceTest):
                       - OPBEANS_SERVER_PORT=3000
                       - JAVA_AGENT_VERSION
                       - OPBEANS_DT_PROBABILITY=0.50
-                      - ELASTIC_APM_ENVIRONMENT=
+                      - ELASTIC_APM_ENVIRONMENT=production
                     logging:
                       driver: 'json-file'
                       options:
@@ -261,7 +261,7 @@ class OpbeansServiceTest(ServiceTest):
                         - NODE_AGENT_BRANCH=
                         - NODE_AGENT_REPO=
                         - OPBEANS_DT_PROBABILITY=0.50
-                        - ELASTIC_APM_ENVIRONMENT=
+                        - ELASTIC_APM_ENVIRONMENT=production
                     depends_on:
                         redis:
                             condition: service_healthy
@@ -330,7 +330,7 @@ class OpbeansServiceTest(ServiceTest):
                         - PYTHON_AGENT_REPO=
                         - PYTHON_AGENT_VERSION
                         - OPBEANS_DT_PROBABILITY=0.50
-                        - ELASTIC_APM_ENVIRONMENT=
+                        - ELASTIC_APM_ENVIRONMENT=production
                     depends_on:
                         apm-server:
                             condition: service_healthy
@@ -410,7 +410,7 @@ class OpbeansServiceTest(ServiceTest):
                       - RUBY_AGENT_REPO=
                       - RUBY_AGENT_VERSION
                       - OPBEANS_DT_PROBABILITY=0.50
-                      - ELASTIC_APM_ENVIRONMENT=
+                      - ELASTIC_APM_ENVIRONMENT=production
                     logging:
                       driver: 'json-file'
                       options:
@@ -511,7 +511,7 @@ class OpbeansServiceTest(ServiceTest):
 
     def test_opbeans_service_environment(self):
         def assertWithoutOption(opbean):
-            self.assertTrue("ELASTIC_APM_ENVIRONMENT=" in opbean['environment'])
+            self.assertTrue("ELASTIC_APM_ENVIRONMENT=production" in opbean['environment'])
 
         def assertWithOption(opbean):
             self.assertTrue("ELASTIC_APM_ENVIRONMENT=test" in opbean['environment'])

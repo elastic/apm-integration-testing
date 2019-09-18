@@ -1694,7 +1694,7 @@ class OpbeansService(Service):
         self.opbeans_branch = options.get(self.option_name() + "_branch") or ""
         self.opbeans_repo = options.get(self.option_name() + "_repo") or ""
         self.es_urls = ",".join(self.options.get("opbeans_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
-        self.service_environment = options.get(self.option_name() + "_service_environment") or ""
+        self.service_environment = options.get(self.option_name() + "_service_environment") or self.DEFAULT_ELASTIC_APM_ENVIRONMENT
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1742,6 +1742,7 @@ class OpbeansDotnet(OpbeansService):
     DEFAULT_AGENT_VERSION = ""
     DEFAULT_OPBEANS_BRANCH = "master"
     DEFAULT_OPBEANS_REPO = "elastic/opbeans-dotnet"
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1811,6 +1812,7 @@ class OpbeansDotnet(OpbeansService):
 
 class OpbeansDotnet01(OpbeansDotnet):
     SERVICE_PORT = 3104
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "testing"
 
     def __init__(self, **options):
         super(OpbeansDotnet01, self).__init__(**options)
@@ -1823,6 +1825,7 @@ class OpbeansGo(OpbeansService):
     DEFAULT_OPBEANS_BRANCH = "master"
     DEFAULT_OPBEANS_REPO = "elastic/opbeans-go"
     DEFAULT_SERVICE_NAME = "opbeans-go"
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1893,6 +1896,7 @@ class OpbeansGo(OpbeansService):
 
 class OpbeansGo01(OpbeansGo):
     SERVICE_PORT = 3103
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "testing"
 
     def __init__(self, **options):
         super(OpbeansGo01, self).__init__(**options)
@@ -1906,6 +1910,7 @@ class OpbeansJava(OpbeansService):
     DEFAULT_SERVICE_NAME = 'opbeans-java'
     DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-java'
     DEFAULT_OPBEANS_VERSION = 'latest'
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1982,6 +1987,7 @@ class OpbeansJava(OpbeansService):
 
 class OpbeansJava01(OpbeansJava):
     SERVICE_PORT = 3102
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "testing"
 
     def __init__(self, **options):
         super(OpbeansJava01, self).__init__(**options)
@@ -1992,6 +1998,7 @@ class OpbeansNode(OpbeansService):
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-node'
     DEFAULT_OPBEANS_VERSION = 'latest'
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -2076,6 +2083,7 @@ class OpbeansNode(OpbeansService):
 
 class OpbeansNode01(OpbeansNode):
     SERVICE_PORT = 3100
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "testing"
 
     def __init__(self, **options):
         super(OpbeansNode01, self).__init__(**options)
@@ -2089,6 +2097,7 @@ class OpbeansPython(OpbeansService):
     DEFAULT_SERVICE_NAME = 'opbeans-python'
     DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-python'
     DEFAULT_OPBEANS_VERSION = 'latest'
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -2172,6 +2181,7 @@ class OpbeansPython(OpbeansService):
 
 class OpbeansPython01(OpbeansPython):
     SERVICE_PORT = 8100
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "testing"
 
     def __init__(self, **options):
         super(OpbeansPython01, self).__init__(**options)
@@ -2185,6 +2195,7 @@ class OpbeansRuby(OpbeansService):
     DEFAULT_SERVICE_NAME = "opbeans-ruby"
     DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-ruby'
     DEFAULT_OPBEANS_VERSION = 'latest'
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -2260,6 +2271,7 @@ class OpbeansRuby(OpbeansService):
 
 class OpbeansRuby01(OpbeansRuby):
     SERVICE_PORT = 3101
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "testing"
 
     def __init__(self, **options):
         super(OpbeansRuby01, self).__init__(**options)
