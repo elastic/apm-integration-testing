@@ -1747,7 +1747,7 @@ class OpbeansDotnet(OpbeansService):
     def add_arguments(cls, parser):
         super(OpbeansDotnet, cls).add_arguments(parser)
         parser.add_argument(
-            '--opbeans-dotnet-version',
+            '--' + cls.name() + '-version',
             default=cls.DEFAULT_AGENT_VERSION,
         )
         parser.add_argument(
@@ -1807,6 +1807,13 @@ class OpbeansDotnet(OpbeansService):
             ports=[self.publish_port(self.port, 80)],
         )
         return content
+
+
+class OpbeansDotnet01(OpbeansDotnet):
+    SERVICE_PORT = 3104
+
+    def __init__(self, **options):
+        super(OpbeansDotnet01, self).__init__(**options)
 
 
 class OpbeansGo(OpbeansService):
@@ -1882,6 +1889,13 @@ class OpbeansGo(OpbeansService):
             ports=[self.publish_port(self.port, 3000)],
         )
         return content
+
+
+class OpbeansGo01(OpbeansGo):
+    SERVICE_PORT = 3103
+
+    def __init__(self, **options):
+        super(OpbeansGo01, self).__init__(**options)
 
 
 class OpbeansJava(OpbeansService):
@@ -1964,6 +1978,13 @@ class OpbeansJava(OpbeansService):
                 "{}:/local-install".format(self.agent_local_repo),
             ]
         return content
+
+
+class OpbeansJava01(OpbeansJava):
+    SERVICE_PORT = 3102
+
+    def __init__(self, **options):
+        super(OpbeansJava01, self).__init__(**options)
 
 
 class OpbeansNode(OpbeansService):
@@ -2053,6 +2074,13 @@ class OpbeansNode(OpbeansService):
         return content
 
 
+class OpbeansNode01(OpbeansNode):
+    SERVICE_PORT = 3100
+
+    def __init__(self, **options):
+        super(OpbeansNode01, self).__init__(**options)
+
+
 class OpbeansPython(OpbeansService):
     SERVICE_PORT = 8000
     DEFAULT_AGENT_REPO = "elastic/apm-agent-python"
@@ -2066,7 +2094,7 @@ class OpbeansPython(OpbeansService):
     def add_arguments(cls, parser):
         super(OpbeansPython, cls).add_arguments(parser)
         parser.add_argument(
-            '--opbeans-python-local-repo',
+            '--' + cls.name() + '-local-repo',
             default=cls.DEFAULT_LOCAL_REPO,
         )
         parser.add_argument(
@@ -2140,6 +2168,13 @@ class OpbeansPython(OpbeansService):
                 "{}:/local-install".format(self.agent_local_repo),
             ]
         return content
+
+
+class OpbeansPython01(OpbeansPython):
+    SERVICE_PORT = 8100
+
+    def __init__(self, **options):
+        super(OpbeansPython01, self).__init__(**options)
 
 
 class OpbeansRuby(OpbeansService):
@@ -2223,6 +2258,13 @@ class OpbeansRuby(OpbeansService):
         return content
 
 
+class OpbeansRuby01(OpbeansRuby):
+    SERVICE_PORT = 3101
+
+    def __init__(self, **options):
+        super(OpbeansRuby01, self).__init__(**options)
+
+
 class OpbeansRum(Service):
     # OpbeansRum is not really an Opbeans service, so we inherit from Service
     SERVICE_PORT = 9222
@@ -2231,11 +2273,11 @@ class OpbeansRum(Service):
     def add_arguments(cls, parser):
         super(OpbeansRum, cls).add_arguments(parser)
         parser.add_argument(
-            '--opbeans-rum-backend-service',
+            '--' + cls.name() + '-backend-service',
             default='opbeans-node',
         )
         parser.add_argument(
-            '--opbeans-rum-backend-port',
+            '--' + cls.name() + '-backend-port',
             default='3000',
         )
 
@@ -2744,9 +2786,13 @@ class LocalSetup(object):
             service_enabled = args.get("enable_" + service.option_name())
             is_opbeans_service = issubclass(service, OpbeansService) or service is OpbeansRum
             is_opbeans_sidecar = service.name() in ('postgres', 'redis', 'opbeans-load-generator')
+            is_opbeans_2nd = service.name() in ('opbeans-go01', 'opbeans-java01',
+                                                'opbeans-python01', 'opbeans-ruby01',
+                                                'opbeans-dotnet01', 'opbeans-node01')
             is_obs = issubclass(service, BeatMixin)
-            if service_enabled or (all_opbeans and is_opbeans_service) or (any_opbeans and is_opbeans_sidecar) or \
-                    (run_all and is_obs):
+            if service_enabled or (all_opbeans and is_opbeans_service and not is_opbeans_2nd) \
+                    or (any_opbeans and is_opbeans_sidecar and not is_opbeans_2nd) or \
+                    (run_all and is_obs and not is_opbeans_2nd):
                 selections.add(service(**args))
 
         # `docker load` images if necessary, usually only for build candidates
