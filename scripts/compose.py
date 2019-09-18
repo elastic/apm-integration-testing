@@ -1914,7 +1914,7 @@ class OpbeansJava(OpbeansService):
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = 'opbeans-java'
     DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-java'
-    DEFAULT_OPBEANS_VERSION = 'latest'
+    DEFAULT_OPBEANS_VERSION = ''
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1992,7 +1992,7 @@ class OpbeansNode(OpbeansService):
     SERVICE_PORT = 3000
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-node'
-    DEFAULT_OPBEANS_VERSION = 'latest'
+    DEFAULT_OPBEANS_VERSION = ''
 
     @classmethod
     def add_arguments(cls, parser):
@@ -2081,7 +2081,7 @@ class OpbeansPython(OpbeansService):
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = 'opbeans-python'
     DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-python'
-    DEFAULT_OPBEANS_VERSION = 'latest'
+    DEFAULT_OPBEANS_VERSION = ''
 
     @classmethod
     def add_arguments(cls, parser):
@@ -2169,7 +2169,7 @@ class OpbeansRuby(OpbeansService):
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = "opbeans-ruby"
     DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-ruby'
-    DEFAULT_OPBEANS_VERSION = 'latest'
+    DEFAULT_OPBEANS_VERSION = ''
 
     @classmethod
     def add_arguments(cls, parser):
