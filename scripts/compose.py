@@ -1726,6 +1726,8 @@ class OpbeansService(Service):
         self.opbeans_branch = options.get(self.option_name() + "_branch") or ""
         self.opbeans_repo = options.get(self.option_name() + "_repo") or ""
         self.es_urls = ",".join(self.options.get("opbeans_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
+        self.service_environment = \
+            options.get(self.option_name() + "_service_environment") or self.DEFAULT_ELASTIC_APM_ENVIRONMENT
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1750,6 +1752,12 @@ class OpbeansService(Service):
             dest=cls.option_name() + '_agent_local_repo',
             help=cls.name() + " local repo path for agent"
         )
+        parser.add_argument(
+            '--' + cls.name() + '-service-environment',
+            default=None,
+            dest=cls.option_name() + '_service_environment',
+            help=cls.name() + " service.environment value to display."
+        )
         if hasattr(cls, 'DEFAULT_SERVICE_NAME'):
             parser.add_argument(
                 '--' + cls.name() + '-service-name',
@@ -1767,12 +1775,13 @@ class OpbeansDotnet(OpbeansService):
     DEFAULT_AGENT_VERSION = ""
     DEFAULT_OPBEANS_BRANCH = "master"
     DEFAULT_OPBEANS_REPO = "elastic/opbeans-dotnet"
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
 
     @classmethod
     def add_arguments(cls, parser):
         super(OpbeansDotnet, cls).add_arguments(parser)
         parser.add_argument(
-            '--opbeans-dotnet-version',
+            '--' + cls.name() + '-version',
             default=cls.DEFAULT_AGENT_VERSION,
         )
         parser.add_argument(
@@ -1823,6 +1832,7 @@ class OpbeansDotnet(OpbeansService):
                 "ELASTIC_APM_SAMPLE_RATE=1",
                 "ELASTICSEARCH_URL={}".format(self.es_urls),
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
+                "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
             depends_on=depends_on,
             image=None,
@@ -1833,6 +1843,14 @@ class OpbeansDotnet(OpbeansService):
         return content
 
 
+class OpbeansDotnet01(OpbeansDotnet):
+    SERVICE_PORT = 3104
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "testing"
+
+    def __init__(self, **options):
+        super(OpbeansDotnet01, self).__init__(**options)
+
+
 class OpbeansGo(OpbeansService):
     SERVICE_PORT = 3003
     DEFAULT_AGENT_BRANCH = "master"
@@ -1840,6 +1858,7 @@ class OpbeansGo(OpbeansService):
     DEFAULT_OPBEANS_BRANCH = "master"
     DEFAULT_OPBEANS_REPO = "elastic/opbeans-go"
     DEFAULT_SERVICE_NAME = "opbeans-go"
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1898,6 +1917,7 @@ class OpbeansGo(OpbeansService):
                 "PGPASSWORD=verysecure",
                 "PGSSLMODE=disable",
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
+                "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
             depends_on=depends_on,
             image=None,
@@ -1905,6 +1925,14 @@ class OpbeansGo(OpbeansService):
             ports=[self.publish_port(self.port, 3000)],
         )
         return content
+
+
+class OpbeansGo01(OpbeansGo):
+    SERVICE_PORT = 3103
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "testing"
+
+    def __init__(self, **options):
+        super(OpbeansGo01, self).__init__(**options)
 
 
 class OpbeansJava(OpbeansService):
@@ -1915,6 +1943,7 @@ class OpbeansJava(OpbeansService):
     DEFAULT_SERVICE_NAME = 'opbeans-java'
     DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-java'
     DEFAULT_OPBEANS_VERSION = 'latest'
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1974,6 +2003,7 @@ class OpbeansJava(OpbeansService):
                 "OPBEANS_SERVER_PORT=3000",
                 "JAVA_AGENT_VERSION",
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
+                "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
             depends_on=depends_on,
             image=None,
@@ -1988,11 +2018,20 @@ class OpbeansJava(OpbeansService):
         return content
 
 
+class OpbeansJava01(OpbeansJava):
+    SERVICE_PORT = 3102
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "testing"
+
+    def __init__(self, **options):
+        super(OpbeansJava01, self).__init__(**options)
+
+
 class OpbeansNode(OpbeansService):
     SERVICE_PORT = 3000
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-node'
     DEFAULT_OPBEANS_VERSION = 'latest'
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -2057,6 +2096,7 @@ class OpbeansNode(OpbeansService):
                 "NODE_AGENT_BRANCH=" + self.agent_branch,
                 "NODE_AGENT_REPO=" + self.agent_repo,
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
+                "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
             depends_on=depends_on,
             image=None,
@@ -2074,6 +2114,14 @@ class OpbeansNode(OpbeansService):
         return content
 
 
+class OpbeansNode01(OpbeansNode):
+    SERVICE_PORT = 3100
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "testing"
+
+    def __init__(self, **options):
+        super(OpbeansNode01, self).__init__(**options)
+
+
 class OpbeansPython(OpbeansService):
     SERVICE_PORT = 8000
     DEFAULT_AGENT_REPO = "elastic/apm-agent-python"
@@ -2082,12 +2130,13 @@ class OpbeansPython(OpbeansService):
     DEFAULT_SERVICE_NAME = 'opbeans-python'
     DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-python'
     DEFAULT_OPBEANS_VERSION = 'latest'
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
 
     @classmethod
     def add_arguments(cls, parser):
         super(OpbeansPython, cls).add_arguments(parser)
         parser.add_argument(
-            '--opbeans-python-local-repo',
+            '--' + cls.name() + '-local-repo',
             default=cls.DEFAULT_LOCAL_REPO,
         )
         parser.add_argument(
@@ -2148,6 +2197,7 @@ class OpbeansPython(OpbeansService):
                 "PYTHON_AGENT_REPO=" + self.agent_repo,
                 "PYTHON_AGENT_VERSION",
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
+                "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
             depends_on=depends_on,
             image=None,
@@ -2162,6 +2212,14 @@ class OpbeansPython(OpbeansService):
         return content
 
 
+class OpbeansPython01(OpbeansPython):
+    SERVICE_PORT = 8100
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "testing"
+
+    def __init__(self, **options):
+        super(OpbeansPython01, self).__init__(**options)
+
+
 class OpbeansRuby(OpbeansService):
     SERVICE_PORT = 3001
     DEFAULT_AGENT_BRANCH = "master"
@@ -2170,6 +2228,7 @@ class OpbeansRuby(OpbeansService):
     DEFAULT_SERVICE_NAME = "opbeans-ruby"
     DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-ruby'
     DEFAULT_OPBEANS_VERSION = 'latest'
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -2227,6 +2286,7 @@ class OpbeansRuby(OpbeansService):
                 "RUBY_AGENT_REPO=" + self.agent_repo,
                 "RUBY_AGENT_VERSION",
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
+                "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
             depends_on=depends_on,
             image=None,
@@ -2242,6 +2302,14 @@ class OpbeansRuby(OpbeansService):
         return content
 
 
+class OpbeansRuby01(OpbeansRuby):
+    SERVICE_PORT = 3101
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "testing"
+
+    def __init__(self, **options):
+        super(OpbeansRuby01, self).__init__(**options)
+
+
 class OpbeansRum(Service):
     # OpbeansRum is not really an Opbeans service, so we inherit from Service
     SERVICE_PORT = 9222
@@ -2250,11 +2318,11 @@ class OpbeansRum(Service):
     def add_arguments(cls, parser):
         super(OpbeansRum, cls).add_arguments(parser)
         parser.add_argument(
-            '--opbeans-rum-backend-service',
+            '--' + cls.name() + '-backend-service',
             default='opbeans-node',
         )
         parser.add_argument(
-            '--opbeans-rum-backend-port',
+            '--' + cls.name() + '-backend-port',
             default='3000',
         )
 
@@ -2763,9 +2831,13 @@ class LocalSetup(object):
             service_enabled = args.get("enable_" + service.option_name())
             is_opbeans_service = issubclass(service, OpbeansService) or service is OpbeansRum
             is_opbeans_sidecar = service.name() in ('postgres', 'redis', 'opbeans-load-generator')
+            is_opbeans_2nd = service.name() in ('opbeans-go01', 'opbeans-java01',
+                                                'opbeans-python01', 'opbeans-ruby01',
+                                                'opbeans-dotnet01', 'opbeans-node01')
             is_obs = issubclass(service, BeatMixin)
-            if service_enabled or (all_opbeans and is_opbeans_service) or (any_opbeans and is_opbeans_sidecar) or \
-                    (run_all and is_obs):
+            if service_enabled or (all_opbeans and is_opbeans_service and not is_opbeans_2nd) \
+                    or (any_opbeans and is_opbeans_sidecar and not is_opbeans_2nd) or \
+                    (run_all and is_obs and not is_opbeans_2nd):
                 selections.add(service(**args))
 
         # `docker load` images if necessary, usually only for build candidates

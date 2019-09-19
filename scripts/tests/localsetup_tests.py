@@ -69,6 +69,7 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTIC_APM_SAMPLE_RATE=1
                       - ELASTICSEARCH_URL=elasticsearch:9200
                       - OPBEANS_DT_PROBABILITY=0.50
+                      - ELASTIC_APM_ENVIRONMENT=production
                     logging:
                       driver: 'json-file'
                       options:
@@ -132,6 +133,7 @@ class OpbeansServiceTest(ServiceTest):
                       - PGPASSWORD=verysecure
                       - PGSSLMODE=disable
                       - OPBEANS_DT_PROBABILITY=0.50
+                      - ELASTIC_APM_ENVIRONMENT=production
                     logging:
                       driver: 'json-file'
                       options:
@@ -189,6 +191,7 @@ class OpbeansServiceTest(ServiceTest):
                       - OPBEANS_SERVER_PORT=3000
                       - JAVA_AGENT_VERSION
                       - OPBEANS_DT_PROBABILITY=0.50
+                      - ELASTIC_APM_ENVIRONMENT=production
                     logging:
                       driver: 'json-file'
                       options:
@@ -258,6 +261,7 @@ class OpbeansServiceTest(ServiceTest):
                         - NODE_AGENT_BRANCH=
                         - NODE_AGENT_REPO=
                         - OPBEANS_DT_PROBABILITY=0.50
+                        - ELASTIC_APM_ENVIRONMENT=production
                     depends_on:
                         redis:
                             condition: service_healthy
@@ -326,6 +330,7 @@ class OpbeansServiceTest(ServiceTest):
                         - PYTHON_AGENT_REPO=
                         - PYTHON_AGENT_VERSION
                         - OPBEANS_DT_PROBABILITY=0.50
+                        - ELASTIC_APM_ENVIRONMENT=production
                     depends_on:
                         apm-server:
                             condition: service_healthy
@@ -405,6 +410,7 @@ class OpbeansServiceTest(ServiceTest):
                       - RUBY_AGENT_REPO=
                       - RUBY_AGENT_VERSION
                       - OPBEANS_DT_PROBABILITY=0.50
+                      - ELASTIC_APM_ENVIRONMENT=production
                     logging:
                       driver: 'json-file'
                       options:
@@ -502,6 +508,43 @@ class OpbeansServiceTest(ServiceTest):
         opbeans = OpbeansRuby(opbeans_elasticsearch_urls=["elasticsearch01:9200", "elasticsearch02:9200"]
                               ).render()["opbeans-ruby"]
         assertTwoElasticsearch(opbeans)
+
+    def test_opbeans_service_environment(self):
+        def assertWithoutOption(opbean):
+            self.assertTrue("ELASTIC_APM_ENVIRONMENT=production" in opbean['environment'])
+
+        def assertWithOption(opbean):
+            self.assertTrue("ELASTIC_APM_ENVIRONMENT=test" in opbean['environment'])
+
+        opbeans = OpbeansDotnet().render()["opbeans-dotnet"]
+        assertWithoutOption(opbeans)
+        opbeans = OpbeansDotnet(opbeans_dotnet_service_environment="test").render()["opbeans-dotnet"]
+        assertWithOption(opbeans)
+
+        opbeans = OpbeansGo().render()["opbeans-go"]
+        assertWithoutOption(opbeans)
+        opbeans = OpbeansGo(opbeans_go_service_environment="test").render()["opbeans-go"]
+        assertWithOption(opbeans)
+
+        opbeans = OpbeansJava().render()["opbeans-java"]
+        assertWithoutOption(opbeans)
+        opbeans = OpbeansJava(opbeans_java_service_environment="test").render()["opbeans-java"]
+        assertWithOption(opbeans)
+
+        opbeans = OpbeansPython().render()["opbeans-python"]
+        assertWithoutOption(opbeans)
+        opbeans = OpbeansPython(opbeans_python_service_environment="test").render()["opbeans-python"]
+        assertWithOption(opbeans)
+
+        opbeans = OpbeansRuby().render()["opbeans-ruby"]
+        assertWithoutOption(opbeans)
+        opbeans = OpbeansRuby(opbeans_ruby_service_environment="test").render()["opbeans-ruby"]
+        assertWithOption(opbeans)
+
+        opbeans = OpbeansNode().render()["opbeans-node"]
+        assertWithoutOption(opbeans)
+        opbeans = OpbeansNode(opbeans_node_service_environment="test").render()["opbeans-node"]
+        assertWithOption(opbeans)
 
     def test_opbeans_secret_token(self):
         for cls in opbeans_services():
@@ -941,6 +984,25 @@ class LocalTest(unittest.TestCase):
         services = got["services"]
         self.assertIn("redis", services)
         self.assertIn("postgres", services)
+
+    @mock.patch(compose.__name__ + '.load_images')
+    def test_start_opbeans_2nd(self, _ignore_load_images):
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-dotnet01", "--with-opbeans-node01",
+                                                              "--with-opbeans-java01", "--with-opbeans-go01",
+                                                              "--with-opbeans-python01", "--with-opbeans-ruby01"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        services = got["services"]
+        self.assertIn("opbeans-dotnet01", services)
+        self.assertIn("opbeans-node01", services)
+        self.assertIn("opbeans-java01", services)
+        self.assertIn("opbeans-go01", services)
+        self.assertIn("opbeans-python01", services)
+        self.assertIn("opbeans-ruby01", services)
 
     @mock.patch(compose.__name__ + '.load_images')
     def test_start_all_opbeans_no_apm_server(self, _ignore_load_images):
