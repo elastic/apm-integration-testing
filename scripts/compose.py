@@ -143,6 +143,9 @@ def resolve_bc(version, build_id):
     if build_id is None:
         return
 
+    if version is None:
+        return
+
     # check cache
     if version in build_manifests:
         return build_manifests[version]
@@ -221,7 +224,10 @@ class Service(object):
         self._version = options.get(self.option_name() + "_version") or options.get("version", DEFAULT_STACK_VERSION)
 
         # bc depends on version for resolution
-        self._bc = resolve_bc(self._version, options.get(self.option_name() + "_bc") or options.get("bc"))
+        if not self.option_name().startswith("opbeans"):
+            self._bc = resolve_bc(self._version, options.get(self.option_name() + "_bc") or options.get("bc"))
+        else:
+            self._bc = ""
 
         self.depends_on = {}
 
