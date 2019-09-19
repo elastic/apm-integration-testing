@@ -39,7 +39,9 @@ This repo is tested with Python 3 but best effort is made to make starting/stopp
 
 `./scripts/compose.py` provides a handy cli for starting a testing environment using docker-compose.
 `make venv` creates a virtual environment with all of the python-based dependencies needed to run `./scripts/compose.py` - it requires `virtualenv` in your `PATH`.
-Activate the virtualenv with `source venv/bin/activate` and use `./scripts/compose.py --help` for information on subcommands and arguments.
+Activate the virtualenv with `source venv/bin/activate` and use `./scripts/compose.py --help` for information on subcommands and arguments. Finally, you can execute the following command to list all available parameter to start the environment `./scripts/compose.py start --help`.
+
+[APM LocalEnv Quickstart](QUICKSTART.md)
 
 ### Stopping an Environment
 
