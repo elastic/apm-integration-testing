@@ -29,7 +29,9 @@ WORKDIR /rumjs-integration-test
 
 RUN npm install
 
-RUN npx lerna run --scope=@elastic/apm-rum build && npx lerna run build:e2e
+# Run the build on all the packages/* to make sure the files referenced in both
+# main and module fields are available when they are required by successive dependencies
+RUN npx lerna run build && npx lerna run build:e2e --scope=@elastic/apm-rum
 
 # Add user so we don't need --no-sandbox.
 RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
