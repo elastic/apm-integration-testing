@@ -1,1 +1,1 @@
-npm run serve packages/rum
+npm run serve -- packages/rum
