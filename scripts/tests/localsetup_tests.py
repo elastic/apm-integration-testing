@@ -8,14 +8,14 @@ import yaml
 
 from .. import compose
 
-from ..compose import (OpbeansPython, OpbeansRum, OpbeansGo, OpbeansJava,
-                       OpbeansNode, OpbeansRuby, OpbeansLoadGenerator, OpbeansDotnet)
+from scripts.elastic_stack import ApmServer, Elasticsearch, Kibana
 
-from ..compose import (ApmServer, Kibana, Elasticsearch)
+from scripts.aux_services import Postgres, Redis
 
-from ..compose import (Postgres, Redis)
-
-from ..compose import LocalSetup, discover_services, parse_version, OpbeansService
+from ..compose import LocalSetup
+from scripts.opbeans import OpbeansService, OpbeansDotnet, OpbeansGo, OpbeansJava, OpbeansNode, OpbeansPython, \
+    OpbeansRuby, OpbeansRum, OpbeansLoadGenerator
+from scripts.helpers import discover_services, parse_version
 
 from .service_tests import ServiceTest
 

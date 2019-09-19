@@ -5,15 +5,12 @@ import unittest
 import json
 import yaml
 
-from ..compose import (AgentDotnet, AgentGoNetHttp, AgentJavaSpring, AgentNodejsExpress,
-                       AgentPythonDjango, AgentPythonFlask, AgentRubyRails)
+from scripts.apm_agents import AgentGoNetHttp, AgentNodejsExpress, AgentPythonDjango, AgentPythonFlask, AgentRubyRails, \
+    AgentJavaSpring, AgentDotnet
 
-from ..compose import (ApmServer, Kibana, Elasticsearch, Filebeat, Metricbeat,
-                       Packetbeat, Logstash, Kafka, Heartbeat)
-
-from ..compose import Zookeeper
-
-
+from scripts.aux_services import Logstash, Kafka, Zookeeper
+from scripts.beats import Filebeat, Heartbeat, Metricbeat, Packetbeat
+from scripts.elastic_stack import ApmServer, Elasticsearch, Kibana
 
 
 class ServiceTest(unittest.TestCase):
