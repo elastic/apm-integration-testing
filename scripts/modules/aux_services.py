@@ -3,8 +3,8 @@
 #
 
 
-from scripts.helpers import curl_healthcheck
-from scripts.service import StackService, Service
+from .helpers import curl_healthcheck
+from .service import StackService, Service
 
 
 class Logstash(StackService, Service):

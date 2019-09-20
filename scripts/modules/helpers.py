@@ -10,7 +10,12 @@ import os
 import re
 import subprocess
 import sys
-from urllib.request import Request, urlopen, urlretrieve
+
+try:
+    from urllib.request import urlopen, urlretrieve, Request
+except ImportError:
+    from urllib import urlretrieve
+    from urllib2 import urlopen, Request
 
 
 def _camel_hyphen(string):

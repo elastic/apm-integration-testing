@@ -7,15 +7,15 @@ import collections
 import yaml
 
 from .. import compose
-
-from scripts.elastic_stack import ApmServer, Elasticsearch, Kibana
-
-from scripts.aux_services import Postgres, Redis
-
-from ..compose import LocalSetup
-from scripts.opbeans import OpbeansService, OpbeansDotnet, OpbeansGo, OpbeansJava, OpbeansNode, OpbeansPython, \
+from ..modules.aux_services import Postgres, Redis
+from ..modules.elastic_stack import ApmServer, Elasticsearch
+from ..modules.helpers import parse_version, resolve_bc
+from ..modules.opbeans import (
+    OpbeansService, OpbeansDotnet, OpbeansGo, OpbeansJava, OpbeansNode, OpbeansPython,
     OpbeansRuby, OpbeansRum, OpbeansLoadGenerator
-from scripts.helpers import discover_services, parse_version
+)
+
+from ..compose import LocalSetup, discover_services
 
 from .service_tests import ServiceTest
 
@@ -875,7 +875,7 @@ class LocalTest(unittest.TestCase):
         """)  # noqa: 501
         self.assertDictEqual(got, want)
 
-    @mock.patch(compose.__name__ + '.load_images')
+    @mock.patch(compose.__name__ + ".load_images")
     def test_start_6_x_xpack_secure(self, _ignore_load_images):
         docker_compose_yml = stringIO()
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.6': '6.6.10'}):
@@ -906,7 +906,7 @@ class LocalTest(unittest.TestCase):
         ## allow anonymous healthcheck
         self.assertIn("STATUS_ALLOWANONYMOUS", kibana_env)
 
-    @mock.patch(compose.__name__ + '.load_images')
+    @mock.patch(compose.__name__ + ".load_images")
     def test_start_7_0_xpack_secure(self, _ignore_load_images):
         docker_compose_yml = stringIO()
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
@@ -936,7 +936,7 @@ class LocalTest(unittest.TestCase):
         ## allow anonymous healthcheck
         self.assertIn("STATUS_ALLOWANONYMOUS", kibana_env)
 
-    @mock.patch(compose.__name__ + '.load_images')
+    @mock.patch(compose.__name__ + ".load_images")
     def test_start_no_elasticesarch(self, _ignore_load_images):
         docker_compose_yml = stringIO()
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master':'8.0.0'}):
@@ -949,7 +949,7 @@ class LocalTest(unittest.TestCase):
         self.assertNotIn("elasticsearch", services)
         self.assertNotIn("elasticsearch", services["apm-server"]["depends_on"])
 
-    @mock.patch(compose.__name__ + '.load_images')
+    @mock.patch(compose.__name__ + ".load_images")
     def test_start_all(self, _ignore_load_images):
         docker_compose_yml = stringIO()
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
@@ -973,7 +973,7 @@ class LocalTest(unittest.TestCase):
             "postgres", "redis",
         })
 
-    @mock.patch(compose.__name__ + '.load_images')
+    @mock.patch(compose.__name__ + ".load_images")
     def test_start_one_opbeans(self, _ignore_load_images):
         docker_compose_yml = stringIO()
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
@@ -986,7 +986,7 @@ class LocalTest(unittest.TestCase):
         self.assertIn("redis", services)
         self.assertIn("postgres", services)
 
-    @mock.patch(compose.__name__ + '.load_images')
+    @mock.patch(compose.__name__ + ".load_images")
     def test_start_opbeans_2nd(self, _ignore_load_images):
         docker_compose_yml = stringIO()
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
@@ -1005,7 +1005,7 @@ class LocalTest(unittest.TestCase):
         self.assertIn("opbeans-python01", services)
         self.assertIn("opbeans-ruby01", services)
 
-    @mock.patch(compose.__name__ + '.load_images')
+    @mock.patch(compose.__name__ + ".load_images")
     def test_start_all_opbeans_no_apm_server(self, _ignore_load_images):
         docker_compose_yml = stringIO()
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
@@ -1023,7 +1023,7 @@ class LocalTest(unittest.TestCase):
         for name, service in got["services"].items():
             self.assertNotIn("apm-server", service.get("depends_on", {}), "{} depends on apm-server".format(name))
 
-    @mock.patch(compose.__name__ + '.load_images')
+    @mock.patch(compose.__name__ + ".load_images")
     def test_start_unsupported_version_pre_6_3(self, _ignore_load_images):
         docker_compose_yml = stringIO()
         version = "1.2.3"
@@ -1040,7 +1040,7 @@ class LocalTest(unittest.TestCase):
         )
         self.assertEqual("docker.elastic.co/kibana/kibana-x-pack:{}".format(version), services["kibana"]["image"])
 
-    @mock.patch(compose.__name__ + '.load_images')
+    @mock.patch(compose.__name__ + ".load_images")
     def test_start_unsupported_version(self, _ignore_load_images):
         docker_compose_yml = stringIO()
         version = "6.9.5"
@@ -1057,8 +1057,8 @@ class LocalTest(unittest.TestCase):
         )
         self.assertEqual("docker.elastic.co/kibana/kibana:{}-SNAPSHOT".format(version), services["kibana"]["image"])
 
-    @mock.patch(compose.__name__ + '.resolve_bc')
-    @mock.patch(compose.__name__ + '.load_images')
+    @mock.patch(compose.__name__ + ".resolve_bc")
+    @mock.patch(compose.__name__ + ".load_images")
     def test_start_bc(self, mock_load_images, mock_resolve_bc):
         mock_resolve_bc.return_value = {
             "projects": {
@@ -1131,8 +1131,8 @@ class LocalTest(unittest.TestCase):
             },
             image_cache_dir)
 
-    @mock.patch(compose.__name__ + '.resolve_bc')
-    @mock.patch(compose.__name__ + '.load_images')
+    @mock.patch(compose.__name__ + ".resolve_bc")
+    @mock.patch(compose.__name__ + ".load_images")
     def test_start_bc_oss(self, mock_load_images, mock_resolve_bc):
         mock_resolve_bc.return_value = {
             "projects": {
@@ -1187,8 +1187,8 @@ class LocalTest(unittest.TestCase):
             },
             image_cache_dir)
 
-    @mock.patch(compose.__name__ + '.resolve_bc')
-    @mock.patch(compose.__name__ + '.load_images')
+    @mock.patch(compose.__name__ + ".resolve_bc")
+    @mock.patch(compose.__name__ + ".load_images")
     def test_start_bc_with_release(self, mock_load_images, mock_resolve_bc):
         mock_resolve_bc.return_value = {
             "projects": {
@@ -1243,7 +1243,7 @@ class LocalTest(unittest.TestCase):
             },
             image_cache_dir)
 
-    @mock.patch(compose.__name__ + '.resolve_bc')
+    @mock.patch(compose.__name__ + ".resolve_bc")
     def test_docker_download_image_url(self, mock_resolve_bc):
         mock_resolve_bc.return_value = {
             "projects": {

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 CLI for starting a testing environment using docker-compose.
 """
@@ -8,30 +8,65 @@ import argparse
 import collections
 import datetime
 import glob
+import json
 import logging
 import inspect
-
-from scripts.aux_services import *
-from scripts.elastic_stack import *
-from scripts.beats import *
-from scripts.opbeans import *
-from scripts.service import *
-from scripts.helpers import *
-
-try:
-    from urllib.request import urlopen, urlretrieve, Request
-except ImportError:
-    from urllib import urlretrieve
-    from urllib2 import urlopen, Request
+import os
+import subprocess
+import sys
 
 #
 # package info
 #
+
+if __package__ is None:
+    # for use as Python script
+    from modules.service import Service, DEFAULT_APM_SERVER_URL
+    from modules.opbeans import OpbeansService
+    from modules.beats import BeatMixin
+    from modules.helpers import load_images, resolve_bc
+
+    # these imports are used by discover_services function to discover services from modules loaded
+    from modules.beats import (
+        Packetbeat, Metricbeat, Heartbeat, Filebeat
+    )
+    from modules.elastic_stack import (
+        ApmServer, Elasticsearch, Kibana
+    )
+    from modules.aux_services import (
+        Kafka, Logstash, Postgres, Redis, Service, Zookeeper
+    )
+    from modules.opbeans import (
+        OpbeansRum, OpbeansNode, OpbeansRuby, OpbeansPython, OpbeansDotnet,
+        OpbeansGo, OpbeansJava, OpbeansLoadGenerator, OpbeansGo01, OpbeansDotnet01,
+        OpbeansJava01, OpbeansNode01, OpbeansPython01, OpbeansRuby01
+    )
+else:
+    # for use as module from tests
+    from .modules.service import Service, DEFAULT_APM_SERVER_URL
+    from .modules.opbeans import OpbeansService
+    from .modules.beats import BeatMixin
+    from .modules.helpers import load_images, resolve_bc
+
+    # these imports are used by discover_services function to discover services from modules loaded
+    from .modules.beats import (
+        BeatMixin, Packetbeat, Metricbeat, Heartbeat, Filebeat
+    )
+    from .modules.elastic_stack import (
+        ApmServer, Elasticsearch, Kibana
+    )
+    from .modules.aux_services import (
+        Kafka, Logstash, Postgres, Redis, Service, Zookeeper
+    )
+    from .modules.opbeans import (
+        OpbeansRum, OpbeansNode, OpbeansRuby, OpbeansPython, OpbeansDotnet,
+        OpbeansGo, OpbeansJava, OpbeansLoadGenerator, OpbeansGo01, OpbeansDotnet01,
+        OpbeansJava01, OpbeansNode01, OpbeansPython01, OpbeansRuby01
+    )
+
 PACKAGE_NAME = 'localmanager'
 __version__ = "4.0.0"
 
-
-DEFAULT_APM_SERVER_URL = "http://apm-server:8200"
 
 def discover_services(mod=None):
     """discover list of services"""
@@ -48,6 +83,7 @@ def discover_services(mod=None):
 #
 # Service Tests
 #
+
 
 class LocalSetup(object):
     SUPPORTED_VERSIONS = {
@@ -332,7 +368,7 @@ class LocalSetup(object):
             action='store',
             help='server_url to use for Opbeans frontend service',
             dest='opbeans_apm_js_server_url',
-            default='http://apm-server:8200',
+            default=DEFAULT_APM_SERVER_URL,
         )
 
         parser.add_argument(

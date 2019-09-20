@@ -2,9 +2,8 @@
 # Agent Integration Test Services
 #
 
-from scripts.compose import DEFAULT_APM_SERVER_URL
-from scripts.helpers import curl_healthcheck, add_agent_environment
-from scripts.service import Service
+from .helpers import curl_healthcheck, add_agent_environment
+from .service import Service, DEFAULT_APM_SERVER_URL
 
 
 class AgentRUMJS(Service):

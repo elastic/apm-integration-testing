@@ -6,8 +6,8 @@ import argparse
 import json
 import os
 
-from scripts.helpers import curl_healthcheck
-from scripts.service import StackService, Service
+from .helpers import curl_healthcheck
+from .service import StackService, Service
 
 
 class ApmServer(StackService, Service):

@@ -1,7 +1,7 @@
 import json
 import os
 
-from scripts.service import StackService, Service
+from .service import StackService, Service
 
 
 class BeatMixin(object):
