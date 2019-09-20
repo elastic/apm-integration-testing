@@ -1093,8 +1093,9 @@ class Kibana(StackService, Service):
 
     @classmethod
     def add_arguments(cls, parser):
+        super(Kibana, cls).add_arguments(parser)
         parser.add_argument(
-            "--kibana-elasticsearch-url",
+            "--{}-elasticsearch-url".format(cls.name()),
             action="append",
             dest="kibana_elasticsearch_urls",
             help="kibana elasticsearch output url(s)."
@@ -1146,7 +1147,7 @@ class Logstash(StackService, Service):
     def add_arguments(cls, parser):
         super(Logstash, cls).add_arguments(parser)
         parser.add_argument(
-            "--logstash-elasticsearch-url",
+            "--{}-elasticsearch-url".format(cls.name()),
             action="append",
             dest="logstash_elasticsearch_urls",
             help="logstash elasticsearch output url(s)."

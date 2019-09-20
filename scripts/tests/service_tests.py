@@ -885,6 +885,22 @@ class KibanaServiceTest(ServiceTest):
         self.assertTrue("elasticsearch" in kibana['depends_on'])
         self.assertEqual("elasticsearch01:9200,elasticsearch02:9200", kibana['environment']["ELASTICSEARCH_URL"])
 
+    def test_kibana_port(self):
+        kibana = Kibana(version="7.3.0", release=True, kibana_port="1234").render()["kibana"]
+        self.assertTrue("127.0.0.1:1234:5601" in kibana['ports'])
+
+    def test_kibana_version(self):
+        kibana = Kibana(version="7.3.0", release=True, kibana_version="7.3.0").render()["kibana"]
+        self.assertEqual("docker.elastic.co/kibana/kibana:7.3.0", kibana["image"])
+
+    def test_kibana_oss(self):
+        kibana = Kibana(version="7.3.0", release=True, kibana_oss=True, kibana_version="7.3.0").render()["kibana"]
+        self.assertEqual("docker.elastic.co/kibana/kibana-oss:7.3.0", kibana["image"])
+
+    def test_kibana_snapshot(self):
+        kibana = Kibana(version="7.3.0", kibana_snapshot=True, kibana_version="7.3.0").render()["kibana"]
+        self.assertEqual("docker.elastic.co/kibana/kibana:7.3.0-SNAPSHOT", kibana["image"])
+
 class LogstashServiceTest(ServiceTest):
     def test_snapshot(self):
         logstash = Logstash(version="6.2.4", snapshot=True).render()["logstash"]
