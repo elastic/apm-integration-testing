@@ -112,7 +112,6 @@ class Concurrent:
 
         def assert_count(terms, expected):
             """wait a bit for doc count to reach expectation"""
-
             @timeout_decorator.timeout(max_wait)
             def check_count(mut_actual):
                 while True:
