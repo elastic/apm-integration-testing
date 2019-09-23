@@ -244,7 +244,7 @@ class LocalSetup(object):
         parser.add_argument(
             '--docker-compose-path',
             type=argparse.FileType(mode='w'),
-            default=os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'docker-compose.yml')),
+            default=os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'docker-compose.yml')),
             help='path to docker-compose.yml'
         )
 
