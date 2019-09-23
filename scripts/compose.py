@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-"""
-CLI for starting a testing environment using docker-compose.
-"""
+"""CLI for starting a testing environment using docker-compose."""
 from __future__ import print_function
 
 import logging

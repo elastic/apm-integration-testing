@@ -29,7 +29,7 @@ class Logstash(StackService, Service):
                 "enable_elasticsearch", True) else {},
             environment={
                 "ELASTICSEARCH_URL": self.es_urls,
-                },
+            },
             healthcheck=curl_healthcheck(9600, "logstash", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT), "9600"],
             volumes=["./docker/logstash/pipeline/:/usr/share/logstash/pipeline/"]

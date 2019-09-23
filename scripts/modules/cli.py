@@ -15,16 +15,18 @@ from .opbeans import OpbeansService, OpbeansRum
 from .service import Service, DEFAULT_APM_SERVER_URL
 
 # these imports are used by discover_services function to discover services from modules loaded
-from .beats import (
+
+
+from .beats import (  # noqa: F401
     Packetbeat, Metricbeat, Heartbeat, Filebeat
 )
-from .elastic_stack import (
+from .elastic_stack import (  # noqa: F401
     ApmServer, Elasticsearch, Kibana
 )
-from .aux_services import (
+from .aux_services import (  # noqa: F401
     Kafka, Logstash, Postgres, Redis, Zookeeper
 )
-from .opbeans import (
+from .opbeans import (  # noqa: F401
     OpbeansNode, OpbeansRuby, OpbeansPython, OpbeansDotnet,
     OpbeansGo, OpbeansJava, OpbeansLoadGenerator, OpbeansGo01, OpbeansDotnet01,
     OpbeansJava01, OpbeansNode01, OpbeansPython01, OpbeansRuby01
@@ -172,8 +174,7 @@ class LocalSetup(object):
             argv = sys.argv
         available_versions = ' / '.join(list(self.SUPPORTED_VERSIONS))
         help_text = (
-            "Which version of the stack to start. " +
-            "Available options: {0}".format(available_versions)
+            "Which version of the stack to start. " + "Available options: {0}".format(available_versions)
         )
         parser.add_argument("stack-version", action='store', help=help_text)
 
@@ -435,8 +436,8 @@ class LocalSetup(object):
     @staticmethod
     def dashboards_handler():
         cmd = (
-                'docker ps --filter "name=kibana" -q | xargs docker inspect ' +
-                '-f \'{{ index .Config.Labels "co.elastic.apm.stack-version" }}\''
+            'docker ps --filter "name=kibana" -q | xargs docker inspect ' +
+            '-f \'{{ index .Config.Labels "co.elastic.apm.stack-version" }}\''
         )
 
         # Check if Docker is running and get running containers
@@ -456,8 +457,8 @@ class LocalSetup(object):
         # Prepare and call command
         print("Loading Kibana dashboards using APM Server:\n")
         cmd = (
-                'docker-compose run --rm --no-ansi --log-level ERROR' +
-                'apm-server -e setup -E setup.kibana.host="kibana:5601"'
+            'docker-compose run --rm --no-ansi --log-level ERROR' +
+            'apm-server -e setup -E setup.kibana.host="kibana:5601"'
         )
         subprocess.call(cmd, shell=True)
 

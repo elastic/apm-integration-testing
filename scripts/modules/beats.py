@@ -101,8 +101,8 @@ class BeatMixin(object):
                 # This is the new standard based on the format:
                 # ${name}-${version}-${classifier}-${os}-${architecture}.${extension}
                 key = "{image}-{version}-docker-image-linux-amd64.tar.gz".format(
-                        image=image,
-                        version=version,
+                    image=image,
+                    version=version,
                 )
                 return self.bc["projects"]["beats"]["packages"][key]
             except KeyError:
