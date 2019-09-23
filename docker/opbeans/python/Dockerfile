@@ -4,5 +4,5 @@ FROM ${OPBEANS_PYTHON_IMAGE}:${OPBEANS_PYTHON_VERSION}
 
 COPY entrypoint.sh /app/
 
-CMD ["honcho", "start"]
+CMD ["honcho", "start", "--no-prefix"]
 ENTRYPOINT ["/bin/bash", "/app/entrypoint.sh"]

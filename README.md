@@ -98,6 +98,19 @@ Example which builds the https://github.com/elastic/apm-agent-java/pull/588 bran
 
 Note that it may take a while to build the agent from source.
 
+Another example, which installs the [APM Python
+Agent](https://github.com/elastic/apm-agent-python) from the `master` branch
+for testing against [opbeans-python](https://github.com/elastic/opbeans-python)
+(for example, for end to end log correlation testing):
+
+    ./scripts/compose.py start master --with-opbeans-python --with-filebeat --opbeans-python-agent-branch=master --force-build
+
+Note that we use `--opbeans-python-agent-branch` to define the python agent
+branch for opbeans-python, rather than `--python-agent-package`, which only
+applies to the `--with-python-agent-*` flags for the small integration test
+apps.
+
+
 ### Uploading Sourcemaps
 
 The frontend app packaged with opbeans-node runs in a production build, which means the source code is minified. The APM server needs the corresponding sourcemap to unminify the code.

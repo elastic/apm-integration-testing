@@ -107,6 +107,31 @@ filebeat.autodiscover:
               json.message_key: message
         - condition:
             contains:
+              docker.container.image: "opbeans-python"
+          config:
+            - type: docker
+              containers.ids:
+                - "${data.docker.container.id}"
+              processors:
+                - if:
+                    regexp:
+                      message: '^\{.*\}$'
+                  then:
+                    - decode_json_fields:
+                        fields:
+                          - message
+                        target: ""
+                        overwrite_keys: true
+                    - drop_fields:
+                        fields:
+                          - message
+                    - rename:
+                        fields:
+                          - from: "event"
+                            to: "message"
+              fields_under_root: true
+        - condition:
+            contains:
               docker.container.image: "postgres"
           config:
             - type: docker
@@ -138,6 +163,9 @@ filebeat.autodiscover:
               - not:
                   contains:
                     docker.container.image: "opbeans-go"
+              - not:
+                  contains:
+                    docker.container.image: "opbeans-python"
               - not:
                   contains:
                     docker.container.image: "postgres"
