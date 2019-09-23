@@ -2379,8 +2379,9 @@ class OpbeansLoadGenerator(Service):
         self.loadgen_services = []
         self.loadgen_rpms = OrderedDict()
         # create load for opbeans services
-        run_all_opbeans = options.get('run_all_opbeans')
-        excluded = ('opbeans_load_generator', 'opbeans_rum', 'opbeans_node')
+        run_all_opbeans = options.get('run_all_opbeans') or options.get('run_all')
+        excluded = ('opbeans_load_generator', 'opbeans_rum', 'opbeans_node', 'opbeans_node', 'opbeans_dotnet01'
+                    , 'opbeans_go01', 'opbeans_java01', 'opbeans_node01', 'opbeans_python01', 'opbeans_ruby01')
         for flag, value in options.items():
             if (value or run_all_opbeans) and flag.startswith('enable_opbeans_'):
                 service_name = flag[len('enable_'):]
