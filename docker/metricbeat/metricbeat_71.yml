@@ -15,7 +15,7 @@ output.elasticsearch:
 logging.json: true
 logging.metrics.enabled: false
 
-monitoring.enabled: true
+xpack.monitoring.enabled: true
 ###################################################################################################
 ## modules
 ###################################################################################################
