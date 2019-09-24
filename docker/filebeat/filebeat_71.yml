@@ -15,7 +15,7 @@ output.elasticsearch:
 logging.json: true
 logging.metrics.enabled: false
 
-monitoring.enabled: true
+xpack.monitoring.enabled: true
 ###################################################################################################
 ## autodiscover
 ###################################################################################################
@@ -27,9 +27,7 @@ filebeat.autodiscover:
             contains:
               docker.container.image: "apm-server"
           config:
-            - type: container
-              paths:
-                - '/var/lib/docker/containers/*/*.log'
+            - type: docker
               containers.ids:
                 - "${data.docker.container.id}"
               fields_under_root: true
@@ -41,9 +39,7 @@ filebeat.autodiscover:
             contains:
               docker.container.image: "filebeat"
           config:
-            - type: container
-              paths:
-                - '/var/lib/docker/containers/*/*.log'
+            - type: docker
               containers.ids:
                 - "${data.docker.container.id}"
               fields_under_root: true
@@ -55,9 +51,7 @@ filebeat.autodiscover:
             contains:
               docker.container.image: "heartbeat"
           config:
-            - type: container
-              paths:
-                - '/var/lib/docker/containers/*/*.log'
+            - type: docker
               containers.ids:
                 - "${data.docker.container.id}"
               fields_under_root: true
@@ -69,9 +63,7 @@ filebeat.autodiscover:
             contains:
               docker.container.image: "kibana"
           config:
-            - type: container
-              paths:
-                - '/var/lib/docker/containers/*/*.log'
+            - type: docker
               containers.ids:
                 - "${data.docker.container.id}"
               fields_under_root: true
@@ -83,9 +75,7 @@ filebeat.autodiscover:
             contains:
               docker.container.image: "metricbeat"
           config:
-            - type: container
-              paths:
-                - '/var/lib/docker/containers/*/*.log'
+            - type: docker
               containers.ids:
                 - "${data.docker.container.id}"
               fields_under_root: true
@@ -97,9 +87,7 @@ filebeat.autodiscover:
             contains:
               docker.container.image: "opbeans-node"
           config:
-            - type: container
-              paths:
-                - '/var/lib/docker/containers/*/*.log'
+            - type: docker
               containers.ids:
                 - "${data.docker.container.id}"
               multiline.pattern: '^ '
@@ -109,9 +97,7 @@ filebeat.autodiscover:
             contains:
               docker.container.image: "opbeans-go"
           config:
-            - type: container
-              paths:
-                - '/var/lib/docker/containers/*/*.log'
+            - type: docker
               containers.ids:
                 - "${data.docker.container.id}"
               fields_under_root: true
@@ -121,54 +107,9 @@ filebeat.autodiscover:
               json.message_key: message
         - condition:
             contains:
-              docker.container.image: "opbeans-python"
-          config:
-            - type: docker
-              containers.ids:
-                - "${data.docker.container.id}"
-              processors:
-                - if:
-                    regexp:
-                      message: '^\{.*\}$'
-                  then:
-                    - decode_json_fields:
-                        fields:
-                          - message
-                        target: ""
-                        overwrite_keys: true
-                    - drop_fields:
-                        fields:
-                          - message
-                    - rename:
-                        fields:
-                          - from: "event"
-                            to: "message"
-              fields_under_root: true
-        - condition:
-            contains:
-              docker.container.image: "opbeans-java"
-          config:
-            - type: docker
-              containers.ids:
-                - "${data.docker.container.id}"
-              processors:
-                - if:
-                    regexp:
-                      message: '^\{.*\}$'
-                  then:
-                    - decode_json_fields:
-                        fields:
-                          - message
-                        target: ""
-                        overwrite_keys: true
-              fields_under_root: true
-        - condition:
-            contains:
               docker.container.image: "postgres"
           config:
-            - type: container
-              paths:
-                - '/var/lib/docker/containers/*/*.log'
+            - type: docker
               containers.ids:
                 - "${data.docker.container.id}"
               multiline.pattern: '^\t'
@@ -199,16 +140,8 @@ filebeat.autodiscover:
                     docker.container.image: "opbeans-go"
               - not:
                   contains:
-                    docker.container.image: "opbeans-python"
-              - not:
-                  contains:
-                    docker.container.image: "opbeans-java"
-              - not:
-                  contains:
                     docker.container.image: "postgres"
           config:
-            - type: container
-              paths:
-                - '/var/lib/docker/containers/*/*.log'
+            - type: docker
               containers.ids:
                 - "${data.docker.container.id}"
