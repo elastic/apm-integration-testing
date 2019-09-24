@@ -768,14 +768,14 @@ class FilebeatServiceTest(ServiceTest):
                         kibana:
                             condition: service_healthy
                     volumes:
-                        - ./docker/filebeat/filebeat_71.yml:/usr/share/filebeat/filebeat.yml
+                        - ./docker/filebeat/filebeat.6.x-compat.yml:/usr/share/filebeat/filebeat.yml
                         - /var/lib/docker/containers:/var/lib/docker/containers
                         - /var/run/docker.sock:/var/run/docker.sock""")
         )
 
     def test_filebeat_7_1(self):
         filebeat = Filebeat(version="7.1.0", release=True).render()
-        self.assertTrue("./docker/filebeat/filebeat_71.yml:/usr/share/filebeat/filebeat.yml" in filebeat["filebeat"]["volumes"])
+        self.assertTrue("./docker/filebeat/filebeat.6.x-compat.yml:/usr/share/filebeat/filebeat.yml" in filebeat["filebeat"]["volumes"])
 
     def test_filebeat_post_7_2(self):
         filebeat = Filebeat(version="7.2.0", release=True).render()

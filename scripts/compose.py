@@ -1016,7 +1016,7 @@ class Filebeat(BeatMixin, StackService, Service):
         if self.at_least_version("7.2"):
             config = "filebeat.yml"
         elif self.at_least_version("6.1"):
-            config = "filebeat_71.yml"
+            config = "filebeat.6.x-compat.yml"
         else:
             config = "filebeat.simple.yml"
         self.filebeat_config_path = os.path.join(".", "docker", "filebeat", config)
