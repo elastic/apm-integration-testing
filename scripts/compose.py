@@ -36,6 +36,7 @@ __version__ = "4.0.0"
 
 DEFAULT_STACK_VERSION = "8.0"
 DEFAULT_APM_SERVER_URL = "http://apm-server:8200"
+DEFAULT_APM_JS_SERVER_URL = "http://localhost:8200"
 
 
 #
@@ -1723,7 +1724,7 @@ class OpbeansService(Service):
     def __init__(self, **options):
         super(OpbeansService, self).__init__(**options)
         self.apm_server_url = options.get("apm_server_url", DEFAULT_APM_SERVER_URL)
-        self.apm_js_server_url = options.get("opbeans_apm_js_server_url", DEFAULT_APM_SERVER_URL)
+        self.apm_js_server_url = options.get("opbeans_apm_js_server_url", DEFAULT_APM_JS_SERVER_URL)
         self.opbeans_dt_probability = options.get("opbeans_dt_probability", 0.5)
         if hasattr(self, "DEFAULT_SERVICE_NAME"):
             self.service_name = options.get(self.option_name() + "_service_name", self.DEFAULT_SERVICE_NAME)
