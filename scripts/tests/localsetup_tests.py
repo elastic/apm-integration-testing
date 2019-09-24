@@ -63,7 +63,7 @@ class OpbeansServiceTest(ServiceTest):
                     environment:
                       - ELASTIC_APM_SERVICE_NAME=opbeans-dotnet
                       - ELASTIC_APM_SERVER_URLS=http://apm-server:8200
-                      - ELASTIC_APM_JS_SERVER_URL=http://apm-server:8200
+                      - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
                       - ELASTIC_APM_FLUSH_INTERVAL=5
                       - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
                       - ELASTIC_APM_SAMPLE_RATE=1
@@ -120,7 +120,7 @@ class OpbeansServiceTest(ServiceTest):
                     environment:
                       - ELASTIC_APM_SERVICE_NAME=opbeans-go
                       - ELASTIC_APM_SERVER_URL=http://apm-server:8200
-                      - ELASTIC_APM_JS_SERVER_URL=http://apm-server:8200
+                      - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
                       - ELASTIC_APM_FLUSH_INTERVAL=5
                       - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
                       - ELASTIC_APM_SAMPLE_RATE=1
@@ -241,7 +241,7 @@ class OpbeansServiceTest(ServiceTest):
                             max-file: '5'
                     environment:
                         - ELASTIC_APM_SERVER_URL=http://apm-server:8200
-                        - ELASTIC_APM_JS_SERVER_URL=http://apm-server:8200
+                        - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
                         - ELASTIC_APM_LOG_LEVEL=info
                         - ELASTIC_APM_SOURCE_LINES_ERROR_APP_FRAMES
                         - ELASTIC_APM_SOURCE_LINES_SPAN_APP_FRAMES=5
@@ -315,7 +315,7 @@ class OpbeansServiceTest(ServiceTest):
                         - DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans
                         - ELASTIC_APM_SERVICE_NAME=opbeans-python
                         - ELASTIC_APM_SERVER_URL=http://apm-server:8200
-                        - ELASTIC_APM_JS_SERVER_URL=http://apm-server:8200
+                        - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
                         - ELASTIC_APM_FLUSH_INTERVAL=5
                         - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
                         - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.5
