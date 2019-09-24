@@ -20,6 +20,7 @@ pipeline {
     JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
     PIPELINE_LOG_LEVEL = 'INFO'
     DISABLE_BUILD_PARALLEL = "${params.DISABLE_BUILD_PARALLEL}"
+    ENABLE_ES_DUMP = "true"
   }
   options {
     timeout(time: 1, unit: 'HOURS')

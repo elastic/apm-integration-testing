@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import os
+
 import pytest
 import json
 import subprocess
@@ -39,11 +41,13 @@ def pytest_runtest_logreport(report):
         name = report.nodeid.split(":", 2)[-1]
         try:
             es_url = default.from_env("ES_URL")
-            subprocess.call(['elasticdump',
-                             '--input={}/apm-*'.format(es_url),
-                             '--output=/app/tests/results/data-{}.json'.format(name)])
-            subprocess.call(['elasticdump',
-                             '--input={}/packetbeat-*'.format(es_url),
-                             '--output=/app/tests/results/packetbeat-{}.json'.format(name)])
+            isDumpEnable = os.getenv("ENABLE_ES_DUMP")
+            if isDumpEnable is not None:
+                subprocess.call(['elasticdump',
+                                 '--input={}/apm-*'.format(es_url),
+                                 '--output=/app/tests/results/data-{}.json'.format(name)])
+                subprocess.call(['elasticdump',
+                                 '--input={}/packetbeat-*'.format(es_url),
+                                 '--output=/app/tests/results/packetbeat-{}.json'.format(name)])
         except IOError:
             pass
