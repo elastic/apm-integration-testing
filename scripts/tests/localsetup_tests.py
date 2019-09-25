@@ -182,6 +182,7 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                       - ELASTIC_APM_FLUSH_INTERVAL=5
                       - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
+                      - ELASTIC_APM_ENABLE_LOG_CORRELATION=true
                       - ELASTIC_APM_SAMPLE_RATE=1
                       - DATABASE_URL=jdbc:postgresql://postgres/opbeans?user=postgres&password=verysecure
                       - DATABASE_DIALECT=POSTGRESQL
