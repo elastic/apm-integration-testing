@@ -34,7 +34,7 @@ venv: requirements.txt
 	touch $(VENV);\
 
 lint: venv
-	flake8 tests/ scripts/compose.py
+	flake8 --ignore=D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403,W504  tests/ scripts/compose.py
 
 .PHONY: lint
 
