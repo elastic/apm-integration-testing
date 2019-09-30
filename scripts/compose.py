@@ -6,7 +6,6 @@ import logging
 import sys
 
 
-
 if __package__ is None:
     # for use as Python script
     from modules.cli import LocalSetup
