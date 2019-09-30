@@ -117,7 +117,12 @@ class Filebeat(BeatMixin, StackService, Service):
 
     def __init__(self, **options):
         super(Filebeat, self).__init__(**options)
-        config = "filebeat.yml" if self.at_least_version("6.1") else "filebeat.simple.yml"
+        if self.at_least_version("7.2"):
+            config = "filebeat.yml"
+        elif self.at_least_version("6.1"):
+            config = "filebeat.6.x-compat.yml"
+        else:
+            config = "filebeat.simple.yml"
         self.filebeat_config_path = os.path.join(".", "docker", "filebeat", config)
 
     def _content(self):
