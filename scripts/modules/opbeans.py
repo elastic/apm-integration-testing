@@ -291,6 +291,7 @@ class OpbeansJava(OpbeansService):
                 "ELASTIC_APM_FLUSH_INTERVAL=5",
                 "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
                 "ELASTIC_APM_SAMPLE_RATE=1",
+                "ELASTIC_APM_ENABLE_LOG_CORRELATION=true",
                 "DATABASE_URL=jdbc:postgresql://postgres/opbeans?user=postgres&password=verysecure",
                 "DATABASE_DIALECT=POSTGRESQL",
                 "DATABASE_DRIVER=org.postgresql.Driver",
