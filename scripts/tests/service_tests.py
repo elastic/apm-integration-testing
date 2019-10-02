@@ -900,12 +900,12 @@ class KibanaServiceTest(ServiceTest):
         kibana = Kibana(version="7.3.0", kibana_snapshot=True, kibana_version="7.3.0").render()["kibana"]
         self.assertEqual("docker.elastic.co/kibana/kibana:7.3.0-SNAPSHOT", kibana["image"])
 
-    def test_kibana_with_code_ui_enabled(self):
-        kibana = Kibana(version="7.3.0", xpack_code_ui_enabled=True).render()["kibana"]
+    def test_kibana_with_code_enabled(self):
+        kibana = Kibana(version="7.3.0").render()["kibana"]
         self.assertEqual("true", kibana["environment"]["XPACK_CODE_UI_ENABLED"])
 
-    def test_kibana_with_code_ui_disabled(self):
-        kibana = Kibana(version="7.3.0", xpack_code_ui_enabled=False).render()["kibana"]
+    def test_kibana_with_code_disabled(self):
+        kibana = Kibana(version="7.1.0").render()["kibana"]
         self.assertFalse("XPACK_CODE_UI_ENABLED" in kibana["environment"])
 
 class LogstashServiceTest(ServiceTest):

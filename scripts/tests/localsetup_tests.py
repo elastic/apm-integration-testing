@@ -858,7 +858,7 @@ class LocalTest(unittest.TestCase):
                 container_name: localtesting_8.0.0_kibana
                 depends_on:
                     elasticsearch: {condition: service_healthy}
-                environment: {ELASTICSEARCH_URL: 'elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
+                environment: {ELASTICSEARCH_URL: 'elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_CODE_UI_ENABLED: 'true', XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
                 healthcheck:
                     interval: 10s
                     retries: 20

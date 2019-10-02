@@ -559,7 +559,7 @@ class Kibana(StackService, Service):
                 self.environment["ELASTICSEARCH_PASSWORD"] = "changeme"
                 self.environment["ELASTICSEARCH_USERNAME"] = "kibana_system_user"
                 self.environment["STATUS_ALLOWANONYMOUS"] = "true"
-        if options.get("xpack_code_ui_enabled"):
+        if self.at_least_version("7.3"):
             self.environment["XPACK_CODE_UI_ENABLED"] = "true"
         self.environment["ELASTICSEARCH_URL"] = ",".join(self.options.get(
             "kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
@@ -571,11 +571,6 @@ class Kibana(StackService, Service):
             action="append",
             dest="kibana_elasticsearch_urls",
             help="kibana elasticsearch output url(s)."
-        )
-        parser.add_argument(
-            "--xpack-code-ui-enabled",
-            action="store_true",
-            help="enable Code",
         )
 
     def _content(self):
