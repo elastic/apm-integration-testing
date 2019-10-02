@@ -559,7 +559,7 @@ class Kibana(StackService, Service):
                 self.environment["ELASTICSEARCH_PASSWORD"] = "changeme"
                 self.environment["ELASTICSEARCH_USERNAME"] = "kibana_system_user"
                 self.environment["STATUS_ALLOWANONYMOUS"] = "true"
-        if self.at_least_version("7.3"):
+        if self.at_least_version("7.2"):
             self.environment["XPACK_CODE_UI_ENABLED"] = "true"
         self.environment["ELASTICSEARCH_URL"] = ",".join(self.options.get(
             "kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
