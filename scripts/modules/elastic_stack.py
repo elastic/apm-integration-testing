@@ -48,8 +48,8 @@ class ApmServer(StackService, Service):
             ("setup.template.settings.index.number_of_replicas", "0"),
             ("setup.template.settings.index.number_of_shards", "1"),
             ("setup.template.settings.index.refresh_interval", "1ms"),
-            ("xpack.monitoring.elasticsearch", "true"),
-            ("xpack.monitoring.enabled", "true")
+            ("monitoring.elasticsearch" if self.at_least_version("7.2") else "xpack.monitoring.elasticsearch", "true"),
+            ("monitoring.enabled" if self.at_least_version("7.2") else "xpack.monitoring.enabled", "true")
         ])
         if options.get("apm_server_self_instrument"):
             self.apm_server_command_args.append(("apm-server.instrumentation.enabled", "true"))
@@ -128,7 +128,8 @@ class ApmServer(StackService, Service):
                     ("apm-server.register.ingest.pipeline.enabled", "true"),
                 ])
         else:
-            add_es_config(self.apm_server_command_args, prefix="xpack.monitoring")
+            add_es_config(self.apm_server_command_args,
+                          prefix="monitoring" if self.at_least_version("7.2") else "xpack.monitoring")
             self.apm_server_command_args.extend([
                 ("output.elasticsearch.enabled", "false"),
             ])

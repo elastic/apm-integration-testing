@@ -429,10 +429,25 @@ class ApmServerServiceTest(ServiceTest):
             "output.elasticsearch.enabled=false",
             "output.file.enabled=true",
             "output.file.path=" + os.devnull,
-            "xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
+            "monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
         ]
         for o in options:
             self.assertTrue(o in apm_server["command"], "{} not set while output=file".format(o))
+
+    def test_monitoring_options_6(self):
+        apm_server = ApmServer(version="6.8.0", apm_server_output="file").render()["apm-server"]
+        self.assertTrue("xpack.monitoring.enabled=true" in apm_server["command"])
+        self.assertTrue("xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in apm_server["command"])
+
+    def test_monitoring_options_71(self):
+        apm_server = ApmServer(version="7.1.0", apm_server_output="file").render()["apm-server"]
+        self.assertTrue("xpack.monitoring.enabled=true" in apm_server["command"])
+        self.assertTrue("xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in apm_server["command"])
+
+    def test_monitoring_options_post_72(self):
+        apm_server = ApmServer(version="7.2.0", apm_server_output="file").render()["apm-server"]
+        self.assertTrue("monitoring.enabled=true" in apm_server["command"])
+        self.assertTrue("monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in apm_server["command"])
 
     def test_file_output_path(self):
         apm_server = ApmServer(version="7.3.100", apm_server_output="file",
@@ -441,18 +456,18 @@ class ApmServerServiceTest(ServiceTest):
             "output.elasticsearch.enabled=false",
             "output.file.enabled=true",
             "output.file.path=foo",
-            "xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
+            "monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
         ]
         for o in options:
             self.assertTrue(o in apm_server["command"], "{} not set while output=file".format(o))
 
     def test_logstash_output(self):
-        apm_server = ApmServer(version="6.3.100", apm_server_output="logstash").render()["apm-server"]
+        apm_server = ApmServer(version="7.3.0", apm_server_output="logstash").render()["apm-server"]
         options = [
             "output.elasticsearch.enabled=false",
             "output.logstash.enabled=true",
             "output.logstash.hosts=[\"logstash:5044\"]",
-            "xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
+            "monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
         ]
         for o in options:
             self.assertTrue(o in apm_server["command"], "{} not set while output=logstash".format(o))
@@ -970,12 +985,12 @@ class LogstashServiceTest(ServiceTest):
 
 class MetricbeatServiceTest(ServiceTest):
     def test_metricbeat(self):
-        metricbeat = Metricbeat(version="6.2.4", release=True, apm_server_pprof_url='apm-server:6060').render()
+        metricbeat = Metricbeat(version="7.2.0", release=True, apm_server_pprof_url='apm-server:6060').render()
         self.assertEqual(
             metricbeat, yaml.load("""
                 metricbeat:
-                    image: docker.elastic.co/beats/metricbeat:6.2.4
-                    container_name: localtesting_6.2.4_metricbeat
+                    image: docker.elastic.co/beats/metricbeat:7.2.0
+                    container_name: localtesting_7.2.0_metricbeat
                     user: root
                     command: ["metricbeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true", "-E", 'output.elasticsearch.hosts=["elasticsearch:9200"]', "-E", "output.elasticsearch.enabled=true"]
                     environment: {APM_SERVER_PPROF_HOST: 'apm-server:6060'}
@@ -1018,15 +1033,30 @@ class MetricbeatServiceTest(ServiceTest):
         beat = Metricbeat(version="6.2.4", release=True, apm_server_pprof_url="apm-server:1234").render()["metricbeat"]
         self.assertEqual("apm-server:1234", beat["environment"]["APM_SERVER_PPROF_HOST"])
 
+    def test_config_6(self):
+        beat = Metricbeat(version="6.8.0", release=True, metricbeat_output="logstash").render()["metricbeat"]
+        self.assertTrue("xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in  beat["command"])
+        self.assertTrue("./docker/metricbeat/metricbeat.6.x-compat.yml:/usr/share/metricbeat/metricbeat.yml" in beat["volumes"])
+
+    def test_config_71(self):
+        beat = Metricbeat(version="7.1.0", release=True, metricbeat_output="logstash").render()["metricbeat"]
+        self.assertTrue("xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in  beat["command"])
+        self.assertTrue("./docker/metricbeat/metricbeat.6.x-compat.yml:/usr/share/metricbeat/metricbeat.yml" in beat["volumes"])
+
+    def test_config_post_72(self):
+        beat = Metricbeat(version="7.2.0", release=True, metricbeat_output="logstash").render()["metricbeat"]
+        self.assertTrue("monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in  beat["command"])
+        self.assertTrue("./docker/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml" in beat["volumes"])
+
 
 class PacketbeatServiceTest(ServiceTest):
     def test_packetbeat(self):
-        packetbeat = Packetbeat(version="6.2.4", release=True).render()
+        packetbeat = Packetbeat(version="7.3.0", release=True).render()
         self.assertEqual(
             packetbeat, yaml.load("""
                 packetbeat:
-                    image: docker.elastic.co/beats/packetbeat:6.2.4
-                    container_name: localtesting_6.2.4_packetbeat
+                    image: docker.elastic.co/beats/packetbeat:7.3.0
+                    container_name: localtesting_7.3.0_packetbeat
                     user: root
                     command: ["packetbeat", "-e", "--strict.perms=false", "-E", "packetbeat.interfaces.device=eth0", "-E", "setup.dashboards.enabled=true", "-E", 'output.elasticsearch.hosts=["elasticsearch:9200"]', "-E", "output.elasticsearch.enabled=true"]
                     environment: {}
@@ -1047,6 +1077,21 @@ class PacketbeatServiceTest(ServiceTest):
                     privileged: 'true'
                     cap_add: ['NET_ADMIN', 'NET_RAW']""") # noqa: 501
         )
+
+    def test_config_6(self):
+        packetbeat = Packetbeat(version="6.2.4", release=True).render()["packetbeat"]
+        self.assertTrue("./docker/packetbeat/packetbeat.6.x-compat.yml:/usr/share/packetbeat/packetbeat.yml"
+                        in packetbeat["volumes"])
+
+    def test_config_71(self):
+        packetbeat = Packetbeat(version="7.1.0", release=True).render()["packetbeat"]
+        self.assertTrue("./docker/packetbeat/packetbeat.6.x-compat.yml:/usr/share/packetbeat/packetbeat.yml"
+                        in packetbeat["volumes"])
+
+    def test_config_post_72(self):
+        packetbeat = Packetbeat(version="7.2.0", release=True).render()["packetbeat"]
+        self.assertTrue("./docker/packetbeat/packetbeat.yml:/usr/share/packetbeat/packetbeat.yml"
+                        in packetbeat["volumes"])
 
     def test_packetbeat_elasticsearch_urls(self):
         beat = Packetbeat(version="6.2.4", release=True,

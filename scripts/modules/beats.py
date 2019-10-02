@@ -60,7 +60,7 @@ class BeatMixin(object):
             command_args.extend([("output.elasticsearch.enabled", "true")])
         else:
             command_args.extend([("output.elasticsearch.enabled", "false")])
-            add_es_config(command_args, prefix="xpack.monitoring")
+            add_es_config(command_args, prefix="monitoring" if self.at_least_version("7.2") else "xpack.monitoring")
             if beat_output == "logstash":
                 command_args.extend([
                     ("output.logstash.enabled", "true"),
@@ -188,7 +188,9 @@ class Metricbeat(BeatMixin, StackService, Service):
             labels=None,
             user="root",
             volumes=[
-                "./docker/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml",
+                ("./docker/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml"
+                 if self.at_least_version("7.2")
+                 else "./docker/metricbeat/metricbeat.6.x-compat.yml:/usr/share/metricbeat/metricbeat.yml"),
                 "/var/run/docker.sock:/var/run/docker.sock",
             ]
         )
@@ -211,7 +213,9 @@ class Packetbeat(BeatMixin, StackService, Service):
             cap_add=["NET_ADMIN", "NET_RAW"],
             network_mode="service:apm-server",
             volumes=[
-                "./docker/packetbeat/packetbeat.yml:/usr/share/packetbeat/packetbeat.yml",
+                ("./docker/packetbeat/packetbeat.yml:/usr/share/packetbeat/packetbeat.yml"
+                 if self.at_least_version("7.2")
+                 else "./docker/packetbeat/packetbeat.6.x-compat.yml:/usr/share/packetbeat/packetbeat.yml"),
                 "/var/run/docker.sock:/var/run/docker.sock",
             ]
         )
