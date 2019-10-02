@@ -3,7 +3,7 @@
 #
 
 
-from .helpers import curl_healthcheck
+from .helpers import curl_healthcheck, parse_version
 from .service import StackService, Service
 
 
@@ -24,6 +24,14 @@ class Logstash(StackService, Service):
     def _content(self):
         self.es_urls = ",".join(self.options.get(
             "logstash_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
+        if self.at_least_version("7.3") \
+                or self.options.get("apm_server_snapshot") \
+                or (not self.options.get("apm_server_version") is None and
+                    parse_version("7.3") <= parse_version(self.options.get("apm_server_version"))):
+            volumes = ["./docker/logstash/pipeline/:/usr/share/logstash/pipeline/"]
+        else:
+            volumes = ["./docker/logstash/pipeline-6.x-compat/:/usr/share/logstash/pipeline/"]
+
         return dict(
             depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
                 "enable_elasticsearch", True) else {},
@@ -32,7 +40,7 @@ class Logstash(StackService, Service):
             },
             healthcheck=curl_healthcheck(9600, "logstash", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT), "9600"],
-            volumes=["./docker/logstash/pipeline/:/usr/share/logstash/pipeline/"]
+            volumes=volumes
         )
 
     @classmethod

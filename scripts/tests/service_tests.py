@@ -929,8 +929,26 @@ class LogstashServiceTest(ServiceTest):
                 driver: json-file
                 options: {max-file: '5', max-size: 2m}
             ports: ['127.0.0.1:5044:5044', '9600']
-            volumes: ['./docker/logstash/pipeline/:/usr/share/logstash/pipeline/']""")  # noqa: 501
+            volumes: ['./docker/logstash/pipeline-6.x-compat/:/usr/share/logstash/pipeline/']""")  # noqa: 501
 
+        )
+
+    def test_logstash_7_3(self):
+        logstash = Logstash(version="7.3.0", release=True).render()
+        self.assertEqual(
+            logstash["logstash"]["volumes"], ['./docker/logstash/pipeline/:/usr/share/logstash/pipeline/']
+        )
+
+    def test_logstash_apm_server_7_3(self):
+        logstash = Logstash(version="7.1.0", release=True, apm_server_version="7.3.0").render()
+        self.assertEqual(
+            logstash["logstash"]["volumes"], ['./docker/logstash/pipeline/:/usr/share/logstash/pipeline/']
+        )
+
+    def test_logstash_apm_server_snapshot(self):
+        logstash = Logstash(version="7.1.0", release=True, apm_server_snapshot="true").render()
+        self.assertEqual(
+            logstash["logstash"]["volumes"], ['./docker/logstash/pipeline/:/usr/share/logstash/pipeline/']
         )
 
     def test_logstash_elasticsearch_urls(self):
