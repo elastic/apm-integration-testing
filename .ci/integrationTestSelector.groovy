@@ -9,6 +9,7 @@ pipeline {
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GIT_CREDENTIALS = '2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken'
     PIPELINE_LOG_LEVEL = 'INFO'
+    REUSE_CONTAINERS = "true"
   }
   options {
     timeout(time: 1, unit: 'HOURS')
@@ -78,7 +79,6 @@ pipeline {
       }
       environment {
         TMPDIR = "${WORKSPACE}"
-        REUSE_CONTAINERS = "true"
       }
       steps {
         deleteDir()
@@ -124,7 +124,6 @@ pipeline {
       }
       environment {
         TMPDIR = "${WORKSPACE}"
-        REUSE_CONTAINERS = "true"
       }
       steps {
         deleteDir()
