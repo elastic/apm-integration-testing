@@ -1,10 +1,19 @@
 #!/bin/bash -ex
 
-srcdir=`dirname $0`
+srcdir=$(dirname "$0")
 test -z "$srcdir" && srcdir=.
-. ${srcdir}/common.sh
+. "${srcdir}/common.sh"
 
-export COMPOSE_ARGS="6.6 --force-build --build-parallel --no-apm-server-dashboards --no-apm-server-self-instrument --apm-server-count 2 --apm-server-tee --elasticsearch-data-dir '' --no-apm-server-pipeline --all --no-kibana"
+export COMPOSE_ARGS="6.6 --force-build --build-parallel \
+  --no-apm-server-dashboards --no-apm-server-self-instrument \
+  --apm-server-count 2 --apm-server-tee --elasticsearch-data-dir '' \
+  --no-apm-server-pipeline --all-opbeans --no-kibana\
+  --opbeans-dotnet-version=1.1.1\
+  --opbeans-go-agent-branch=v1.5.0\
+  --opbeans-java-agent-branch=v1.10.0\
+  --opbeans-node-agent-branch=v3.0.0\
+  --opbeans-python-agent-branch=v5.2.1\
+  --opbeans-ruby-agent-branch=v3.0.0"
 make start-env docker-compose-wait
 
 # let opbeans apps generate some data
