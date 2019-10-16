@@ -2,14 +2,15 @@
 
 srcdir=$(dirname "$0")
 test -z "$srcdir" && srcdir=.
+# shellcheck source=/dev/null
 . "${srcdir}/common.sh"
 
-export COMPOSE_ARGS="6.6 --force-build --build-parallel \
+export COMPOSE_ARGS="6.6 --release --force-build --build-parallel \
   --no-apm-server-dashboards --no-apm-server-self-instrument \
-  --apm-server-count 2 --apm-server-tee --elasticsearch-data-dir '' \
+  --elasticsearch-data-dir '' \
   --no-apm-server-pipeline --all-opbeans --no-kibana\
   --opbeans-dotnet-version=1.1.1\
-  --opbeans-go-agent-branch=v1.5.0\
+  --opbeans-go-agent-branch=1.x\
   --opbeans-java-agent-branch=v1.10.0\
   --opbeans-node-agent-branch=v3.0.0\
   --opbeans-python-agent-branch=v5.2.1\

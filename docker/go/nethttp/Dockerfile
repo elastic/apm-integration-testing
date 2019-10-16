@@ -1,4 +1,4 @@
-FROM golang:latest
+FROM golang:1.8
 ENV GO111MODULE=on
 WORKDIR /src/testapp
 COPY . /src/testapp
