@@ -5,16 +5,19 @@ test -z "$srcdir" && srcdir=.
 # shellcheck source=/dev/null
 . "${srcdir}/common.sh"
 
-export COMPOSE_ARGS="6.6 --release --force-build --build-parallel \
+docker build --build-arg GO_AGENT_BRANCH=v1.5.0 -t localtesting_6.6.2_opbeans-go docker/opbeans/go
+docker build --build-arg JAVA_AGENT_VERSION=v1.10.0 -t localtesting_6.6.2_opbeans-java docker/opbeans/java
+docker build --build-arg PYTHON_AGENT_VERSION=v5.2.1 -t localtesting_6.6.2_opbeans-python docker/opbeans/python
+docker build --build-arg NODE_AGENT_VERSION=v3.0.0 -t localtesting_6.6.2_opbeans-node docker/opbeans/node
+docker build --build-arg RUBY_AGENT_VERSION=v3.0.0 -t localtesting_6.6.2_opbeans-ruby docker/opbeans/ruby
+docker build --build-arg DOTNET_AGENT_VERSION=1.1.1 -t localtesting_6.6.2_opbeans-dotnet docker/opbeans/dotnet
+
+export REUSE_CONTAINERS="true"
+export COMPOSE_ARGS="6.6 --release \
   --no-apm-server-dashboards --no-apm-server-self-instrument \
   --elasticsearch-data-dir '' \
-  --no-apm-server-pipeline --all-opbeans --no-kibana\
-  --opbeans-dotnet-version=1.1.1\
-  --opbeans-go-agent-branch=1.x\
-  --opbeans-java-agent-branch=v1.10.0\
-  --opbeans-node-agent-branch=v3.0.0\
-  --opbeans-python-agent-branch=v5.2.1\
-  --opbeans-ruby-agent-branch=v3.0.0"
+  --no-apm-server-pipeline --all-opbeans --no-kibana"
+
 make start-env docker-compose-wait
 
 # let opbeans apps generate some data
