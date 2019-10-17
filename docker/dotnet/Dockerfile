@@ -12,10 +12,7 @@ COPY . /src
 RUN ./run.sh
 
 # Stage 2: Run the opbeans-dotnet app
-## Alpine image produces a segmentation fault:
-##        further details: https://github.com/aspnet/EntityFrameworkCore/issues/14504
-## FROM mcr.microsoft.com/dotnet/core/aspnet:2.2-alpine AS runtime
-FROM mcr.microsoft.com/dotnet/core/aspnet:2.2 AS runtime
+FROM mcr.microsoft.com/dotnet/core/aspnet:2.2-alpine AS runtime
 WORKDIR /app
 COPY --from=build /src/aspnetcore/build ./
 EXPOSE 8100
