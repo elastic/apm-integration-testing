@@ -4,7 +4,7 @@
 
 from collections import OrderedDict
 
-from .helpers import add_agent_environment, curl_healthcheck
+from .helpers import add_agent_environment, curl_healthcheck, wget_healthcheck
 from .service import Service, DEFAULT_APM_SERVER_URL, DEFAULT_APM_JS_SERVER_URL
 
 
@@ -589,7 +589,7 @@ class OpbeansRuby(OpbeansService):
             image=None,
             labels=None,
             # lots of retries as the ruby app can take a long time to boot
-            healthcheck=curl_healthcheck(3000, "opbeans-ruby", path="/", retries=50),
+            healthcheck=wget_healthcheck(3000, "opbeans-ruby", path="/", retries=50),
             ports=[self.publish_port(self.port, 3000)],
         )
         if self.agent_local_repo:
