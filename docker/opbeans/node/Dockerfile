@@ -5,4 +5,4 @@ FROM ${OPBEANS_NODE_IMAGE}:${OPBEANS_NODE_VERSION}
 COPY entrypoint.sh /app/entrypoint.sh
 
 CMD ["pm2-runtime", "ecosystem-workload.config.js"]
-ENTRYPOINT ["/bin/bash", "/app/entrypoint.sh"]
+ENTRYPOINT ["/app/entrypoint.sh"]

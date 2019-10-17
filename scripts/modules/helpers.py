@@ -87,6 +87,16 @@ def curl_healthcheck(port, host="localhost", path="/healthcheck",
     }
 
 
+def wget_healthcheck(port, host="localhost", path="/healthcheck",
+                     interval=DEFAULT_HEALTHCHECK_INTERVAL, retries=DEFAULT_HEALTHCHECK_RETRIES):
+    return {
+        "interval": interval,
+        "retries": retries,
+        "test": ["CMD", "wget", "-q", "--server-response", "-O", "/dev/null",
+                 "http://{}:{}{}".format(host, port, path)]
+    }
+
+
 build_manifests = {}  # version -> manifest cache
 
 
