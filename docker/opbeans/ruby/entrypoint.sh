@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-set -e
+set -ex
 if [ -f /local-install/Gemfile ]; then
     echo "Installing from local folder"
     # copy to folder inside container to ensure were not poluting the local folder
@@ -13,6 +13,8 @@ elif [ -n "${RUBY_AGENT_BRANCH}" ]; then
     if [ -z "${RUBY_AGENT_REPO}" ]; then
         RUBY_AGENT_REPO="elastic/apm-agent-ruby"
     fi
+    # This is required with the alpine version
+    apk --no-cache add git
     echo "Installing ${RUBY_AGENT_REPO}:${RUBY_AGENT_BRANCH} from Github"
     gem specific_install https://github.com/${RUBY_AGENT_REPO}.git -b "${RUBY_AGENT_BRANCH}"
 else
