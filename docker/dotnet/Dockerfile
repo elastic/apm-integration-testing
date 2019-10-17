@@ -15,5 +15,8 @@ RUN ./run.sh
 FROM mcr.microsoft.com/dotnet/core/aspnet:2.2-alpine AS runtime
 WORKDIR /app
 COPY --from=build /src/aspnetcore/build ./
+RUN apk update \
+    && apk add --no-cache curl \
+    && rm -rf /var/cache/apk/*
 EXPOSE 8100
 ENTRYPOINT ["dotnet", "TestAspNetCoreApp.dll", "--urls=http://0.0.0.0:8100"]
