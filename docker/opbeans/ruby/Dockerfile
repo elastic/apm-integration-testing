@@ -5,4 +5,4 @@ FROM ${OPBEANS_RUBY_IMAGE}:${OPBEANS_RUBY_VERSION}
 COPY entrypoint.sh /app/entrypoint.sh
 
 CMD ["bin/boot"]
-ENTRYPOINT ["/bin/bash", "/app/entrypoint.sh"]
+ENTRYPOINT ["/app/entrypoint.sh"]
