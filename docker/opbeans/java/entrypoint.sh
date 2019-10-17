@@ -9,12 +9,6 @@ if [ -f /local-install/pom.xml ]; then
     JAVA_AGENT_LOCAL_VERSION=$(xmllint --xpath '/*[local-name()="project"]/*[local-name()="version"]/text()' /local-install/pom.xml)
 
     cp -v "/local-install/elastic-apm-agent/target/elastic-apm-agent-${JAVA_AGENT_LOCAL_VERSION}.jar" /app/elastic-apm-agent.jar
-    # copy to folder inside container to ensure were not polluting the local folder
-    cp -r /local-install ~
-    # Install xmllint in the alpine
-    apk --no-cache add python
-    cd ~/local-install && python setup.py install
-    cd -
 elif [ -n "${JAVA_AGENT_VERSION}" ]; then
     echo "Downloading Java agent $JAVA_AGENT_VERSION from maven central"
     rm -f /app/elastic-apm-agent.jar
