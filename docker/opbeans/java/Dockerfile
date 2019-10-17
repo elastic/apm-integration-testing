@@ -24,4 +24,4 @@ CMD java -javaagent:/app/elastic-apm-agent.jar -Dspring.profiles.active=customdb
                                         -Dspring.datasource.driverClassName=${DATABASE_DRIVER:-org.postgresql.Driver}\
                                         -Dspring.jpa.database=${DATABASE_DIALECT:-POSTGRESQL}\
                                         -jar /app/app.jar
-ENTRYPOINT ["/bin/bash", "/app/entrypoint.sh"]
+ENTRYPOINT ["/app/entrypoint.sh"]
