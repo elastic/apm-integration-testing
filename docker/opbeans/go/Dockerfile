@@ -20,7 +20,7 @@ RUN go build
 
 # Stage 1: copy static assets from opbeans/opbeans-frontend and
 # opbeans-go from stage 0 into a minimal image.
-FROM gcr.io/distroless/base-debian10
+FROM gcr.io/distroless/base-debian10:sha256:afb0261acca92ecd6a19ab4e32aa05a55bd096faa26afdb0c24e2a359f91386d
 COPY --from=opbeans/opbeans-frontend:latest /app/build /opbeans-frontend
 COPY --from=0 /src/opbeans-go/opbeans-go /
 COPY --from=0 /src/opbeans-go/db /
