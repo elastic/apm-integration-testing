@@ -68,7 +68,7 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
                       - ELASTIC_APM_FLUSH_INTERVAL=5
                       - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
-                      - ELASTIC_APM_SAMPLE_RATE=1
+                      - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=1
                       - ELASTICSEARCH_URL=elasticsearch:9200
                       - OPBEANS_DT_PROBABILITY=0.50
                       - ELASTIC_APM_ENVIRONMENT=production
@@ -125,7 +125,7 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
                       - ELASTIC_APM_FLUSH_INTERVAL=5
                       - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
-                      - ELASTIC_APM_SAMPLE_RATE=1
+                      - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=1
                       - ELASTICSEARCH_URL=elasticsearch:9200
                       - OPBEANS_CACHE=redis://redis:6379
                       - OPBEANS_PORT=3000
@@ -184,7 +184,7 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                       - ELASTIC_APM_FLUSH_INTERVAL=5
                       - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
-                      - ELASTIC_APM_SAMPLE_RATE=1
+                      - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=1
                       - ELASTIC_APM_ENABLE_LOG_CORRELATION=true
                       - DATABASE_URL=jdbc:postgresql://postgres/opbeans?user=postgres&password=verysecure
                       - DATABASE_DIALECT=POSTGRESQL
