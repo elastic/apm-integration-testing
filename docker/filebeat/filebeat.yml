@@ -25,204 +25,114 @@ filebeat.autodiscover:
       templates:
         - condition:
             contains:
-              docker.container.image: "opbeans-node"
+              docker.container.name: "opbeans-"
           config:
             - type: container
               paths:
                 - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
-              containers.ids:
-                - "${data.docker.container.id}"
+              tail_files: true
+              json.add_error_key: true
+              json.overwrite_keys: true
+              json.keys_under_root: true
+              json.message_key: message
+              include_lines: ['^\{.*\}$']
+              processors:
+              - add_tags:
+                  tags: [json]
+                  target: "parser_type"
+        - condition:
+            contains:
+              docker.container.name: "opbeans-"
+          config:
+            - type: container
+              paths:
+                - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
+              tail_files: true
               multiline.pattern: '^ '
               multiline.negate: false
               multiline.match: after
+              exclude_lines: ['^\{.*\}$']
+              processors:
+              - add_tags:
+                  tags: [no_json]
+                  target: "parser_type"
         - condition:
             contains:
-                docker.container.image: "opbeans-dotnet"
+                docker.container.name: "kibana"
           config:
-            - type: container
-              paths:
-                - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
-              containers.ids:
-                - "${data.docker.container.id}"
+            - module: container
+              input:
+                type: container
+                paths:
+                  - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
               tail_files: true
-              fields_under_root: true
-              json.keys_under_root: true
-              json.overwrite_keys: true
               json.add_error_key: true
-              json.message_key: message
-              tags: ["${docker.container.labels.com_docker_compose_service}"]
-        - condition:
-            contains:
-                docker.container.image: "opbeans-go"
-          config:
-            - type: container
-              paths:
-                - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
-              containers.ids:
-                - "${data.docker.container.id}"
-              tail_files: true
-              fields_under_root: true
-              json.keys_under_root: true
               json.overwrite_keys: true
-              json.add_error_key: true
-              json.message_key: message
-              tags: ["${docker.container.labels.com_docker_compose_service}"]
-        - condition:
-            contains:
-                docker.container.image: "opbeans-java"
-          config:
-            - type: container
-              paths:
-                - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
-              containers.ids:
-                - "${data.docker.container.id}"
-              tail_files: true
-              fields_under_root: true
               json.keys_under_root: true
-              json.overwrite_keys: true
-              json.add_error_key: true
-              json.message_key: message
-              include_lines: ["^{"]
-              tags: ["${docker.container.labels.com_docker_compose_service}"]
         - condition:
             contains:
-                docker.container.image: "opbeans-python"
+                docker.container.name: "elasticsearch"
           config:
-            - type: container
-              paths:
-                - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
-              containers.ids:
-                - "${data.docker.container.id}"
+            - module: container
+              input:
+                type: container
+                paths:
+                  - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
               tail_files: true
-              fields_under_root: true
+              json.add_error_key: true
+              json.overwrite_keys: true
               json.keys_under_root: true
-              json.overwrite_keys: true
+        - condition:
+            contains:
+                docker.container.name: "metricbeat"
+          config:
+            - type: container
+              paths:
+                - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
+              tail_files: true
               json.add_error_key: true
-              json.message_key: message
-              include_lines: ["^{"]
-              tags: ["${docker.container.labels.com_docker_compose_service}"]
-        - condition:
-            contains:
-                docker.container.image: "opbeans-ruby"
-          config:
-            - type: container
-              paths:
-                - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
-              containers.ids:
-                - "${data.docker.container.id}"
-              tail_files: true
-              tags: ["${docker.container.labels.com_docker_compose_service}"]
-        - condition:
-            contains:
-                docker.container.image: "kibana"
-          config:
-            - module: kibana
-              log:
-                input:
-                  type: container
-                  paths:
-                    - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
-                  containers.ids:
-                    - "${data.docker.container.id}"
-                  tail_files: true
-                  fields_under_root: true
-                  json.keys_under_root: true
-                  json.overwrite_keys: true
-                  json.add_error_key: true
-                  json.message_key: message
-                  tags: ["${docker.container.labels.com_docker_compose_service}"]
-        - condition:
-            contains:
-                docker.container.image: "elasticsearch"
-          config:
-            - module: elasticsearch
-              log:
-                input:
-                  type: container
-                  paths:
-                    - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
-                  containers.ids:
-                    - "${data.docker.container.id}"
-                  tail_files: true
-                  fields_under_root: true
-                  json.keys_under_root: true
-                  json.overwrite_keys: true
-                  json.add_error_key: true
-                  json.message_key: message
-                  tags: ["${docker.container.labels.com_docker_compose_service}"]
-        - condition:
-            contains:
-                docker.container.image: "metricbeat"
-          config:
-            - type: container
-              paths:
-                - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
-              containers.ids:
-                - "${data.docker.container.id}"
-              tail_files: true
-              fields_under_root: true
+              json.overwrite_keys: true
               json.keys_under_root: true
-              json.overwrite_keys: true
-              json.add_error_key: true
-              json.message_key: message
-              tags: ["${docker.container.labels.com_docker_compose_service}"]
         - condition:
             contains:
-                docker.container.image: "heartbeat"
+                docker.container.name: "heartbeat"
           config:
             - type: container
               paths:
                 - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
-              containers.ids:
-                - "${data.docker.container.id}"
               tail_files: true
-              fields_under_root: true
-              json.keys_under_root: true
-              json.overwrite_keys: true
               json.add_error_key: true
-              json.message_key: message
-              tags: ["${docker.container.labels.com_docker_compose_service}"]
+              json.overwrite_keys: true
+              json.keys_under_root: true
         - condition:
             contains:
-                docker.container.image: "filebeat"
+                docker.container.name: "filebeat"
           config:
             - type: container
               paths:
                 - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
-              containers.ids:
-                - "${data.docker.container.id}"
               tail_files: true
-              fields_under_root: true
-              json.keys_under_root: true
-              json.overwrite_keys: true
               json.add_error_key: true
-              json.message_key: message
-              tags: ["${docker.container.labels.com_docker_compose_service}"]
+              json.overwrite_keys: true
+              json.keys_under_root: true
         - condition:
             contains:
-                docker.container.image: "apm-server"
+                docker.container.name: "apm-server"
           config:
             - type: container
               paths:
                 - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
-              containers.ids:
-                - "${data.docker.container.id}"
               tail_files: true
-              fields_under_root: true
-              json.keys_under_root: true
-              json.overwrite_keys: true
               json.add_error_key: true
-              json.message_key: message
-              tags: ["${docker.container.labels.com_docker_compose_service}"]
+              json.overwrite_keys: true
+              json.keys_under_root: true
         - condition:
             contains:
-              docker.container.image: "postgres"
+              docker.container.name: "postgres"
           config:
             - type: container
               paths:
                 - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
-              containers.ids:
-                - "${data.docker.container.id}"
               multiline.pattern: '^\t'
               multiline.negate: false
               multiline.match: after
@@ -230,40 +140,25 @@ filebeat.autodiscover:
             and:
               - not:
                   contains:
-                    docker.container.image: "apm-server"
+                    docker.container.name: "apm-server"
               - not:
                   contains:
-                    docker.container.image: "filebeat"
+                    docker.container.name: "filebeat"
               - not:
                   contains:
-                    docker.container.image: "heartbeat"
+                    docker.container.name: "heartbeat"
               - not:
                   contains:
-                    docker.container.image: "kibana"
+                    docker.container.name: "kibana"
               - not:
                   contains:
-                    docker.container.image: "metricbeat"
+                    docker.container.name: "metricbeat"
               - not:
                   contains:
-                    docker.container.image: "opbeans-node"
+                    docker.container.name: "opbeans-"
               - not:
                   contains:
-                    docker.container.image: "opbeans-go"
-              - not:
-                  contains:
-                    docker.container.image: "opbeans-python"
-              - not:
-                  contains:
-                    docker.container.image: "opbeans-java"
-              - not:
-                  contains:
-                    docker.container.image: "opbeans-ruby"
-              - not:
-                  contains:
-                    docker.container.image: "opbeans-dotnet"
-              - not:
-                  contains:
-                    docker.container.image: "postgres"
+                    docker.container.name: "postgres"
           config:
             - type: container
               paths:
