@@ -30,16 +30,22 @@ filebeat.autodiscover:
             - type: container
               paths:
                 - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
+              include_lines: ['^{']
               tail_files: true
-              json.add_error_key: true
-              json.overwrite_keys: true
-              json.keys_under_root: true
-              json.message_key: message
-              include_lines: ['^\{.*\}$']
               processors:
               - add_tags:
                   tags: [json]
                   target: "parser_type"
+              - decode_json_fields:
+                  when:
+                    regexp:
+                      message: '^{'
+                  fields:
+                    - message
+                  target: "json"
+                  overwrite_keys: true
+                  add_error_key: true
+              fields_under_root: true
         - condition:
             contains:
               docker.container.name: "opbeans-"
@@ -48,10 +54,10 @@ filebeat.autodiscover:
               paths:
                 - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
               tail_files: true
-              multiline.pattern: '^ '
+              multiline.pattern: '^[[:blank:]]'
               multiline.negate: false
               multiline.match: after
-              exclude_lines: ['^\{.*\}$']
+              exclude_lines: ['^{']
               processors:
               - add_tags:
                   tags: [no_json]
@@ -60,11 +66,9 @@ filebeat.autodiscover:
             contains:
                 docker.container.name: "kibana"
           config:
-            - module: container
-              input:
-                type: container
-                paths:
-                  - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
+            - type: container
+              paths:
+                - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
               tail_files: true
               json.add_error_key: true
               json.overwrite_keys: true
@@ -73,11 +77,9 @@ filebeat.autodiscover:
             contains:
                 docker.container.name: "elasticsearch"
           config:
-            - module: container
-              input:
-                type: container
-                paths:
-                  - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
+            - type: container
+              paths:
+                - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
               tail_files: true
               json.add_error_key: true
               json.overwrite_keys: true
@@ -133,6 +135,7 @@ filebeat.autodiscover:
             - type: container
               paths:
                 - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
+              tail_files: true
               multiline.pattern: '^\t'
               multiline.negate: false
               multiline.match: after
@@ -163,5 +166,4 @@ filebeat.autodiscover:
             - type: container
               paths:
                 - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
-              containers.ids:
-                - "${data.docker.container.id}"
+              tail_files: true
