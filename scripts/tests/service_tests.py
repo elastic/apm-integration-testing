@@ -662,7 +662,7 @@ class ApmServerServiceTest(ServiceTest):
     def test_apm_server_acm(self):
         apm_server = ApmServer(version="7.3").render()["apm-server"]
         self.assertTrue("apm-server.kibana.enabled=true" in apm_server["command"],
-                        "APM Server Kbana enabled by default")
+                        "APM Server Kibana enabled by default")
         self.assertTrue("apm-server.kibana.host=kibana:5601" in apm_server["command"],
                         "APM Server Kibana host set by default")
 

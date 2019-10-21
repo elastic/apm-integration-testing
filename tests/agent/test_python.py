@@ -1,6 +1,6 @@
 import pytest
 
-from tests import utils
+from tests import utils, agent
 from tests.agent.concurrent_requests import Concurrent
 
 
@@ -25,6 +25,15 @@ def test_concurrent_req_flask(flask):
                               ["app.foo"],
                               "GET /foo")
     Concurrent(flask.apm_server.elasticsearch, [foo], iters=2).run()
+
+
+@pytest.mark.version
+@pytest.mark.flask
+def test_req_flask_agent_config(flask, kibana):
+    with agent.remote_config(kibana.url, sampling_rate=0.0):
+        # 1 transaction, 0 spans
+        utils.check_agent_transaction(
+            flask.foo, flask.apm_server.elasticsearch, ct=1)
 
 
 @pytest.mark.version
