@@ -82,7 +82,7 @@ filebeat.autodiscover:
               json.overwrite_keys: true
               json.add_error_key: true
               json.message_key: message
-              exclude_lines: ["^20", "^WARNING"]
+              include_lines: ["^{"]
               tags: ["${docker.container.labels.com_docker_compose_service}"]
         - condition:
             contains:
