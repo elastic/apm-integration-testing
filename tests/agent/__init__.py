@@ -7,7 +7,7 @@ from tests.fixtures import default
 
 
 @contextmanager
-def remote_config(url, sampling_rate=1.0):
+def remote_config(kibana_url, sampling_rate=1.0):
     def data(sample_rate):
         return {
             "agent_name": "python",
@@ -16,11 +16,11 @@ def remote_config(url, sampling_rate=1.0):
         }
 
     headers = {"Content-Type": "application/json", "kbn-xsrf": "1"}
-    wait = 2.5  # just higher than apm-server.agent.config.cache.expiration
+    wait = 1.5  # just higher than apm-server.agent.config.cache.expiration
 
     try:
         r = requests.post(
-            urljoin(url, "/api/apm/settings/agent-configuration/new"),
+            urljoin(kibana_url, "/api/apm/settings/agent-configuration/new"),
             headers=headers,
             json=data(sampling_rate),
         )
@@ -33,7 +33,7 @@ def remote_config(url, sampling_rate=1.0):
     finally:
         # revert to original
         r2 = requests.put(
-            urljoin(url, "/api/apm/settings/agent-configuration/" + config_id),
+            urljoin(kibana_url, "/api/apm/settings/agent-configuration/" + config_id),
             headers=headers,
             json=data(1.0),
         )
@@ -41,7 +41,7 @@ def remote_config(url, sampling_rate=1.0):
         time.sleep(wait)
 
         r3 = requests.delete(
-            urljoin(url, "/api/apm/settings/agent-configuration/" + config_id),
+            urljoin(kibana_url, "/api/apm/settings/agent-configuration/" + config_id),
             headers=headers,
         )
         r3.raise_for_status()
