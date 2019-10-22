@@ -37,9 +37,6 @@ filebeat.autodiscover:
                   tags: [json]
                   target: "parser_type"
               - decode_json_fields:
-                  when:
-                    regexp:
-                      message: '^{'
                   fields:
                     - message
                   target: "json"
