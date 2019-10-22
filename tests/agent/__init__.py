@@ -17,6 +17,7 @@ def remote_config(kibana_url, sampling_rate=1.0):
 
     headers = {"Content-Type": "application/json", "kbn-xsrf": "1"}
     wait = 1.5  # just higher than apm-server.agent.config.cache.expiration
+    config_id = ""
 
     try:
         r = requests.post(
@@ -31,6 +32,8 @@ def remote_config(kibana_url, sampling_rate=1.0):
         yield config_id
 
     finally:
+        if config_id == "":
+            return
         # revert to original
         r2 = requests.put(
             urljoin(kibana_url, "/api/apm/settings/agent-configuration/" + config_id),
