@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 import requests
 import time
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 from tests.fixtures import default
 
