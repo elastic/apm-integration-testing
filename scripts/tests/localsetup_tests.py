@@ -273,7 +273,7 @@ class OpbeansServiceTest(ServiceTest):
                         apm-server:
                             condition: service_healthy
                     healthcheck:
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-node:3000/"]
+                        test: ["CMD", "wget", "-q", "--server-response", "-O", "/dev/null", "http://opbeans-node:3000/"]
                         interval: 10s
                         retries: 12
                     volumes:

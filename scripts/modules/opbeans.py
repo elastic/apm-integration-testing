@@ -398,7 +398,7 @@ class OpbeansNode(OpbeansService):
             depends_on=depends_on,
             image=None,
             labels=None,
-            healthcheck=curl_healthcheck(3000, "opbeans-node", path="/"),
+            healthcheck=wget_healthcheck(3000, "opbeans-node", path="/"),
             ports=[self.publish_port(self.port, 3000)],
             volumes=[
                 "./docker/opbeans/node/sourcemaps:/sourcemaps",
