@@ -204,6 +204,13 @@ class LocalSetup(object):
                 )
             service.add_arguments(parser)
 
+        enabled_group.add_argument(
+            '--no-opbeans-load-generator',
+            action='store_false',
+            dest='enable_opbeans_load_generator',
+            help='Disable opbeans-load-generator'
+        )
+
         parser.add_argument(
             '--opbeans-dt-probability',
             action="store",
@@ -481,10 +488,13 @@ class LocalSetup(object):
         run_all = args.get("run_all")
         all_opbeans = args.get('run_all_opbeans') or run_all
         any_opbeans = all_opbeans or any(v and k.startswith('enable_opbeans_') for k, v in args.items())
+        opbeans_sidecars = ['postgres', 'redis', 'opbeans-load-generator']
+        if not args.get("enable_opbeans_load_generator"):
+            opbeans_sidecars.remove('opbeans-load-generator')
         for service in self.services:
             service_enabled = args.get("enable_" + service.option_name())
             is_opbeans_service = issubclass(service, OpbeansService) or service is OpbeansRum
-            is_opbeans_sidecar = service.name() in ('postgres', 'redis', 'opbeans-load-generator')
+            is_opbeans_sidecar = service.name() in opbeans_sidecars
             is_opbeans_2nd = service.name() in ('opbeans-go01', 'opbeans-java01',
                                                 'opbeans-python01', 'opbeans-ruby01',
                                                 'opbeans-dotnet01', 'opbeans-node01')
