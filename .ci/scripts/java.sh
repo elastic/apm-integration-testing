@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # for details about how it works see https://github.com/elastic/apm-integration-testing#continuous-integration
 
-srcdir=`dirname $0`
+srcdir=$(dirname "$0")
 test -z "$srcdir" && srcdir=.
-. ${srcdir}/common.sh
+# shellcheck disable=SC1090
+. "${srcdir}/common.sh"
 
 if [ -n "${APM_AGENT_JAVA_VERSION}" ]; then
   EXTRA_OPTS=${APM_AGENT_JAVA_VERSION/'github;'/'--java-agent-version='}
