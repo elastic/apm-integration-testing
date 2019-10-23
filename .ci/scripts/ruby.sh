@@ -1,9 +1,10 @@
 #!/bin/bash -e
 # for details about how it works see https://github.com/elastic/apm-integration-testing#continuous-integration
 
-srcdir=`dirname $0`
+srcdir=$(dirname "$0")
 test -z "$srcdir" && srcdir=.
-. ${srcdir}/common.sh
+# shellcheck disable=SC1090
+. "${srcdir}/common.sh"
 
 if [ -n "${APM_AGENT_RUBY_VERSION}" ]; then
   BUILD_OPTS="${BUILD_OPTS} --ruby-agent-version='${APM_AGENT_RUBY_VERSION#*;}' --ruby-agent-version-state='${APM_AGENT_RUBY_VERSION%;*}'"

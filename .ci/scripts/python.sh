@@ -1,9 +1,10 @@
 #!/bin/bash -e
 # for details about how it works see https://github.com/elastic/apm-integration-testing#continuous-integration
 
-srcdir=`dirname $0`
+srcdir=$(dirname "$0")
 test -z "$srcdir" && srcdir=.
-. ${srcdir}/common.sh
+# shellcheck disable=SC1090
+. "${srcdir}/common.sh"
 
 if [ -n "${APM_AGENT_PYTHON_VERSION}" ]; then
   APM_AGENT_PYTHON_VERSION=${APM_AGENT_PYTHON_VERSION/'github;'/'git+https://github.com/elastic/apm-agent-python.git@'}
