@@ -208,7 +208,8 @@ class LocalSetup(object):
             '--no-opbeans-load-generator',
             action='store_false',
             dest='enable_opbeans_load_generator',
-            help='Disable opbeans-load-generator'
+            help='Disable opbeans-load-generator',
+            default=False,
         )
 
         parser.add_argument(
@@ -487,7 +488,8 @@ class LocalSetup(object):
         selections = set()
         run_all = args.get("run_all")
         all_opbeans = args.get('run_all_opbeans') or run_all
-        any_opbeans = all_opbeans or any(v and k.startswith('enable_opbeans_') for k, v in args.items())
+        any_opbeans = all_opbeans or any(v and k.startswith('enable_opbeans_') and
+                                         not k.startswith('enable_opbeans_load_generator') for k, v in args.items())
         opbeans_sidecars = ['postgres', 'redis', 'opbeans-load-generator']
         if not args.get("enable_opbeans_load_generator"):
             opbeans_sidecars.remove('opbeans-load-generator')
