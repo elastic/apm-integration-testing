@@ -8,6 +8,7 @@ import logging
 import os
 import subprocess
 import sys
+import re
 
 from .beats import BeatMixin
 from .helpers import load_images
@@ -203,6 +204,14 @@ class LocalSetup(object):
                     default=service.enabled(),
                 )
             service.add_arguments(parser)
+
+        enabled_group.add_argument(
+            '--no-opbeans-load-generator',
+            action='store_true',
+            dest='disable_opbeans_load_generator',
+            help='Disable opbeans-load-generator',
+            default=False,
+        )
 
         parser.add_argument(
             '--opbeans-dt-probability',
@@ -481,17 +490,20 @@ class LocalSetup(object):
         run_all = args.get("run_all")
         all_opbeans = args.get('run_all_opbeans') or run_all
         any_opbeans = all_opbeans or any(v and k.startswith('enable_opbeans_') for k, v in args.items())
+        opbeans_sidecars = ['postgres', 'redis', 'opbeans-load-generator']
+        opbeans_2nds = ('opbeans-go01', 'opbeans-java01', 'opbeans-python01', 'opbeans-ruby01', 'opbeans-dotnet01',
+                        'opbeans-node01')
         for service in self.services:
             service_enabled = args.get("enable_" + service.option_name())
             is_opbeans_service = issubclass(service, OpbeansService) or service is OpbeansRum
-            is_opbeans_sidecar = service.name() in ('postgres', 'redis', 'opbeans-load-generator')
-            is_opbeans_2nd = service.name() in ('opbeans-go01', 'opbeans-java01',
-                                                'opbeans-python01', 'opbeans-ruby01',
-                                                'opbeans-dotnet01', 'opbeans-node01')
+            is_opbeans_sidecar = service.name() in opbeans_sidecars
+            is_opbeans_2nd = service.name() in opbeans_2nds
             is_obs = issubclass(service, BeatMixin)
-            if service_enabled or (all_opbeans and is_opbeans_service and not is_opbeans_2nd) \
-                    or (any_opbeans and is_opbeans_sidecar and not is_opbeans_2nd) or \
-                    (run_all and is_obs and not is_opbeans_2nd):
+            if (service_enabled
+                or (all_opbeans and is_opbeans_service and not is_opbeans_2nd)
+                or (any_opbeans and is_opbeans_sidecar and not is_opbeans_2nd)
+                or (run_all and is_obs and not is_opbeans_2nd)
+            ):
                 selections.add(service(**args))
 
         # `docker load` images if necessary, usually only for build candidates
@@ -522,6 +534,12 @@ class LocalSetup(object):
                 services[s]["environment"]["OPBEANS_SERVICES"] = enabled_opbeans_services_str
             else:
                 services[s]["environment"].append("OPBEANS_SERVICES=" + enabled_opbeans_services_str)
+
+        loadgen = services.get("opbeans-load-generator")
+        if not loadgen is None:
+            enabled_opbeans = any(re.search('OPBEANS_URLS=.+',v) for v in loadgen["environment"])
+            if args.get("disable_opbeans_load_generator") or not enabled_opbeans:
+                del services["opbeans-load-generator"]
 
         compose = dict(
             version="2.1",

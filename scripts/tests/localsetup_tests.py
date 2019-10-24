@@ -979,7 +979,7 @@ class LocalTest(unittest.TestCase):
     def test_start_one_opbeans(self, _ignore_load_images):
         docker_compose_yml = stringIO()
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-node"])
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-python"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -987,6 +987,37 @@ class LocalTest(unittest.TestCase):
         services = got["services"]
         self.assertIn("redis", services)
         self.assertIn("postgres", services)
+        self.assertIn("opbeans-load-generator", services)
+
+    @mock.patch(cli.__name__ + ".load_images")
+    def test_start_one_opbeans_without_loadgen(self, _ignore_load_images):
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-python",
+                                                              "--no-opbeans-python-loadgen"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        services = got["services"]
+        self.assertIn("redis", services)
+        self.assertIn("postgres", services)
+        self.assertNotIn("opbeans-load-generator", services)
+
+    @mock.patch(cli.__name__ + ".load_images")
+    def test_start_one_opbeans_without_loadgen_global_arg(self, _ignore_load_images):
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-python",
+                                                              "--no-opbeans-load-generator"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        services = got["services"]
+        self.assertIn("redis", services)
+        self.assertIn("postgres", services)
+        self.assertNotIn("opbeans-load-generator", services)
 
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_opbeans_2nd(self, _ignore_load_images):
