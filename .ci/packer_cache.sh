@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC1091
 source /usr/local/bin/bash_standard_lib.sh
 
 DOCKER_IMAGES="alpine:3.4
@@ -35,6 +36,10 @@ node:11
 node:11.0
 node:12
 node:12.0
+node:13
+node:13.0
+node:14
+node:14.0
 node:6
 node:6.0
 node:8
