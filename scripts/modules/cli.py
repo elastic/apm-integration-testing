@@ -361,6 +361,15 @@ class LocalSetup(object):
             help="enable xpack security throughout the stack",
         )
 
+        parser.add_argument(
+            '--no-verify-server-cert',
+            action='store_true',
+            dest='no_verify_server_cert',
+            help='Define the environment variable ELASTIC_APM_VERIFY_SERVER_CERT=false' +
+                 ' to disable the APM Server certificate verification.',
+            default="false"
+        )
+
         self.store_options(parser)
 
         return parser

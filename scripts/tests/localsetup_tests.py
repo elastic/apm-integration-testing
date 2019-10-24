@@ -66,6 +66,7 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTIC_APM_SERVICE_NAME=opbeans-dotnet
                       - ELASTIC_APM_SERVER_URLS=http://apm-server:8200
                       - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
+                      - ELASTIC_APM_VERIFY_SERVER_CERT=True
                       - ELASTIC_APM_FLUSH_INTERVAL=5
                       - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
                       - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=1
@@ -123,6 +124,7 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTIC_APM_SERVICE_NAME=opbeans-go
                       - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                       - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
+                      - ELASTIC_APM_VERIFY_SERVER_CERT=True
                       - ELASTIC_APM_FLUSH_INTERVAL=5
                       - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
                       - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=1
@@ -182,6 +184,7 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTIC_APM_SERVICE_NAME=opbeans-java
                       - ELASTIC_APM_APPLICATION_PACKAGES=co.elastic.apm.opbeans
                       - ELASTIC_APM_SERVER_URL=http://apm-server:8200
+                      - ELASTIC_APM_VERIFY_SERVER_CERT=True
                       - ELASTIC_APM_FLUSH_INTERVAL=5
                       - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
                       - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=1
@@ -245,6 +248,7 @@ class OpbeansServiceTest(ServiceTest):
                     environment:
                         - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                         - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
+                        - ELASTIC_APM_VERIFY_SERVER_CERT=True
                         - ELASTIC_APM_LOG_LEVEL=info
                         - ELASTIC_APM_SOURCE_LINES_ERROR_APP_FRAMES
                         - ELASTIC_APM_SOURCE_LINES_SPAN_APP_FRAMES=5
@@ -319,6 +323,7 @@ class OpbeansServiceTest(ServiceTest):
                         - ELASTIC_APM_SERVICE_NAME=opbeans-python
                         - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                         - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
+                        - ELASTIC_APM_VERIFY_SERVER_CERT=True
                         - ELASTIC_APM_FLUSH_INTERVAL=5
                         - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
                         - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.5
@@ -402,6 +407,7 @@ class OpbeansServiceTest(ServiceTest):
                     environment:
                       - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                       - ELASTIC_APM_SERVICE_NAME=opbeans-ruby
+                      - ELASTIC_APM_VERIFY_SERVER_CERT=True
                       - DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans-ruby
                       - REDIS_URL=redis://redis:6379
                       - ELASTICSEARCH_URL=elasticsearch:9200
@@ -455,6 +461,7 @@ class OpbeansServiceTest(ServiceTest):
                      container_name: localtesting_6.3.10_opbeans-rum
                      environment:
                          - OPBEANS_BASE_URL=http://opbeans-node:3000
+                         - ELASTIC_APM_VERIFY_SERVER_CERT=True
                      cap_add:
                          - SYS_ADMIN
                      ports:
