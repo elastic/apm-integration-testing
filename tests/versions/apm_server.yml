@@ -1,2 +1,3 @@
 APM_SERVER:
   - master
+  - master --oss
