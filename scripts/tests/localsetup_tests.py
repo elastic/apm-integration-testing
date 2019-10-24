@@ -1284,6 +1284,30 @@ class LocalTest(unittest.TestCase):
             got = service.image_download_url()
             self.assertEqual(case.expected, got)
 
+    @mock.patch(cli.__name__ + ".load_images")
+    def test_apm_server_tls(self, _ignore_load_images):
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-python",
+                                                              "--apm-server-enable-tls"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        services = set(got["services"])
+        self.assertIn("apm-server", services)
+        self.assertIn("opbeans-python", services)
+
+        apm_server = got["services"]["apm-server"]
+        self.assertIn("apm-server.ssl.enabled=true", apm_server["command"])
+        self.assertIn("apm-server.ssl.key=/usr/share/apm-server/config/certs/tls.key", apm_server["command"])
+        self.assertIn("apm-server.ssl.certificate=/usr/share/apm-server/config/certs/tls.crt", apm_server["command"])
+        self.assertIn("https://localhost:8200/", apm_server["healthcheck"]["test"])
+
+        opbeans_python = got["services"]["opbeans-python"]
+        self.assertIn("ELASTIC_APM_SERVER_URL=https://apm-server:8200", opbeans_python["environment"])
+        self.assertIn("ELASTIC_APM_JS_SERVER_URL=https://apm-server:8200", opbeans_python["environment"])
+
     def test_parse(self):
         cases = [
             ("6.3", [6, 3]),

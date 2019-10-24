@@ -477,6 +477,10 @@ class LocalSetup(object):
             # use stack-version directly if not supported, to allow use of specific releases, eg 6.2.3
             args["version"] = self.SUPPORTED_VERSIONS.get(args["stack-version"], args["stack-version"])
 
+        if args.get("apm_server_enable_tls"):
+            args["apm_server_url"] = "https://apm-server:8200"
+            args["opbeans_apm_js_server_url"] = args["apm_server_url"]
+
         selections = set()
         run_all = args.get("run_all")
         all_opbeans = args.get('run_all_opbeans') or run_all

@@ -36,6 +36,10 @@ venv: requirements.txt
 lint: venv
 	flake8 --ignore=D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403,W504  tests/ scripts/compose.py scripts/modules
 
+.PHONY: create-x509-cert
+create-x509-cert:
+	openssl req -x509 -newkey rsa:4096 -keyout scripts/tls/key.pem -out scripts/tls/cert.crt -days 365 -subj '/CN=test-certificate' -nodes
+
 .PHONY: lint
 
 start-env: venv
