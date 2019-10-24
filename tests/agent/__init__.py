@@ -32,20 +32,19 @@ def remote_config(kibana_url, sampling_rate=1.0):
         yield config_id
 
     finally:
-        if config_id == "":
-            return
-        # revert to original
-        r2 = requests.put(
-            urljoin(kibana_url, "/api/apm/settings/agent-configuration/" + config_id),
-            headers=headers,
-            json=data(1.0),
-        )
-        r2.raise_for_status()
-        time.sleep(wait)
+        if config_id != "":
+            # revert to original
+            r2 = requests.put(
+                urljoin(kibana_url, "/api/apm/settings/agent-configuration/" + config_id),
+                headers=headers,
+                json=data(1.0),
+            )
+            r2.raise_for_status()
+            time.sleep(wait)
 
-        r3 = requests.delete(
-            urljoin(kibana_url, "/api/apm/settings/agent-configuration/" + config_id),
-            headers=headers,
-        )
-        r3.raise_for_status()
-        time.sleep(wait)
+            r3 = requests.delete(
+                urljoin(kibana_url, "/api/apm/settings/agent-configuration/" + config_id),
+                headers=headers,
+            )
+            r3.raise_for_status()
+            time.sleep(wait)
