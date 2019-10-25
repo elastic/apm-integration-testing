@@ -38,7 +38,7 @@ lint: venv
 
 .PHONY: create-x509-cert
 create-x509-cert:
-	openssl req -x509 -newkey rsa:4096 -keyout scripts/tls/key.pem -out scripts/tls/cert.crt -days 365 -subj '/CN=test-certificate' -nodes
+	openssl req -x509 -newkey rsa:4096 -keyout scripts/tls/key.pem -out scripts/tls/cert.crt -days 365 -subj '/CN=apm-server' -nodes
 
 .PHONY: lint
 
