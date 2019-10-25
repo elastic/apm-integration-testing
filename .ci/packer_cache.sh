@@ -45,6 +45,7 @@ node:6.0
 node:8
 node:8-slim
 node:8.1
+node:8.6
 opbeans/opbeans-frontend:latest
 opbeans/opbeans-java:latest
 opbeans/opbeans-node:latest
