@@ -499,11 +499,10 @@ class LocalSetup(object):
             is_opbeans_sidecar = service.name() in opbeans_sidecars
             is_opbeans_2nd = service.name() in opbeans_2nds
             is_obs = issubclass(service, BeatMixin)
-            if (service_enabled
-                or (all_opbeans and is_opbeans_service and not is_opbeans_2nd)
-                or (any_opbeans and is_opbeans_sidecar and not is_opbeans_2nd)
-                or (run_all and is_obs and not is_opbeans_2nd)
-            ):
+            if (service_enabled or
+                    (all_opbeans and is_opbeans_service and not is_opbeans_2nd) or
+                    (any_opbeans and is_opbeans_sidecar and not is_opbeans_2nd) or
+                    (run_all and is_obs and not is_opbeans_2nd)):
                 selections.add(service(**args))
 
         # `docker load` images if necessary, usually only for build candidates
@@ -536,8 +535,8 @@ class LocalSetup(object):
                 services[s]["environment"].append("OPBEANS_SERVICES=" + enabled_opbeans_services_str)
 
         loadgen = services.get("opbeans-load-generator")
-        if not loadgen is None:
-            enabled_opbeans = any(re.search('OPBEANS_URLS=.+',v) for v in loadgen["environment"])
+        if loadgen is not None:
+            enabled_opbeans = any(re.search('OPBEANS_URLS=.+', v) for v in loadgen["environment"])
             if args.get("disable_opbeans_load_generator") or not enabled_opbeans:
                 del services["opbeans-load-generator"]
 
