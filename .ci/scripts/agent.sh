@@ -8,6 +8,6 @@ test -z "$srcdir" && srcdir=.
 
 AGENT=$1
 APP=$2
-DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} --with-agent-${APP} --no-apm-server-dashboards --no-apm-server-self-instrument --no-kibana --force-build"
+DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} --with-agent-${APP} --no-apm-server-dashboards --no-apm-server-self-instrument --force-build"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
 runTests "env-agent-${AGENT}" "docker-test-agent-${AGENT}"
