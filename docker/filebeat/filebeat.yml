@@ -45,6 +45,9 @@ filebeat.autodiscover:
               - drop_fields:
                   fields:
                     - service
+                    - event
+                    - url
+                    - error
               fields_under_root: true
         - condition:
             contains:
