@@ -39,9 +39,12 @@ filebeat.autodiscover:
               - decode_json_fields:
                   fields:
                     - message
-                  target: "json"
+                  target: ""
                   overwrite_keys: true
                   add_error_key: true
+              - drop_fields:
+                  fields:
+                    - service
               fields_under_root: true
         - condition:
             contains:
@@ -61,7 +64,7 @@ filebeat.autodiscover:
                   target: "parser_type"
         - condition:
             contains:
-                docker.container.name: "kibana"
+              docker.container.name: "kibana"
           config:
             - type: container
               paths:
@@ -72,7 +75,7 @@ filebeat.autodiscover:
               json.keys_under_root: true
         - condition:
             contains:
-                docker.container.name: "elasticsearch"
+              docker.container.name: "elasticsearch"
           config:
             - type: container
               paths:
@@ -83,7 +86,7 @@ filebeat.autodiscover:
               json.keys_under_root: true
         - condition:
             contains:
-                docker.container.name: "metricbeat"
+              docker.container.name: "metricbeat"
           config:
             - type: container
               paths:
@@ -94,7 +97,7 @@ filebeat.autodiscover:
               json.keys_under_root: true
         - condition:
             contains:
-                docker.container.name: "heartbeat"
+              docker.container.name: "heartbeat"
           config:
             - type: container
               paths:
@@ -105,7 +108,7 @@ filebeat.autodiscover:
               json.keys_under_root: true
         - condition:
             contains:
-                docker.container.name: "filebeat"
+              docker.container.name: "filebeat"
           config:
             - type: container
               paths:
@@ -116,7 +119,7 @@ filebeat.autodiscover:
               json.keys_under_root: true
         - condition:
             contains:
-                docker.container.name: "apm-server"
+              docker.container.name: "apm-server"
           config:
             - type: container
               paths:
