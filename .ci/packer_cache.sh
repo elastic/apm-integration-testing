@@ -46,8 +46,11 @@ node:8
 node:8-slim
 node:8.1
 node:8.6
+opbeans/opbeans-dotnet:latest
 opbeans/opbeans-frontend:latest
+opbeans/opbeans-go:latest
 opbeans/opbeans-java:latest
+opbeans/opbeans-loadgen:latest
 opbeans/opbeans-node:latest
 opbeans/opbeans-python:latest
 opbeans/opbeans-ruby:latest
