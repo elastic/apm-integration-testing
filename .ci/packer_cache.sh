@@ -31,7 +31,7 @@ haproxy:1.9
 jruby:9.1
 jruby:9.2
 maven:3.5.3-jdk-10
-mcr.microsoft.com/dotnet/core/aspnet:2.2
+mcr.microsoft.com/dotnet/core/aspnet:2.2-alpine
 mcr.microsoft.com/dotnet/core/sdk:2.2
 node:10
 node:10.0
