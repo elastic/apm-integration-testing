@@ -4,6 +4,7 @@
 source /usr/local/bin/bash_standard_lib.sh
 
 DOCKER_IMAGES="alpine:3.4
+alpine:latest
 busybox:latest
 docker.elastic.co/beats-dev/fpm:1.11.0
 docker.elastic.co/beats-dev/golang-crossbuild:1.12.4-arm
