@@ -19,6 +19,8 @@ docker.elastic.co/observability-ci/jruby:9.1-7-jdk
 docker.elastic.co/observability-ci/jruby:9.2-11-jdk
 docker.elastic.co/observability-ci/jruby:9.2-12-jdk
 docker.elastic.co/observability-ci/jruby:9.2-8-jdk
+golang:1.8
+golang:1.9
 golang:1.10
 golang:1.11
 golang:1.12
