@@ -44,6 +44,7 @@ node:14.0
 node:8-slim
 node:8
 node:8.6
+opbeans/opbeans-frontend:latest
 opbeans/opbeans-go:latest
 opbeans/opbeans-java:latest
 opbeans/opbeans-loadgen:latest
