@@ -37,4 +37,11 @@ async function run() {
     }
 }
 
-run().catch(console.error.bind(console))
+try {
+  run();
+} catch (e) {
+  if (e.message.includes("timed out after")) {
+    return run();
+  }
+  console.error.bind(console);
+}
