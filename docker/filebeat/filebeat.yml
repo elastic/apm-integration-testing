@@ -30,7 +30,7 @@ filebeat.autodiscover:
             - type: container
               paths:
                 - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
-              include_lines: ['^{']
+              include_lines: ['^{', '^ {']
               tail_files: true
               processors:
               - add_tags:
