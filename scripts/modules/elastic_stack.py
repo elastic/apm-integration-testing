@@ -478,7 +478,6 @@ class Elasticsearch(StackService, Service):
                     self.environment.append("xpack.security.authc.realms.native1.type=native")
                     self.environment.append("xpack.security.authc.realms.native1.order=1")
                 if self.at_least_version("7.3"):
-                    self.environment.append("xpack.security.transport.ssl.verification_mode=none")
                     self.environment.append("xpack.security.authc.token.enabled=true")
                     self.environment.append("xpack.security.authc.api_key.enabled=true")
             self.environment.append("xpack.security.enabled=" + xpack_security_enabled)
