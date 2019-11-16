@@ -13,6 +13,6 @@ if [ -n "${APM_AGENT_DOTNET_VERSION}" ]; then
   BUILD_OPTS="${BUILD_OPTS} ${EXTRA_OPTS}"
 fi
 
-DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} --no-apm-server-dashboards --no-apm-server-self-instrument --no-kibana --with-agent-dotnet --force-build"
+DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} --no-apm-server-dashboards --no-apm-server-self-instrument --no-kibana --with-agent-dotnet --force-build --no-xpack-secure"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
 runTests env-agent-dotnet docker-test-agent-dotnet
