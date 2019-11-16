@@ -819,6 +819,7 @@ class LocalTest(unittest.TestCase):
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
                     -E, monitoring.elasticsearch=true, -E, monitoring.enabled=true,
                     -E, apm-server.kibana.enabled=true, -E, apm-server.agent.config.cache.expiration=1s, -E, 'apm-server.kibana.host=kibana:5601',
+                    -E, apm-server.kibana.username=apm_server_user, -E, apm-server.kibana.password=changeme,
                     -E, 'output.elasticsearch.hosts=["elasticsearch:9200"]',
                     -E, output.elasticsearch.username=apm_server_user, -E, output.elasticsearch.password=changeme,
                     -E, output.elasticsearch.enabled=true,

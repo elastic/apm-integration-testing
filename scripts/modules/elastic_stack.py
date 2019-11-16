@@ -21,6 +21,7 @@ class ApmServer(StackService, Service):
 
     def __init__(self, **options):
         super(ApmServer, self).__init__(**options)
+        default_apm_server_creds = {"username": "apm_server_user", "password": "changeme"}
 
         v1_rate_limit = ("apm-server.frontend.rate_limit", "100000")
         if self.at_least_version("6.5"):
@@ -69,6 +70,13 @@ class ApmServer(StackService, Service):
                 ("apm-server.kibana.enabled", "true"),
                 ("apm-server.agent.config.cache.expiration", "1s"),
                 ("apm-server.kibana.host", self.DEFAULT_KIBANA_HOST)])
+            if self.options.get("xpack_secure"):
+                for cfg in ("username", "password"):
+                    es_opt = "apm_server_elasticsearch_{}".format(cfg)
+                    if self.options.get(es_opt):
+                        self.apm_server_command_args.append(("apm-server.kibana.{}".format(cfg), self.options[es_opt]))
+                    elif self.options.get("xpack_secure"):
+                        self.apm_server_command_args.append(("apm-server.kibana.{}".format(cfg), default_apm_server_creds.get(cfg)))
 
         if self.options.get("enable_kibana", True):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
@@ -106,7 +114,6 @@ class ApmServer(StackService, Service):
 
         def add_es_config(args, prefix="output"):
             """add elasticsearch configuration options."""
-            default_apm_server_creds = {"username": "apm_server_user", "password": "changeme"}
             args.append((prefix + ".elasticsearch.hosts", json.dumps(es_urls)))
             for cfg in ("username", "password"):
                 es_opt = "apm_server_elasticsearch_{}".format(cfg)

@@ -666,9 +666,24 @@ class ApmServerServiceTest(ServiceTest):
         self.assertTrue("apm-server.kibana.host=kibana:5601" in apm_server["command"],
                         "APM Server Kibana host set by default")
 
+
         apm_server = ApmServer(version="7.3", apm_server_acm_disable=True).render()["apm-server"]
         self.assertTrue("apm-server.kibana.enabled=false" in apm_server["command"],
                         "APM Server Kibana disabled when apm_server_disable_kibana=True")
+
+        apm_server = ApmServer(version="7.3", xpack_secure=True).render()["apm-server"]
+        self.assertTrue("apm-server.kibana.username=apm_server_user" in apm_server["command"],
+                        "APM Server Kibana username set by default")
+        self.assertTrue("apm-server.kibana.password=changeme" in apm_server["command"],
+                        "APM Server Kibana password set by default")
+
+        apm_server = ApmServer(version="7.3", xpack_secure=True,
+                               apm_server_elasticsearch_username="another_apm_server_user",
+                               apm_server_elasticsearch_password="notchangeme").render()["apm-server"]
+        self.assertTrue("apm-server.kibana.username=another_apm_server_user" in apm_server["command"],
+                        "APM Server Kibana username overridden")
+        self.assertTrue("apm-server.kibana.password=notchangeme" in apm_server["command"],
+                        "APM Server Kibana password overridden")
 
 
 class ElasticsearchServiceTest(ServiceTest):
