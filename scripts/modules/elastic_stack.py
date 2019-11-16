@@ -76,7 +76,8 @@ class ApmServer(StackService, Service):
                     if self.options.get(es_opt):
                         self.apm_server_command_args.append(("apm-server.kibana.{}".format(cfg), self.options[es_opt]))
                     elif self.options.get("xpack_secure"):
-                        self.apm_server_command_args.append(("apm-server.kibana.{}".format(cfg), default_apm_server_creds.get(cfg)))
+                        self.apm_server_command_args.append(
+                            ("apm-server.kibana.{}".format(cfg), default_apm_server_creds.get(cfg)))
 
         if self.options.get("enable_kibana", True):
             self.depends_on["kibana"] = {"condition": "service_healthy"}

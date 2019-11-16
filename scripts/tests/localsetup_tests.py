@@ -355,7 +355,8 @@ class OpbeansServiceTest(ServiceTest):
         branch = [e for e in opbeans_python_6_1["environment"] if e.startswith("PYTHON_AGENT_BRANCH")]
         self.assertEqual(branch, ["PYTHON_AGENT_BRANCH=1.x"])
 
-        opbeans_python_master = OpbeansPython(version="7.0.0-alpha1", opbeans_python_agent_branch="2.x").render()["opbeans-python"]
+        opbeans_python_master = OpbeansPython(
+            version="7.0.0-alpha1", opbeans_python_agent_branch="2.x").render()["opbeans-python"]
         branch = [e for e in opbeans_python_master["environment"] if e.startswith("PYTHON_AGENT_BRANCH")]
         self.assertEqual(branch, ["PYTHON_AGENT_BRANCH=2.x"])
 
@@ -582,6 +583,7 @@ class OpbeansServiceTest(ServiceTest):
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}""")
 
+
 class PostgresServiceTest(ServiceTest):
     def test_postgres(self):
         postgres = Postgres(version="6.2.4").render()
@@ -646,7 +648,8 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.2': '6.2.10'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["6.2", "--image-cache-dir", image_cache_dir, "--no-xpack-secure"])
+            setup = LocalSetup(argv=self.common_setup_args +
+                               ["6.2", "--image-cache-dir", image_cache_dir, "--no-xpack-secure"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -723,7 +726,8 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.3': '6.3.10'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["6.3", "--image-cache-dir", image_cache_dir, "--no-xpack-secure"])
+            setup = LocalSetup(argv=self.common_setup_args +
+                               ["6.3", "--image-cache-dir", image_cache_dir, "--no-xpack-secure"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -955,25 +959,25 @@ class LocalTest(unittest.TestCase):
         self.assertTrue(any(cmd.startswith("output.elasticsearch.username=") for cmd in apm_server_cmd), apm_server_cmd)
         # elasticsearch configuration
         es_env = got["services"]["elasticsearch"]["environment"]
-        ## auditing disabled by default
+        # auditing disabled by default
         self.assertNotIn("xpack.security.audit.enabled=true", es_env)
-        ## allow anonymous healthcheck
+        # allow anonymous healthcheck
         self.assertIn("xpack.security.authc.anonymous.roles=remote_monitoring_collector", es_env)
-        ## file based realm
+        # file based realm
         self.assertIn("xpack.security.authc.realms.file.file1.order=0", es_env)
-        ## native realm
+        # native realm
         self.assertIn("xpack.security.authc.realms.native.native1.order=1", es_env)
         # kibana should use user/pass -> es
         kibana_env = got["services"]["kibana"]["environment"]
         self.assertIn("ELASTICSEARCH_PASSWORD", kibana_env)
         self.assertIn("ELASTICSEARCH_USERNAME", kibana_env)
-        ## allow anonymous healthcheck
+        # allow anonymous healthcheck
         self.assertIn("STATUS_ALLOWANONYMOUS", kibana_env)
 
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_no_elasticesarch(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master':'8.0.0'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
             setup = LocalSetup(argv=self.common_setup_args + ["master", "--no-elasticsearch"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
