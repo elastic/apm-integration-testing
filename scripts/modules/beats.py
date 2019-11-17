@@ -112,7 +112,7 @@ class BeatMixin(object):
 
 
 class Filebeat(BeatMixin, StackService, Service):
-    DEFAULT_COMMAND = ["filebeat", "-e", "--strict.perms=false", "-d", "autodiscover"]
+    DEFAULT_COMMAND = ["filebeat", "-e", "--strict.perms=false"]
     docker_path = "beats"
 
     def __init__(self, **options):
