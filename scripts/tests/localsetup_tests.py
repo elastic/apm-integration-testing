@@ -355,7 +355,8 @@ class OpbeansServiceTest(ServiceTest):
         branch = [e for e in opbeans_python_6_1["environment"] if e.startswith("PYTHON_AGENT_BRANCH")]
         self.assertEqual(branch, ["PYTHON_AGENT_BRANCH=1.x"])
 
-        opbeans_python_master = OpbeansPython(version="7.0.0-alpha1", opbeans_python_agent_branch="2.x").render()["opbeans-python"]
+        opbeans_python_master = OpbeansPython(
+            version="7.0.0-alpha1", opbeans_python_agent_branch="2.x").render()["opbeans-python"]
         branch = [e for e in opbeans_python_master["environment"] if e.startswith("PYTHON_AGENT_BRANCH")]
         self.assertEqual(branch, ["PYTHON_AGENT_BRANCH=2.x"])
 
@@ -582,6 +583,7 @@ class OpbeansServiceTest(ServiceTest):
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}""")
 
+
 class PostgresServiceTest(ServiceTest):
     def test_postgres(self):
         postgres = Postgres(version="6.2.4").render()
@@ -646,7 +648,8 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.2': '6.2.10'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["6.2", "--image-cache-dir", image_cache_dir])
+            setup = LocalSetup(argv=self.common_setup_args +
+                               ["6.2", "--image-cache-dir", image_cache_dir, "--no-xpack-secure"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -723,7 +726,8 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.3': '6.3.10'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["6.3", "--image-cache-dir", image_cache_dir])
+            setup = LocalSetup(argv=self.common_setup_args +
+                               ["6.3", "--image-cache-dir", image_cache_dir, "--no-xpack-secure"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -819,7 +823,10 @@ class LocalTest(unittest.TestCase):
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
                     -E, monitoring.elasticsearch=true, -E, monitoring.enabled=true,
                     -E, apm-server.kibana.enabled=true, -E, apm-server.agent.config.cache.expiration=1s, -E, 'apm-server.kibana.host=kibana:5601',
-                    -E, 'output.elasticsearch.hosts=["elasticsearch:9200"]', -E, output.elasticsearch.enabled=true,
+                    -E, apm-server.kibana.username=apm_server_user, -E, apm-server.kibana.password=changeme,
+                    -E, 'output.elasticsearch.hosts=["elasticsearch:9200"]',
+                    -E, output.elasticsearch.username=apm_server_user, -E, output.elasticsearch.password=changeme,
+                    -E, output.elasticsearch.enabled=true,
                     -E, "output.elasticsearch.pipelines=[{pipeline: 'apm'}]", -E, 'apm-server.register.ingest.pipeline.enabled=true'
                     ]
                 container_name: localtesting_8.0.0_apm-server
@@ -839,7 +846,23 @@ class LocalTest(unittest.TestCase):
 
             elasticsearch:
                 container_name: localtesting_8.0.0_elasticsearch
-                environment: [bootstrap.memory_lock=true, cluster.name=docker-cluster, cluster.routing.allocation.disk.threshold_enabled=false, discovery.type=single-node, path.repo=/usr/share/elasticsearch/data/backups, 'ES_JAVA_OPTS=-XX:UseAVX=2 -Xms1g -Xmx1g', path.data=/usr/share/elasticsearch/data/8.0.0, xpack.security.enabled=false, xpack.license.self_generated.type=trial, xpack.monitoring.collection.enabled=true]
+                environment: [
+                    bootstrap.memory_lock=true,
+                    cluster.name=docker-cluster,
+                    cluster.routing.allocation.disk.threshold_enabled=false,
+                    discovery.type=single-node,
+                    path.repo=/usr/share/elasticsearch/data/backups,
+                    'ES_JAVA_OPTS=-XX:UseAVX=2 -Xms1g -Xmx1g',
+                    path.data=/usr/share/elasticsearch/data/8.0.0,
+                    xpack.security.authc.anonymous.roles=remote_monitoring_collector,
+                    xpack.security.authc.realms.file.file1.order=0,
+                    xpack.security.authc.realms.native.native1.order=1,
+                    xpack.security.authc.token.enabled=true,
+                    xpack.security.authc.api_key.enabled=true,
+                    xpack.security.enabled=true,
+                    xpack.license.self_generated.type=trial,
+                    xpack.monitoring.collection.enabled=true
+                ]
                 healthcheck:
                     interval: '20'
                     retries: 10
@@ -852,13 +875,26 @@ class LocalTest(unittest.TestCase):
                 ports: ['127.0.0.1:9200:9200']
                 ulimits:
                     memlock: {hard: -1, soft: -1}
-                volumes: ['esdata:/usr/share/elasticsearch/data']
+                volumes: [
+                    'esdata:/usr/share/elasticsearch/data',
+                    './docker/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml',
+                    './docker/elasticsearch/users:/usr/share/elasticsearch/config/users',
+                    './docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles'
+                ]
 
             kibana:
                 container_name: localtesting_8.0.0_kibana
                 depends_on:
                     elasticsearch: {condition: service_healthy}
-                environment: {ELASTICSEARCH_URL: 'elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
+                environment: {
+                    ELASTICSEARCH_PASSWORD: changeme,
+                    ELASTICSEARCH_URL: 'elasticsearch:9200',
+                    ELASTICSEARCH_USERNAME: kibana_system_user,
+                    SERVER_NAME: kibana.example.org,
+                    STATUS_ALLOWANONYMOUS: 'true',
+                    XPACK_MONITORING_ENABLED: 'true',
+                    XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'
+                }
                 healthcheck:
                     interval: 10s
                     retries: 20
@@ -881,7 +917,7 @@ class LocalTest(unittest.TestCase):
     def test_start_6_x_xpack_secure(self, _ignore_load_images):
         docker_compose_yml = stringIO()
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.6': '6.6.10'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["6.6", "--xpack-secure", "--elasticsearch-xpack-audit"])
+            setup = LocalSetup(argv=self.common_setup_args + ["6.6", "--elasticsearch-xpack-audit"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -912,7 +948,7 @@ class LocalTest(unittest.TestCase):
     def test_start_7_0_xpack_secure(self, _ignore_load_images):
         docker_compose_yml = stringIO()
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--xpack-secure"])
+            setup = LocalSetup(argv=self.common_setup_args + ["master"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -923,25 +959,25 @@ class LocalTest(unittest.TestCase):
         self.assertTrue(any(cmd.startswith("output.elasticsearch.username=") for cmd in apm_server_cmd), apm_server_cmd)
         # elasticsearch configuration
         es_env = got["services"]["elasticsearch"]["environment"]
-        ## auditing disabled by default
+        # auditing disabled by default
         self.assertNotIn("xpack.security.audit.enabled=true", es_env)
-        ## allow anonymous healthcheck
+        # allow anonymous healthcheck
         self.assertIn("xpack.security.authc.anonymous.roles=remote_monitoring_collector", es_env)
-        ## file based realm
+        # file based realm
         self.assertIn("xpack.security.authc.realms.file.file1.order=0", es_env)
-        ## native realm
+        # native realm
         self.assertIn("xpack.security.authc.realms.native.native1.order=1", es_env)
         # kibana should use user/pass -> es
         kibana_env = got["services"]["kibana"]["environment"]
         self.assertIn("ELASTICSEARCH_PASSWORD", kibana_env)
         self.assertIn("ELASTICSEARCH_USERNAME", kibana_env)
-        ## allow anonymous healthcheck
+        # allow anonymous healthcheck
         self.assertIn("STATUS_ALLOWANONYMOUS", kibana_env)
 
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_no_elasticesarch(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master':'8.0.0'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
             setup = LocalSetup(argv=self.common_setup_args + ["master", "--no-elasticsearch"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()

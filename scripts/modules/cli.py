@@ -364,10 +364,10 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
-            '--xpack-secure',
-            action="store_true",
+            '--no-xpack-secure',
+            action="store_false",
             dest="xpack_secure",
-            help="enable xpack security throughout the stack",
+            help="disable xpack security throughout the stack",
         )
 
         self.store_options(parser)

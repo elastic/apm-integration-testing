@@ -6,6 +6,6 @@ test -z "$srcdir" && srcdir=.
 # shellcheck disable=SC1090
 . "${srcdir}/common.sh"
 
-DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} --no-apm-server-dashboards --no-apm-server-self-instrument --no-kibana"
+DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} --no-apm-server-dashboards --no-apm-server-self-instrument --no-kibana --no-xpack-secure"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
 runTests env-server test-compose lint test-helps

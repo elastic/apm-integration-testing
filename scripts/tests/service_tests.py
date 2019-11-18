@@ -565,7 +565,7 @@ class ApmServerServiceTest(ServiceTest):
             ),
             (
                 dict(apm_server_queue_write_flush_timeout="0s"),
-                {"file": {"path": "$${path.data}/spool.dat"}, "write":{"flush.timeout": "0s"}},
+                {"file": {"path": "$${path.data}/spool.dat"}, "write": {"flush.timeout": "0s"}},
             ),
         ]
         for opts, want in cases:
@@ -669,6 +669,20 @@ class ApmServerServiceTest(ServiceTest):
         apm_server = ApmServer(version="7.3", apm_server_acm_disable=True).render()["apm-server"]
         self.assertTrue("apm-server.kibana.enabled=false" in apm_server["command"],
                         "APM Server Kibana disabled when apm_server_disable_kibana=True")
+
+        apm_server = ApmServer(version="7.3", xpack_secure=True).render()["apm-server"]
+        self.assertTrue("apm-server.kibana.username=apm_server_user" in apm_server["command"],
+                        "APM Server Kibana username set by default")
+        self.assertTrue("apm-server.kibana.password=changeme" in apm_server["command"],
+                        "APM Server Kibana password set by default")
+
+        apm_server = ApmServer(version="7.3", xpack_secure=True,
+                               apm_server_elasticsearch_username="another_apm_server_user",
+                               apm_server_elasticsearch_password="notchangeme").render()["apm-server"]
+        self.assertTrue("apm-server.kibana.username=another_apm_server_user" in apm_server["command"],
+                        "APM Server Kibana username overridden")
+        self.assertTrue("apm-server.kibana.password=notchangeme" in apm_server["command"],
+                        "APM Server Kibana password overridden")
 
 
 class ElasticsearchServiceTest(ServiceTest):
@@ -790,20 +804,25 @@ class FilebeatServiceTest(ServiceTest):
 
     def test_filebeat_7_1(self):
         filebeat = Filebeat(version="7.1.0", release=True).render()
-        self.assertTrue("./docker/filebeat/filebeat.6.x-compat.yml:/usr/share/filebeat/filebeat.yml" in filebeat["filebeat"]["volumes"])
+        self.assertTrue(
+            "./docker/filebeat/filebeat.6.x-compat.yml:/usr/share/filebeat/filebeat.yml" in filebeat["filebeat"]["volumes"])
 
     def test_filebeat_post_7_2(self):
         filebeat = Filebeat(version="7.2.0", release=True).render()
-        self.assertTrue("./docker/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml" in filebeat["filebeat"]["volumes"])
+        self.assertTrue(
+            "./docker/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml" in filebeat["filebeat"]["volumes"])
 
     def test_filebeat_elasticsearch_urls(self):
-        filebeat = Filebeat(version="6.1.1", release=True, filebeat_elasticsearch_urls=["elasticsearch01:9200"]).render()["filebeat"]
+        filebeat = Filebeat(version="6.1.1", release=True, filebeat_elasticsearch_urls=[
+                            "elasticsearch01:9200"]).render()["filebeat"]
         self.assertTrue("elasticsearch" in filebeat['depends_on'])
         self.assertTrue("output.elasticsearch.hosts=[\"elasticsearch01:9200\"]" in filebeat['command'])
 
-        filebeat = Filebeat(version="6.1.1", release=True, filebeat_elasticsearch_urls=["elasticsearch01:9200","elasticsearch02:9200"]).render()["filebeat"]
+        filebeat = Filebeat(version="6.1.1", release=True, filebeat_elasticsearch_urls=[
+                            "elasticsearch01:9200", "elasticsearch02:9200"]).render()["filebeat"]
         self.assertTrue("elasticsearch" in filebeat['depends_on'])
-        self.assertTrue("output.elasticsearch.hosts=[\"elasticsearch01:9200\", \"elasticsearch02:9200\"]" in filebeat['command'])
+        self.assertTrue(
+            "output.elasticsearch.hosts=[\"elasticsearch01:9200\", \"elasticsearch02:9200\"]" in filebeat['command'])
 
     def test_logstash_output(self):
         beat = Filebeat(version="6.3.100", filebeat_output="logstash").render()["filebeat"]
@@ -899,11 +918,13 @@ class KibanaServiceTest(ServiceTest):
         )
 
     def test_kibana_elasticsearch_urls(self):
-        kibana = Kibana(version="6.3.5", release=True, kibana_elasticsearch_urls=["elasticsearch01:9200"]).render()["kibana"]
+        kibana = Kibana(version="6.3.5", release=True, kibana_elasticsearch_urls=[
+                        "elasticsearch01:9200"]).render()["kibana"]
         self.assertTrue("elasticsearch" in kibana['depends_on'])
         self.assertEqual("elasticsearch01:9200", kibana['environment']["ELASTICSEARCH_URL"])
 
-        kibana = Kibana(version="6.3.5", release=True, kibana_elasticsearch_urls=["elasticsearch01:9200","elasticsearch02:9200"]).render()["kibana"]
+        kibana = Kibana(version="6.3.5", release=True, kibana_elasticsearch_urls=[
+                        "elasticsearch01:9200", "elasticsearch02:9200"]).render()["kibana"]
         self.assertTrue("elasticsearch" in kibana['depends_on'])
         self.assertEqual("elasticsearch01:9200,elasticsearch02:9200", kibana['environment']["ELASTICSEARCH_URL"])
 
@@ -922,6 +943,7 @@ class KibanaServiceTest(ServiceTest):
     def test_kibana_snapshot(self):
         kibana = Kibana(version="7.3.0", kibana_snapshot=True, kibana_version="7.3.0").render()["kibana"]
         self.assertEqual("docker.elastic.co/kibana/kibana:7.3.0-SNAPSHOT", kibana["image"])
+
 
 class LogstashServiceTest(ServiceTest):
     def test_snapshot(self):
@@ -975,13 +997,16 @@ class LogstashServiceTest(ServiceTest):
         )
 
     def test_logstash_elasticsearch_urls(self):
-        logstash = Logstash(version="6.3.5", release=True, logstash_elasticsearch_urls=["elasticsearch01:9200"]).render()["logstash"]
+        logstash = Logstash(version="6.3.5", release=True, logstash_elasticsearch_urls=[
+                            "elasticsearch01:9200"]).render()["logstash"]
         self.assertTrue("elasticsearch" in logstash['depends_on'])
         self.assertEqual("elasticsearch01:9200", logstash['environment']["ELASTICSEARCH_URL"])
 
-        logstash = Logstash(version="6.3.5", release=True, logstash_elasticsearch_urls=["elasticsearch01:9200","elasticsearch02:9200"]).render()["logstash"]
+        logstash = Logstash(version="6.3.5", release=True, logstash_elasticsearch_urls=[
+                            "elasticsearch01:9200", "elasticsearch02:9200"]).render()["logstash"]
         self.assertTrue("elasticsearch" in logstash['depends_on'])
         self.assertEqual("elasticsearch01:9200,elasticsearch02:9200", logstash['environment']["ELASTICSEARCH_URL"])
+
 
 class MetricbeatServiceTest(ServiceTest):
     def test_metricbeat(self):
@@ -1021,13 +1046,16 @@ class MetricbeatServiceTest(ServiceTest):
             self.assertTrue(o in beat["command"], "{} not set in {} while output=logstash".format(o, beat["command"]))
 
     def test_metricbeat_elasticsearch_urls(self):
-        beat = Metricbeat(version="6.2.4", release=True, metricbeat_elasticsearch_urls=["elasticsearch01:9200"]).render()["metricbeat"]
+        beat = Metricbeat(version="6.2.4", release=True, metricbeat_elasticsearch_urls=[
+                          "elasticsearch01:9200"]).render()["metricbeat"]
         self.assertTrue("elasticsearch" in beat['depends_on'])
         self.assertTrue("output.elasticsearch.hosts=[\"elasticsearch01:9200\"]" in beat['command'])
 
-        beat = Metricbeat(version="6.2.4", release=True, metricbeat_elasticsearch_urls=["elasticsearch01:9200","elasticsearch02:9200"]).render()["metricbeat"]
+        beat = Metricbeat(version="6.2.4", release=True, metricbeat_elasticsearch_urls=[
+                          "elasticsearch01:9200", "elasticsearch02:9200"]).render()["metricbeat"]
         self.assertTrue("elasticsearch" in beat['depends_on'])
-        self.assertTrue("output.elasticsearch.hosts=[\"elasticsearch01:9200\", \"elasticsearch02:9200\"]" in beat['command'])
+        self.assertTrue(
+            "output.elasticsearch.hosts=[\"elasticsearch01:9200\", \"elasticsearch02:9200\"]" in beat['command'])
 
     def test_apm_server_pprof_url(self):
         beat = Metricbeat(version="6.2.4", release=True, apm_server_pprof_url="apm-server:1234").render()["metricbeat"]
@@ -1035,17 +1063,19 @@ class MetricbeatServiceTest(ServiceTest):
 
     def test_config_6(self):
         beat = Metricbeat(version="6.8.0", release=True, metricbeat_output="logstash").render()["metricbeat"]
-        self.assertTrue("xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in  beat["command"])
-        self.assertTrue("./docker/metricbeat/metricbeat.6.x-compat.yml:/usr/share/metricbeat/metricbeat.yml" in beat["volumes"])
+        self.assertTrue("xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in beat["command"])
+        self.assertTrue(
+            "./docker/metricbeat/metricbeat.6.x-compat.yml:/usr/share/metricbeat/metricbeat.yml" in beat["volumes"])
 
     def test_config_71(self):
         beat = Metricbeat(version="7.1.0", release=True, metricbeat_output="logstash").render()["metricbeat"]
-        self.assertTrue("xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in  beat["command"])
-        self.assertTrue("./docker/metricbeat/metricbeat.6.x-compat.yml:/usr/share/metricbeat/metricbeat.yml" in beat["volumes"])
+        self.assertTrue("xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in beat["command"])
+        self.assertTrue(
+            "./docker/metricbeat/metricbeat.6.x-compat.yml:/usr/share/metricbeat/metricbeat.yml" in beat["volumes"])
 
     def test_config_post_72(self):
         beat = Metricbeat(version="7.2.0", release=True, metricbeat_output="logstash").render()["metricbeat"]
-        self.assertTrue("monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in  beat["command"])
+        self.assertTrue("monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in beat["command"])
         self.assertTrue("./docker/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml" in beat["volumes"])
 
 
@@ -1075,7 +1105,7 @@ class PacketbeatServiceTest(ServiceTest):
                         - /var/run/docker.sock:/var/run/docker.sock
                     network_mode: 'service:apm-server'
                     privileged: 'true'
-                    cap_add: ['NET_ADMIN', 'NET_RAW']""") # noqa: 501
+                    cap_add: ['NET_ADMIN', 'NET_RAW']""")  # noqa: 501
         )
 
     def test_config_6(self):
@@ -1106,10 +1136,11 @@ class PacketbeatServiceTest(ServiceTest):
         self.assertTrue(
             "output.elasticsearch.hosts=[\"elasticsearch01:9200\", \"elasticsearch02:9200\"]" in beat['command'])
 
+
 class HeartbeatServiceTest(ServiceTest):
     def test_heartbeat_elasticsearch_urls(self):
         beat = Heartbeat(version="6.2.4", release=True,
-                          heartbeat_elasticsearch_urls=["elasticsearch01:9200"]).render()["heartbeat"]
+                         heartbeat_elasticsearch_urls=["elasticsearch01:9200"]).render()["heartbeat"]
         self.assertTrue("elasticsearch" in beat['depends_on'])
         self.assertTrue("output.elasticsearch.hosts=[\"elasticsearch01:9200\"]" in beat['command'])
 
@@ -1119,6 +1150,7 @@ class HeartbeatServiceTest(ServiceTest):
         self.assertTrue("elasticsearch" in beat['depends_on'])
         self.assertTrue(
             "output.elasticsearch.hosts=[\"elasticsearch01:9200\", \"elasticsearch02:9200\"]" in beat['command'])
+
 
 class ZookeeperServiceTest(ServiceTest):
     def test_zookeeper(self):
