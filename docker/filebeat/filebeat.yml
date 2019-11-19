@@ -30,7 +30,7 @@ filebeat.autodiscover:
             - type: container
               paths:
                 - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
-              include_lines: ['^{', '^ {']
+              include_lines: ['^{']
               tail_files: true
               processors:
               - add_tags:
@@ -131,6 +131,13 @@ filebeat.autodiscover:
               json.add_error_key: true
               json.overwrite_keys: true
               json.keys_under_root: true
+              processors:
+              - rename:
+                  fields:
+                   - from: "error"
+                     to: "error_apm_server"
+                  ignore_missing: false
+                  fail_on_error: true
         - condition:
             contains:
               docker.container.name: "postgres"
