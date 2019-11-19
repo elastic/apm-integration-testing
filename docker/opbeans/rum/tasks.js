@@ -15,9 +15,10 @@ async function run() {
     })
 
     for (; ;) {
-        url = await chromeless
-            .goto(url)
-            .evaluate((baseUrl) => {
+        try {
+            url = await chromeless
+                .goto(url)
+                .evaluate(baseUrl => {
                 // activateLoadGeneration is defined in opbeans-frontend
                 if (typeof window.activateLoadGeneration === 'function') {
                     console.log('Activating route change load generation')
@@ -32,6 +33,10 @@ async function run() {
                     return baseUrl
                 }
             }, baseUrl);
+        } catch (e) {
+            // this will catch the error, log it and let the process continue
+            console.error(`Error occurred while evaluating ${url}:`, e)
+        }
         console.log(url)
         await sleep(8000 + Math.floor(Math.random() * 10000))
     }
