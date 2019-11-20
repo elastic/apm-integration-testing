@@ -12,11 +12,13 @@ def remote_config(kibana_url, sampling_rate=1.0):
         return {
             "agent_name": "python",
             "service": {"name": default.from_env('FLASK_SERVICE_NAME')},
-            "settings": {"transaction_sample_rate": sample_rate}
+            "settings": {"transaction_sample_rate": sample_rate,
+                         "capture_body": "off",
+                         "transaction_max_spans": 500}
         }
 
     headers = {"Content-Type": "application/json", "kbn-xsrf": "1"}
-    wait = 1.5  # just higher than apm-server.agent.config.cache.expiration
+    wait = 4  # just higher than apm-server.agent.config.cache.expiration
     config_id = ""
 
     try:
