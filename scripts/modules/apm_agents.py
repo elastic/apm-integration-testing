@@ -41,7 +41,7 @@ class AgentRUMJS(Service):
                 args=[
                     "RUM_AGENT_BRANCH=" + self.agent_branch,
                     "RUM_AGENT_REPO=" + self.agent_repo,
-                    "APM_SERVER_URL=" + self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL)
+                    "APM_SERVER_URL=" + self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
                 ]
             ),
             container_name="rum",
@@ -50,7 +50,8 @@ class AgentRUMJS(Service):
             logging=None,
             environment={
                 "ELASTIC_APM_SERVICE_NAME": "rum",
-                "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL)
+                "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
+                "ELASTIC_APM_VERIFY_SERVER_CERT": (not self.options.get("no_verify_server_cert")),
             },
             depends_on=self.depends_on,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "rum", path="/"),
@@ -106,6 +107,7 @@ class AgentGoNetHttp(Service):
                 "ELASTIC_APM_FLUSH_INTERVAL": "500ms",
                 "ELASTIC_APM_SERVICE_NAME": "gonethttpapp",
                 "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
+                "ELASTIC_APM_VERIFY_SERVER_CERT": not self.options.get("no_verify_server_cert"),
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "gonethttpapp"),
             depends_on=self.depends_on,
@@ -156,6 +158,7 @@ class AgentNodejsExpress(Service):
             environment={
                 "EXPRESS_PORT": str(self.SERVICE_PORT),
                 "EXPRESS_SERVICE_NAME": "expressapp",
+                "ELASTIC_APM_VERIFY_SERVER_CERT": not self.options.get("no_verify_server_cert"),
             },
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
@@ -207,6 +210,7 @@ class AgentPythonDjango(AgentPython):
             environment={
                 "DJANGO_PORT": self.SERVICE_PORT,
                 "DJANGO_SERVICE_NAME": "djangoapp",
+                "ELASTIC_APM_VERIFY_SERVER_CERT": not self.options.get("no_verify_server_cert"),
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "djangoapp"),
             depends_on=self.depends_on,
@@ -235,6 +239,7 @@ class AgentPythonFlask(AgentPython):
             environment={
                 "FLASK_SERVICE_NAME": "flaskapp",
                 "GUNICORN_CMD_ARGS": "-w 4 -b 0.0.0.0:{}".format(self.SERVICE_PORT),
+                "ELASTIC_APM_VERIFY_SERVER_CERT": not self.options.get("no_verify_server_cert"),
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "flaskapp"),
             depends_on=self.depends_on,
@@ -297,6 +302,7 @@ class AgentRubyRails(Service):
                 "APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
                 "ELASTIC_APM_API_REQUEST_TIME": "3s",
                 "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
+                "ELASTIC_APM_VERIFY_SERVER_CERT": not self.options.get("no_verify_server_cert"),
                 "ELASTIC_APM_SERVICE_NAME": "railsapp",
                 "RAILS_PORT": self.SERVICE_PORT,
                 "RAILS_SERVICE_NAME": "railsapp",
@@ -370,6 +376,7 @@ class AgentJavaSpring(Service):
             environment={
                 "ELASTIC_APM_API_REQUEST_TIME": "3s",
                 "ELASTIC_APM_SERVICE_NAME": "springapp",
+                "ELASTIC_APM_VERIFY_SERVER_CERT": not self.options.get("no_verify_server_cert"),
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "javaspring"),
             depends_on=self.depends_on,
@@ -429,6 +436,7 @@ class AgentDotnet(Service):
             },
             container_name="dotnetapp",
             environment={
+                "ELASTIC_APM_VERIFY_SERVER_CERT": not self.options.get("no_verify_server_cert"),
                 "ELASTIC_APM_API_REQUEST_TIME": "3s",
                 "ELASTIC_APM_FLUSH_INTERVAL": "5",
                 "ELASTIC_APM_TRANSACTION_SAMPLE_RATE": "1",

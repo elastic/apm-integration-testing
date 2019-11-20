@@ -6,6 +6,8 @@ ARG JAVA_AGENT_REPO=elastic/apm-agent-java
 ARG JAVA_AGENT_BRANCH=
 
 FROM maven:3.5.3-jdk-10
+ENV ELASTIC_APM_ENABLE_LOG_CORRELATION=true
+ENV ELASTIC_APM_LOG_LEVEL=DEBUG
 
 RUN mkdir /agent \
   # making sure there is at least one file to COPY (otherwise docker complains)

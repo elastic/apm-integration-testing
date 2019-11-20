@@ -91,6 +91,13 @@ class ApmServer(StackService, Service):
         if self.options.get("apm_server_secret_token"):
             self.apm_server_command_args.append(("apm-server.secret_token", self.options["apm_server_secret_token"]))
 
+        if self.options.get("apm_server_enable_tls"):
+            self.apm_server_command_args.extend([
+                ("apm-server.ssl.enabled", "true"),
+                ("apm-server.ssl.key", "/usr/share/apm-server/config/certs/tls.key"),
+                ("apm-server.ssl.certificate", "/usr/share/apm-server/config/certs/tls.crt")
+            ])
+
         self.apm_server_monitor_port = options.get("apm_server_monitor_port", self.DEFAULT_MONITOR_PORT)
         self.apm_server_output = options.get("apm_server_output", self.DEFAULT_OUTPUT)
 
@@ -285,6 +292,12 @@ class ApmServer(StackService, Service):
             help="agent config polling interval.",
         )
         parser.add_argument(
+            '--apm-server-enable-tls',
+            action="store_true",
+            dest="apm_server_enable_tls",
+            help="apm-server enable TLS with pre-configured selfsigned certificates.",
+        )
+        parser.add_argument(
             "--no-apm-server-dashboards",
             action="store_false",
             dest="apm_server_dashboards",
@@ -371,6 +384,30 @@ class ApmServer(StackService, Service):
                     }
                 },
                 "image": None,
+            })
+
+        if self.options.get("apm_server_enable_tls"):
+            content.update({
+                "volumes": [
+                    "./scripts/tls/cert.crt:/usr/share/apm-server/config/certs/tls.crt",
+                    "./scripts/tls/key.pem:/usr/share/apm-server/config/certs/tls.key"
+                ],
+                "healthcheck": {
+                    "interval": "10s",
+                    "retries": 12,
+                    "test": [
+                        "CMD",
+                        "curl",
+                        "--write-out",
+                        "'HTTP %{http_code}'",
+                        "--fail",
+                        "--silent",
+                        "--output",
+                        "/dev/null",
+                        "-k",
+                        "https://localhost:8200/"
+                    ]
+                },
             })
 
         return content

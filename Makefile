@@ -8,6 +8,8 @@ COMPOSE_ARGS ?=
 JUNIT_RESULTS_DIR=tests/results
 JUNIT_OPT=--junitxml $(JUNIT_RESULTS_DIR)
 
+CERT_VALID_DAYS ?= 3650
+
 APM_SERVER_URL ?= "http://apm-server:8200"
 ES_URL ?= "http://elasticsearch:9200"
 KIBANA_URL ?= http://kibana:5601
@@ -35,6 +37,10 @@ venv: requirements.txt
 
 lint: venv
 	flake8 --ignore=D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403,W504  tests/ scripts/compose.py scripts/modules
+
+.PHONY: create-x509-cert
+create-x509-cert:
+	openssl req -x509 -newkey rsa:4096 -keyout scripts/tls/key.pem -out scripts/tls/cert.crt -days "${CERT_VALID_DAYS}" -subj '/CN=apm-server' -nodes
 
 .PHONY: lint
 

@@ -26,6 +26,9 @@ RUN go build
 # Stage 1: copy static assets from opbeans/opbeans-frontend and
 # opbeans-go from stage 0 into a minimal image.
 FROM gcr.io/distroless/base
+ENV ELASTIC_APM_ENABLE_LOG_CORRELATION=true
+ENV ELASTIC_APM_LOG_LEVEL=DEBUG
+
 COPY --from=opbeans/opbeans-frontend:latest /app/build /opbeans-frontend
 COPY --from=0 /src/opbeans-go/opbeans-go /
 COPY --from=0 /src/opbeans-go/db /

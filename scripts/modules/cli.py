@@ -370,6 +370,15 @@ class LocalSetup(object):
             help="disable xpack security throughout the stack",
         )
 
+        parser.add_argument(
+            '--no-verify-server-cert',
+            action='store_true',
+            dest='no_verify_server_cert',
+            help='Define the environment variable ELASTIC_APM_VERIFY_SERVER_CERT=false' +
+                 ' to disable the APM Server certificate verification.',
+            default="false"
+        )
+
         self.store_options(parser)
 
         return parser
@@ -485,6 +494,10 @@ class LocalSetup(object):
         if "version" not in args:
             # use stack-version directly if not supported, to allow use of specific releases, eg 6.2.3
             args["version"] = self.SUPPORTED_VERSIONS.get(args["stack-version"], args["stack-version"])
+
+        if args.get("apm_server_enable_tls"):
+            args["apm_server_url"] = "https://apm-server:8200"
+            args["opbeans_apm_js_server_url"] = args["apm_server_url"]
 
         selections = set()
         run_all = args.get("run_all")
