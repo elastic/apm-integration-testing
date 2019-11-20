@@ -68,8 +68,9 @@ class ApmServer(StackService, Service):
         elif self.at_least_version("7.3"):
             self.apm_server_command_args.extend([
                 ("apm-server.kibana.enabled", "true"),
-                ("apm-server.agent.config.cache.expiration", "1s"),
                 ("apm-server.kibana.host", self.DEFAULT_KIBANA_HOST)])
+            agent_config_poll = self.options.get("agent_config_poll", "30s")
+            self.apm_server_command_args.append(("apm-server.agent.config.cache.expiration", agent_config_poll))
             if self.options.get("xpack_secure"):
                 for cfg in ("username", "password"):
                     es_opt = "apm_server_elasticsearch_{}".format(cfg)
@@ -290,6 +291,12 @@ class ApmServer(StackService, Service):
             action="store_true",
             dest="apm_server_enable_tls",
             help="apm-server enable TLS with pre-configured selfsigned certificates.",
+        )
+        parser.add_argument(
+            '--apm-server-agent-config-poll',
+            default="30s",
+            dest="agent_config_poll",
+            help="agent config polling interval.",
         )
         parser.add_argument(
             "--no-apm-server-dashboards",
