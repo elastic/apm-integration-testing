@@ -177,8 +177,8 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
           "${steps.agentMapping.envVar(tag)}=${x}",
           "REUSE_CONTAINERS=true",
           "ENABLE_ES_DUMP=true",
-          "PATH=${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}",
-          "TMPDIR=${WORKSPACE}"
+          "PATH=${steps.env.WORKSPACE}/${steps.env.BASE_DIR}/.ci/scripts:${steps.env.PATH}",
+          "TMPDIR=${steps.env.WORKSPACE}"
           ]
         def label = "${tag}-${x}-${y}"
         try{
