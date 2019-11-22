@@ -27,9 +27,12 @@ def test_concurrent_req_flask(flask):
     Concurrent(flask.apm_server.elasticsearch, [foo], iters=2).run()
 
 
+@pytest.mark.skip(reason="very unstable on CI, maybe due to many Gunicorn workers")
 @pytest.mark.version
 @pytest.mark.flask
 def test_req_flask_agent_config(flask, kibana):
+    # when re-added, remove the 'release;4.2' entry from python.yml
+    # and verify that the Kibana request in the remote_config context manager is current
     with agent.remote_config(kibana.url, sampling_rate=0.0):
         # 1 transaction, 0 spans
         utils.check_agent_transaction(
