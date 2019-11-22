@@ -66,6 +66,7 @@ ruby:2.4
 ruby:2.5
 ruby:2.6
 ruby:latest
+wordpress:php7.3-fpm-alpine
 "
 
 for di in ${DOCKER_IMAGES}
