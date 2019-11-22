@@ -5,3 +5,4 @@ PYTHON_AGENT:
   - 'github;master'
   - 'release;latest'
   - 'release;5.1'
+  - 'release;4.2'
