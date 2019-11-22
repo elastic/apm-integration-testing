@@ -46,6 +46,13 @@ pipeline {
       launch integration tests.
     */
     stage("Integration Tests"){
+      environment {
+        TMPDIR = "${WORKSPACE}"
+        ENABLE_ES_DUMP = "true"
+        PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
+        AGENT_NAME = agentMapping.id(params.AGENT_INTEGRATION_TEST)
+        AGENT_APP = agentMapping.app(params.AGENT_INTEGRATION_TEST)
+      }
       when {
         expression {
           return (params.AGENT_INTEGRATION_TEST != 'All' &&
@@ -56,14 +63,7 @@ pipeline {
         deleteDir()
         unstash "source"
         dir("${BASE_DIR}"){
-          script {
-            def agentName = agentMapping.id(params.AGENT_INTEGRATION_TEST)
-            def agentApp = agentMapping.app(params.AGENT_INTEGRATION_TEST)
-            sh """#!/bin/bash
-            export TMPDIR="${WORKSPACE}"
-            .ci/scripts/agent.sh ${agentName} ${agentApp}
-            """
-          }
+          sh(label: "Testing ${AGENT_NAME} ${AGENT_APP}", script: ".ci/scripts/agent.sh ${AGENT_NAME} ${AGENT_APP}")
         }
       }
       post {
@@ -78,6 +78,8 @@ pipeline {
       }
       environment {
         TMPDIR = "${WORKSPACE}"
+        ENABLE_ES_DUMP = "true"
+        PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
       }
       steps {
         deleteDir()
@@ -123,6 +125,8 @@ pipeline {
       }
       environment {
         TMPDIR = "${WORKSPACE}"
+        ENABLE_ES_DUMP = "true"
+        PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
       }
       steps {
         deleteDir()

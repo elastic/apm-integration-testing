@@ -100,6 +100,7 @@ pipeline {
       environment {
         TMPDIR = "${WORKSPACE}"
         REUSE_CONTAINERS = "true"
+        PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
       }
       steps {
         deleteDir()
@@ -174,7 +175,10 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
       steps.node('linux && immutable'){
         def env = ["APM_SERVER_BRANCH=${y}",
           "${steps.agentMapping.envVar(tag)}=${x}",
-          "REUSE_CONTAINERS=true"
+          "REUSE_CONTAINERS=true",
+          "ENABLE_ES_DUMP=true",
+          "PATH=${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}",
+          "TMPDIR=${WORKSPACE}"
           ]
         def label = "${tag}-${x}-${y}"
         try{
@@ -205,10 +209,7 @@ def runScript(Map params = [:]){
   unstash "source"
   dir("${BASE_DIR}"){
     withEnv(env){
-      sh """#!/bin/bash
-      export TMPDIR="${WORKSPACE}"
-      .ci/scripts/${agentType}.sh
-      """
+      sh(label: "Testing ${agentType}", script: ".ci/scripts/${agentType}.sh")
     }
   }
 }

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -e
+
+DOCKER_IMAGE=taskrabbit/elasticsearch-dump
+docker image inspect ${DOCKER_IMAGE} > /dev/null 2>&1 || docker pull ${DOCKER_IMAGE} > /dev/null
+
+docker run --rm -t -v "$(pwd):/app" -u "$(id -u):$(id -g)" -w /app \
+  -e HOME=/app \
+  "${DOCKER_IMAGE}" "$@"
