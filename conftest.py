@@ -4,6 +4,7 @@ import os
 import pytest
 import json
 import subprocess
+import sys
 from tests.fixtures.transactions import minimal
 from tests.fixtures.apm_server import apm_server
 from tests.fixtures.es import es
@@ -50,4 +51,5 @@ def pytest_runtest_logreport(report):
                                  '--input={}/packetbeat-*'.format(es_url),
                                  '--output=/app/tests/results/packetbeat-{}.json'.format(name)])
         except IOError:
+            sys.stderr.write("Error launching elasticdump")
             pass

@@ -124,6 +124,7 @@ dockerized-test:
 	  -e RAILS_URL=$(RAILS_URL) \
 	  -e RUM_URL=$(RUM_URL) \
 	  -e PYTHONDONTWRITEBYTECODE=1 \
+	  -e ENABLE_ES_DUMP=$(ENABLE_ES_DUMP) \
 	  -v "$(PWD)/$(JUNIT_RESULTS_DIR)":"/app/$(JUNIT_RESULTS_DIR)" \
 	  --rm \
 	  --entrypoint make \
