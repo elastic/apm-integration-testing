@@ -60,12 +60,14 @@ python:3.4
 python:3.5
 python:3.6
 python:3.7
+python:3.7-stretch
 python:3.8
 ruby:2.3
 ruby:2.4
 ruby:2.5
 ruby:2.6
 ruby:latest
+wordpress:php7.3-fpm-alpine
 "
 
 for di in ${DOCKER_IMAGES}
