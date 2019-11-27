@@ -43,6 +43,19 @@ Activate the virtualenv with `source venv/bin/activate` and use `./scripts/compo
 
 [APM LocalEnv Quickstart](QUICKSTART.md)
 
+#### Logging in
+
+By default, Security is enabled, which means you need to log into Kibana and/or authenticate with Elasticsearch.
+An assortment of users is provided to test different scenarios:
+
+ * `admin`
+ * `apm_server_user`
+ * `apm_user_ro`
+ * `kibana_system_user`
+ * `*_beat_user`
+ 
+The password for all default users is `changeme`.
+
 ### Stopping an Environment
 
 All services:
