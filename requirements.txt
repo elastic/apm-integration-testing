@@ -30,14 +30,14 @@ pytest-random-order==0.5.4
 pytest-selenium==1.11.3
 pytest-variables==1.7.0
 pytest==3.3.1
-requests==2.20.1
+requests==2.22.0
 selenium==3.8.0
 singledispatch==3.4.0.3
 six==1.11.0
 texttable==0.9.1
 timeout-decorator==0.4.0
 tornado==5.1
-urllib3==1.24.1
+urllib3==1.25.7
 virtualenv==16.0.0
 waiting==1.4.1
 webium==1.2.1
