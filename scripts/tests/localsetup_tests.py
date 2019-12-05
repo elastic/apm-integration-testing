@@ -61,7 +61,7 @@ class OpbeansServiceTest(ServiceTest):
                         - OPBEANS_DOTNET_REPO=elastic/opbeans-dotnet
                     container_name: localtesting_6.3.10_opbeans-dotnet
                     ports:
-                      - "127.0.0.1:3004:80"
+                      - "127.0.0.1:3004:3000"
                     environment:
                       - ELASTIC_APM_SERVICE_NAME=opbeans-dotnet
                       - ELASTIC_APM_SERVER_URLS=http://apm-server:8200
@@ -84,7 +84,7 @@ class OpbeansServiceTest(ServiceTest):
                       apm-server:
                         condition: service_healthy
                     healthcheck:
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-dotnet:80/"]
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-dotnet:3000/"]
                         interval: 10s
                         retries: 36""")
         )
