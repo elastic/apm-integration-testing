@@ -22,5 +22,5 @@ COPY --from=opbeans/opbeans-frontend:latest /app/build /opbeans-frontend
 RUN apk update \
     && apk add --no-cache curl \
     && rm -rf /var/cache/apk/*
-EXPOSE 80
-ENTRYPOINT ["dotnet", "opbeans-dotnet.dll"]
+EXPOSE 3000
+ENTRYPOINT ["dotnet", "opbeans-dotnet.dll", "--urls", "http://*:3000"]
