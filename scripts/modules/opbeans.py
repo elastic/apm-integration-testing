@@ -134,8 +134,8 @@ class OpbeansDotnet(OpbeansService):
             depends_on=depends_on,
             image=None,
             labels=None,
-            healthcheck=curl_healthcheck(80, "opbeans-dotnet", path="/", retries=36),
-            ports=[self.publish_port(self.port, 80)],
+            healthcheck=curl_healthcheck(3000, "opbeans-dotnet", path="/", retries=36),
+            ports=[self.publish_port(self.port, 3000)],
         )
         return content
 
