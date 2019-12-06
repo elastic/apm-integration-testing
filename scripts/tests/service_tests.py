@@ -694,6 +694,7 @@ class ApmServerServiceTest(ServiceTest):
     def test_apm_server_custom_pipeline(self):
         apm_server = ApmServer(version="8.0", apm_server_pipeline_path="foo").render()["apm-server"]
         self.assertIn("foo:/usr/share/apm-server/ingest/pipeline/definition.json", apm_server["volumes"])
+        self.assertIn("apm-server.register.ingest.pipeline.overwrite=true", apm_server["command"])
 
 
 class ElasticsearchServiceTest(ServiceTest):

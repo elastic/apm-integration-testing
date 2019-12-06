@@ -144,6 +144,10 @@ class ApmServer(StackService, Service):
                     ("output.elasticsearch.pipelines", "[{pipeline: '%s'}]" % pipeline_name),
                     ("apm-server.register.ingest.pipeline.enabled", "true"),
                 ])
+                if options.get("apm_server_pipeline_path"):
+                    self.apm_server_command_args.append(
+                        ("apm-server.register.ingest.pipeline.overwrite", "true"),
+                    )
         else:
             add_es_config(self.apm_server_command_args,
                           prefix="monitoring" if self.at_least_version("7.2") else "xpack.monitoring")
