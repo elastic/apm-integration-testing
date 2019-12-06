@@ -691,6 +691,10 @@ class ApmServerServiceTest(ServiceTest):
         self.assertTrue("apm-server.kibana.password=notchangeme" in apm_server["command"],
                         "APM Server Kibana password overridden")
 
+    def test_apm_server_custom_pipeline(self):
+        apm_server = ApmServer(version="8.0", apm_server_pipeline_path="foo").render()["apm-server"]
+        self.assertIn("foo:/usr/share/apm-server/ingest/pipeline/definition.json", apm_server["volumes"])
+
 
 class ElasticsearchServiceTest(ServiceTest):
     def test_6_2_release(self):

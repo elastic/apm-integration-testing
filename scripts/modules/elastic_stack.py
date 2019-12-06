@@ -218,6 +218,10 @@ class ApmServer(StackService, Service):
             help='apm-server output path (when output=file)'
         )
         parser.add_argument(
+            "--apm-server-pipeline-path",
+            help='custom apm-server pipeline definition.'
+        )
+        parser.add_argument(
             "--no-apm-server-pipeline",
             action="store_false",
             dest="apm_server_enable_pipeline",
@@ -387,12 +391,14 @@ class ApmServer(StackService, Service):
                 "image": None,
             })
 
+        volumes = []
         if self.options.get("apm_server_enable_tls"):
+            volumes.extend([
+                "./scripts/tls/cert.crt:/usr/share/apm-server/config/certs/tls.crt",
+                "./scripts/tls/key.pem:/usr/share/apm-server/config/certs/tls.key"
+            ])
+
             content.update({
-                "volumes": [
-                    "./scripts/tls/cert.crt:/usr/share/apm-server/config/certs/tls.crt",
-                    "./scripts/tls/key.pem:/usr/share/apm-server/config/certs/tls.key"
-                ],
                 "healthcheck": {
                     "interval": "10s",
                     "retries": 12,
@@ -410,6 +416,14 @@ class ApmServer(StackService, Service):
                     ]
                 },
             })
+
+        overwrite_pipeline_path = self.options.get("apm_server_pipeline_path")
+        if overwrite_pipeline_path:
+            volumes.extend([
+                "{}:/usr/share/apm-server/ingest/pipeline/definition.json".format(overwrite_pipeline_path)])
+
+        if volumes:
+            content["volumes"] = volumes
 
         return content
 
