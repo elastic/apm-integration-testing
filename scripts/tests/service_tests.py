@@ -588,6 +588,29 @@ class ApmServerServiceTest(ServiceTest):
             "no queue settings with memory queue (for now)"
         )
 
+    def test_self_instrument(self):
+        # self instrumentation comes with profiling by default
+        apm_server = ApmServer(version="8.0.0").render()["apm-server"]
+        self.assertIn("apm-server.instrumentation.enabled=true", apm_server["command"])
+        self.assertIn("apm-server.instrumentation.profiling.cpu.enabled=true", apm_server["command"])
+        self.assertIn("apm-server.instrumentation.profiling.heap.enabled=true", apm_server["command"])
+
+        # self instrumentation comes with profiling by default but can be disabled
+        apm_server = ApmServer(
+            version="8.0.0", apm_server_self_instrument=True, apm_server_profile=False).render()["apm-server"]
+        self.assertIn("apm-server.instrumentation.enabled=true", apm_server["command"])
+        self.assertFalse(
+            any(e.startswith("apm-server.instrumentation.profiling") for e in apm_server["command"]),
+            "no self profiling settings expected"
+        )
+
+        # need self instrumentation enabled to get profiling
+        apm_server = ApmServer(
+            version="8.0.0", apm_server_self_instrument=False, apm_server_profile=True).render()["apm-server"]
+        self.assertNotIn("apm-server.instrumentation.enabled=true", apm_server["command"])
+        self.assertNotIn("apm-server.instrumentation.profiling.cpu.enabled=true", apm_server["command"])
+        self.assertNotIn("apm-server.instrumentation.profiling.heap.enabled=true", apm_server["command"])
+
     def test_apm_server_build_branch(self):
         apm_server = ApmServer(version="6.3.100", apm_server_build="foo.git@bar", release=True).render()["apm-server"]
         self.assertIsNone(apm_server.get("image"))
