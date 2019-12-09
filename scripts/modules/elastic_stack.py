@@ -144,6 +144,10 @@ class ApmServer(StackService, Service):
                     ("output.elasticsearch.pipelines", "[{pipeline: '%s'}]" % pipeline_name),
                     ("apm-server.register.ingest.pipeline.enabled", "true"),
                 ])
+                if options.get("apm_server_pipeline_path"):
+                    self.apm_server_command_args.append(
+                        ("apm-server.register.ingest.pipeline.overwrite", "true"),
+                    )
         else:
             add_es_config(self.apm_server_command_args,
                           prefix="monitoring" if self.at_least_version("7.2") else "xpack.monitoring")
@@ -216,6 +220,10 @@ class ApmServer(StackService, Service):
             '--apm-server-output-file',
             default=os.devnull,
             help='apm-server output path (when output=file)'
+        )
+        parser.add_argument(
+            "--apm-server-pipeline-path",
+            help='custom apm-server pipeline definition.'
         )
         parser.add_argument(
             "--no-apm-server-pipeline",
@@ -387,12 +395,14 @@ class ApmServer(StackService, Service):
                 "image": None,
             })
 
+        volumes = []
         if self.options.get("apm_server_enable_tls"):
+            volumes.extend([
+                "./scripts/tls/cert.crt:/usr/share/apm-server/config/certs/tls.crt",
+                "./scripts/tls/key.pem:/usr/share/apm-server/config/certs/tls.key"
+            ])
+
             content.update({
-                "volumes": [
-                    "./scripts/tls/cert.crt:/usr/share/apm-server/config/certs/tls.crt",
-                    "./scripts/tls/key.pem:/usr/share/apm-server/config/certs/tls.key"
-                ],
                 "healthcheck": {
                     "interval": "10s",
                     "retries": 12,
@@ -410,6 +420,14 @@ class ApmServer(StackService, Service):
                     ]
                 },
             })
+
+        overwrite_pipeline_path = self.options.get("apm_server_pipeline_path")
+        if overwrite_pipeline_path:
+            volumes.extend([
+                "{}:/usr/share/apm-server/ingest/pipeline/definition.json".format(overwrite_pipeline_path)])
+
+        if volumes:
+            content["volumes"] = volumes
 
         return content
 
