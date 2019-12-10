@@ -1,4 +1,4 @@
-FROM python:3
+FROM python:3.7
 
 RUN pip install -q -U Django==2.1.5
 
