@@ -218,7 +218,7 @@ class AgentPythonDjango(AgentPython):
             logging=None,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
-        if (self.agent_package != 'elastic-apm==5.1' and self.agent_package != 'elastic-apm==4.1'):
+        if ('elastic-apm==5.1' not in self.agent_package and 'elastic-apm==4.' not in self.agent_package):
             ret["environment"]["ELASTIC_APM_VERIFY_SERVER_CERT"] = (
                 str(not self.options.get("no_verify_server_cert")).lower())
         return ret
@@ -247,7 +247,7 @@ class AgentPythonFlask(AgentPython):
             depends_on=self.depends_on,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
-        if (self.agent_package != 'elastic-apm==5.1' and self.agent_package != 'elastic-apm==4.1'):
+        if ('elastic-apm==5.1' not in self.agent_package and 'elastic-apm==4.' not in self.agent_package):
             ret["environment"]["ELASTIC_APM_VERIFY_SERVER_CERT"] = (
                 str(not self.options.get("no_verify_server_cert")).lower())
         return ret
