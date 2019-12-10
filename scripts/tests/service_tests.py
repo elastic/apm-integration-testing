@@ -124,6 +124,7 @@ class AgentServiceTest(ServiceTest):
                         apm-server:
                             condition: 'service_healthy'
                     environment:
+                        ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
                         DJANGO_SERVICE_NAME: djangoapp
                         DJANGO_PORT: 8003
                     healthcheck:
@@ -160,6 +161,7 @@ class AgentServiceTest(ServiceTest):
                         apm-server:
                             condition: 'service_healthy'
                     environment:
+                        ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
                         FLASK_SERVICE_NAME: flaskapp
                         GUNICORN_CMD_ARGS: "-w 4 -b 0.0.0.0:8001"
                     healthcheck:
