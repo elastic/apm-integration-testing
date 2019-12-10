@@ -202,7 +202,7 @@ class AgentPythonDjango(AgentPython):
         ("apm_server_url", "APM_SERVER_URL"),
     ])
     def _content(self):
-        return dict(
+        ret = dict(
             build={"context": "docker/python/django", "dockerfile": "Dockerfile"},
             command="bash -c \"pip install -q -U {} && python testapp/manage.py runserver 0.0.0.0:{}\"".format(
                 self.agent_package, self.SERVICE_PORT),
@@ -210,7 +210,6 @@ class AgentPythonDjango(AgentPython):
             environment={
                 "DJANGO_PORT": self.SERVICE_PORT,
                 "DJANGO_SERVICE_NAME": "djangoapp",
-                "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "djangoapp"),
             depends_on=self.depends_on,
@@ -219,6 +218,13 @@ class AgentPythonDjango(AgentPython):
             logging=None,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
+        # TODO remove elastic-apm match when the latest release support it
+        if (self.agent_package != 'elastic-apm==5.1'
+                and self.agent_package != 'elastic-apm==4.1'
+                and self.agent_package != 'elastic-apm'):
+            ret["environment"]["ELASTIC_APM_VERIFY_SERVER_CERT"] = (
+                str(not self.options.get("no_verify_server_cert")).lower())
+        return ret
 
 
 class AgentPythonFlask(AgentPython):
@@ -229,7 +235,7 @@ class AgentPythonFlask(AgentPython):
         ("apm_server_url", "APM_SERVER_URL"),
     ])
     def _content(self):
-        return dict(
+        ret = dict(
             build={"context": "docker/python/flask", "dockerfile": "Dockerfile"},
             command="bash -c \"pip install -q -U {} && gunicorn app:app\"".format(self.agent_package),
             container_name="flaskapp",
@@ -239,12 +245,18 @@ class AgentPythonFlask(AgentPython):
             environment={
                 "FLASK_SERVICE_NAME": "flaskapp",
                 "GUNICORN_CMD_ARGS": "-w 4 -b 0.0.0.0:{}".format(self.SERVICE_PORT),
-                "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
             },
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "flaskapp"),
             depends_on=self.depends_on,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
+        # TODO remove elastic-apm match when the latest release support it
+        if (self.agent_package != 'elastic-apm==5.1'
+                and self.agent_package != 'elastic-apm==4.1'
+                and self.agent_package != 'elastic-apm'):
+            ret["environment"]["ELASTIC_APM_VERIFY_SERVER_CERT"] = (
+                str(not self.options.get("no_verify_server_cert")).lower())
+        return ret
 
 
 class AgentRubyRails(Service):
