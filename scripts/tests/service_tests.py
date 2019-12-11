@@ -378,6 +378,10 @@ class ApmServerServiceTest(ServiceTest):
             apm_server["image"], "docker.elastic.co/apm/apm-server-oss:6.3.100"
         )
 
+    def test_api_key_auth(self):
+        apm_server = ApmServer(version="7.6.100", apm_server_api_key_auth=True).render()["apm-server"]
+        self.assertIn("apm-server.api_key.enabled=true", apm_server["command"])
+
     def test_elasticsearch_output(self):
         apm_server = ApmServer(version="6.3.100", apm_server_output="elasticsearch").render()["apm-server"]
         self.assertFalse(
