@@ -52,8 +52,13 @@ class ApmServer(StackService, Service):
             ("monitoring.elasticsearch" if self.at_least_version("7.2") else "xpack.monitoring.elasticsearch", "true"),
             ("monitoring.enabled" if self.at_least_version("7.2") else "xpack.monitoring.enabled", "true")
         ])
-        if options.get("apm_server_self_instrument"):
+        if options.get("apm_server_self_instrument", True):
             self.apm_server_command_args.append(("apm-server.instrumentation.enabled", "true"))
+            if self.at_least_version("7.6") and options.get("apm_server_profile", True):
+                self.apm_server_command_args.extend([
+                    ("apm-server.instrumentation.profiling.cpu.enabled", "true"),
+                    ("apm-server.instrumentation.profiling.heap.enabled", "true"),
+                ])
         self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if options.get(
             "enable_elasticsearch", True) else {}
         self.build = self.options.get("apm_server_build")
@@ -236,6 +241,11 @@ class ApmServer(StackService, Service):
             action="store_false",
             dest="apm_server_self_instrument",
             help='disable apm-server self instrumentation.'
+        )
+        parser.add_argument(
+            "--no-apm-server-profile",
+            action="store_false",
+            help='disable apm-server self instrumentation profiling.'
         )
         parser.add_argument(
             '--apm-server-count',
