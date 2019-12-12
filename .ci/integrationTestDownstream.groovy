@@ -219,6 +219,7 @@ def wrappingup(label){
     def stepName = label.replace(";","/")
       .replace("--","_")
       .replace(".","_")
+      .replace(" ","_")
     sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
     sh('make stop-env || echo 0')
     archiveArtifacts(
