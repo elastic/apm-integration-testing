@@ -229,5 +229,8 @@ def wrappingup(label){
       allowEmptyResults: true,
       keepLongStdio: true,
       testResults: "**/tests/results/*-junit*.xml")
+    // Let's generate the debug report ...
+    sh(label: 'Generate debug docs', script: '.ci/scripts/generate-debug-docs.sh | tee docs.txt')
+    archiveArtifacts(artifacts: 'docs.txt')
   }
 }
