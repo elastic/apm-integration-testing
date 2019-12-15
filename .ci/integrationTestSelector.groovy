@@ -11,6 +11,9 @@ pipeline {
     PIPELINE_LOG_LEVEL = 'INFO'
     REUSE_CONTAINERS = "true"
     NAME = agentMapping.id(params.AGENT_INTEGRATION_TEST)
+    AGENT_INTEGRATION_TEST = "${params.AGENT_INTEGRATION_TEST}"
+    ELASTIC_STACK_VERSION = "${params.ELASTIC_STACK_VERSION}"
+    BUILD_OPTS = "${params.BUILD_OPTS}"
   }
   options {
     timeout(time: 1, unit: 'HOURS')
