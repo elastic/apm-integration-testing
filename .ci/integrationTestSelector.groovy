@@ -10,6 +10,7 @@ pipeline {
     JOB_GIT_CREDENTIALS = '2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken'
     PIPELINE_LOG_LEVEL = 'INFO'
     REUSE_CONTAINERS = "true"
+    NAME = agentMapping.id(params.AGENT_INTEGRATION_TEST)
   }
   options {
     timeout(time: 1, unit: 'HOURS')
@@ -50,8 +51,7 @@ pipeline {
         TMPDIR = "${WORKSPACE}"
         ENABLE_ES_DUMP = "true"
         PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
-        AGENT_NAME = agentMapping.id(params.AGENT_INTEGRATION_TEST)
-        AGENT_APP = agentMapping.app(params.AGENT_INTEGRATION_TEST)
+        APP = agentMapping.app(params.AGENT_INTEGRATION_TEST)
       }
       when {
         expression {
@@ -63,7 +63,7 @@ pipeline {
         deleteDir()
         unstash "source"
         dir("${BASE_DIR}"){
-          sh(label: "Testing ${AGENT_NAME} ${AGENT_APP}", script: ".ci/scripts/agent.sh ${AGENT_NAME} ${AGENT_APP}")
+          sh(label: "Testing ${NAME} ${APP}", script: ".ci/scripts/agent.sh ${NAME} ${APP}")
         }
       }
       post {
@@ -143,6 +143,12 @@ pipeline {
     }
   }
   post {
+    //failure {
+    always {
+      githubCheckNotify('ITs debug', 'Click on detals for debugging',
+                        currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILURE',
+                        "${env.BUILD_URL}artifact/docs.txt")
+    }
     cleanup {
       githubCheckNotify(currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILURE')
       notifyBuildResult()
@@ -152,8 +158,7 @@ pipeline {
 
 def wrappingup(){
   dir("${BASE_DIR}"){
-    def stepName = agentMapping.id(params.AGENT_INTEGRATION_TEST)
-    sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
+    sh("./scripts/docker-get-logs.sh '${env.NAME}'|| echo 0")
     sh('make stop-env || echo 0')
     archiveArtifacts(
         allowEmptyArchive: true,
@@ -163,19 +168,32 @@ def wrappingup(){
       allowEmptyResults: true,
       keepLongStdio: true,
       testResults: "**/tests/results/*-junit*.xml")
+
+    // Let's generate the debug report ...
+    sh(label: 'Generate debug docs', script: '.ci/scripts/generate-debug-docs.sh | tee docs.txt')
+    archiveArtifacts(artifacts: 'docs.txt')
   }
 }
-
 
 /**
  Notify the GitHub check of the parent stream
 **/
 def githubCheckNotify(String status) {
-  if (params.GITHUB_CHECK_NAME?.trim() && params.GITHUB_CHECK_REPO?.trim() && params.GITHUB_CHECK_SHA1?.trim()) {
-    githubNotify context: "${params.GITHUB_CHECK_NAME}",
-                 description: "${params.GITHUB_CHECK_NAME} ${status.toLowerCase()}",
+  githubCheckNotify(params.GITHUB_CHECK_NAME, "${params.GITHUB_CHECK_NAME} ${status.toLowerCase()}",
+                    status, "${env.RUN_DISPLAY_URL}")
+}
+
+/**
+ Notify the GitHub check of the parent stream
+**/
+def githubCheckNotify(String context, String description,String status, String url) {
+  if (context.trim() && params.GITHUB_CHECK_REPO?.trim() && params.GITHUB_CHECK_SHA1?.trim()) {
+    githubNotify context: "${context}",
+                 description: "${description}",
                  status: "${status}",
-                 targetUrl: "${env.RUN_DISPLAY_URL}",
-                 sha: params.GITHUB_CHECK_SHA1, account: 'elastic', repo: params.GITHUB_CHECK_REPO, credentialsId: env.JOB_GIT_CREDENTIALS
+                 targetUrl: "${url}",
+                 sha: params.GITHUB_CHECK_SHA1, account: 'elastic',
+                 repo: params.GITHUB_CHECK_REPO,
+                 credentialsId: env.JOB_GIT_CREDENTIALS
   }
 }

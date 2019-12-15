@@ -25,3 +25,6 @@ docker-info/
 # For the BATS testing
 bats-core/
 target/
+
+# For the docs generation
+.apm-its
