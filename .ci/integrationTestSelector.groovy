@@ -14,6 +14,8 @@ pipeline {
     AGENT_INTEGRATION_TEST = "${params.AGENT_INTEGRATION_TEST}"
     ELASTIC_STACK_VERSION = "${params.ELASTIC_STACK_VERSION}"
     BUILD_OPTS = "${params.BUILD_OPTS}"
+    DETAILS_ARTIFACT = 'docs.txt'
+    DETAILS_ARTIFACT_URL = "${env.BUILD_URL}artifact/${env.DETAILS_ARTIFACT}"
   }
   options {
     timeout(time: 1, unit: 'HOURS')
@@ -149,8 +151,8 @@ pipeline {
     always {
       githubCheckNotify('Debug', 'Click on details for debugging',
                         currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILURE',
-                        "${env.BUILD_URL}artifact/docs.txt")
-      githubCommentInPullRequest()
+                        "${DETAILS_ARTIFACT_URL}")
+      githubPrComment(details: "${DETAILS_ARTIFACT_URL}")
     }
     cleanup {
       githubCheckNotify(currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILURE')
@@ -173,8 +175,8 @@ def wrappingup(){
       testResults: "**/tests/results/*-junit*.xml")
 
     // Let's generate the debug report ...
-    sh(label: 'Generate debug docs', script: '.ci/scripts/generate-debug-docs.sh | tee docs.txt')
-    archiveArtifacts(artifacts: 'docs.txt')
+    sh(label: 'Generate debug docs', script: ".ci/scripts/generate-debug-docs.sh | tee ${env.DETAILS_ARTIFACT}")
+    archiveArtifacts(artifacts: "${env.DETAILS_ARTIFACT}")
   }
 }
 
@@ -199,36 +201,4 @@ def githubCheckNotify(String context, String description,String status, String u
                  repo: params.GITHUB_CHECK_REPO,
                  credentialsId: env.JOB_GIT_CREDENTIALS
   }
-}
-
-/**
-  Add a comment in the PR.
-**/
-def githubCommentInPullRequest() {
-  if (env.CHANGE_ID) {
-    def header = currentBuild.currentResult == 'SUCCESS' ?
-            "## :green_heart: Build Succeeded" :
-            "## :broken_heart: Build Failed"
-    pullRequest.comment("""
-      ## ${header}
-      * [continuous-integration/apm-ci](${env.BUILD_URL})
-      * Commit: ${env.GIT_BASE_COMMIT}
-      * Troubleshooting: [here](${env.BUILD_URL}artifact/docs.txt)
-
-      To update your PR or re-run it, just comment with:
-      `jenkins run the tests please`
-      <!--PIPELINE
-      ${toJSON(createBuildInfo()).toString()}
-      PIPELINE-->
-    """)
-  }
-}
-
-def createBuildInfo() {
-  return [
-    status: currentBuild.currentResult,
-    url: env.BUILD_URL,
-    number: env.BUILD_NUMBER,
-    commit: env.GIT_BASE_COMMIT
-  ]
 }
