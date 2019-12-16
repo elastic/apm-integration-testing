@@ -79,6 +79,8 @@ docker-compose stop <service name>
 
 ## Example environments
 
+We have a list with the most common flags combination that we internally use when developing our APM solution. You can find the list [here](https://docs.google.com/spreadsheets/d/1NCPR3RX670ZZOHXx7_y6bhe1zrSMYabPQ5Htheu3oZA/edit?usp=sharing).
+
 ### Change default ports
 
 Expose Kibana on http://localhost:1234:
