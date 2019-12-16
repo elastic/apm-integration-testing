@@ -146,9 +146,8 @@ pipeline {
     }
   }
   post {
-    //failure {
     always {
-      githubCheckNotify('ITs debug', 'Click on detalis for debugging',
+      githubCheckNotify('Debug', 'Click on details for debugging',
                         currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILURE',
                         "${env.BUILD_URL}artifact/docs.txt")
     }
