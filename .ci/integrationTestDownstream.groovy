@@ -11,7 +11,7 @@ import groovy.transform.Field
 @Field def integrationTestsGen
 
 pipeline {
-  agent { label 'linux && immutable && docker' }
+  agent { label 'linux && immutable' }
   environment {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
     REPO="git@github.com:elastic/apm-integration-testing.git"
