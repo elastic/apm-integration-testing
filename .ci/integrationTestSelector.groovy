@@ -2,7 +2,7 @@
 @Library('apm@current') _
 
 pipeline {
-  agent { label 'linux && immutable && docker' }
+  agent { label 'linux && immutable' }
   environment {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
     NOTIFY_TO = credentials('notify-to')
