@@ -551,6 +551,8 @@ class Elasticsearch(StackService, Service):
 
         self.environment = self.default_environment + [
             java_opts_env, "path.data=/usr/share/elasticsearch/data/" + data_dir]
+        if self.at_least_version("8.0"):
+            self.environment.append("indices.id_field_data.enabled=true")
         if not self.oss:
             xpack_security_enabled = "false"
             if self.xpack_secure:
