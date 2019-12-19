@@ -82,6 +82,11 @@ pipeline {
           }
         }
       }
+      post {
+        cleanup {
+          wrappingup('all')
+        }
+      }
     }
   }
   post {
@@ -124,11 +129,36 @@ def withConfigEnv(Closure body) {
     [var: 'APM_SERVER_URL', password: apm.stringData.url],
     [var: 'APM_SERVER_SECRET_TOKEN', password: apm.stringData.token],
     [var: 'ES_URL', password: es.stringData.url],
+    [var: 'ES_USER', password: es.stringData.user],
+    [var: 'ES_PASSWORD', password: es.stringData.password],
     [var: 'KIBANA_URL', password: kb.stringData.url]
   ]){
+    sh(label: 'Allow destructive operations on Elasticsearch', script: '''
+      curl -X PUT -u ${ES_USER}:${ES_PASSWORD} -H 'Content-Type: application/json' "${ES_URL}_cluster/settings" -d'{"persistent": {"action.destructive_requires_name": false}}'
+    ''')
     body()
   }
 }
+
+def wrappingup(label){
+  dir("${BASE_DIR}"){
+    def stepName = label.replace(";","/")
+      .replace("--","_")
+      .replace(".","_")
+      .replace(" ","_")
+    sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
+    sh('make stop-env || echo 0')
+    archiveArtifacts(
+        allowEmptyArchive: true,
+        artifacts: 'docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
+        defaultExcludes: false)
+    junit(
+      allowEmptyResults: true,
+      keepLongStdio: true,
+      testResults: "**/tests/results/*-junit*.xml")
+  }
+}
+
 def destroyClusters(){
   def deployConfig = readYaml(file: "${CLUSTER_CONFIG_FILE}")
   dir("${EC_DIR}/ansible/build"){
