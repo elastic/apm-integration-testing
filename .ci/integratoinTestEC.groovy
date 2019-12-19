@@ -70,6 +70,7 @@ pipeline {
                 config.elasticsearch.version = "${params.ELASTIC_STACK_VERSION}"
                 config.kibana.version = "${params.ELASTIC_STACK_VERSION}"
                 config.apm.version = "${params.ELASTIC_STACK_VERSION}"
+                sh(label: 'Cat config', script: "cat ${CLUSTER_CONFIG_FILE}")
                 sh(label: 'Delete old config', script: "rm ${CLUSTER_CONFIG_FILE}")
                 writeYaml(file: "${CLUSTER_CONFIG_FILE}", data: config)
               }
