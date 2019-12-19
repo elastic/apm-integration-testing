@@ -67,6 +67,7 @@ pipeline {
               script {
                 def config = readYaml(file: "${CLUSTER_CONFIG_FILE}")
                 config.k8s.cluster_name = "${config.k8s.cluster_name}-${BUILD_NUMBER}"
+                sh(label: 'Delete old config', script: "rm ${CLUSTER_CONFIG_FILE}")
                 writeYaml(file: "${CLUSTER_CONFIG_FILE}", data: config)
               }
               sh(label: "Deploy Cluster", script: "make deploy-cluster")
