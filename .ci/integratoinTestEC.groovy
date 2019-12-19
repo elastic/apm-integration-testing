@@ -76,11 +76,16 @@ pipeline {
               }
               sh(label: "Deploy Cluster", script: "make deploy-cluster")
               archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info/**')
-              setEnvVar('EC_SECRETS', "${env.EC_WS}/ansible/build/k8s")
-              setEnvVar('APM_SERVER_URL', readYaml(file: "${env.EC_SECRETS}/cluster-secrets.yaml").stringData.url)
-              setEnvVar('APM_SERVER_SECRET_TOKEN', readYaml(file: "${env.EC_SECRETS}/cluster-secrets.yaml").stringData.token)
-              setEnvVar('ES_URL', readYaml(file: "${env.EC_SECRETS}/es-secrets.yaml").stringData.url)
-              setEnvVar('KIBANA_URL', readYaml(file: "${env.EC_SECRETS}/kibana-secrets.yaml").stringData.url)
+              script {
+                env.EC_SECRETS = "${env.EC_WS}/ansible/build/k8s"
+                def apm = readYaml(file: "${env.EC_SECRETS}/apm-secrets.yaml")
+                def es = readYaml(file: "${env.EC_SECRETS}/es-secrets.yaml")
+                def kb = readYaml(file: "${env.EC_SECRETS}/kibana-secrets.yaml")
+                env.APM_SERVER_URL = apm.stringData.url
+                env.APM_SERVER_SECRET_TOKEN = apm.stringData.token
+                env.ES_URL = es.stringData.url
+                env.KIBANA_URL = kb.stringData.url
+              }
             }
           }
         }
