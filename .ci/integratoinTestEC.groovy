@@ -18,7 +18,7 @@ pipeline {
     EC_WS ="${env.WORKSPACE}/${env.EC_DIR}"
     VENV = "${env.WORKSPACE}/.venv"
     PATH = "${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.VENV}/bin:${env.EC_WS}/bin:${env.EC_WS}/.ci/scripts:${env.BIN_DIR}:${env.PATH}"
-    CLUSTER_CONFIG_FILE="${env.EC_WS}/test/enviroments/elastic_cloud.yml"
+    CLUSTER_CONFIG_FILE="${env.EC_WS}/tests/environments/elastic_cloud.yml"
     DOCKERELASTIC_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
     ENABLE_ES_DUMP = "true"
