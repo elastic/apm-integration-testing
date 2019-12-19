@@ -64,7 +64,8 @@ pipeline {
         axes {
           axis {
               name 'TEST'
-              values 'all', 'dotnet', 'go', 'java', 'nodejs', 'python', 'ruby', 'rum'
+//              values 'all', 'dotnet', 'go', 'java', 'nodejs', 'python', 'ruby', 'rum'
+                values 'go'
           }
         }
         stages {
@@ -85,13 +86,13 @@ pipeline {
                   archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info/**')
                 }
               }
-            }
-          }
-          stage("Test") {
-            environment {
-              BUILD_OPTS = "${params.BUILD_OPTS} --apm-server-url ${env.APM_SERVER_URL} --apm-server-secret-token ${env.APM_SERVER_SECRET_TOKEN}"
-            }
-            steps {
+          //   }
+          // }
+          // stage("Test") {
+          //   environment {
+          //     BUILD_OPTS = "${params.BUILD_OPTS} --apm-server-url ${env.APM_SERVER_URL} --apm-server-secret-token ${env.APM_SERVER_SECRET_TOKEN}"
+          //   }
+          //   steps {
               dir("${BASE_DIR}"){
                 withConfigEnv(){
                   sh ".ci/scripts/${TEST}.sh"
