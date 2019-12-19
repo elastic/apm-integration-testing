@@ -25,7 +25,6 @@ pipeline {
     BRANCH_NAME = "test-it-on-ec"
   }
   triggers {
-    cron 'H H(3-4) * * 1-5'
     issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
   }
   options {
@@ -50,41 +49,61 @@ pipeline {
       steps {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
-        stash allowEmpty: true, name: 'source', useDefaultExcludes: false
-      }
-    }
-    stage('Provision Elastic Cloud environment'){
-      steps {
-        dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
         dir("${EC_DIR}"){
           git(branch: 'master-v2.0',
             credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba',
             url: 'git@github.com:elastic/observability-test-environments.git'
           )
-          withVaultEnv(){
-            dir('ansible'){
-              updateEnvConfig()
-              sh(label: "Deploy Cluster", script: "make deploy-cluster")
-              archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info/**')
-            }
-          }
         }
+        stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
-    stage("All") {
-      environment {
-        BUILD_OPTS = "${params.BUILD_OPTS} --apm-server-url ${env.APM_SERVER_URL} --apm-server-secret-token ${env.APM_SERVER_SECRET_TOKEN}"
-      }
-      steps {
-        dir("${BASE_DIR}"){
-          withConfigEnv(){
-            sh ".ci/scripts/all.sh"
+    stage('Tests On Elastic Cloud'){
+      matrix {
+        agent { label 'linux && immutable' }
+        axes {
+          axis {
+              name 'TEST'
+              values 'all', 'dotnet', 'go', 'java', 'nodejs', 'python', 'ruby', 'rum'
           }
         }
-      }
-      post {
-        cleanup {
-          wrappingup('all')
+        stages {
+          stage('Prepare Test'){
+            steps {
+              log(level: "INFO", text: "Running tests - ${TEST}")
+              deleteDir()
+              unstash 'source'
+            }
+          }
+          stage('Provision Elastic Cloud environment'){
+            steps {
+              dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
+              dir("${EC_DIR}/ansible"){
+                withVaultEnv(){
+                  updateEnvConfig()
+                  sh(label: "Deploy Cluster", script: "make deploy-cluster")
+                  archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info/**')
+                }
+              }
+            }
+          }
+          stage("Test") {
+            environment {
+              BUILD_OPTS = "${params.BUILD_OPTS} --apm-server-url ${env.APM_SERVER_URL} --apm-server-secret-token ${env.APM_SERVER_SECRET_TOKEN}"
+            }
+            steps {
+              dir("${BASE_DIR}"){
+                withConfigEnv(){
+                  sh ".ci/scripts/${TEST}.sh"
+                }
+              }
+            }
+            post {
+              cleanup {
+                wrappingup("${TEST}")
+              }
+            }
+          }
         }
       }
     }
@@ -102,7 +121,8 @@ def withVaultEnv(Closure body){
     def token = getVaultSecret.getVaultToken(env.VAULT_ADDR, env.VAULT_ROLE_ID, env.VAULT_SECRET_ID)
     withEnvMask(vars: [
       [var: 'VAULT_TOKEN', password: token],
-      [var: 'VAULT_AUTH_METHOD', password: 'approle']
+      [var: 'VAULT_AUTH_METHOD', password: 'approle'],
+      [var: 'VAULT_AUTHTYPE', password: 'approle']
     ]){
       body()
     }
