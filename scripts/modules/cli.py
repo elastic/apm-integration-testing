@@ -263,6 +263,14 @@ class LocalSetup(object):
             help='path to docker-compose.yml'
         )
 
+        # option for docker-compose.yml version
+        parser.add_argument(
+            '--docker-compose-yml-version',
+            choices=("2.1", "3.7"),
+            default="2.1",
+            help='docker-compose.yml version'
+        )
+
         # option to add a service and keep the rest running
         parser.add_argument(
             '--append',
@@ -553,8 +561,9 @@ class LocalSetup(object):
             if args.get("disable_opbeans_load_generator") or not enabled_opbeans:
                 del services["opbeans-load-generator"]
 
+        docker_compose_yml_version = args.get("docker_compose_yml_version", "2.1")
         compose = dict(
-            version="2.1",
+            version=docker_compose_yml_version,
             services=services,
             networks=dict(
                 default={"name": "apm-integration-testing"},
@@ -564,6 +573,12 @@ class LocalSetup(object):
                 pgdata={"driver": "local"},
             ),
         )
+        if docker_compose_yml_version == "3.7":
+            for service, config in compose["services"].items():
+                depends_on = sorted(k for k in config.pop("depends_on", {}).keys())
+                if depends_on:
+                    config["depends_on"] = depends_on
+
         docker_compose_path = args["docker_compose_path"]
         json.dump(compose, docker_compose_path, indent=2, sort_keys=True)
         docker_compose_path.flush()
