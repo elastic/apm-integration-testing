@@ -63,29 +63,10 @@ pipeline {
           )
           withVaultEnv(){
             dir('ansible'){
-              sh('export')
-              script {
-                def config = readYaml(file: "${CLUSTER_CONFIG_FILE}")
-                config.k8s.cluster_name = "${config.k8s.cluster_name}-${BUILD_NUMBER}"
-                config.elasticsearch.version = "${params.ELASTIC_STACK_VERSION}"
-                config.kibana.version = "${params.ELASTIC_STACK_VERSION}"
-                config.apm.version = "${params.ELASTIC_STACK_VERSION}"
-                sh(label: 'Cat config', script: "cat ${CLUSTER_CONFIG_FILE}")
-                sh(label: 'Delete old config', script: "rm ${CLUSTER_CONFIG_FILE}")
-                writeYaml(file: "${CLUSTER_CONFIG_FILE}", data: config)
-              }
+              updateEnvConfig()
               sh(label: "Deploy Cluster", script: "make deploy-cluster")
               archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info/**')
-              script {
-                env.EC_SECRETS = "${env.EC_WS}/ansible/build/k8s"
-                def apm = readYaml(file: "${env.EC_SECRETS}/apm-secrets.yaml")
-                def es = readYaml(file: "${env.EC_SECRETS}/es-secrets.yaml")
-                def kb = readYaml(file: "${env.EC_SECRETS}/kibana-secrets.yaml")
-                env.APM_SERVER_URL = apm.stringData.url
-                env.APM_SERVER_SECRET_TOKEN = apm.stringData.token
-                env.ES_URL = es.stringData.url
-                env.KIBANA_URL = kb.stringData.url
-              }
+              loadConfigEnv()
             }
           }
         }
@@ -122,6 +103,27 @@ def withVaultEnv(Closure body){
   }
 }
 
+def updateEnvConfig(){
+  def config = readYaml(file: "${CLUSTER_CONFIG_FILE}")
+  config.k8s.cluster_name = "${config.k8s.cluster_name}-${BUILD_NUMBER}"
+  config.elasticsearch.version = "${params.ELASTIC_STACK_VERSION}"
+  config.kibana.version = "${params.ELASTIC_STACK_VERSION}"
+  config.apm.version = "${params.ELASTIC_STACK_VERSION}"
+  sh(label: 'Delete old config', script: "rm ${CLUSTER_CONFIG_FILE}")
+  writeYaml(file: "${CLUSTER_CONFIG_FILE}", data: config)
+  archiveArtifacts(allowEmptyArchive: true, artifacts: "${CLUSTER_CONFIG_FILE}", onlyIfSuccessful: true)
+}
+
+def loadConfigEnv() {
+  env.EC_SECRETS = "${env.EC_WS}/ansible/build/k8s"
+  def apm = readYaml(file: "${env.EC_SECRETS}/apm-secrets.yaml")
+  def es = readYaml(file: "${env.EC_SECRETS}/es-secrets.yaml")
+  def kb = readYaml(file: "${env.EC_SECRETS}/kibana-secrets.yaml")
+  env.APM_SERVER_URL = apm.stringData.url
+  env.APM_SERVER_SECRET_TOKEN = apm.stringData.token
+  env.ES_URL = es.stringData.url
+  env.KIBANA_URL = kb.stringData.url
+}
 def destroyClusters(){
   def deployConfig = readYaml(file: "${CLUSTER_CONFIG_FILE}")
   dir("${EC_DIR}/ansible/build"){
