@@ -21,7 +21,7 @@ pipeline {
     CLUSTER_CONFIG_FILE="${env.EC_WS}/tests/environments/elastic_cloud.yml"
     DOCKERELASTIC_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
-    ENABLE_ES_DUMP = "true"
+    //ENABLE_ES_DUMP = "true"
     BRANCH_NAME = "test-it-on-ec"
   }
   triggers {
