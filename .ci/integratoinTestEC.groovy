@@ -39,7 +39,7 @@ pipeline {
   }
   parameters {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "8.0.0", description: "Elastic Stack Git branch/tag to use")
-    string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
+    string(name: 'BUILD_OPTS', defaultValue: "--no-elasticsearch --no-apm-server --no-kibana --no-apm-server-dashboards --no-apm-server-self-instrument", description: "Addicional build options to passing compose.py")
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
   }
   stages {
@@ -72,6 +72,11 @@ pipeline {
               }
               sh(label: "Deploy Cluster", script: "make deploy-cluster")
               archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info/**')
+
+              setEnvVar('APM_SERVER_URL', readYaml(file: "${env.EC_WS}/build/k8s/cluster-secrets.yaml").stringData.url)
+              setEnvVar('APM_SERVER_SECRET_TOKEN', readYaml(file: "${env.EC_WS}/build/k8s/cluster-secrets.yaml").stringData.token)
+              setEnvVar('ES_URL', readYaml(file: "${env.EC_WS}/build/k8s/es-secrets.yaml").stringData.url)
+              setEnvVar('KIBANA_URL', readYaml(file: "${env.EC_WS}/build/k8s/kibana-secrets.yaml").stringData.url)
             }
           }
         }
@@ -79,11 +84,7 @@ pipeline {
     }
     stage("All") {
       environment {
-        APM_SERVER_URL = ""
-        APM_SERVER_SECRET_TOKEN = ""
-        ES_URL = ""
-        KIBANA_URL = ""
-        BUILD_OPTS = "${params.BUILD_OPTS} --apm-server-url ${env.APM_SERVER_URL} --apm-server-secret-token ${APM_SERVER_SECRET_TOKEN} --no-elasticsearch --no-apm-server --no-kibana --no-apm-server-dashboards --no-apm-server-self-instrument"
+        BUILD_OPTS = "${params.BUILD_OPTS} --apm-server-url ${env.APM_SERVER_URL} --apm-server-secret-token ${env.APM_SERVER_SECRET_TOKEN}"
       }
       steps {
         dir("${BASE_DIR}"){
