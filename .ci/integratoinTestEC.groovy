@@ -62,6 +62,7 @@ pipeline {
           )
           withVaultEnv(){
             dir('ansible'){
+              sh('export')
               sh(label: "Deploy Cluster", script: "make deploy-cluster")
               archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info/**')
             }
