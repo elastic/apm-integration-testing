@@ -66,7 +66,6 @@ pipeline {
               updateEnvConfig()
               sh(label: "Deploy Cluster", script: "make deploy-cluster")
               archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info/**')
-              loadConfigEnv()
             }
           }
         }
@@ -78,7 +77,9 @@ pipeline {
       }
       steps {
         dir("${BASE_DIR}"){
-          sh ".ci/scripts/all.sh"
+          withConfigEnv(){
+            sh ".ci/scripts/all.sh"
+          }
         }
       }
     }
@@ -114,15 +115,19 @@ def updateEnvConfig(){
   archiveArtifacts(allowEmptyArchive: true, artifacts: "${CLUSTER_CONFIG_FILE}", onlyIfSuccessful: true)
 }
 
-def loadConfigEnv() {
-  env.EC_SECRETS = "${env.EC_WS}/ansible/build/k8s"
-  def apm = readYaml(file: "${env.EC_SECRETS}/apm-secrets.yaml")
-  def es = readYaml(file: "${env.EC_SECRETS}/es-secrets.yaml")
-  def kb = readYaml(file: "${env.EC_SECRETS}/kibana-secrets.yaml")
-  env.APM_SERVER_URL = apm.stringData.url
-  env.APM_SERVER_SECRET_TOKEN = apm.stringData.token
-  env.ES_URL = es.stringData.url
-  env.KIBANA_URL = kb.stringData.url
+def withConfigEnv(Closure body) {
+  def ecSecrets = "${env.EC_WS}/ansible/build/k8s"
+  def apm = readYaml(file: "${ecSecrets}/apm-secrets.yaml")
+  def es = readYaml(file: "${ecSecrets}/es-secrets.yaml")
+  def kb = readYaml(file: "${ecSecrets}/kibana-secrets.yaml")
+  withEnv(vars: [
+    [var: 'APM_SERVER_URL', password: apm.stringData.url],
+    [var: 'APM_SERVER_SECRET_TOKEN', password: apm.stringData.token],
+    [var: 'ES_URL', password: es.stringData.url],
+    [var: 'KIBANA_URL', password: kb.stringData.url]
+  ]){
+    body()
+  }
 }
 def destroyClusters(){
   def deployConfig = readYaml(file: "${CLUSTER_CONFIG_FILE}")
