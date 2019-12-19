@@ -125,7 +125,7 @@ def withConfigEnv(Closure body) {
   def apm = readYaml(file: "${ecSecrets}/apm-secrets.yaml")
   def es = readYaml(file: "${ecSecrets}/es-secrets.yaml")
   def kb = readYaml(file: "${ecSecrets}/kibana-secrets.yaml")
-  withEnv(vars: [
+  withEnvMask(vars: [
     [var: 'APM_SERVER_URL', password: apm.stringData.url],
     [var: 'APM_SERVER_SECRET_TOKEN', password: apm.stringData.token],
     [var: 'ES_URL', password: es.stringData.url],
