@@ -11,7 +11,6 @@ pipeline {
     PIPELINE_LOG_LEVEL='INFO'
     TMPDIR = "${env.WORKSPACE}"
     REUSE_CONTAINERS = "true"
-    CLUSTER_CONFIG_FILE="${env.WORKSPACE}/${BASE_DIR}/.ci/test/enviroments/elastic_cloud.yml"
     HOME = "${env.WORKSPACE}"
     CONFIG_HOME = "${env.WORKSPACE}"
     BIN_DIR = "${env.WORKSPACE}/bin"
@@ -19,6 +18,7 @@ pipeline {
     EC_WS =" ${env.WORKSPACE}/${env.EC_DIR}"
     VENV = "${env.WORKSPACE}/.venv"
     PATH = "${env.WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.VENV}/bin:${EC_WS}/bin:${EC_WS}/.ci/scripts:${env.BIN_DIR}:${env.PATH}"
+    CLUSTER_CONFIG_FILE="${env.EC_WS}/test/enviroments/elastic_cloud.yml"
     DOCKERELASTIC_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
     ENABLE_ES_DUMP = "true"
