@@ -9,19 +9,8 @@ pipeline {
     NOTIFY_TO = credentials('notify-to')
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     PIPELINE_LOG_LEVEL='DEBUG'
-    TMPDIR = "${env.WORKSPACE}"
-    REUSE_CONTAINERS = "true"
-    HOME = "${env.WORKSPACE}"
-    CONFIG_HOME = "${env.WORKSPACE}"
-    BIN_DIR = "${env.WORKSPACE}/bin"
-    HELM_INSTALL_DIR = "${env.BIN_DIR}"
-    EC_WS ="${env.WORKSPACE}/${env.EC_DIR}"
-    VENV = "${env.WORKSPACE}/.venv"
-    PATH = "${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.VENV}/bin:${env.EC_WS}/bin:${env.EC_WS}/.ci/scripts:${env.BIN_DIR}:${env.PATH}"
-    CLUSTER_CONFIG_FILE="${env.EC_WS}/tests/environments/elastic_cloud.yml"
     DOCKERELASTIC_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
-    //ENABLE_ES_DUMP = "true"
     BRANCH_NAME = "test-it-on-ec"
   }
   triggers {
@@ -61,6 +50,17 @@ pipeline {
     stage('Tests On Elastic Cloud'){
       matrix {
         agent { label 'linux && immutable' }
+        environment {
+          TMPDIR = "${env.WORKSPACE}"
+          REUSE_CONTAINERS = "true"
+          HOME = "${env.WORKSPACE}"
+          CONFIG_HOME = "${env.WORKSPACE}"
+          EC_WS ="${env.WORKSPACE}/${env.EC_DIR}"
+          VENV = "${env.WORKSPACE}/.venv"
+          PATH = "${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.VENV}/bin:${env.EC_WS}/bin:${env.EC_WS}/.ci/scripts:${env.PATH}"
+          CLUSTER_CONFIG_FILE="${env.EC_WS}/tests/environments/elastic_cloud.yml"
+          //ENABLE_ES_DUMP = "true"
+        }
         axes {
           axis {
               name 'TEST'
@@ -86,13 +86,13 @@ pipeline {
                   archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info/**')
                 }
               }
-          //   }
-          // }
-          // stage("Test") {
-          //   environment {
-          //     BUILD_OPTS = "${params.BUILD_OPTS} --apm-server-url ${env.APM_SERVER_URL} --apm-server-secret-token ${env.APM_SERVER_SECRET_TOKEN}"
-          //   }
-          //   steps {
+            }
+          }
+          stage("Test") {
+            environment {
+              BUILD_OPTS = "${params.BUILD_OPTS} --apm-server-url ${env.APM_SERVER_URL} --apm-server-secret-token ${env.APM_SERVER_SECRET_TOKEN}"
+            }
+            steps {
               dir("${BASE_DIR}"){
                 withConfigEnv(){
                   sh ".ci/scripts/${TEST}.sh"
@@ -102,6 +102,7 @@ pipeline {
             post {
               cleanup {
                 wrappingup("${TEST}")
+                destroyClusters()
               }
             }
           }
@@ -112,7 +113,6 @@ pipeline {
   post {
     cleanup {
       notifyBuildResult()
-      destroyClusters()
     }
   }
 }
@@ -132,7 +132,7 @@ def withVaultEnv(Closure body){
 
 def updateEnvConfig(){
   def config = readYaml(file: "${CLUSTER_CONFIG_FILE}")
-  config.k8s.cluster_name = "${config.k8s.cluster_name}-${BUILD_NUMBER}"
+  config.cluster_name = "${config.cluster_name}-${BUILD_NUMBER}"
   config.elasticsearch.version = "${params.ELASTIC_STACK_VERSION}"
   config.kibana.version = "${params.ELASTIC_STACK_VERSION}"
   config.apm.version = "${params.ELASTIC_STACK_VERSION}"
