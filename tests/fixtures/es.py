@@ -37,4 +37,6 @@ def es():
                 ct = s['count']
             return ct
 
-    return Elasticsearch(default.from_env("ES_URL"))
+    return Elasticsearch(default.from_env("ES_URL"),
+                         http_auth=(default.from_env("ES_USER"),
+                                    default.from_env("ES_PASS")))

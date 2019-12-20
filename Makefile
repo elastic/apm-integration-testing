@@ -22,6 +22,9 @@ JAVA_SPRING_URL ?= "http://javaspring:8090"
 RAILS_URL ?= "http://railsapp:8020"
 RUM_URL ?= "http://rum:8000"
 
+ES_USER ?= 'elastic'
+ES_PASS ?= 'changeme'
+
 # Make sure we run local versions of everything, particularly commands
 # installed into our virtualenv with pip eg. `docker-compose`.
 export PATH := ./bin:$(VENV)/bin:$(PATH)
@@ -112,9 +115,9 @@ dockerized-test:
 	  --name=apm-integration-testing \
 	  --network=apm-integration-testing \
 	  --security-opt seccomp=unconfined \
-	  -e APM_SERVER_URL=$(APM_SERVER_URL) \
-	  -e ES_URL=$(ES_URL) \
-	  -e KIBANA_URL=$(KIBANA_URL) \
+	  -e APM_SERVER_URL=${APM_SERVER_URL} \
+	  -e ES_URL=${ES_URL} \
+	  -e KIBANA_URL=${KIBANA_URL} \
 	  -e DJANGO_URL=$(DJANGO_URL) \
 	  -e DOTNET_URL=$(DOTNET_URL) \
 	  -e EXPRESS_URL=$(EXPRESS_URL) \
@@ -124,7 +127,9 @@ dockerized-test:
 	  -e RAILS_URL=$(RAILS_URL) \
 	  -e RUM_URL=$(RUM_URL) \
 	  -e PYTHONDONTWRITEBYTECODE=1 \
-	  -e ENABLE_ES_DUMP=$(ENABLE_ES_DUMP) \
+		-e ENABLE_ES_DUMP=$(ENABLE_ES_DUMP) \
+		-e ES_USER=${ES_USER} \
+		-e ES_PASS=${ES_PASS} \
 	  -v "$(PWD)/$(JUNIT_RESULTS_DIR)":"/app/$(JUNIT_RESULTS_DIR)" \
 	  --rm \
 	  --entrypoint make \

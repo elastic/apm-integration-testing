@@ -26,6 +26,8 @@ JAVA_SPRING_URL = "http://localhost:8090"
 RUM_SERVICE_NAME = "rumapp"
 RUM_URL = "http://localhost:8000"
 
+ES_USER = "elastic"
+ES_PASS = "changeme"
 
 def from_env(var):
     return os.getenv(var, getattr(sys.modules[__name__], var))

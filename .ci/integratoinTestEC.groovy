@@ -59,7 +59,7 @@ pipeline {
           VENV = "${env.WORKSPACE}/.venv"
           PATH = "${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.VENV}/bin:${env.EC_WS}/bin:${env.EC_WS}/.ci/scripts:${env.PATH}"
           CLUSTER_CONFIG_FILE="${env.EC_WS}/tests/environments/elastic_cloud.yml"
-          ENABLE_ES_DUMP = ""
+          ENABLE_ES_DUMP = "true"
         }
         axes {
           axis {
@@ -151,7 +151,7 @@ def withConfigEnv(Closure body) {
     [var: 'APM_SERVER_SECRET_TOKEN', password: apm.stringData.token],
     [var: 'ES_URL', password: es.stringData.url],
     [var: 'ES_USER', password: es.stringData.user],
-    [var: 'ES_PASSWORD', password: es.stringData.password],
+    [var: 'ES_PASS', password: es.stringData.password],
     [var: 'KIBANA_URL', password: kb.stringData.url]
   ]){
     body()
