@@ -10,7 +10,7 @@ from tests.fixtures import default
 @pytest.fixture(scope="session")
 def es():
     class Elasticsearch(object):
-        def __init__(self, url):
+        def __init__(self, url, http_auth=()):
             self.es = elasticsearch.Elasticsearch([url])
             self.index = "apm-*"
 
