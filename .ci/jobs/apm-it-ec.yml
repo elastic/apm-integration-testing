@@ -4,7 +4,7 @@
     display-name: APM Integration Test on Elastic Cloud
     description: It runs integration Test against an Elastic Cloud environment.
     project-type: multibranch
-    script-path: .ci/jobs/apm-it-ec.yml
+    script-path: .ci/integrationTestEC.groovy
     scm:
     - github:
         branch-discovery: no-pr

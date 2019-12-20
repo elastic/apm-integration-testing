@@ -188,7 +188,10 @@ def destroyClusters(){
     catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
       if(deployConfig.elasticsearch.type == 'ec'){
         withVaultToken(){
-          sh(label: 'Destroy EC clsuter', script: 'make -C elastic-cloud set-auth-env destroy-cluster')
+          retry(3){
+            sh(label: 'Destroy EC clsuter', script: 'make -C elastic-cloud set-auth-env destroy-cluster')
+            sleep(10)
+          }
         }
       }
     }
