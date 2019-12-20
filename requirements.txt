@@ -5,7 +5,7 @@ cached-property==1.5.1
 certifi==2017.11.5
 chardet==3.0.4
 coverage==4.5.1
-docker-compose-wait==1.0.0
+docker-compose-wait==1.2.1
 # must be >= 1.23.0 for build --parallel
 docker-compose==1.23.1
 docker-pycreds==0.3.0
@@ -38,7 +38,7 @@ texttable==0.9.1
 timeout-decorator==0.4.0
 tornado==5.1
 urllib3==1.25.7
-virtualenv==16.0.0
+virtualenv==16.7.9
 waiting==1.4.1
 webium==1.2.1
 websocket-client==0.54.0
