@@ -181,7 +181,9 @@ def destroyClusters(){
   def deployConfig = readYaml(file: "${CLUSTER_CONFIG_FILE}")
   dir("${EC_DIR}/ansible/build"){
     catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-      sh(label: 'Destroy k8s cluster', script: 'make destroy-cluster')
+      if(deployConfig.k8s.enabled){
+        sh(label: 'Destroy k8s cluster', script: 'make destroy-cluster')
+      }
     }
     catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
       if(deployConfig.elasticsearch.type == 'ec'){
