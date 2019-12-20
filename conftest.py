@@ -1,14 +1,9 @@
 #!/usr/bin/env python
 import os
-
-import pytest
-import json
-import subprocess
 import sys
-try:
-    from urlparse import urlparse
-except ImportError:
-    from urllib.parse import urlparse
+import pytest
+import subprocess
+
 from tests.fixtures.transactions import minimal
 from tests.fixtures.apm_server import apm_server
 from tests.fixtures.es import es
@@ -22,6 +17,7 @@ from tests.fixtures.agents import go_nethttp
 from tests.fixtures.agents import java_spring
 from tests.fixtures.agents import rum
 from tests.fixtures import default
+from tests.utils import getElasticsearchURL
 
 
 def pytest_addoption(parser):
@@ -45,12 +41,7 @@ def pytest_runtest_logreport(report):
     if report.when == "call" and report.failed:
         name = report.nodeid.split(":", 2)[-1]
         try:
-            es_url = default.from_env("ES_URL")
-            es_user = default.from_env("ES_USER")
-            es_pass = default.from_env("ES_PASS")
-            url = urlparse(es_url)
-            url._replace(netloc='{}:{}@{}'.format(es_user, es_pass, url.netloc))
-            es_url = url.geturl()
+            es_url = getElasticsearchURL()
             isDumpEnable = os.getenv("ENABLE_ES_DUMP")
             if isDumpEnable is not None:
                 subprocess.call(['elasticdump',

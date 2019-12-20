@@ -5,12 +5,13 @@ import pytest
 import timeout_decorator
 
 from tests.fixtures import default
+from tests.utils import getElasticsearchURL
 
 
 @pytest.fixture(scope="session")
 def es():
     class Elasticsearch(object):
-        def __init__(self, url, http_auth=()):
+        def __init__(self, url):
             self.es = elasticsearch.Elasticsearch([url])
             self.index = "apm-*"
 
@@ -37,6 +38,4 @@ def es():
                 ct = s['count']
             return ct
 
-    return Elasticsearch(default.from_env("ES_URL"),
-                         http_auth=(default.from_env("ES_USER"),
-                                    default.from_env("ES_PASS")))
+    return Elasticsearch(getElasticsearchURL())
