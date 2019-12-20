@@ -154,9 +154,6 @@ def withConfigEnv(Closure body) {
     [var: 'ES_PASSWORD', password: es.stringData.password],
     [var: 'KIBANA_URL', password: kb.stringData.url]
   ]){
-    sh(label: 'Allow destructive operations on Elasticsearch', script: '''
-      curl -X PUT -u ${ES_USER}:${ES_PASSWORD} -H 'Content-Type: application/json' "${ES_URL}_cluster/settings" -d'{"persistent": {"action.destructive_requires_name": false}}'
-    ''')
     body()
   }
 }
