@@ -8,7 +8,7 @@ pipeline {
     EC_DIR="src/github.com/elastic/observability-test-environments"
     NOTIFY_TO = credentials('notify-to')
     JOB_GCS_BUCKET = credentials('gcs-bucket')
-    PIPELINE_LOG_LEVEL='DEBUG'
+    PIPELINE_LOG_LEVEL='INFO'
     DOCKERELASTIC_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
   }
@@ -130,10 +130,10 @@ def withVaultEnv(Closure body){
 
 def updateEnvConfig(){
   def config = readYaml(file: "${CLUSTER_CONFIG_FILE}")
-  config.cluster_name = "${config.cluster_name}-${BUILD_NUMBER}"
-  config.elasticsearch.version = "${params.ELASTIC_STACK_VERSION}"
-  config.kibana.version = "${params.ELASTIC_STACK_VERSION}"
-  config.apm.version = "${params.ELASTIC_STACK_VERSION}"
+  config.cluster_name = "${config.cluster_name}-${ELASTIC_STACK_VERSION}-${TEST}-${BUILD_NUMBER}"
+  config.elasticsearch.version = "${ELASTIC_STACK_VERSION}"
+  config.kibana.version = "${ELASTIC_STACK_VERSION}"
+  config.apm.version = "${ELASTIC_STACK_VERSION}"
   sh(label: 'Delete old config', script: "rm ${CLUSTER_CONFIG_FILE}")
   writeYaml(file: "${CLUSTER_CONFIG_FILE}", data: config)
   archiveArtifacts(allowEmptyArchive: true, artifacts: "${CLUSTER_CONFIG_FILE}", onlyIfSuccessful: true)
