@@ -89,9 +89,6 @@ pipeline {
             }
           }
           stage("Test") {
-            environment {
-              BUILD_OPTS = "${params.BUILD_OPTS} --apm-server-url ${env.APM_SERVER_URL} --apm-server-secret-token ${env.APM_SERVER_SECRET_TOKEN}"
-            }
             steps {
               dir("${BASE_DIR}"){
                 withConfigEnv(){
@@ -152,7 +149,8 @@ def withConfigEnv(Closure body) {
     [var: 'ES_URL', password: es.stringData.url],
     [var: 'ES_USER', password: es.stringData.user],
     [var: 'ES_PASS', password: es.stringData.password],
-    [var: 'KIBANA_URL', password: kb.stringData.url]
+    [var: 'KIBANA_URL', password: kb.stringData.url],
+    [var: 'BUILD_OPTS', password: "${params.BUILD_OPTS} --apm-server-url ${apm.stringData.url} --apm-server-secret-token ${apm.stringData.token}"]
   ]){
     body()
   }
