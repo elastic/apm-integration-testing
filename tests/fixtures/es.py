@@ -4,7 +4,6 @@ import elasticsearch
 import pytest
 import timeout_decorator
 
-from tests.fixtures import default
 from tests.utils import getElasticsearchURL
 
 

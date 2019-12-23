@@ -7,6 +7,7 @@ try:
 except ImportError:
     from urllib.parse import urlparse
 
+
 def check_agent_transaction(endpoint, elasticsearch, ct=2):
     elasticsearch.clean()
     r = requests.get(endpoint.url)
