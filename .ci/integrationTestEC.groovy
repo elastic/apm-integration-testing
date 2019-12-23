@@ -11,9 +11,9 @@ pipeline {
     PIPELINE_LOG_LEVEL='DEBUG'
     DOCKERELASTIC_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
-    BRANCH_NAME = "test-it-on-ec"
   }
   triggers {
+    cron 'H H(3-4) * * 1-5'
     issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
   }
   options {
@@ -26,9 +26,7 @@ pipeline {
     quietPeriod(10)
   }
   parameters {
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "8.0.0-SNAPSHOT", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "--no-elasticsearch --no-apm-server --no-kibana --no-apm-server-dashboards --no-apm-server-self-instrument", description: "Addicional build options to passing compose.py")
-    booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
   }
   stages {
     /**
@@ -64,8 +62,11 @@ pipeline {
         axes {
           axis {
               name 'TEST'
-//              values 'all', 'dotnet', 'go', 'java', 'nodejs', 'python', 'ruby', 'rum'
-                values 'go'
+              values 'all', 'dotnet', 'go', 'java', 'nodejs', 'python', 'ruby', 'rum'
+          }
+          axis {
+              name 'ELASTIC_STACK_VERSION'
+              values '8.0.0-SNAPSHOT', '7.5.1-SNAPSHOT', '7.4.3-SNAPSHOT'
           }
         }
         stages {
@@ -96,12 +97,12 @@ pipeline {
                 }
               }
             }
-            post {
-              cleanup {
-                wrappingup("${TEST}")
-                destroyClusters()
-              }
-            }
+          }
+        }
+        post {
+          cleanup {
+            wrappingup("${TEST}")
+            destroyClusters()
           }
         }
       }
