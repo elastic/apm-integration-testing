@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 PYTHON ?= python
-PYTHON3 ?= python3
+PYTHON3 ?= python3.7
 VENV ?= ./venv
 
 COMPOSE_ARGS ?=
