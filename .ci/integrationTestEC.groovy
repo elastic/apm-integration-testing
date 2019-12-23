@@ -84,7 +84,8 @@ pipeline {
                 withVaultEnv(){
                   updateEnvConfig()
                   sh(label: "Deploy Cluster", script: "make deploy-cluster")
-                  archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info/**')
+                  sh(label: "Rename cluster-info folder", script: "mv cluster-info cluster-info-${ELASTIC_STACK_VERSION}x${TEST}")
+                  archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info*/**')
                 }
               }
             }
