@@ -72,7 +72,7 @@ pipeline {
         stages {
           stage('Prepare Test'){
             steps {
-              log(level: "INFO", text: "Running tests - ${TEST}")
+              log(level: "INFO", text: "Running tests - ${ELASTIC_STACK_VERSION} x ${TEST}")
               deleteDir()
               unstash 'source'
             }
