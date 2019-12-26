@@ -112,28 +112,28 @@ dockerized-test:
 	mkdir -p -m 777 "$(PWD)/$(JUNIT_RESULTS_DIR)"
 	chmod 777 "$(PWD)/$(JUNIT_RESULTS_DIR)"
 	docker run \
-	  --name=apm-integration-testing \
-	  --network=apm-integration-testing \
-	  --security-opt seccomp=unconfined \
-	  -e APM_SERVER_URL=$${APM_SERVER_URL} \
-	  -e ES_URL=$${ES_URL} \
-	  -e KIBANA_URL=$${KIBANA_URL} \
-	  -e DJANGO_URL=$(DJANGO_URL) \
-	  -e DOTNET_URL=$(DOTNET_URL) \
-	  -e EXPRESS_URL=$(EXPRESS_URL) \
-	  -e FLASK_URL=$(FLASK_URL) \
-	  -e GO_NETHTTP_URL=$(GO_NETHTTP_URL) \
-	  -e JAVA_SPRING_URL=$(JAVA_SPRING_URL) \
-	  -e RAILS_URL=$(RAILS_URL) \
-	  -e RUM_URL=$(RUM_URL) \
-	  -e PYTHONDONTWRITEBYTECODE=1 \
+		--name=apm-integration-testing \
+		--network=apm-integration-testing \
+		--security-opt seccomp=unconfined \
+		-e APM_SERVER_URL=$${APM_SERVER_URL} \
+		-e ES_URL=$${ES_URL} \
+		-e KIBANA_URL=$${KIBANA_URL} \
+		-e DJANGO_URL=$(DJANGO_URL) \
+		-e DOTNET_URL=$(DOTNET_URL) \
+		-e EXPRESS_URL=$(EXPRESS_URL) \
+		-e FLASK_URL=$(FLASK_URL) \
+		-e GO_NETHTTP_URL=$(GO_NETHTTP_URL) \
+		-e JAVA_SPRING_URL=$(JAVA_SPRING_URL) \
+		-e RAILS_URL=$(RAILS_URL) \
+		-e RUM_URL=$(RUM_URL) \
+		-e PYTHONDONTWRITEBYTECODE=1 \
 		-e ENABLE_ES_DUMP=$(ENABLE_ES_DUMP) \
 		-e ES_USER=$${ES_USER} \
 		-e ES_PASS=$${ES_PASS} \
-	  -v "$(PWD)/$(JUNIT_RESULTS_DIR)":"/app/$(JUNIT_RESULTS_DIR)" \
-	  --rm \
-	  --entrypoint make \
-	  apm-integration-testing \
-	  $(TARGET)
+		-v "$(PWD)/$(JUNIT_RESULTS_DIR)":"/app/$(JUNIT_RESULTS_DIR)" \
+		--rm \
+		--entrypoint make \
+		apm-integration-testing \
+		$(TARGET)
 
 .PHONY: test-% docker-test-% dockerized-test docker-compose-wait
