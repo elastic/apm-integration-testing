@@ -956,6 +956,9 @@ class KibanaServiceTest(ServiceTest):
         kibana = Kibana(version="7.3.0", kibana_snapshot=True, kibana_version="7.3.0").render()["kibana"]
         self.assertEqual("docker.elastic.co/kibana/kibana:7.3.0-SNAPSHOT", kibana["image"])
 
+    def test_kibana_login_assistance_message(self):
+        kibana = Kibana(version="7.6.0", kibana_snapshot=True, kibana_version="7.6.0").render()["kibana"]
+        self.assertEqual("Login details kibana_system_user/changeme", kibana['environment']["XPACK_SECURITY_LOGINASSISTANCEMESSAGE"])
 
 class LogstashServiceTest(ServiceTest):
     def test_snapshot(self):

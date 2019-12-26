@@ -636,6 +636,8 @@ class Kibana(StackService, Service):
                 self.environment["STATUS_ALLOWANONYMOUS"] = "true"
         self.environment["ELASTICSEARCH_URL"] = ",".join(self.options.get(
             "kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
+        if self.at_least_version("7.6"):
+            self.environment["XPACK_SECURITY_LOGINASSISTANCEMESSAGE"] = "Login details {}/{}".format(self.environment["ELASTICSEARCH_USERNAME"],self.environment["ELASTICSEARCH_PASSWORD"])
 
     @classmethod
     def add_arguments(cls, parser):
