@@ -900,7 +900,8 @@ class LocalTest(unittest.TestCase):
                     SERVER_NAME: kibana.example.org,
                     STATUS_ALLOWANONYMOUS: 'true',
                     XPACK_MONITORING_ENABLED: 'true',
-                    XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'
+                    XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false',
+                    XPACK_SECURITY_LOGINASSISTANCEMESSAGE: 'Login details kibana_system_user/changeme'
                 }
                 healthcheck:
                     interval: 10s
