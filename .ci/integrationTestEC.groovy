@@ -8,13 +8,13 @@ pipeline {
     EC_DIR="src/github.com/elastic/observability-test-environments"
     NOTIFY_TO = credentials('notify-to')
     JOB_GCS_BUCKET = credentials('gcs-bucket')
-    PIPELINE_LOG_LEVEL='DEBUG'
+    PIPELINE_LOG_LEVEL='INFO'
     DOCKERELASTIC_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
   }
   triggers {
     cron 'H H(3-4) * * 1-5'
-    issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
+    issueCommentTrigger('(?i).*jenkins\\W+run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
   }
   options {
     timeout(time: 1, unit: 'HOURS')
@@ -72,7 +72,7 @@ pipeline {
         stages {
           stage('Prepare Test'){
             steps {
-              log(level: "INFO", text: "Running tests - ${TEST}")
+              log(level: "INFO", text: "Running tests - ${ELASTIC_STACK_VERSION} x ${TEST}")
               deleteDir()
               unstash 'source'
             }
@@ -84,7 +84,8 @@ pipeline {
                 withVaultEnv(){
                   updateEnvConfig()
                   sh(label: "Deploy Cluster", script: "make deploy-cluster")
-                  archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info/**')
+                  sh(label: "Rename cluster-info folder", script: "mv cluster-info cluster-info-${ELASTIC_STACK_VERSION}x${TEST}")
+                  archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info*/**')
                 }
               }
             }
@@ -101,7 +102,7 @@ pipeline {
         }
         post {
           cleanup {
-            wrappingup("${TEST}")
+            wrappingUp("${TEST}")
             destroyClusters()
           }
         }
@@ -130,10 +131,10 @@ def withVaultEnv(Closure body){
 
 def updateEnvConfig(){
   def config = readYaml(file: "${CLUSTER_CONFIG_FILE}")
-  config.cluster_name = "${config.cluster_name}-${BUILD_NUMBER}"
-  config.elasticsearch.version = "${params.ELASTIC_STACK_VERSION}"
-  config.kibana.version = "${params.ELASTIC_STACK_VERSION}"
-  config.apm.version = "${params.ELASTIC_STACK_VERSION}"
+  config.cluster_name = "${config.cluster_name}-${ELASTIC_STACK_VERSION}-${TEST}-${BUILD_NUMBER}"
+  config.elasticsearch.version = "${ELASTIC_STACK_VERSION}"
+  config.kibana.version = "${ELASTIC_STACK_VERSION}"
+  config.apm.version = "${ELASTIC_STACK_VERSION}"
   sh(label: 'Delete old config', script: "rm ${CLUSTER_CONFIG_FILE}")
   writeYaml(file: "${CLUSTER_CONFIG_FILE}", data: config)
   archiveArtifacts(allowEmptyArchive: true, artifacts: "${CLUSTER_CONFIG_FILE}", onlyIfSuccessful: true)
@@ -157,7 +158,7 @@ def withConfigEnv(Closure body) {
   }
 }
 
-def wrappingup(label){
+def wrappingUp(label){
   dir("${BASE_DIR}"){
     def stepName = label.replace(";","/")
       .replace("--","_")
