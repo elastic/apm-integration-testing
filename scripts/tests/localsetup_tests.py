@@ -901,7 +901,7 @@ class LocalTest(unittest.TestCase):
                     STATUS_ALLOWANONYMOUS: 'true',
                     XPACK_MONITORING_ENABLED: 'true',
                     XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false',
-                    XPACK_SECURITY_LOGINASSISTANCEMESSAGE: 'Login details kibana_system_user/changeme'
+                    XPACK_SECURITY_LOGINASSISTANCEMESSAGE: 'Login details `kibana_system_user/changeme`. Further details [here](https://github.com/elastic/apm-integration-testing#logging-in).'
                 }
                 healthcheck:
                     interval: 10s
