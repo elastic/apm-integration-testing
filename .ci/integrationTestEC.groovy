@@ -102,7 +102,7 @@ pipeline {
         }
         post {
           cleanup {
-            wrappingup("${TEST}")
+            wrappingUp("${TEST}")
             destroyClusters()
           }
         }
@@ -158,7 +158,7 @@ def withConfigEnv(Closure body) {
   }
 }
 
-def wrappingup(label){
+def wrappingUp(label){
   dir("${BASE_DIR}"){
     def stepName = label.replace(";","/")
       .replace("--","_")
