@@ -115,7 +115,7 @@ dockerized-test:
 	  --name=apm-integration-testing \
 	  --network=apm-integration-testing \
 	  --security-opt seccomp=unconfined \
-	  -e APM_SERVER_URL=${APM_SERVER_URL} \
+	  -e APM_SERVER_URL=$${APM_SERVER_URL} \
 	  -e ES_URL=$${ES_URL} \
 	  -e KIBANA_URL=$${KIBANA_URL} \
 	  -e DJANGO_URL=$(DJANGO_URL) \
