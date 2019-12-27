@@ -486,7 +486,7 @@ class LocalSetup(object):
         subprocess.call(cmd, shell=True)
 
     def listoptions_handler(self):
-        print("{}".format(" ".join(self.available_options)))
+        print("{}".format("\n".join(sorted(self.available_options))))
 
     def start_handler(self):
         args = vars(self.args)
