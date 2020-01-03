@@ -64,6 +64,7 @@ class OpbeansServiceTest(ServiceTest):
                       - "127.0.0.1:3004:3000"
                     environment:
                       - ELASTIC_APM_SERVICE_NAME=opbeans-dotnet
+                      - ELASTIC_APM_SERVICE_VERSION=9c2e41c8-fb2f-4b75-a89d-5089fb55fc64
                       - ELASTIC_APM_SERVER_URLS=http://apm-server:8200
                       - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
                       - ELASTIC_APM_VERIFY_SERVER_CERT=true
@@ -122,6 +123,7 @@ class OpbeansServiceTest(ServiceTest):
                       - "127.0.0.1:3003:3000"
                     environment:
                       - ELASTIC_APM_SERVICE_NAME=opbeans-go
+                      - ELASTIC_APM_SERVICE_VERSION=9c2e41c8-fb2f-4b75-a89d-5089fb55fc64
                       - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                       - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
                       - ELASTIC_APM_VERIFY_SERVER_CERT=true
@@ -182,6 +184,7 @@ class OpbeansServiceTest(ServiceTest):
                       - "127.0.0.1:3002:3000"
                     environment:
                       - ELASTIC_APM_SERVICE_NAME=opbeans-java
+                      - ELASTIC_APM_SERVICE_VERSION=9c2e41c8-fb2f-4b75-a89d-5089fb55fc64
                       - ELASTIC_APM_APPLICATION_PACKAGES=co.elastic.apm.opbeans
                       - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                       - ELASTIC_APM_VERIFY_SERVER_CERT=true
@@ -321,6 +324,7 @@ class OpbeansServiceTest(ServiceTest):
                     environment:
                         - DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans
                         - ELASTIC_APM_SERVICE_NAME=opbeans-python
+                        - ELASTIC_APM_SERVICE_VERSION=9c2e41c8-fb2f-4b75-a89d-5089fb55fc64
                         - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                         - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
                         - ELASTIC_APM_VERIFY_SERVER_CERT=true
@@ -408,6 +412,7 @@ class OpbeansServiceTest(ServiceTest):
                     environment:
                       - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                       - ELASTIC_APM_SERVICE_NAME=opbeans-ruby
+                      - ELASTIC_APM_SERVICE_VERSION=9c2e41c8-fb2f-4b75-a89d-5089fb55fc64
                       - ELASTIC_APM_VERIFY_SERVER_CERT=true
                       - DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans-ruby
                       - REDIS_URL=redis://redis:6379

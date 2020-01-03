@@ -10,6 +10,7 @@ import os
 import re
 import subprocess
 import sys
+import uuid
 
 try:
     from urllib.request import urlopen, urlretrieve, Request
@@ -56,6 +57,10 @@ def _load_image(cache_dir, url):
     with open(etag_cache_file, mode='w') as f:
         f.write(new_etag)
     return True
+
+def generated_version():
+    """Generates a service version randomly."""
+    return uuid.uuid4()
 
 
 def load_images(urls, cache_dir):
