@@ -4,9 +4,8 @@
 
 from collections import OrderedDict
 
-from .helpers import add_agent_environment, curl_healthcheck, wget_healthcheck, generated_version
+from .helpers import add_agent_environment, curl_healthcheck, wget_healthcheck
 from .service import Service, DEFAULT_APM_SERVER_URL, DEFAULT_APM_JS_SERVER_URL, DEFAULT_SERVICE_VERSION
-
 
 
 class OpbeansService(Service):

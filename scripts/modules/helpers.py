@@ -58,6 +58,7 @@ def _load_image(cache_dir, url):
         f.write(new_etag)
     return True
 
+
 def generated_version():
     """Generates a service version randomly."""
     return uuid.uuid4()

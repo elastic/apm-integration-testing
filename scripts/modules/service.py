@@ -9,6 +9,7 @@ DEFAULT_APM_SERVER_URL = "http://apm-server:8200"
 DEFAULT_APM_JS_SERVER_URL = "http://localhost:8200"
 DEFAULT_SERVICE_VERSION = "9c2e41c8-fb2f-4b75-a89d-5089fb55fc64"
 
+
 class Service(object):
     """encapsulate docker-compose service definition"""
 
