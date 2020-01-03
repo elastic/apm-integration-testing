@@ -813,6 +813,17 @@ class LocalTest(unittest.TestCase):
         """)  # noqa: 501
         self.assertDictEqual(got, want)
 
+    def test_version_options(self):
+        docker_compose_yml = stringIO()
+        image_cache_dir = "/foo"
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-java", "--image-cache-dir", image_cache_dir, "--opbeans-java-service-version", "1.2.3"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        self.assertIn('ELASTIC_APM_SERVICE_VERSION=1.2.3', got['services']['opbeans-java']['environment'])
+
     def test_start_master_default(self):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
