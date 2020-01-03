@@ -25,7 +25,8 @@
 //      };
 //    };
 export type AllowUnknownProperties<T> = T extends object
-  ? { [P in keyof T]: AllowUnknownProperties<T[P]> } & {
+  ? T extends Array<infer U> ? Array<AllowUnknownProperties<U>> : 
+  { [P in keyof T]: AllowUnknownProperties<T[P]> } & {
       [key: string]: unknown;
     }
   : T;
