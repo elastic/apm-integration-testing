@@ -985,7 +985,7 @@ class KibanaServiceTest(ServiceTest):
 
     def test_kibana_login_assistance_message(self):
         kibana = Kibana(version="7.6.0", xpack_secure=True, kibana_version="7.6.0").render()["kibana"]
-        self.assertIn("Login details `kibana_system_user/changeme`.", kibana['environment']["XPACK_SECURITY_LOGINASSISTANCEMESSAGE"])
+        self.assertIn("Login\_details:\_`kibana_system_user/changeme`.", kibana['environment']["XPACK_SECURITY_LOGINASSISTANCEMESSAGE"])
 
     def test_kibana_login_assistance_message_wihtout_xpack(self):
         kibana = Kibana(version="7.6.0", xpack_secure=False, kibana_version="7.6.0").render()["kibana"]
