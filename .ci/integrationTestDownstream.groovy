@@ -11,7 +11,7 @@ import groovy.transform.Field
 @Field def integrationTestsGen
 
 pipeline {
-  agent { label 'linux && immutable && docker' }
+  agent { label 'linux && immutable' }
   environment {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
     REPO="git@github.com:elastic/apm-integration-testing.git"
@@ -219,6 +219,7 @@ def wrappingup(label){
     def stepName = label.replace(";","/")
       .replace("--","_")
       .replace(".","_")
+      .replace(" ","_")
     sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
     sh('make stop-env || echo 0')
     archiveArtifacts(
