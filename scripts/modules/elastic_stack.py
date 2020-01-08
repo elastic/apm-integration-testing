@@ -52,8 +52,13 @@ class ApmServer(StackService, Service):
             ("monitoring.elasticsearch" if self.at_least_version("7.2") else "xpack.monitoring.elasticsearch", "true"),
             ("monitoring.enabled" if self.at_least_version("7.2") else "xpack.monitoring.enabled", "true")
         ])
-        if options.get("apm_server_self_instrument"):
+        if options.get("apm_server_self_instrument", True):
             self.apm_server_command_args.append(("apm-server.instrumentation.enabled", "true"))
+            if self.at_least_version("7.6") and options.get("apm_server_profile", True):
+                self.apm_server_command_args.extend([
+                    ("apm-server.instrumentation.profiling.cpu.enabled", "true"),
+                    ("apm-server.instrumentation.profiling.heap.enabled", "true"),
+                ])
         self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if options.get(
             "enable_elasticsearch", True) else {}
         self.build = self.options.get("apm_server_build")
@@ -88,6 +93,9 @@ class ApmServer(StackService, Service):
                     ("setup.dashboards.enabled", "true")
                 )
 
+        # configure authentication
+        if options.get("apm_server_api_key_auth", False):
+            self.apm_server_command_args.append(("apm-server.api_key.enabled", "true"))
         if self.options.get("apm_server_secret_token"):
             self.apm_server_command_args.append(("apm-server.secret_token", self.options["apm_server_secret_token"]))
 
@@ -238,6 +246,11 @@ class ApmServer(StackService, Service):
             help='disable apm-server self instrumentation.'
         )
         parser.add_argument(
+            "--no-apm-server-profile",
+            action="store_false",
+            help='disable apm-server self instrumentation profiling.'
+        )
+        parser.add_argument(
             '--apm-server-count',
             type=int,
             default=1,
@@ -288,6 +301,11 @@ class ApmServer(StackService, Service):
         parser.add_argument(
             "--apm-server-queue-write-flush-timeout",
             help="apm-server file write flush timeout.",
+        )
+        parser.add_argument(
+            "--apm-server-api-key-auth",
+            action="store_true",
+            help="enable apm-server api key authentication for agent communication.",
         )
         parser.add_argument(
             '--apm-server-secret-token',
@@ -533,6 +551,8 @@ class Elasticsearch(StackService, Service):
 
         self.environment = self.default_environment + [
             java_opts_env, "path.data=/usr/share/elasticsearch/data/" + data_dir]
+        if self.at_least_version("8.0"):
+            self.environment.append("indices.id_field_data.enabled=true")
         if not self.oss:
             xpack_security_enabled = "false"
             if self.xpack_secure:

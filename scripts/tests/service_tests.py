@@ -378,6 +378,10 @@ class ApmServerServiceTest(ServiceTest):
             apm_server["image"], "docker.elastic.co/apm/apm-server-oss:6.3.100"
         )
 
+    def test_api_key_auth(self):
+        apm_server = ApmServer(version="7.6.100", apm_server_api_key_auth=True).render()["apm-server"]
+        self.assertIn("apm-server.api_key.enabled=true", apm_server["command"])
+
     def test_elasticsearch_output(self):
         apm_server = ApmServer(version="6.3.100", apm_server_output="elasticsearch").render()["apm-server"]
         self.assertFalse(
@@ -587,6 +591,29 @@ class ApmServerServiceTest(ServiceTest):
             any(e.startswith("queue.") for e in apm_server["command"]),
             "no queue settings with memory queue (for now)"
         )
+
+    def test_self_instrument(self):
+        # self instrumentation comes with profiling by default
+        apm_server = ApmServer(version="8.0.0").render()["apm-server"]
+        self.assertIn("apm-server.instrumentation.enabled=true", apm_server["command"])
+        self.assertIn("apm-server.instrumentation.profiling.cpu.enabled=true", apm_server["command"])
+        self.assertIn("apm-server.instrumentation.profiling.heap.enabled=true", apm_server["command"])
+
+        # self instrumentation comes with profiling by default but can be disabled
+        apm_server = ApmServer(
+            version="8.0.0", apm_server_self_instrument=True, apm_server_profile=False).render()["apm-server"]
+        self.assertIn("apm-server.instrumentation.enabled=true", apm_server["command"])
+        self.assertFalse(
+            any(e.startswith("apm-server.instrumentation.profiling") for e in apm_server["command"]),
+            "no self profiling settings expected"
+        )
+
+        # need self instrumentation enabled to get profiling
+        apm_server = ApmServer(
+            version="8.0.0", apm_server_self_instrument=False, apm_server_profile=True).render()["apm-server"]
+        self.assertNotIn("apm-server.instrumentation.enabled=true", apm_server["command"])
+        self.assertNotIn("apm-server.instrumentation.profiling.cpu.enabled=true", apm_server["command"])
+        self.assertNotIn("apm-server.instrumentation.profiling.heap.enabled=true", apm_server["command"])
 
     def test_apm_server_build_branch(self):
         apm_server = ApmServer(version="6.3.100", apm_server_build="foo.git@bar", release=True).render()["apm-server"]
