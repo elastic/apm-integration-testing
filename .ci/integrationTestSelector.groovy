@@ -148,12 +148,6 @@ pipeline {
     }
   }
   post {
-    always {
-      githubCheckNotify('Debug', 'Click on details for debugging',
-                        currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILURE',
-                        "${DETAILS_ARTIFACT_URL}")
-      githubPrComment(details: "${DETAILS_ARTIFACT_URL}")
-    }
     cleanup {
       githubCheckNotify(currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILURE')
       notifyBuildResult()
@@ -184,21 +178,11 @@ def wrappingup(){
  Notify the GitHub check of the parent stream
 **/
 def githubCheckNotify(String status) {
-  githubCheckNotify(params.GITHUB_CHECK_NAME, "${params.GITHUB_CHECK_NAME} ${status.toLowerCase()}",
-                    status, "${env.RUN_DISPLAY_URL}")
-}
-
-/**
- Notify the GitHub check of the parent stream
-**/
-def githubCheckNotify(String context, String description,String status, String url) {
-  if (context.trim() && params.GITHUB_CHECK_REPO?.trim() && params.GITHUB_CHECK_SHA1?.trim()) {
-    githubNotify context: "${context}",
-                 description: "${description}",
+  if (params.GITHUB_CHECK_NAME?.trim() && params.GITHUB_CHECK_REPO?.trim() && params.GITHUB_CHECK_SHA1?.trim()) {
+    githubNotify context: "${params.GITHUB_CHECK_NAME}",
+                 description: "${params.GITHUB_CHECK_NAME} ${status.toLowerCase()}",
                  status: "${status}",
-                 targetUrl: "${url}",
-                 sha: params.GITHUB_CHECK_SHA1, account: 'elastic',
-                 repo: params.GITHUB_CHECK_REPO,
-                 credentialsId: env.JOB_GIT_CREDENTIALS
+                 targetUrl: "${env.RUN_DISPLAY_URL}",
+                 sha: params.GITHUB_CHECK_SHA1, account: 'elastic', repo: params.GITHUB_CHECK_REPO, credentialsId: env.JOB_GIT_CREDENTIALS
   }
 }
