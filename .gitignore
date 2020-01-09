@@ -25,3 +25,4 @@ docker-info/
 # For the BATS testing
 bats-core/
 target/
+.tags*
