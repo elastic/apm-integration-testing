@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-@Library('apm@current') _
+@Library('apm@git_base_commit') _
 
 import co.elastic.matrix.*
 import groovy.transform.Field
@@ -54,181 +54,19 @@ pipeline {
           reference: "/var/lib/jenkins/apm-integration-testing.git",
           shallow: false
         )
-        stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script{
           currentBuild.displayName = "apm-agent-${params.AGENT_INTEGRATION_TEST} - ${currentBuild.displayName}"
           currentBuild.description = "Agent ${params.AGENT_INTEGRATION_TEST} - ${params.UPSTREAM_BUILD}"
         }
       }
     }
-    /**
-      launch integration tests.
-    */
-    stage("Integration Tests"){
-      when {
-        expression {
-          return (params.AGENT_INTEGRATION_TEST != 'All'
-            && params.AGENT_INTEGRATION_TEST != 'UI')
-        }
-      }
+    stage('Test'){
+      options { skipDefaultCheckout() }
       steps {
-        deleteDir()
-        unstash "source"
         dir("${BASE_DIR}"){
-          script {
-            def agentTests = agentMapping.id(params.AGENT_INTEGRATION_TEST)
-            integrationTestsGen = new IntegrationTestingParallelTaskGenerator(
-              xKey: agentMapping.agentVar(agentTests),
-              yKey: agentMapping.agentVar('server'),
-              xFile: agentMapping.yamlVersionFile(agentTests),
-              yFile: agentMapping.yamlVersionFile('server'),
-              exclusionFile: agentMapping.yamlVersionFile(agentTests),
-              tag: agentTests,
-              name: params.AGENT_INTEGRATION_TEST,
-              steps: this
-              )
-            def mapPatallelTasks = integrationTestsGen.generateParallelTests()
-            parallel(mapPatallelTasks)
-          }
+          sh 'cat .FILE'
         }
       }
     }
-    stage("All") {
-      when {
-        expression { return params.AGENT_INTEGRATION_TEST == 'All' }
-      }
-      environment {
-        TMPDIR = "${WORKSPACE}"
-        REUSE_CONTAINERS = "true"
-        PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
-      }
-      steps {
-        deleteDir()
-        unstash "source"
-        dir("${BASE_DIR}"){
-          sh ".ci/scripts/all.sh"
-        }
-      }
-      post {
-        always {
-          wrappingup('all')
-        }
-      }
-    }
-    stage("UI") {
-      when {
-        expression { return params.AGENT_INTEGRATION_TEST == 'UI' }
-      }
-      environment {
-        TMPDIR = "${WORKSPACE}/${BASE_DIR}"
-        HOME = "${WORKSPACE}/${BASE_DIR}"
-      }
-      steps {
-        deleteDir()
-        unstash "source"
-        dir("${BASE_DIR}"){
-          script {
-            docker.image('node:11').inside() {
-              sh(label: "Check Schema", script: ".ci/scripts/ui.sh")
-            }
-          }
-        }
-      }
-    }
-  }
-  post {
-    cleanup {
-      script{
-        if(integrationTestsGen?.results){
-          writeJSON(file: 'results.json', json: toJSON(integrationTestsGen.results), pretty: 2)
-          def mapResults = ["${params.AGENT_INTEGRATION_TEST}": integrationTestsGen.results]
-          def processor = new ResultsProcessor()
-          processor.processResults(mapResults)
-          archiveArtifacts allowEmptyArchive: true, artifacts: 'results.json,results.html', defaultExcludes: false
-          catchError(buildResult: 'SUCCESS') {
-            def datafile = readFile(file: "results.json")
-            def json = getVaultSecret(secret: 'secret/apm-team/ci/jenkins-stats-cloud')
-            sendDataToElasticsearch(es: json.data.url, data: datafile, restCall: '/jenkins-builds-it-results/_doc/')
-          }
-        }
-        notifyBuildResult()
-      }
-    }
-  }
-}
-
-/**
-  Parallel task generator for the integration tests.
-*/
-class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerator {
-
-  public IntegrationTestingParallelTaskGenerator(Map params){
-    super(params)
-  }
-
-  /**
-    build a clousure that launch and agent and execute the corresponding test script,
-    then store the results.
-  */
-  public Closure generateStep(x, y){
-    return {
-      steps.node('linux && immutable'){
-        def env = ["APM_SERVER_BRANCH=${y}",
-          "${steps.agentMapping.envVar(tag)}=${x}",
-          "REUSE_CONTAINERS=true",
-          "ENABLE_ES_DUMP=true",
-          "PATH=${steps.env.WORKSPACE}/${steps.env.BASE_DIR}/.ci/scripts:${steps.env.PATH}",
-          "TMPDIR=${steps.env.WORKSPACE}"
-          ]
-        def label = "${tag}-${x}-${y}"
-        try{
-          steps.runScript(label: label, agentType: tag, env: env)
-          saveResult(x, y, 1)
-        } catch (e){
-          saveResult(x, y, 0)
-          steps.error("${label} tests failed : ${e.toString()}\n")
-        } finally {
-          steps.wrappingup(label)
-        }
-      }
-    }
-  }
-}
-
-/**
-  Execute a test script.
-
-  runScript(tag: "Running Go integration test", agentType: "go", env: [ 'V1': 'value', 'V2':'value'])
-*/
-def runScript(Map params = [:]){
-  def label = params.containsKey('label') ? params.label : params?.agentType
-  def agentType = params.agentType
-  def env = params.env
-  log(level: 'INFO', text: "${label}")
-  deleteDir()
-  unstash "source"
-  dir("${BASE_DIR}"){
-    withEnv(env){
-      sh(label: "Testing ${agentType}", script: ".ci/scripts/${agentType}.sh")
-    }
-  }
-}
-
-def wrappingup(label){
-  dir("${BASE_DIR}"){
-    def stepName = label.replace(";","/")
-      .replace("--","_")
-      .replace(".","_")
-      .replace(" ","_")
-    sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
-    sh('make stop-env || echo 0')
-    archiveArtifacts(
-        allowEmptyArchive: true,
-        artifacts: 'docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
-        defaultExcludes: false)
-    junit(
-      allowEmptyResults: true,
-      keepLongStdio: true,
-      testResults: "**/tests/results/*-junit*.xml")
   }
 }
