@@ -67,10 +67,6 @@ pipeline {
         stage('Sanity checks') {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.WORKSPACE}/bin:${env.PATH}"
-            HOME = "${env.WORKSPACE}"
-          }
           steps {
             withGithubNotify(context: 'Sanity checks', tab: 'tests') {
               deleteDir()
