@@ -10,6 +10,12 @@ pipeline {
     JOB_GIT_CREDENTIALS = '2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken'
     PIPELINE_LOG_LEVEL = 'INFO'
     REUSE_CONTAINERS = "true"
+    NAME = agentMapping.id(params.AGENT_INTEGRATION_TEST)
+    AGENT_INTEGRATION_TEST = "${params.AGENT_INTEGRATION_TEST}"
+    ELASTIC_STACK_VERSION = "${params.ELASTIC_STACK_VERSION}"
+    BUILD_OPTS = "${params.BUILD_OPTS}"
+    DETAILS_ARTIFACT = 'docs.txt'
+    DETAILS_ARTIFACT_URL = "${env.BUILD_URL}artifact/${env.DETAILS_ARTIFACT}"
   }
   options {
     timeout(time: 1, unit: 'HOURS')
@@ -50,8 +56,7 @@ pipeline {
         TMPDIR = "${WORKSPACE}"
         ENABLE_ES_DUMP = "true"
         PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
-        AGENT_NAME = agentMapping.id(params.AGENT_INTEGRATION_TEST)
-        AGENT_APP = agentMapping.app(params.AGENT_INTEGRATION_TEST)
+        APP = agentMapping.app(params.AGENT_INTEGRATION_TEST)
       }
       when {
         expression {
@@ -63,7 +68,7 @@ pipeline {
         deleteDir()
         unstash "source"
         dir("${BASE_DIR}"){
-          sh(label: "Testing ${AGENT_NAME} ${AGENT_APP}", script: ".ci/scripts/agent.sh ${AGENT_NAME} ${AGENT_APP}")
+          sh(label: "Testing ${NAME} ${APP}", script: ".ci/scripts/agent.sh ${NAME} ${APP}")
         }
       }
       post {
@@ -152,8 +157,7 @@ pipeline {
 
 def wrappingup(){
   dir("${BASE_DIR}"){
-    def stepName = agentMapping.id(params.AGENT_INTEGRATION_TEST)
-    sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
+    sh("./scripts/docker-get-logs.sh '${env.NAME}'|| echo 0")
     sh('make stop-env || echo 0')
     archiveArtifacts(
         allowEmptyArchive: true,
@@ -163,9 +167,12 @@ def wrappingup(){
       allowEmptyResults: true,
       keepLongStdio: true,
       testResults: "**/tests/results/*-junit*.xml")
+
+    // Let's generate the debug report ...
+    sh(label: 'Generate debug docs', script: ".ci/scripts/generate-debug-docs.sh | tee ${env.DETAILS_ARTIFACT}")
+    archiveArtifacts(artifacts: "${env.DETAILS_ARTIFACT}")
   }
 }
-
 
 /**
  Notify the GitHub check of the parent stream

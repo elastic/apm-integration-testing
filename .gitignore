@@ -26,3 +26,6 @@ docker-info/
 bats-core/
 target/
 .tags*
+
+# For the docs generation
+.apm-its
