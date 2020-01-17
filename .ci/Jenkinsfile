@@ -1,6 +1,13 @@
 #!/usr/bin/env groovy
 @Library('apm@current') _
 
+import groovy.transform.Field
+
+/**
+ This is required to store the build status for the downstream jobs.
+*/
+@Field def itsDownstreamJobs = [:]
+
 pipeline {
   agent { label 'linux && immutable' }
   environment {
@@ -115,28 +122,31 @@ pipeline {
   }
   post {
     cleanup {
-      notifyBuildResult()
+      notifyBuildResult(downstreamJobs: itsDownstreamJobs)
     }
   }
 }
 
 def runJob(agentName, buildOpts = ''){
-  def branch = env.BRANCH_NAME
-
-  if (env.CHANGE_ID) {
-    branch = env.CHANGE_TARGET
+  def branch = env.CHANGE_ID?.trim() ? env.CHANGE_TARGET : env.BRANCH_NAME
+  def job
+  try {
+    job = build(job: "apm-integration-test-downstream/${branch}",
+      parameters: [
+      string(name: 'AGENT_INTEGRATION_TEST', value: agentName),
+      string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
+      string(name: 'INTEGRATION_TESTING_VERSION', value: "${env.GIT_BASE_COMMIT}"),
+      string(name: 'MERGE_TARGET', value: "${branch}"),
+      string(name: 'BUILD_OPTS', value: "${params.BUILD_OPTS} ${buildOpts}"),
+      string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
+      booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: '')],
+      propagate: true,
+      quietPeriod: 10,
+      wait: true)
+  } catch(e) {
+    job = e
+    error("Downstream job for '${agentName}' failed")
+  } finally {
+    itsDownstreamJobs["${agentName}"] = job
   }
-
-  def job = build(job: "apm-integration-test-downstream/${branch}",
-    parameters: [
-    string(name: 'AGENT_INTEGRATION_TEST', value: agentName),
-    string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
-    string(name: 'INTEGRATION_TESTING_VERSION', value: "${env.GIT_BASE_COMMIT}"),
-    string(name: 'MERGE_TARGET', value: "${branch}"),
-    string(name: 'BUILD_OPTS', value: "${params.BUILD_OPTS} ${buildOpts}"),
-    string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
-    booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: '')],
-    propagate: true,
-    quietPeriod: 10,
-    wait: true)
 }
