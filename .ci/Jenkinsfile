@@ -131,6 +131,7 @@ def runJob(agentName, buildOpts = ''){
   def branch = env.CHANGE_ID?.trim() ? env.CHANGE_TARGET : env.BRANCH_NAME
   def job
   try {
+    def quiet = randomNumber(min: 2, max: 15) + 5
     job = build(job: "apm-integration-test-downstream/${branch}",
       parameters: [
       string(name: 'AGENT_INTEGRATION_TEST', value: agentName),
@@ -141,7 +142,7 @@ def runJob(agentName, buildOpts = ''){
       string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
       booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: '')],
       propagate: true,
-      quietPeriod: 10,
+      quietPeriod: quiet,
       wait: true)
   } catch(e) {
     job = e
