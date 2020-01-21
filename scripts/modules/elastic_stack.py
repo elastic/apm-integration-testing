@@ -15,6 +15,8 @@ class ApmServer(StackService, Service):
 
     SERVICE_PORT = "8200"
     DEFAULT_MONITOR_PORT = "6060"
+    DEFAULT_JAEGER_HTTP_PORT = "14268"
+    DEFAULT_JAEGER_GRPC_PORT = "14250"
     DEFAULT_OUTPUT = "elasticsearch"
     OUTPUTS = {"elasticsearch", "file", "kafka", "logstash"}
     DEFAULT_KIBANA_HOST = "kibana:5601"
@@ -91,6 +93,16 @@ class ApmServer(StackService, Service):
                     and not self.options.get("xpack_secure"):
                 self.apm_server_command_args.append(
                     ("setup.dashboards.enabled", "true")
+                )
+
+        if self.at_least_version("7.6"):
+            if options.get("apm_server_jaeger_http"):
+                self.apm_server_command_args.append(
+                    ("apm-server.jaeger.http.enabled", "true")
+                )
+            if options.get("apm_server_jaeger_grpc"):
+                self.apm_server_command_args.append(
+                    ("apm-server.jaeger.grpc.enabled", "true")
                 )
 
         # configure authentication
@@ -313,6 +325,18 @@ class ApmServer(StackService, Service):
             help="apm-server secret token.",
         )
         parser.add_argument(
+            '--apm-server-jaeger-http',
+            dest="apm_server_jaeger_http",
+            action="store_true",
+            help="make apm-server act as a Jaeger HTTP collector.",
+        )
+        parser.add_argument(
+            '--apm-server-jaeger-grpc',
+            dest="apm_server_jaeger_grpc",
+            action="store_true",
+            help="make apm-server act as a Jaeger gRPC collector.",
+        )
+        parser.add_argument(
             '--apm-server-enable-tls',
             action="store_true",
             dest="apm_server_enable_tls",
@@ -384,6 +408,17 @@ class ApmServer(StackService, Service):
             command_args.extend(["-E", param + "=" + value])
 
         healthcheck_path = "/" if self.at_least_version("6.5") else "/healthcheck"
+
+        ports = [
+            self.publish_port(self.port, self.SERVICE_PORT),
+            self.publish_port(self.apm_server_monitor_port, self.DEFAULT_MONITOR_PORT),
+        ]
+        if ("apm-server.jaeger.http.enabled", "true") in self.apm_server_command_args:
+            ports.append(self.publish_port(self.DEFAULT_JAEGER_HTTP_PORT))
+
+        if ("apm-server.jaeger.grpc.enabled", "true") in self.apm_server_command_args:
+            ports.append(self.publish_port(self.DEFAULT_JAEGER_GRPC_PORT))
+
         content = dict(
             cap_add=["CHOWN", "DAC_OVERRIDE", "SETGID", "SETUID"],
             cap_drop=["ALL"],
@@ -391,10 +426,7 @@ class ApmServer(StackService, Service):
             depends_on=self.depends_on,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, path=healthcheck_path),
             labels=["co.elastic.apm.stack-version=" + self.version],
-            ports=[
-                self.publish_port(self.port, self.SERVICE_PORT),
-                self.publish_port(self.apm_server_monitor_port, self.DEFAULT_MONITOR_PORT),
-            ]
+            ports=ports
         )
 
         if self.build:
