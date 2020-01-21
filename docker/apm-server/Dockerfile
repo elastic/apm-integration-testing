@@ -1,5 +1,5 @@
 ARG apm_server_base_image=docker.elastic.co/apm/apm-server:8.0.0-SNAPSHOT
-ARG go_version=1.12
+ARG go_version=1.13
 
 FROM golang:${go_version} AS build
 
