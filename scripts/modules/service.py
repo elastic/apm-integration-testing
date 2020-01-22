@@ -99,8 +99,10 @@ class Service(object):
         return self._oss
 
     @staticmethod
-    def publish_port(external, internal, expose=False):
+    def publish_port(external, internal=None, expose=False):
         addr = "" if expose else "127.0.0.1:"
+        if internal is None:
+            internal = external
         return addr + ":".join((str(external), str(internal)))
 
     @property

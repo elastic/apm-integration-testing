@@ -53,7 +53,7 @@ An assortment of users is provided to test different scenarios:
  * `apm_user_ro`
  * `kibana_system_user`
  * `*_beat_user`
- 
+
 The password for all default users is `changeme`.
 
 ### Stopping an Environment
@@ -91,7 +91,7 @@ We have a list with the most common flags combination that we internally use whe
 | Developer | `./scripts/compose.py start master --no-apm-server` | Only use Kibana + ES in desired version for testing | APM Server |  |
 | Developer | `./scripts/compose.py start --release 7.3 --no-apm-server` | Use released Kibana + ES, with custom agent and server running on host, for developing new features that span agent and server. | APM Agents | If `--opbeans-go-agent-local-repo` worked, we might be inclined to use that instead of running custom apps on the host. Would have been handy while developing support for breakdown graphs. Even then, it's probably still faster to iterate on the agent without involving Docker. |
 | Developer | `./scripts/compose.py start master --no-kibana` | Use newest ES/master, with custom kibana on host, for developing new features in kibana | APM |  |
-| Developer | `./scripts/compose.py start 6.3 --with-kafka --with-zookeeper --apm-server-output=kafka --with-logstash --with-agent-python-flask` | Testing with kafka and logstash ingestion methods | APM |  |	
+| Developer | `./scripts/compose.py start 6.3 --with-kafka --with-zookeeper --apm-server-output=kafka --with-logstash --with-agent-python-flask` | Testing with kafka and logstash ingestion methods | APM |  |
 | Developer | `./scripts/compose.py start master --no-kibana --with-opbeans-node --with-opbeans-rum --with-opbeans-x` | Developing UI features locally | APM UI | |
 | Developer | `./scripts/compose.py start master --docker-compose-path - --skip-download --no-kibana --with-opbeans-ruby --opbeans-ruby-agent-branch=master > docker-compose.yml` | Developing UI features againt specific configuration | APM UI | We sometimes explicity write a `docker-compose.yml` file and tinker with it until we get the desired configuration becore running `docker-compose up` |
 | Developer | `scripts/compose.py start ${version}` | Manual testing of agent features | APM Agents | |
@@ -185,6 +185,15 @@ Omit `--skip-download` to just download images.
 ### Testing compose
 
 `compose.py` includes unittests, `make test-compose` to run.
+
+### Jaeger
+
+APM Server can work as a drop-in replacement for a Jaeger collector, and ingest traces directly from a Jaeger client via
+HTTP/Thrift or from a Jaeger agent via gRPC.
+
+To test it with a Jaeger microservice demo, run separately:
+`docker run --rm -it -p8080-8083:8080-8083 -e JAEGER_ENDPOINT=http://apm-server:14268/api/traces  --network apm-integration-testing  jaegertracing/example-hotrod:1.16  all`
+
 
 ## Running Tests
 
