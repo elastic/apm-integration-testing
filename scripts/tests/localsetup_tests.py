@@ -847,6 +847,8 @@ class LocalTest(unittest.TestCase):
                     -E, monitoring.elasticsearch=true, -E, monitoring.enabled=true,
                     -E, apm-server.kibana.enabled=true, -E, 'apm-server.kibana.host=kibana:5601', -E, apm-server.agent.config.cache.expiration=30s,
                     -E, apm-server.kibana.username=apm_server_user, -E, apm-server.kibana.password=changeme,
+                    -E, apm-server.jaeger.http.enabled=true, -E, "apm-server.jaeger.http.host=0.0.0.0:14268",
+                    -E, apm-server.jaeger.grpc.enabled=true, -E, "apm-server.jaeger.grpc.host=0.0.0.0:14250",
                     -E, 'output.elasticsearch.hosts=["elasticsearch:9200"]',
                     -E, output.elasticsearch.username=apm_server_user, -E, output.elasticsearch.password=changeme,
                     -E, output.elasticsearch.enabled=true,
@@ -865,7 +867,7 @@ class LocalTest(unittest.TestCase):
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
-                ports: ['127.0.0.1:8200:8200', '127.0.0.1:6060:6060']
+                ports: ['127.0.0.1:8200:8200', '127.0.0.1:6060:6060', '127.0.0.1:14268:14268', '127.0.0.1:14250:14250']
 
             elasticsearch:
                 container_name: localtesting_8.0.0_elasticsearch

@@ -96,14 +96,13 @@ class ApmServer(StackService, Service):
                 )
 
         if self.at_least_version("7.6"):
-            if options.get("apm_server_jaeger_http"):
-                self.apm_server_command_args.append(
-                    ("apm-server.jaeger.http.enabled", "true")
-                )
-            if options.get("apm_server_jaeger_grpc"):
-                self.apm_server_command_args.append(
-                    ("apm-server.jaeger.grpc.enabled", "true")
-                )
+            if options.get("apm_server_jaeger"):
+                self.apm_server_command_args.extend([
+                    ("apm-server.jaeger.http.enabled", "true"),
+                    ("apm-server.jaeger.http.host", "0.0.0.0:" + self.DEFAULT_JAEGER_HTTP_PORT),
+                    ("apm-server.jaeger.grpc.enabled", "true"),
+                    ("apm-server.jaeger.grpc.host", "0.0.0.0:" + self.DEFAULT_JAEGER_GRPC_PORT)
+                ])
 
         # configure authentication
         if options.get("apm_server_api_key_auth", False):
@@ -325,16 +324,10 @@ class ApmServer(StackService, Service):
             help="apm-server secret token.",
         )
         parser.add_argument(
-            '--apm-server-jaeger-http',
-            dest="apm_server_jaeger_http",
-            action="store_true",
-            help="make apm-server act as a Jaeger HTTP collector.",
-        )
-        parser.add_argument(
-            '--apm-server-jaeger-grpc',
-            dest="apm_server_jaeger_grpc",
-            action="store_true",
-            help="make apm-server act as a Jaeger gRPC collector.",
+            '--no-apm-server-jaeger',
+            dest="apm_server_jaeger",
+            action="store_false",
+            help="make apm-server act as a Jaeger collector (HTTP and gRPC).",
         )
         parser.add_argument(
             '--apm-server-enable-tls',
