@@ -9,6 +9,7 @@ import os
 import subprocess
 import sys
 import re
+import yaml
 
 from .beats import BeatMixin
 from .helpers import load_images
@@ -565,7 +566,10 @@ class LocalSetup(object):
             ),
         )
         docker_compose_path = args["docker_compose_path"]
-        json.dump(compose, docker_compose_path, indent=2, sort_keys=True)
+        yaml.dump(compose, docker_compose_path,
+            explicit_start = True,
+            default_flow_style=False,
+            indent = 2)
         docker_compose_path.flush()
 
         # try to figure out if writing to a real file, not amazing
