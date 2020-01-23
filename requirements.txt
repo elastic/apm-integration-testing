@@ -1,4 +1,3 @@
-# must be >= 1.23.0 for build --parallel
 attrs==17.3.0
 backports-abc==0.5
 cached-property==1.5.1
@@ -6,6 +5,7 @@ certifi==2017.11.5
 chardet==3.0.4
 coverage==4.5.1
 docker-compose-wait==1.0.0
+# must be >= 1.23.0 for build --parallel
 docker-compose==1.23.1
 docker-pycreds==0.3.0
 docker==3.5.1
