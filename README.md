@@ -32,6 +32,16 @@ This repo is tested with Python 3 but best effort is made to make starting/stopp
   ```sh
   sudo apt-get install python3
   ```
+## Update Elastic Stack on new releases
+
+Every time there is  anew Elastic Stack release we have to update the configuration files to test the new release. These are the changes we have to make:
+
+* Update `ELASTIC_STACK_VERSION` param on Jenkinsfiles (.ci/\*.groovy and .ci/Jenkinsfile files
+* Update `.ci/scripts/7.0-upgrade.sh` Elastic stack used for the update (on branch 7.x)
+* Update `SUPPORTED_VERSIONS`
+  * Master branch [cli.py](https://github.com/elastic/apm-integration-testing/blob/master/scripts/modules/cli.py#L58-L76)
+  * 7.x branch [compose.py](https://github.com/elastic/apm-integration-testing/blob/7.x/scripts/compose.py#L2115-L2131)
+* Update [APM server versions](https://github.com/elastic/apm-integration-testing/blob/master/tests/versions/apm_server.yml)
 
 ## Running Local Enviroments
 
