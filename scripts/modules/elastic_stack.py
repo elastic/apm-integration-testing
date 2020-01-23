@@ -679,13 +679,13 @@ class Kibana(StackService, Service):
                 self.environment["ELASTICSEARCH_PASSWORD"] = "changeme"
                 self.environment["ELASTICSEARCH_USERNAME"] = "kibana_system_user"
                 self.environment["STATUS_ALLOWANONYMOUS"] = "true"
-        self.environment["ELASTICSEARCH_URL"] = ",".join(self.options.get(
-            "kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
-        if self.at_least_version("7.6") and options.get("xpack_secure"):
-            self.environment["XPACK_SECURITY_LOGINASSISTANCEMESSAGE"] = "Login&#32;details:&#32;`{}/{}`.&#32;" \
-                "Further&#32;details&#32;[here]({}).".format(
-                    self.environment["ELASTICSEARCH_USERNAME"], self.environment["ELASTICSEARCH_PASSWORD"],
-                    "https://github.com/elastic/apm-integration-testing#logging-in")
+                if self.at_least_version("7.6"):
+                    self.environment["XPACK_SECURITY_LOGINASSISTANCEMESSAGE"] = (
+                        "Login&#32;details:&#32;`{}/{}`.&#32;Further&#32;details&#32;[here]({}).").format(
+                        self.environment["ELASTICSEARCH_USERNAME"], self.environment["ELASTICSEARCH_PASSWORD"],
+                        "https://github.com/elastic/apm-integration-testing#logging-in")
+        urls = self.options.get("kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS]
+        self.environment["ELASTICSEARCH_URL"] = ",".join(urls)
 
     @classmethod
     def add_arguments(cls, parser):
