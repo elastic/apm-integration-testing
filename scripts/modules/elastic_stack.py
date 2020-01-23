@@ -50,7 +50,8 @@ class ApmServer(StackService, Service):
             ("setup.kibana.host", self.DEFAULT_KIBANA_HOST),
             ("setup.template.settings.index.number_of_replicas", "0"),
             ("setup.template.settings.index.number_of_shards", "1"),
-            ("setup.template.settings.index.refresh_interval", "1ms"),
+            ("setup.template.settings.index.refresh_interval",
+                self.options.get("apm_server_index_refresh_interval")),
             ("monitoring.elasticsearch" if self.at_least_version("7.2") else "xpack.monitoring.elasticsearch", "true"),
             ("monitoring.enabled" if self.at_least_version("7.2") else "xpack.monitoring.enabled", "true")
         ])
@@ -371,6 +372,11 @@ class ApmServer(StackService, Service):
             "--apm-server-acm-disable",
             action="store_true",
             help="disable Agent Config Management",
+        )
+        parser.add_argument(
+            "--apm-server-index-refresh-interval",
+            default="1ms",
+            help="change the index refresh interval (default 1ms)",
         )
 
     def build_candidate_manifest(self):
