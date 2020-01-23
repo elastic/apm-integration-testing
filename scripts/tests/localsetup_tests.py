@@ -1402,6 +1402,10 @@ class LocalTest(unittest.TestCase):
         self.assertIn("ELASTIC_APM_SERVER_URL=https://apm-server:8200", opbeans_python["environment"])
         self.assertIn("ELASTIC_APM_JS_SERVER_URL=https://apm-server:8200", opbeans_python["environment"])
 
+    del test_apm_server_index_refresh_interval(self):
+      apmServer = ApmServer(apm_server_index_refresh_interval="10ms").render()["apm-server"]
+      self.assertIn("setup.template.settings.index.refresh_interval=10ms", apmServer["command"])
+
     def test_parse(self):
         cases = [
             ("6.3", [6, 3]),
