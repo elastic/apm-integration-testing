@@ -47,7 +47,7 @@ class ApmServer(StackService, Service):
             ("apm-server.write_timeout", "1m"),
             ("logging.json", "true"),
             ("logging.metrics.enabled", "false"),
-            ("setup.kibana.host", self.DEFAULT_KIBANA_HOST),
+            ("setup.kibana.host", "{}".format(self.options.get("apm_server_kibana_url"))),
             ("setup.template.settings.index.number_of_replicas", "0"),
             ("setup.template.settings.index.number_of_shards", "1"),
             ("setup.template.settings.index.refresh_interval", "1ms"),
@@ -371,6 +371,11 @@ class ApmServer(StackService, Service):
             "--apm-server-acm-disable",
             action="store_true",
             help="disable Agent Config Management",
+        )
+        parser.add_argument(
+            "--apm-server-kibana-url",
+            default=cls.DEFAULT_KIBANA_HOST,
+            help="Change the default kibana URL (kibana:5601)",
         )
 
     def build_candidate_manifest(self):

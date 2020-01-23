@@ -1402,6 +1402,10 @@ class LocalTest(unittest.TestCase):
         self.assertIn("ELASTIC_APM_SERVER_URL=https://apm-server:8200", opbeans_python["environment"])
         self.assertIn("ELASTIC_APM_JS_SERVER_URL=https://apm-server:8200", opbeans_python["environment"])
 
+    def test_apm_server_kibana_url(self):
+      apmServer = ApmServer(apm_server_kibana_url="http://kibana.example.com:5601").render()["apm-server"]
+      self.assertIn("setup.kibana.host=http://kibana.example.com:5601", apmServer["command"])
+
     def test_parse(self):
         cases = [
             ("6.3", [6, 3]),
