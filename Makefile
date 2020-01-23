@@ -1,6 +1,5 @@
 SHELL := /bin/bash
-PYTHON ?= python
-PYTHON3 ?= python3
+PYTHON ?= python3
 VENV ?= ./venv
 
 COMPOSE_ARGS ?=
@@ -17,7 +16,8 @@ all: test
 # The tests are written in Python. Make a virtualenv to handle the dependencies.
 # make doesn't play nicely with custom VENV, intended only for CI usage
 venv: requirements.txt
-	test -d $(VENV) || virtualenv -q --python=$(PYTHON3) $(VENV);\
+	$(PYTHON) -m venv $(VENV);\
+	source $(VENV)/bin/activate;\
 	pip install -q -r requirements.txt;\
 	touch $(VENV);\
 
@@ -50,11 +50,6 @@ test-agent-%: venv
 
 test-compose: venv
 	pytest scripts/tests/*_tests.py -v -s $(JUNIT_OPT)/compose-junit.xml
-
-test-compose-2:
-	virtualenv --python=python2.7 venv2
-	./venv2/bin/pip2 install mock pytest pyyaml
-	./venv2/bin/pytest --noconftest scripts/tests/*_tests.py
 
 test-kibana: venv
 	pytest tests/kibana/test_integration.py -v -s $(JUNIT_OPT)/kibana-junit.xml
