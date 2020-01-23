@@ -12,7 +12,7 @@ The basic requirements for starting a local environment are:
 - Docker compose
 - Python (version 3 preferred)
 
-This repo is tested with Python 3 but best effort is made to make starting/stopping environments work with Python 2.7.
+This repo is tested with Python 3 but best effort is made to make starting/stopping environments work with Python 2.7, to change the default `PYTHON` version you have to set `PYTHON` environment variable to something like `PYTHON=python2`.
 
 ### Docker
 
@@ -38,7 +38,7 @@ This repo is tested with Python 3 but best effort is made to make starting/stopp
 ### Starting an Environment
 
 `./scripts/compose.py` provides a handy cli for starting a testing environment using docker-compose.
-`make venv` creates a virtual environment with all of the python-based dependencies needed to run `./scripts/compose.py` - it requires `virtualenv` in your `PATH`.
+`make venv` creates a virtual environment with all of the python-based dependencies needed to run `./scripts/compose.py`.
 Activate the virtualenv with `source venv/bin/activate` and use `./scripts/compose.py --help` for information on subcommands and arguments. Finally, you can execute the following command to list all available parameter to start the environment `./scripts/compose.py start --help`.
 
 [APM LocalEnv Quickstart](QUICKSTART.md)
