@@ -1,3 +1,4 @@
+PyYAML==3.13
 attrs==17.3.0
 backports-abc==0.5
 cached-property==1.5.1
@@ -29,7 +30,6 @@ pytest-random-order==0.5.4
 pytest-selenium==1.11.3
 pytest-variables==1.7.0
 pytest==3.3.1
-PyYAML==3.13
 requests==2.20.1
 selenium==3.8.0
 singledispatch==3.4.0.3
@@ -38,7 +38,7 @@ texttable==0.9.1
 timeout-decorator==0.4.0
 tornado==5.1
 urllib3==1.24.1
-virtualenv==16.7.9
+virtualenv==16.0.0
 waiting==1.4.1
 webium==1.2.1
 websocket-client==0.54.0
