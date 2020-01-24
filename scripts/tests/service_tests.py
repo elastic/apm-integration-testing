@@ -986,6 +986,15 @@ class KibanaServiceTest(ServiceTest):
     def test_kibana_login_assistance_message(self):
         kibana = Kibana(version="7.6.0", xpack_secure=True, kibana_version="7.6.0").render()["kibana"]
         self.assertIn("Login&#32;details:&#32;`kibana_system_user/changeme`.", kibana['environment']["XPACK_SECURITY_LOGINASSISTANCEMESSAGE"])
+        kibana = Kibana(version="7.6.0", oss=True, xpack_secure=True, kibana_version="7.6.0").render()["kibana"]
+        self.assertNotIn("XPACK_SECURITY_LOGINASSISTANCEMESSAGE", kibana['environment'])
+
+    def test_kibana_disable_apm_servicemaps(self):
+        kibana = Kibana(version="7.7.0").render()["kibana"]
+        self.assertIn("XPACK_APM_SERVICEMAPENABLED", kibana['environment'])
+
+        kibana = Kibana(version="7.7.0", no_kibana_apm_servicemaps=True).render()["kibana"]
+        self.assertNotIn("XPACK_APM_SERVICEMAPENABLED", kibana['environment'])
 
     def test_kibana_login_assistance_message_wihtout_xpack(self):
         kibana = Kibana(version="7.6.0", xpack_secure=False, kibana_version="7.6.0").render()["kibana"]
