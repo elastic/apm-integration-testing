@@ -47,7 +47,7 @@ class ApmServer(StackService, Service):
             ("apm-server.write_timeout", "1m"),
             ("logging.json", "true"),
             ("logging.metrics.enabled", "false"),
-            ("setup.kibana.host", "{}".format(self.options.get("apm_server_kibana_url"))),
+            ("apm-server.kibana.host", "{}".format(self.options.get("apm_server_kibana_url"))),
             ("setup.template.settings.index.number_of_replicas", "0"),
             ("setup.template.settings.index.number_of_shards", "1"),
             ("setup.template.settings.index.refresh_interval", "1ms"),
