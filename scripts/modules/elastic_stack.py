@@ -692,6 +692,9 @@ class Kibana(StackService, Service):
                         "https://github.com/elastic/apm-integration-testing#logging-in")
         urls = self.options.get("kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS]
         self.environment["ELASTICSEARCH_URL"] = ",".join(urls)
+        if self.at_least_version("7.6"):
+            if not options.get("no_kibana_apm_servicemaps"):
+                self.environment["XPACK_APM_SERVICEMAPENABLED"] = "true"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -700,6 +703,12 @@ class Kibana(StackService, Service):
             action="append",
             dest="kibana_elasticsearch_urls",
             help="kibana elasticsearch output url(s)."
+        )
+
+        parser.add_argument(
+            "--no-kibana-apm-servicemaps",
+            action="store_true",
+            help="disable the APM service maps UI",
         )
 
     def _content(self):
