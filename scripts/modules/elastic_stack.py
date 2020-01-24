@@ -693,7 +693,7 @@ class Kibana(StackService, Service):
         urls = self.options.get("kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS]
         self.environment["ELASTICSEARCH_URL"] = ",".join(urls)
         if self.at_least_version("7.6"):
-            if not options.get("kibana_apm_disable_servicemaps"):
+            if not options.get("no_kibana_apm_servicemaps"):
                 self.environment["XPACK_APM_SERVICEMAPENABLED"] = "true"
 
     @classmethod
@@ -706,7 +706,7 @@ class Kibana(StackService, Service):
         )
 
         parser.add_argument(
-            "--kibana-apm-disable-servicemaps",
+            "--no-kibana-apm-servicemaps",
             action="store_true",
             help="disable the APM service maps UI",
         )
