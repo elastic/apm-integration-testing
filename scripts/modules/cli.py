@@ -250,6 +250,7 @@ class LocalSetup(object):
 
         # Add option to skip image downloads
         parser.add_argument(
+            '--no-download',
             '--skip-download',
             action='store_true',
             dest='skip_download',
