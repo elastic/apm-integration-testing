@@ -140,6 +140,7 @@ pipeline {
     cleanup {
       script{
         if(integrationTestsGen?.results){
+          log(level: 'INFO', text: "integrationTestsGen -> ${integrationTestsGen.results.toString()}")
           writeJSON(file: 'results.json', json: toJSON(integrationTestsGen.results), pretty: 2)
           def mapResults = ["${params.AGENT_INTEGRATION_TEST}": integrationTestsGen.results]
           def processor = new ResultsProcessor()
