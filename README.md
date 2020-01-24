@@ -11,7 +11,7 @@ The basic requirements for starting a local environment are:
 - Docker
 - Python (version 3 preferred)
 
-This repo is tested with Python 3 but best effort is made to make starting/stopping environments work with Python 2.7.
+This repo is tested with Python 3 but best effort is made to make starting/stopping environments work with Python 2.7. To change the default `PYTHON` version you have to set `PYTHON` environment variable to something like `PYTHON=python2`.
 
 ### Docker
 
