@@ -12,7 +12,7 @@ The basic requirements for starting a local environment are:
 - Docker Compose
 - Python (version 3 preferred)
 
-This repo is tested with Python 3 but starting/stopping environments work with Python 2.7 is supported on a best-efforrt basis.
+This repo is tested with Python 3 but starting/stopping environments work with Python 2.7 is supported on a best-efforrt basis. To change the default `PYTHON` version you have to set `PYTHON` environment variable to something like `PYTHON=python2`.
 
 ### Docker
 
