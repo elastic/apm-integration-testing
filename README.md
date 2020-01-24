@@ -34,9 +34,9 @@ This repo is tested with Python 3 but best effort is made to make starting/stopp
   ```
 ## Update Elastic Stack on new releases
 
-Every time there is  anew Elastic Stack release we have to update the configuration files to test the new release. These are the changes we have to make:
+Every time there is a new Elastic Stack release we have to update the configuration files to test the new release. These are the changes we have to make:
 
-* Update `ELASTIC_STACK_VERSION` param on Jenkinsfiles (.ci/\*.groovy and .ci/Jenkinsfile files
+* Update `ELASTIC_STACK_VERSION` param on Jenkinsfiles (.ci/\*.groovy and .ci/Jenkinsfile files).
 * Update `.ci/scripts/7.0-upgrade.sh` Elastic stack used for the update (on branch 7.x)
 * Update `SUPPORTED_VERSIONS`
   * Master branch [cli.py](https://github.com/elastic/apm-integration-testing/blob/master/scripts/modules/cli.py#L58-L76)
