@@ -918,6 +918,7 @@ class LocalTest(unittest.TestCase):
                     ELASTICSEARCH_USERNAME: kibana_system_user,
                     SERVER_NAME: kibana.example.org,
                     STATUS_ALLOWANONYMOUS: 'true',
+                    XPACK_APM_SERVICEMAPENABLED: 'true',
                     XPACK_MONITORING_ENABLED: 'true',
                     XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false',
                     XPACK_SECURITY_LOGINASSISTANCEMESSAGE: 'Login&#32;details:&#32;`kibana_system_user/changeme`.&#32;Further&#32;details&#32;[here](https://github.com/elastic/apm-integration-testing#logging-in).'
@@ -1405,6 +1406,10 @@ class LocalTest(unittest.TestCase):
     def test_apm_server_kibana_url(self):
       apmServer = ApmServer(apm_server_kibana_url="http://kibana.example.com:5601").render()["apm-server"]
       self.assertIn("apm-server.kibana.host=http://kibana.example.com:5601", apmServer["command"])
+
+    def test_apm_server_index_refresh_interval(self):
+      apmServer = ApmServer(apm_server_index_refresh_interval="10ms").render()["apm-server"]
+      self.assertIn("setup.template.settings.index.refresh_interval=10ms", apmServer["command"])
 
     def test_parse(self):
         cases = [

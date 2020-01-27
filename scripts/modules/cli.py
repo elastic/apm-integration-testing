@@ -65,13 +65,14 @@ class LocalSetup(object):
         '6.5': '6.5.4',
         '6.6': '6.6.2',
         '6.7': '6.7.2',
-        '6.8': '6.8.5',
+        '6.8': '6.8.6',
         '7.0': '7.0.1',
         '7.1': '7.1.1',
         '7.2': '7.2.1',
         '7.3': '7.3.2',
-        '7.4': '7.4.2',
-        '7.5': '7.5.1',
+        '7.4': '7.4.3',
+        '7.5': '7.5.2',
+        '7.6': '7.6.0',
         'master': '8.0.0',
     }
 
@@ -249,6 +250,7 @@ class LocalSetup(object):
 
         # Add option to skip image downloads
         parser.add_argument(
+            '--no-download',
             '--skip-download',
             action='store_true',
             dest='skip_download',

@@ -49,7 +49,8 @@ class ApmServer(StackService, Service):
             ("logging.metrics.enabled", "false"),
             ("setup.template.settings.index.number_of_replicas", "0"),
             ("setup.template.settings.index.number_of_shards", "1"),
-            ("setup.template.settings.index.refresh_interval", "1ms"),
+            ("setup.template.settings.index.refresh_interval",
+                "{}".format(self.options.get("apm_server_index_refresh_interval"))),
             ("monitoring.elasticsearch" if self.at_least_version("7.2") else "xpack.monitoring.elasticsearch", "true"),
             ("monitoring.enabled" if self.at_least_version("7.2") else "xpack.monitoring.enabled", "true")
         ])
@@ -376,6 +377,10 @@ class ApmServer(StackService, Service):
             "--apm-server-kibana-url",
             default=cls.DEFAULT_KIBANA_HOST,
             help="Change the default kibana URL (kibana:5601)",
+        parser.add_argument(
+            "--apm-server-index-refresh-interval",
+            default="1ms",
+            help="change the index refresh interval (default 1ms)",
         )
 
     def build_candidate_manifest(self):
@@ -684,13 +689,16 @@ class Kibana(StackService, Service):
                 self.environment["ELASTICSEARCH_PASSWORD"] = "changeme"
                 self.environment["ELASTICSEARCH_USERNAME"] = "kibana_system_user"
                 self.environment["STATUS_ALLOWANONYMOUS"] = "true"
-        self.environment["ELASTICSEARCH_URL"] = ",".join(self.options.get(
-            "kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
-        if self.at_least_version("7.6") and options.get("xpack_secure"):
-            self.environment["XPACK_SECURITY_LOGINASSISTANCEMESSAGE"] = "Login&#32;details:&#32;`{}/{}`.&#32;" \
-                "Further&#32;details&#32;[here]({}).".format(
-                    self.environment["ELASTICSEARCH_USERNAME"], self.environment["ELASTICSEARCH_PASSWORD"],
-                    "https://github.com/elastic/apm-integration-testing#logging-in")
+                if self.at_least_version("7.6"):
+                    self.environment["XPACK_SECURITY_LOGINASSISTANCEMESSAGE"] = (
+                        "Login&#32;details:&#32;`{}/{}`.&#32;Further&#32;details&#32;[here]({}).").format(
+                        self.environment["ELASTICSEARCH_USERNAME"], self.environment["ELASTICSEARCH_PASSWORD"],
+                        "https://github.com/elastic/apm-integration-testing#logging-in")
+        urls = self.options.get("kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS]
+        self.environment["ELASTICSEARCH_URL"] = ",".join(urls)
+        if self.at_least_version("7.6"):
+            if not options.get("no_kibana_apm_servicemaps"):
+                self.environment["XPACK_APM_SERVICEMAPENABLED"] = "true"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -699,6 +707,12 @@ class Kibana(StackService, Service):
             action="append",
             dest="kibana_elasticsearch_urls",
             help="kibana elasticsearch output url(s)."
+        )
+
+        parser.add_argument(
+            "--no-kibana-apm-servicemaps",
+            action="store_true",
+            help="disable the APM service maps UI",
         )
 
     def _content(self):
