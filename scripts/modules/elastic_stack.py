@@ -376,7 +376,8 @@ class ApmServer(StackService, Service):
         parser.add_argument(
             "--apm-server-kibana-url",
             default=cls.DEFAULT_KIBANA_HOST,
-            help="Change the default kibana URL (kibana:5601)",
+            help="Change the default kibana URL (kibana:5601)"
+        )
         parser.add_argument(
             "--apm-server-index-refresh-interval",
             default="1ms",
