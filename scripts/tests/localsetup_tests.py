@@ -675,7 +675,7 @@ class LocalTest(unittest.TestCase):
                 command: [apm-server, -e, --httpprof, ':6060', -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
                     -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
                     -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
-                    -E, 'apm-server.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
+                    -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
                     -E, xpack.monitoring.elasticsearch=true, -E, xpack.monitoring.enabled=true, -E, setup.dashboards.enabled=true,
                     -E, 'output.elasticsearch.hosts=["elasticsearch:9200"]', -E, output.elasticsearch.enabled=true]
@@ -753,7 +753,7 @@ class LocalTest(unittest.TestCase):
                 command: [apm-server, -e, --httpprof, ':6060', -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
                     -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
                     -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
-                    -E, 'apm-server.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
+                    -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
                     -E, xpack.monitoring.elasticsearch=true, -E, xpack.monitoring.enabled=true, -E, setup.dashboards.enabled=true,
                     -E, 'output.elasticsearch.hosts=["elasticsearch:9200"]', -E, output.elasticsearch.enabled=true ]
@@ -842,7 +842,7 @@ class LocalTest(unittest.TestCase):
                 command: [apm-server, -e, --httpprof, ':6060', -E, apm-server.rum.enabled=true, -E, apm-server.rum.event_rate.limit=1000,
                     -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
                     -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
-                    -E, 'apm-server.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
+                    -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
                     -E, monitoring.elasticsearch=true, -E, monitoring.enabled=true,
                     -E, apm-server.kibana.enabled=true, -E, 'apm-server.kibana.host=kibana:5601', -E, apm-server.agent.config.cache.expiration=30s,

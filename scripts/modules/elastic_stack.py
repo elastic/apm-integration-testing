@@ -47,7 +47,6 @@ class ApmServer(StackService, Service):
             ("apm-server.write_timeout", "1m"),
             ("logging.json", "true"),
             ("logging.metrics.enabled", "false"),
-            ("apm-server.kibana.host", "{}".format(self.options.get("apm_server_kibana_url"))),
             ("setup.template.settings.index.number_of_replicas", "0"),
             ("setup.template.settings.index.number_of_shards", "1"),
             ("setup.template.settings.index.refresh_interval", "1ms"),
@@ -75,7 +74,8 @@ class ApmServer(StackService, Service):
         elif self.at_least_version("7.3"):
             self.apm_server_command_args.extend([
                 ("apm-server.kibana.enabled", "true"),
-                ("apm-server.kibana.host", self.DEFAULT_KIBANA_HOST)])
+                ("apm-server.kibana.host",
+                    "{}".format(self.options.get("apm_server_kibana_url")))])
             agent_config_poll = self.options.get("agent_config_poll", "30s")
             self.apm_server_command_args.append(("apm-server.agent.config.cache.expiration", agent_config_poll))
             if self.options.get("xpack_secure"):
