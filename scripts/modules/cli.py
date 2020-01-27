@@ -579,9 +579,10 @@ class LocalSetup(object):
 
         if args.get("output_format") == 'yaml':
             yaml.dump(compose, docker_compose_path,
-                explicit_start = True,
-                default_flow_style=False,
-                indent = 2)
+                      explicit_start=True,
+                      default_flow_style=False,
+                      indent=2
+                      )
         else:
             json.dump(compose, docker_compose_path, indent=2, sort_keys=True)
         docker_compose_path.flush()
