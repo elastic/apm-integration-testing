@@ -10,11 +10,6 @@ import subprocess
 import sys
 import re
 
-try:
-    import yaml
-except ImportError:
-    print("No able to load yaml lib, use '--output-format json'")
-
 from .beats import BeatMixin
 from .helpers import load_images
 from .opbeans import OpbeansService, OpbeansRum
@@ -387,7 +382,7 @@ class LocalSetup(object):
         parser.add_argument(
             '--output-format',
             help='Select the output format for the docker-compose.yml file. [yaml, json]',
-            default="yaml"
+            default="json"
         )
 
         self.store_options(parser)
@@ -578,12 +573,16 @@ class LocalSetup(object):
         docker_compose_path = args["docker_compose_path"]
 
         if args.get("output_format") == 'yaml':
+            try:
+                import yaml
+            except ImportError:
+                print("Failed to import 'yaml': pip install yaml, or specify an alternative --output-format.")
             yaml.dump(compose, docker_compose_path,
                       explicit_start=True,
                       default_flow_style=False,
                       indent=2
                       )
-        else:
+        elif args.get("output_format") == 'json':
             json.dump(compose, docker_compose_path, indent=2, sort_keys=True)
         docker_compose_path.flush()
 
