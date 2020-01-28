@@ -381,6 +381,13 @@ class LocalSetup(object):
             default="false"
         )
 
+        parser.add_argument(
+            '--output-format',
+            choices=("json", "yaml"),
+            help='Select the output format for the docker-compose.yml file.',
+            default="json"
+        )
+
         self.store_options(parser)
 
         return parser
@@ -567,7 +574,19 @@ class LocalSetup(object):
             ),
         )
         docker_compose_path = args["docker_compose_path"]
-        json.dump(compose, docker_compose_path, indent=2, sort_keys=True)
+
+        if args.get("output_format") == 'yaml':
+            try:
+                import yaml
+            except ImportError:
+                print("Failed to import 'yaml': pip install yaml, or specify an alternative --output-format.")
+            yaml.dump(compose, docker_compose_path,
+                      explicit_start=True,
+                      default_flow_style=False,
+                      indent=2
+                      )
+        elif args.get("output_format") == 'json':
+            json.dump(compose, docker_compose_path, indent=2, sort_keys=True)
         docker_compose_path.flush()
 
         # try to figure out if writing to a real file, not amazing
