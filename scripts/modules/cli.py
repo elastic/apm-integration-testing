@@ -381,7 +381,8 @@ class LocalSetup(object):
 
         parser.add_argument(
             '--output-format',
-            help='Select the output format for the docker-compose.yml file. [yaml, json]',
+            choices=("json", "yaml"),
+            help='Select the output format for the docker-compose.yml file.',
             default="json"
         )
 
