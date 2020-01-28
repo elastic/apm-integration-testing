@@ -76,7 +76,7 @@ class ApmServer(StackService, Service):
             self.apm_server_command_args.extend([
                 ("apm-server.kibana.enabled", "true"),
                 ("apm-server.kibana.host",
-                    "{}".format(self.options.get("apm_server_kibana_url")))])
+                    self.options.get("apm_server_kibana_url", ""))])
             agent_config_poll = self.options.get("agent_config_poll", "30s")
             self.apm_server_command_args.append(("apm-server.agent.config.cache.expiration", agent_config_poll))
             if self.options.get("xpack_secure"):
