@@ -21,6 +21,7 @@ GO_NETHTTP_URL ?= "http://gonethttpapp:8080"
 JAVA_SPRING_URL ?= "http://javaspring:8090"
 RAILS_URL ?= "http://railsapp:8020"
 RUM_URL ?= "http://rum:8000"
+APM_SECRET_TOKEN ?= SuPeRsEcReT
 
 # Make sure we run local versions of everything, particularly commands
 # installed into our virtualenv with pip eg. `docker-compose`.
@@ -125,6 +126,7 @@ dockerized-test:
 	  -e RUM_URL=$(RUM_URL) \
 	  -e PYTHONDONTWRITEBYTECODE=1 \
 	  -e ENABLE_ES_DUMP=$(ENABLE_ES_DUMP) \
+	  -e APM_SECRET_TOKEN=${APM_SECRET_TOKEN} \
 	  -v "$(PWD)/$(JUNIT_RESULTS_DIR)":"/app/$(JUNIT_RESULTS_DIR)" \
 	  --rm \
 	  --entrypoint make \
