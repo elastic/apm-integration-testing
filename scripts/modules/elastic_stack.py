@@ -690,11 +690,12 @@ class Kibana(StackService, Service):
                         "Login&#32;details:&#32;`{}/{}`.&#32;Further&#32;details&#32;[here]({}).").format(
                         self.environment["ELASTICSEARCH_USERNAME"], self.environment["ELASTICSEARCH_PASSWORD"],
                         "https://github.com/elastic/apm-integration-testing#logging-in")
+            if self.at_least_version("7.6"):
+                if not options.get("no_kibana_apm_servicemaps"):
+                    self.environment["XPACK_APM_SERVICEMAPENABLED"] = "true"
         urls = self.options.get("kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS]
         self.environment["ELASTICSEARCH_URL"] = ",".join(urls)
-        if self.at_least_version("7.6"):
-            if not options.get("no_kibana_apm_servicemaps"):
-                self.environment["XPACK_APM_SERVICEMAPENABLED"] = "true"
+
 
     @classmethod
     def add_arguments(cls, parser):
