@@ -696,7 +696,6 @@ class Kibana(StackService, Service):
         urls = self.options.get("kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS]
         self.environment["ELASTICSEARCH_URL"] = ",".join(urls)
 
-
     @classmethod
     def add_arguments(cls, parser):
         parser.add_argument(
