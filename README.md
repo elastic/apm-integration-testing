@@ -201,9 +201,21 @@ Omit `--skip-download` to just download images.
 APM Server can work as a drop-in replacement for a Jaeger collector, and ingest traces directly from a Jaeger client via
 HTTP/Thrift or from a Jaeger agent via gRPC.
 
-To test it with a Jaeger microservice demo, run separately:
-`docker run --rm -it -p8080-8083:8080-8083 -e JAEGER_ENDPOINT=http://apm-server:14268/api/traces  --network apm-integration-testing  jaegertracing/example-hotrod:1.16  all`
+#### HTTP/Thrift
 
+To test HTTP/Thrift with a Jaeger microservice demo, run separately:
+
+    docker run --rm -it -p8080-8083:8080-8083 -e JAEGER_ENDPOINT=http://apm-server:14268/api/traces  --network apm-integration-testing  jaegertracing/example-hotrod:latest  all
+
+#### gRPC
+
+To test gRPC, run the Jaeger Agent separately: 
+
+    docker run --rm -it --name jaeger-agent --network apm-integration-testing -p6831:6831/udp -e REPORTER_GRPC_HOST_PORT=apm-server:14250 jaegertracing/jaeger-agent:latest
+
+And the Jaeger hotrod demo:
+
+    docker run --rm -it --network apm-integration-testing -e JAEGER_AGENT_HOST=jaeger-agent -e JAEGER_AGENT_PORT=6831 -p8080-8083:8080-8083 jaegertracing/example-hotrod:latest all
 
 ## Running Tests
 
