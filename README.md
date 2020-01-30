@@ -209,7 +209,7 @@ To test HTTP/Thrift with a Jaeger microservice demo, run separately:
 
 #### gRPC
 
-To test gRPC, run the Jaeger all-in-one (agent) separately: 
+To test gRPC, run the Jaeger Agent separately: 
 
     docker run --rm -it --name jaeger-agent --network apm-integration-testing -p6831:6831/udp -e REPORTER_GRPC_HOST_PORT=apm-server:14250 jaegertracing/jaeger-agent:latest
 
