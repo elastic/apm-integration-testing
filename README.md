@@ -199,7 +199,7 @@ Omit `--skip-download` to just download images.
 ### Jaeger
 
 APM Server can work as a drop-in replacement for a Jaeger collector, and ingest traces directly from a Jaeger client via
-HTTP/Thrift or from a Jaeger agent via gRPC. 
+HTTP/Thrift or from a Jaeger agent via gRPC.
 
 #### HTTP/Thrift
 
