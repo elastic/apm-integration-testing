@@ -693,7 +693,7 @@ class Kibana(StackService, Service):
                 if self.at_least_version("7.6"):
                     self.environment["XPACK_SECURITY_LOGINASSISTANCEMESSAGE"] = (
                         "Login&#32;details:&#32;`{}/{}`.&#32;Further&#32;details&#32;[here]({}).").format(
-                        self.environment["ELASTICSEARCH_USERNAME"], self.environment["ELASTICSEARCH_PASSWORD"],
+                        "admin", self.environment["ELASTICSEARCH_PASSWORD"],
                         "https://github.com/elastic/apm-integration-testing#logging-in")
             if self.at_least_version("7.6"):
                 if not options.get("no_kibana_apm_servicemaps"):
