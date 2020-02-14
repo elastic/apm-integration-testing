@@ -10,6 +10,7 @@ CSPROJ="opbeans-dotnet.csproj"
 
 PACKAGE=Elastic.Apm.NetCoreAll
 CSPROJ_VERSION="/src/dotnet-agent/src/Elastic.Apm.NetCoreAll/${PACKAGE}.csproj"
+BUILD_PROPS="/src/dotnet-agent/src/Directory.Build.props"
 
 if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
   git clone https://github.com/"${DOTNET_AGENT_REPO}".git /src/dotnet-agent -b "${DOTNET_AGENT_BRANCH}"
@@ -23,11 +24,16 @@ if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
   mv /src/NuGet.Config .
   # shellcheck disable=SC2016
   sed -ibck 's#<PropertyGroup>#<PropertyGroup><RestoreSources>$(RestoreSources);/src/local-packages;https://api.nuget.org/v3/index.json</RestoreSources>#' ${CSPROJ}
-  DOTNET_AGENT_VERSION=$(grep 'PackageVersion' ${CSPROJ_VERSION} | sed 's#<.*>\(.*\)<.*>#\1#' | tr -d " ")
+  DOTNET_AGENT_VERSION=$(grep 'PackageVersion' ${BUILD_PROPS} | sed 's#<.*>\(.*\)<.*>#\1#' | tr -d " ")
 
   if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
-    echo 'ERROR: DOTNET_AGENT_VERSION could not be calculated.' && exit 1
+    ## For backward compatibility (only for versions < 1.3.0)
+    DOTNET_AGENT_VERSION=$(grep 'PackageVersion' ${CSPROJ_VERSION} | sed 's#<.*>\(.*\)<.*>#\1#' | tr -d " ")
+    if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
+      echo 'ERROR: DOTNET_AGENT_VERSION could not be calculated.' && exit 1
+    fi
   fi
+
   dotnet add package ${PACKAGE} -v "${DOTNET_AGENT_VERSION}"
 else
   ### Otherwise: The default NuGet.Config will fail as it's required
@@ -37,5 +43,9 @@ fi
 cd /src/opbeans-dotnet/opbeans-dotnet || exit
 # This is the way to manipulate the csproj with the version of the dotnet agent to be used
 sed -ibck "s#\(<PackageReference Include=\"Elastic\.Apm\.NetCoreAll\" Version=\)\"\(.*\)\"#\1\"${DOTNET_AGENT_VERSION}\"#" ${CSPROJ}
+
+# Validate if the version has been updated
+set -e
+grep "Elastic.Apm.NetCoreAll" ${CSPROJ} | grep -i "Version=\"${DOTNET_AGENT_VERSION}\"" || (echo 'ERROR: DOTNET_AGENT_VERSION mismatch' && exit 1)
 dotnet restore
 dotnet publish -c Release -o build
