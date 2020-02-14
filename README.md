@@ -47,7 +47,7 @@ Every time there is a new Elastic Stack release we have to update the configurat
 
 ### Starting an Environment
 
-`./scripts/compose.py` provides a handy CLI for starting a testing environment using `docker-compos`.
+`./scripts/compose.py` provides a handy CLI for starting a testing environment using `docker-compose`.
 `make venv` creates a virtual environment with all of the python-based dependencies needed to run `./scripts/compose.py` - it requires `virtualenv` in your `PATH`.
 Activate the virtualenv with `source venv/bin/activate` and use `./scripts/compose.py --help` for information on subcommands and arguments. Finally, you can execute the following command to list all available parameter to start the environment `./scripts/compose.py start --help`.
 
