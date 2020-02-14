@@ -27,7 +27,7 @@ if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
   DOTNET_AGENT_VERSION=$(grep 'PackageVersion' ${BUILD_PROPS} | sed 's#<.*>\(.*\)<.*>#\1#' | tr -d " ")
 
   if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
-    ## For backward compatibility (only for versions < 1.3.0)
+    echo 'INFO: search version in the csproj. (only for agent version < 1.3)'
     DOTNET_AGENT_VERSION=$(grep 'PackageVersion' ${CSPROJ_VERSION} | sed 's#<.*>\(.*\)<.*>#\1#' | tr -d " ")
     if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
       echo 'ERROR: DOTNET_AGENT_VERSION could not be calculated.' && exit 1
