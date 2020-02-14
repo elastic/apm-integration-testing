@@ -24,6 +24,10 @@ if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
   # shellcheck disable=SC2016
   sed -ibck 's#<PropertyGroup>#<PropertyGroup><RestoreSources>$(RestoreSources);/src/local-packages;https://api.nuget.org/v3/index.json</RestoreSources>#' ${CSPROJ}
   DOTNET_AGENT_VERSION=$(grep 'PackageVersion' ${CSPROJ_VERSION} | sed 's#<.*>\(.*\)<.*>#\1#' | tr -d " ")
+
+  if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
+    echo 'ERROR: DOTNET_AGENT_VERSION could not be calculated.' && exit 1
+  fi
   dotnet add package ${PACKAGE} -v "${DOTNET_AGENT_VERSION}"
 else
   ### Otherwise: The default NuGet.Config will fail as it's required
