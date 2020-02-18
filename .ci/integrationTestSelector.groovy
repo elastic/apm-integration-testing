@@ -61,7 +61,7 @@ pipeline {
         APP = agentMapping.app(params.AGENT_INTEGRATION_TEST)
         // TODO: wait for changes in the library
         // OPBEANS_APP = agentMapping.opbeansApp(params.AGENT_INTEGRATION_TEST)
-        OPBEANS_APP = "${env.APP}"
+        OPBEANS_APP = "${env.NAME}"
       }
       when {
         expression {
