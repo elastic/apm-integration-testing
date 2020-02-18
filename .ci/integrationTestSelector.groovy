@@ -38,6 +38,7 @@ pipeline {
      Checkout the code and stash it, to use it on other stages.
     */
     stage('Checkout'){
+      options { skipDefaultCheckout() }
       steps {
         githubCheckNotify('PENDING')
         deleteDir()
@@ -51,7 +52,8 @@ pipeline {
     /**
       launch integration tests.
     */
-    stage("Integration Tests"){
+    stage('Integration Tests'){
+      options { skipDefaultCheckout() }
       environment {
         TMPDIR = "${WORKSPACE}"
         ENABLE_ES_DUMP = "true"
@@ -64,16 +66,35 @@ pipeline {
                   params.AGENT_INTEGRATION_TEST != 'Opbeans')
         }
       }
-      steps {
-        deleteDir()
-        unstash "source"
-        dir("${BASE_DIR}"){
-          sh(label: "Testing ${NAME} ${APP}", script: ".ci/scripts/agent.sh ${NAME} ${APP}")
+      parallel {
+        stage('Agent app') {
+          steps {
+            deleteDir()
+            unstash "source"
+            dir("${BASE_DIR}"){
+              sh(label: "Testing ${NAME} ${APP}", script: ".ci/scripts/agent.sh ${NAME} ${APP}")
+            }
+          }
+          post {
+            always {
+              wrappingup()
+            }
+          }
         }
-      }
-      post {
-        always {
-          wrappingup()
+        stage('Opbeans app') {
+          agent { label 'linux && immutable' }
+          steps {
+            deleteDir()
+            unstash "source"
+            dir("${BASE_DIR}"){
+              sh(label: "Testing ${NAME} ${APP}", script: ".ci/scripts/opbeans-app.sh ${NAME} ${APP}")
+            }
+          }
+          post {
+            always {
+              wrappingup(isJunit: false)
+            }
+          }
         }
       }
     }
@@ -155,7 +176,8 @@ pipeline {
   }
 }
 
-def wrappingup(){
+def wrappingup(Map params){
+  def isJunit = params.containsKey('isJunit') ? params.get('isJunit') : true
   dir("${BASE_DIR}"){
     sh("./scripts/docker-get-logs.sh '${env.NAME}'|| echo 0")
     sh('make stop-env || echo 0')
@@ -163,11 +185,9 @@ def wrappingup(){
         allowEmptyArchive: true,
         artifacts: 'docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
         defaultExcludes: false)
-    junit(
-      allowEmptyResults: true,
-      keepLongStdio: true,
-      testResults: "**/tests/results/*-junit*.xml")
-
+    if (isJunit) {
+      junit(allowEmptyResults: true, keepLongStdio: true, testResults: "**/tests/results/*-junit*.xml")
+    }
     // Let's generate the debug report ...
     sh(label: 'Generate debug docs', script: ".ci/scripts/generate-debug-docs.sh | tee ${env.DETAILS_ARTIFACT}")
     archiveArtifacts(artifacts: "${env.DETAILS_ARTIFACT}")
