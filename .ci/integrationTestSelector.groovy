@@ -179,7 +179,7 @@ pipeline {
   }
 }
 
-def wrappingup(Map params){
+def wrappingup(Map params = [:]){
   def isJunit = params.containsKey('isJunit') ? params.get('isJunit') : true
   dir("${BASE_DIR}"){
     sh("./scripts/docker-get-logs.sh '${env.NAME}'|| echo 0")
