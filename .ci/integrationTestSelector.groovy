@@ -59,6 +59,9 @@ pipeline {
         ENABLE_ES_DUMP = "true"
         PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
         APP = agentMapping.app(params.AGENT_INTEGRATION_TEST)
+        // TODO: wait for changes in the library
+        // OPBEANS_APP = agentMapping.opbeansApp(params.AGENT_INTEGRATION_TEST)
+        OPBEANS_APP = "${env.APP}"
       }
       when {
         expression {
@@ -87,7 +90,7 @@ pipeline {
             deleteDir()
             unstash "source"
             dir("${BASE_DIR}"){
-              sh(label: "Testing ${NAME} ${APP}", script: ".ci/scripts/opbeans-app.sh ${NAME} ${APP}")
+              sh(label: "Testing ${NAME} ${OPBEANS_APP}", script: ".ci/scripts/opbeans-app.sh ${NAME} ${APP} ${OPBEANS_APP}")
             }
           }
           post {

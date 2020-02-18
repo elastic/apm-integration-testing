@@ -8,10 +8,11 @@ test -z "$srcdir" && srcdir=.
 
 AGENT=$1
 APP=$2
+OPBEANS_APP=$3
 
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
   --with-agent-${APP} \
-  --with-opbeans-${AGENT} \
+  --with-opbeans-${OPBEANS_APP} \
   --no-apm-server-dashboards \
   --no-apm-server-self-instrument \
   --apm-server-agent-config-poll=1s \
