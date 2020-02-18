@@ -10,6 +10,7 @@ AGENT=$1
 APP=$2
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
   --with-agent-${APP} \
+  --with-opbeans-${APP} \
   --no-apm-server-dashboards \
   --no-apm-server-self-instrument \
   --apm-server-agent-config-poll=1s \
