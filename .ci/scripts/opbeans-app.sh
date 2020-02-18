@@ -8,9 +8,17 @@ test -z "$srcdir" && srcdir=.
 
 AGENT=$1
 APP=$2
+
+## Default flags
+FLAG="--with-agent-${APP} --with-opbeans-${APP}"
+
+## No opbeans for the python-django
+if [ "${APP}" == "python-django" ] ; then
+  FLAG="--with-agent-${APP}"
+fi
+
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
-  --with-agent-${APP} \
-  --with-opbeans-${APP} \
+  ${FLAG} \
   --no-apm-server-dashboards \
   --no-apm-server-self-instrument \
   --apm-server-agent-config-poll=1s \
