@@ -15,6 +15,9 @@ FLAG="--with-agent-${APP} --with-opbeans-${APP}"
 ## No opbeans for the python-django
 if [ "${APP}" == "python-django" ] ; then
   FLAG="--with-agent-${APP}"
+## No opbeans for the go-net-http
+elif [ "${APP}" == "go-net-http" ] ; then
+  FLAG="--with-agent-${APP}"
 fi
 
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
