@@ -112,6 +112,11 @@ pipeline {
           steps {
             deleteDir()
             unstash "source"
+            dir('opbeans-frontend') {
+              git url: 'https://github.com/elastic/opbeans-frontend.git'
+              sh script: ".ci/bump-version.sh ${env.BUILD_OPTS.replaceAll('--rum-agent-branch ', '')} false", label: 'Bump version'
+              sh script: 'make build', label: 'Build docker image with the new rum agent'
+            }
             dir("${BASE_DIR}"){
               sh(label: 'Testing RUM', script: '.ci/scripts/opbeans-rum.sh')
             }
