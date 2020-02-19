@@ -59,9 +59,7 @@ pipeline {
         ENABLE_ES_DUMP = "true"
         PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
         APP = agentMapping.app(params.AGENT_INTEGRATION_TEST)
-        // TODO: wait for changes in the library
-        // OPBEANS_APP = agentMapping.opbeansApp(params.AGENT_INTEGRATION_TEST)
-        OPBEANS_APP = "${env.NAME}"
+        OPBEANS_APP = agentMapping.opbeansApp(params.AGENT_INTEGRATION_TEST)
       }
       when {
         expression {
