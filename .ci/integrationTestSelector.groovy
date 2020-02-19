@@ -86,11 +86,34 @@ pipeline {
         }
         stage('Opbeans app') {
           agent { label 'linux && immutable' }
+          when {
+            expression { return (params.AGENT_INTEGRATION_TEST != 'RUM') }
+            beforeAgent true
+          }
           steps {
             deleteDir()
             unstash "source"
             dir("${BASE_DIR}"){
               sh(label: "Testing ${NAME} ${OPBEANS_APP}", script: ".ci/scripts/opbeans-app.sh ${NAME} ${APP} ${OPBEANS_APP}")
+            }
+          }
+          post {
+            always {
+              wrappingup(isJunit: false)
+            }
+          }
+        }
+        stage('Opbeans RUM app') {
+          agent { label 'linux && immutable' }
+          when {
+            expression { return (params.AGENT_INTEGRATION_TEST == 'RUM') }
+            beforeAgent true
+          }
+          steps {
+            deleteDir()
+            unstash "source"
+            dir("${BASE_DIR}"){
+              sh(label: 'Testing RUM', script: '.ci/scripts/opbeans-rum.sh')
             }
           }
           post {
