@@ -230,6 +230,7 @@ class ApmServer(StackService, Service):
         )
         parser.add_argument(
             "--apm-server-ilm-disable",
+            "--no-apm-server-ilm",
             action="store_true",
             help='disable ILM (enabled by default in 7.2+)'
         )
@@ -373,6 +374,7 @@ class ApmServer(StackService, Service):
         )
         parser.add_argument(
             "--apm-server-acm-disable",
+            "--no-apm-server-acm",
             action="store_true",
             help="disable Agent Config Management",
         )
