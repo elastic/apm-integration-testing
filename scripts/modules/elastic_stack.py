@@ -66,7 +66,7 @@ class ApmServer(StackService, Service):
         self.build = self.options.get("apm_server_build")
 
         if self.options.get("apm-server-experimental-mode", True) and self.at_least_version("7.2"):
-            self.apm_server_command_args.append("apm-server.mode", "experimental")
+            self.apm_server_command_args.append(("apm-server.mode", "experimental"))
 
         if self.options.get("apm_server_ilm_disable"):
             self.apm_server_command_args.append(("apm-server.ilm.enabled", "false"))
