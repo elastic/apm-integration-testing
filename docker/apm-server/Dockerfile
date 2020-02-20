@@ -3,8 +3,13 @@ ARG go_version=1.13
 
 FROM golang:${go_version} AS build
 
+RUN apt -qq remove -y python2 && apt -qq autoremove -y
+
 # install make update prerequisites
-RUN apt-get -qq update && apt-get -qq install -y python-virtualenv
+RUN apt-get -qq update \
+    && apt-get -qq install -y python3 python3-pip python3-venv
+
+RUN pip3 install --upgrade pip
 
 ARG apm_server_branch_or_commit=master
 ARG apm_server_repo=https://github.com/elastic/apm-server.git
