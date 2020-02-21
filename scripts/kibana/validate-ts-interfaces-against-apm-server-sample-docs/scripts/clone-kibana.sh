@@ -6,7 +6,7 @@ BRANCH=${2:-master}
 
 echo "Cloning Kibana: ${OWNER}:${BRANCH}"
 
-cd ./tmp || true
+cd ./tmp
 git clone --quiet --depth 1 -b "${BRANCH}" "https://github.com/${OWNER}/kibana.git"
 
 ### In 7.7 files moved around.
