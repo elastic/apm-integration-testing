@@ -8,5 +8,14 @@ echo "Cloning Kibana: ${OWNER}:${BRANCH}"
 
 cd ./tmp || true
 git clone --quiet --depth 1 -b "${BRANCH}" "https://github.com/${OWNER}/kibana.git"
-mv ./kibana/x-pack/plugins/apm/typings/es_schemas ./apm-ui-interfaces
+
+### In 7.7 files moved around.
+### The below section keeps backward compatibility.
+oldLocation=./kibana/x-pack/legacy/plugins/apm/typings/es_schemas
+newLocation=./kibana/x-pack/plugins/apm/typings/es_schemas
+location=${oldLocation}
+if [ -d "${newLocation}" ] ; then
+   location=${newLocation}
+fi
+mv "${location}" ./apm-ui-interfaces
 rm -rf kibana
