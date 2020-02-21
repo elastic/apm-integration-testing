@@ -7,7 +7,7 @@ RUN apt -qq remove -y python2 && apt -qq autoremove -y
 
 # install make update prerequisites
 RUN apt-get -qq update \
-    && apt-get -qq install -y python3 python3-pip python3-venv
+    && apt-get -qq install -y python3 python3-pip python3-venv python3-virtualenv
 
 RUN pip3 install --upgrade pip
 
