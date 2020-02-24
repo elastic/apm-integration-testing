@@ -9,6 +9,13 @@ pipeline {
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     JOB_GIT_CREDENTIALS = '2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken'
     PIPELINE_LOG_LEVEL = 'INFO'
+    REUSE_CONTAINERS = "true"
+    NAME = agentMapping.id(params.INTEGRATION_TEST)
+    INTEGRATION_TEST = "${params.INTEGRATION_TEST}"
+    ELASTIC_STACK_VERSION = "${params.ELASTIC_STACK_VERSION}"
+    BUILD_OPTS = "${params.BUILD_OPTS}"
+    DETAILS_ARTIFACT = 'docs.txt'
+    DETAILS_ARTIFACT_URL = "${env.BUILD_URL}artifact/${env.DETAILS_ARTIFACT}"
   }
   options {
     timeout(time: 1, unit: 'HOURS')
@@ -20,8 +27,8 @@ pipeline {
     rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
   }
   parameters {
-    choice(name: 'AGENT_INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "7.6", description: "Elastic Stack Git branch/tag to use")
+    choice(name: 'INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All', 'Opbeans'], description: 'Name of the Tests or APM Agent you want to run the integration tests.')
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "8.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     string(name: 'GITHUB_CHECK_NAME', defaultValue: '', description: 'Name of the GitHub check to be updated. Only if this build is triggered from another parent stream.')
     string(name: 'GITHUB_CHECK_REPO', defaultValue: '', description: 'Name of the GitHub repo to be updated. Only if this build is triggered from another parent stream.')
@@ -38,7 +45,11 @@ pipeline {
         gitCheckout(basedir: "${BASE_DIR}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script{
-          currentBuild.displayName = "apm-agent-${params.AGENT_INTEGRATION_TEST} - ${currentBuild.displayName}"
+          def displayName = "apm-agent-${params.INTEGRATION_TEST}"
+          if (params.INTEGRATION_TEST.equals('All') || params.INTEGRATION_TEST.equals('UI') || params.INTEGRATION_TEST.equals('Opbeans')) {
+            displayName = "${params.INTEGRATION_TEST}"
+          }
+          currentBuild.displayName = "${displayName} - ${currentBuild.displayName}"
         }
       }
     }
@@ -46,9 +57,16 @@ pipeline {
       launch integration tests.
     */
     stage("Integration Tests"){
+      environment {
+        TMPDIR = "${WORKSPACE}"
+        ENABLE_ES_DUMP = "true"
+        PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
+        APP = agentMapping.app(params.INTEGRATION_TEST)
+      }
       when {
         expression {
-          return (params.AGENT_INTEGRATION_TEST != 'All')
+          return (params.INTEGRATION_TEST != 'All' &&
+                  params.INTEGRATION_TEST != 'Opbeans')
         }
       }
       steps {
@@ -73,7 +91,7 @@ pipeline {
     }
     stage("All") {
       when {
-        expression { return params.AGENT_INTEGRATION_TEST == 'All' }
+        expression { return params.INTEGRATION_TEST == 'All' }
       }
       environment {
         TMPDIR = "${WORKSPACE}"
@@ -94,7 +112,7 @@ pipeline {
     }
     stage("UI") {
       when {
-        expression { return params.AGENT_INTEGRATION_TEST == 'UI' }
+        expression { return params.INTEGRATION_TEST == 'UI' }
       }
       environment {
         TMPDIR = "${WORKSPACE}/${BASE_DIR}"
@@ -109,6 +127,28 @@ pipeline {
               sh(label: "Check Schema", script: ".ci/scripts/ui.sh")
             }
           }
+        }
+      }
+      post {
+        always {
+          wrappingup()
+        }
+      }
+    }
+    stage("Opbeans") {
+      when {
+        expression { return params.INTEGRATION_TEST == 'Opbeans' }
+      }
+      environment {
+        TMPDIR = "${WORKSPACE}"
+        ENABLE_ES_DUMP = "true"
+        PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
+      }
+      steps {
+        deleteDir()
+        unstash "source"
+        dir("${BASE_DIR}"){
+          sh ".ci/scripts/opbeans.sh"
         }
       }
       post {
