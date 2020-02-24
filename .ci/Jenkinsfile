@@ -131,13 +131,13 @@ pipeline {
   }
 }
 
-def runJob(agentName, buildOpts = ''){
+def runJob(testName, buildOpts = ''){
   def branch = env.CHANGE_ID?.trim() ? env.CHANGE_TARGET : env.BRANCH_NAME
   def job
   try {
     job = build(job: "apm-integration-test-downstream/${branch}",
       parameters: [
-      string(name: 'AGENT_INTEGRATION_TEST', value: agentName),
+      string(name: 'INTEGRATION_TEST', value: testName),
       string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
       string(name: 'INTEGRATION_TESTING_VERSION', value: "${env.GIT_BASE_COMMIT}"),
       string(name: 'MERGE_TARGET', value: "${branch}"),
@@ -149,8 +149,8 @@ def runJob(agentName, buildOpts = ''){
       wait: true)
   } catch(e) {
     job = e
-    error("Downstream job for '${agentName}' failed")
+    error("Downstream job for '${testName}' failed")
   } finally {
-    itsDownstreamJobs["${agentName}"] = job
+    itsDownstreamJobs["${testName}"] = job
   }
 }
