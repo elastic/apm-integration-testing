@@ -1,6 +1,5 @@
 APM_SERVER:
-  - 'master'
-  - '7.7'
+  - '7.x'
   - '7.6;--release'
   - '7.5;--release'
   - '7.4;--release'
