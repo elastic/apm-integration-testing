@@ -105,23 +105,26 @@ pipeline {
   }
 }
 
-def runJob(agentName, buildOpts = ''){
-  def branch = env.BRANCH_NAME
-
-  if (env.CHANGE_ID) {
-    branch = env.CHANGE_TARGET
+def runJob(testName, buildOpts = ''){
+  def branch = env.CHANGE_ID?.trim() ? env.CHANGE_TARGET : env.BRANCH_NAME
+  def job
+  try {
+    job = build(job: "apm-integration-test-downstream/${branch}",
+      parameters: [
+      string(name: 'INTEGRATION_TEST', value: testName),
+      string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
+      string(name: 'INTEGRATION_TESTING_VERSION', value: "${env.GIT_BASE_COMMIT}"),
+      string(name: 'MERGE_TARGET', value: "${branch}"),
+      string(name: 'BUILD_OPTS', value: "${params.BUILD_OPTS} ${buildOpts}"),
+      string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
+      booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: '')],
+      propagate: true,
+      quietPeriod: 10,
+      wait: true)
+  } catch(e) {
+    job = e
+    error("Downstream job for '${testName}' failed")
+  } finally {
+    itsDownstreamJobs["${testName}"] = job
   }
-
-  def job = build(job: "apm-integration-test-downstream/${branch}",
-    parameters: [
-    string(name: 'AGENT_INTEGRATION_TEST', value: agentName),
-    string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
-    string(name: 'INTEGRATION_TESTING_VERSION', value: env.GIT_BASE_COMMIT),
-    string(name: 'MERGE_TARGET', value: "${branch}"),
-    string(name: 'BUILD_OPTS', value: "${params.BUILD_OPTS} ${buildOpts}"),
-    string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
-    booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: '')],
-    propagate: true,
-    quietPeriod: 10,
-    wait: true)
 }
