@@ -44,7 +44,11 @@ pipeline {
         gitCheckout(basedir: "${BASE_DIR}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script{
-          currentBuild.displayName = "apm-agent-${params.INTEGRATION_TEST} - ${currentBuild.displayName}"
+          def displayName = "apm-agent-${params.INTEGRATION_TEST}"
+          if (params.INTEGRATION_TEST.equals('All') || params.INTEGRATION_TEST.equals('UI') || params.INTEGRATION_TEST.equals('Opbeans')) {
+            displayName = "${params.INTEGRATION_TEST}"
+          }
+          currentBuild.displayName = "${displayName} - ${currentBuild.displayName}"
         }
       }
     }

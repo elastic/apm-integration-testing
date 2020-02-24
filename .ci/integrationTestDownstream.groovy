@@ -56,8 +56,14 @@ pipeline {
         )
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
-          currentBuild.displayName = "apm-agent-${params.INTEGRATION_TEST} - ${currentBuild.displayName}"
-          currentBuild.description = "Agent ${params.INTEGRATION_TEST} - ${params.UPSTREAM_BUILD}"
+          def displayName = "apm-agent-${params.INTEGRATION_TEST}"
+          def description = "Agent ${params.INTEGRATION_TEST}"
+          if (params.INTEGRATION_TEST.equals('All') || params.INTEGRATION_TEST.equals('UI')) {
+            displayName = "${params.INTEGRATION_TEST}"
+            description = "${params.INTEGRATION_TEST}"
+          }
+          currentBuild.displayName = "${displayName} - ${currentBuild.displayName}"
+          currentBuild.description = "${description} - ${params.UPSTREAM_BUILD}"
         }
       }
     }
