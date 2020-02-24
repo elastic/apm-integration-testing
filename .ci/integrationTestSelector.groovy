@@ -10,8 +10,8 @@ pipeline {
     JOB_GIT_CREDENTIALS = '2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken'
     PIPELINE_LOG_LEVEL = 'INFO'
     REUSE_CONTAINERS = "true"
-    NAME = agentMapping.id(params.AGENT_INTEGRATION_TEST)
-    AGENT_INTEGRATION_TEST = "${params.AGENT_INTEGRATION_TEST}"
+    NAME = agentMapping.id(params.INTEGRATION_TEST)
+    INTEGRATION_TEST = "${params.INTEGRATION_TEST}"
     ELASTIC_STACK_VERSION = "${params.ELASTIC_STACK_VERSION}"
     BUILD_OPTS = "${params.BUILD_OPTS}"
     DETAILS_ARTIFACT = 'docs.txt'
@@ -26,7 +26,7 @@ pipeline {
     rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
   }
   parameters {
-    choice(name: 'AGENT_INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All', 'Opbeans'], description: 'Name of the APM Agent you want to run the integration tests.')
+    choice(name: 'INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All', 'Opbeans'], description: 'Name of the Tests or APM Agent you want to run the integration tests.')
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "8.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     string(name: 'GITHUB_CHECK_NAME', defaultValue: '', description: 'Name of the GitHub check to be updated. Only if this build is triggered from another parent stream.')
@@ -44,7 +44,11 @@ pipeline {
         gitCheckout(basedir: "${BASE_DIR}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script{
-          currentBuild.displayName = "apm-agent-${params.AGENT_INTEGRATION_TEST} - ${currentBuild.displayName}"
+          def displayName = "apm-agent-${params.INTEGRATION_TEST}"
+          if (params.INTEGRATION_TEST.equals('All') || params.INTEGRATION_TEST.equals('UI') || params.INTEGRATION_TEST.equals('Opbeans')) {
+            displayName = "${params.INTEGRATION_TEST}"
+          }
+          currentBuild.displayName = "${displayName} - ${currentBuild.displayName}"
         }
       }
     }
@@ -56,12 +60,12 @@ pipeline {
         TMPDIR = "${WORKSPACE}"
         ENABLE_ES_DUMP = "true"
         PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
-        APP = agentMapping.app(params.AGENT_INTEGRATION_TEST)
+        APP = agentMapping.app(params.INTEGRATION_TEST)
       }
       when {
         expression {
-          return (params.AGENT_INTEGRATION_TEST != 'All' &&
-                  params.AGENT_INTEGRATION_TEST != 'Opbeans')
+          return (params.INTEGRATION_TEST != 'All' &&
+                  params.INTEGRATION_TEST != 'Opbeans')
         }
       }
       steps {
@@ -79,7 +83,7 @@ pipeline {
     }
     stage("All") {
       when {
-        expression { return params.AGENT_INTEGRATION_TEST == 'All' }
+        expression { return params.INTEGRATION_TEST == 'All' }
       }
       environment {
         TMPDIR = "${WORKSPACE}"
@@ -101,7 +105,7 @@ pipeline {
     }
     stage("UI") {
       when {
-        expression { return params.AGENT_INTEGRATION_TEST == 'UI' }
+        expression { return params.INTEGRATION_TEST == 'UI' }
       }
       environment {
         TMPDIR = "${WORKSPACE}/${BASE_DIR}"
@@ -126,7 +130,7 @@ pipeline {
     }
     stage("Opbeans") {
       when {
-        expression { return params.AGENT_INTEGRATION_TEST == 'Opbeans' }
+        expression { return params.INTEGRATION_TEST == 'Opbeans' }
       }
       environment {
         TMPDIR = "${WORKSPACE}"
