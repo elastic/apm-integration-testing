@@ -56,8 +56,8 @@ pipeline {
         )
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script {
-          currentBuild.displayName = "apm-${params.INTEGRATION_TEST.equals} - ${currentBuild.displayName}"
-          currentBuild.description = "${params.INTEGRATION_TEST} - ${params.UPSTREAM_BUILD}"
+          currentBuild.displayName = "apm-agent-${params.INTEGRATION_TEST} - ${currentBuild.displayName}"
+          currentBuild.description = "Agent ${params.INTEGRATION_TEST} - ${params.UPSTREAM_BUILD}"
         }
       }
     }
@@ -162,7 +162,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
   }
 
   /**
-    build a clousure that launch and agent and execute the corresponding test script,
+    build a clousure that launch an agent or test and execute the corresponding test script,
     then store the results.
   */
   public Closure generateStep(x, y){
