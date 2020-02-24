@@ -17,17 +17,17 @@ interface DocType {
 const docTypes: DocType[] = [
   {
     interfaceName: 'SpanRaw',
-    interfacePath: '../apm-ui-interfaces/raw/SpanRaw',
+    interfacePath: '../apm-ui-interfaces/raw/span_raw',
     url: `https://raw.githubusercontent.com/elastic/apm-server/${branch}/beater/test_approved_es_documents/TestPublishIntegrationSpans.approved.json`
   },
   {
     interfaceName: 'TransactionRaw',
-    interfacePath: '../apm-ui-interfaces/raw/TransactionRaw',
+    interfacePath: '../apm-ui-interfaces/raw/transaction_raw',
     url: `https://raw.githubusercontent.com/elastic/apm-server/${branch}/beater/test_approved_es_documents/TestPublishIntegrationTransactions.approved.json`
   },
   {
     interfaceName: 'ErrorRaw',
-    interfacePath: '../apm-ui-interfaces/raw/ErrorRaw',
+    interfacePath: '../apm-ui-interfaces/raw/error_raw',
     url: `https://raw.githubusercontent.com/elastic/apm-server/${branch}/beater/test_approved_es_documents/TestPublishIntegrationErrors.approved.json`
   }
 ];
