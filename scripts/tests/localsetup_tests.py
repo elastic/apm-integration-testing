@@ -844,7 +844,7 @@ class LocalTest(unittest.TestCase):
                     -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
                     -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
-                    -E, monitoring.elasticsearch=true, -E, monitoring.enabled=true,
+                    -E, monitoring.elasticsearch=true, -E, monitoring.enabled=true, -E, apm-server.mode=experimental,
                     -E, apm-server.kibana.enabled=true, -E, 'apm-server.kibana.host=kibana:5601', -E, apm-server.agent.config.cache.expiration=30s,
                     -E, apm-server.kibana.username=apm_server_user, -E, apm-server.kibana.password=changeme,
                     -E, apm-server.jaeger.http.enabled=true, -E, "apm-server.jaeger.http.host=0.0.0.0:14268",

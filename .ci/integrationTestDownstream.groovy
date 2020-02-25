@@ -30,7 +30,7 @@ pipeline {
     durabilityHint('PERFORMANCE_OPTIMIZED')
   }
   parameters {
-    choice(name: 'AGENT_INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
+    choice(name: 'INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All'], description: 'Name of the Tests or APM Agent you want to run the integration tests.')
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "8.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "master", description: "Integration testing Git branch/tag to use")
     string(name: 'MERGE_TARGET', defaultValue: "master", description: "Integration testing Git branch/tag where to merge this code")
@@ -55,9 +55,15 @@ pipeline {
           shallow: false
         )
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
-        script{
-          currentBuild.displayName = "apm-agent-${params.AGENT_INTEGRATION_TEST} - ${currentBuild.displayName}"
-          currentBuild.description = "Agent ${params.AGENT_INTEGRATION_TEST} - ${params.UPSTREAM_BUILD}"
+        script {
+          def displayName = "apm-agent-${params.INTEGRATION_TEST}"
+          def description = "Agent ${params.INTEGRATION_TEST}"
+          if (params.INTEGRATION_TEST.equals('All') || params.INTEGRATION_TEST.equals('UI')) {
+            displayName = "${params.INTEGRATION_TEST}"
+            description = "${params.INTEGRATION_TEST}"
+          }
+          currentBuild.displayName = "${displayName} - ${currentBuild.displayName}"
+          currentBuild.description = "${description} - ${params.UPSTREAM_BUILD}"
         }
       }
     }
@@ -67,8 +73,8 @@ pipeline {
     stage("Integration Tests"){
       when {
         expression {
-          return (params.AGENT_INTEGRATION_TEST != 'All'
-            && params.AGENT_INTEGRATION_TEST != 'UI')
+          return (params.INTEGRATION_TEST != 'All'
+            && params.INTEGRATION_TEST != 'UI')
         }
       }
       steps {
@@ -76,7 +82,7 @@ pipeline {
         unstash "source"
         dir("${BASE_DIR}"){
           script {
-            def agentTests = agentMapping.id(params.AGENT_INTEGRATION_TEST)
+            def agentTests = agentMapping.id(params.INTEGRATION_TEST)
             integrationTestsGen = new IntegrationTestingParallelTaskGenerator(
               xKey: agentMapping.agentVar(agentTests),
               yKey: agentMapping.agentVar('server'),
@@ -84,7 +90,7 @@ pipeline {
               yFile: agentMapping.yamlVersionFile('server'),
               exclusionFile: agentMapping.yamlVersionFile(agentTests),
               tag: agentTests,
-              name: params.AGENT_INTEGRATION_TEST,
+              name: params.INTEGRATION_TEST,
               steps: this
               )
             def mapPatallelTasks = integrationTestsGen.generateParallelTests()
@@ -95,7 +101,7 @@ pipeline {
     }
     stage("All") {
       when {
-        expression { return params.AGENT_INTEGRATION_TEST == 'All' }
+        expression { return params.INTEGRATION_TEST == 'All' }
       }
       environment {
         TMPDIR = "${WORKSPACE}"
@@ -117,7 +123,7 @@ pipeline {
     }
     stage("UI") {
       when {
-        expression { return params.AGENT_INTEGRATION_TEST == 'UI' }
+        expression { return params.INTEGRATION_TEST == 'UI' }
       }
       environment {
         TMPDIR = "${WORKSPACE}/${BASE_DIR}"
@@ -141,15 +147,10 @@ pipeline {
       script{
         if(integrationTestsGen?.results){
           writeJSON(file: 'results.json', json: toJSON(integrationTestsGen.results), pretty: 2)
-          def mapResults = ["${params.AGENT_INTEGRATION_TEST}": integrationTestsGen.results]
+          def mapResults = ["${params.INTEGRATION_TEST}": integrationTestsGen.results]
           def processor = new ResultsProcessor()
           processor.processResults(mapResults)
           archiveArtifacts allowEmptyArchive: true, artifacts: 'results.json,results.html', defaultExcludes: false
-          catchError(buildResult: 'SUCCESS') {
-            def datafile = readFile(file: "results.json")
-            def json = getVaultSecret(secret: 'secret/apm-team/ci/jenkins-stats-cloud')
-            sendDataToElasticsearch(es: json.data.url, data: datafile, restCall: '/jenkins-builds-it-results/_doc/')
-          }
         }
         notifyBuildResult()
       }
@@ -167,7 +168,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
   }
 
   /**
-    build a clousure that launch and agent and execute the corresponding test script,
+    build a clousure that launch an agent or test and execute the corresponding test script,
     then store the results.
   */
   public Closure generateStep(x, y){

@@ -344,6 +344,13 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
+            "--apm-server-experimental-mode",
+            action="store_true",
+            help="start apm-server in experimental mode",
+            default=True,
+        )
+
+        parser.add_argument(
             '--opbeans-apm-js-server-url',
             action='store',
             help='server_url to use for Opbeans frontend service',
