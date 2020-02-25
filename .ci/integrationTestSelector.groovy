@@ -90,7 +90,7 @@ pipeline {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           when {
-            expression { return (params.AGENT_INTEGRATION_TEST != 'RUM') }
+            expression { return (params.INTEGRATION_TEST != 'RUM') }
             beforeAgent true
           }
           steps {
@@ -110,7 +110,7 @@ pipeline {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           when {
-            expression { return (params.AGENT_INTEGRATION_TEST == 'RUM') }
+            expression { return (params.INTEGRATION_TEST == 'RUM') }
             beforeAgent true
           }
           steps {
