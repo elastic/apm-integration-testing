@@ -134,6 +134,27 @@ Omit `--skip-download` to just download images.
 
 `compose.py` includes unittests, `make test-compose` to run.
 
+### Jaeger
+
+APM Server can work as a drop-in replacement for a Jaeger collector, and ingest traces directly from a Jaeger client via
+HTTP/Thrift or from a Jaeger agent via gRPC.
+
+#### HTTP/Thrift
+
+To test HTTP/Thrift with a Jaeger microservice demo, run separately:
+
+    docker run --rm -it -p8080-8083:8080-8083 -e JAEGER_ENDPOINT=http://apm-server:14268/api/traces  --network apm-integration-testing  jaegertracing/example-hotrod:latest  all
+
+#### gRPC
+
+To test gRPC, run the Jaeger Agent separately:
+
+    docker run --rm -it --name jaeger-agent --network apm-integration-testing -p6831:6831/udp -e REPORTER_GRPC_HOST_PORT=apm-server:14250 jaegertracing/jaeger-agent:latest
+
+And the Jaeger hotrod demo:
+
+    docker run --rm -it --network apm-integration-testing -e JAEGER_AGENT_HOST=jaeger-agent -e JAEGER_AGENT_PORT=6831 -p8080-8083:8080-8083 jaegertracing/example-hotrod:latest all
+
 ## Running Tests
 
 Additional dependencies are required for running the integration tests:
@@ -185,14 +206,28 @@ Those scripts shut down any existing testing containers and start a fresh new en
 
 These are the scripts available to execute:
 
-* `all.sh:` runs all test on apm-server and every agent type.
-* `common.sh:` common scripts variables and functions, it does not execute anything.
+* `agent.sh:` runs the tests for the given agent. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
+
+* `all.sh:` runs all tests on apm-server and every agent type.
+
+* `common.sh:` common scripts variables and functions. It does not execute anything.
+
 * `dotnet.sh:` runs .NET tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
-* `go.sh:` runs Go tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
-* `java.sh:` runs Java tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
-* `kibana.sh:` runs kibana agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
-* `nodejs.sh:` runs Nodejs agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
-* `python.sh:` runs Python agent tests, you can choose the versions to run see the [environment variables](environment-variables) configuration.
+
+* `go.sh:` runs Go tests. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
+
+* `java.sh:` runs Java tests. Uou can choose the versions to run see the [environment variables](#environment-variables) configuration.
+
+* `kibana.sh:` runs Kibana agent tests. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
+
+* `nodejs.sh:` runs Nodejs agent tests. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
+
+* `opbeans.sh:` runs the unit tests for the apm-integration-testing app and validates the linting. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
+
+* `opbeans-app.sh:` runs the apm-integration-testing app and validates the stack can be started. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
+
+* `python.sh:` runs Python agent tests. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
+
 * `ruby.sh:` runs Ruby agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `server.sh:` runs APM Server tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `unit-tests.sh:` runs the unit tests for the apm-integration-testing app and validate the linting, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
