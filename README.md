@@ -209,7 +209,7 @@ To test HTTP/Thrift with a Jaeger microservice demo, run separately:
 
 #### gRPC
 
-To test gRPC, run the Jaeger Agent separately: 
+To test gRPC, run the Jaeger Agent separately:
 
     docker run --rm -it --name jaeger-agent --network apm-integration-testing -p6831:6831/udp -e REPORTER_GRPC_HOST_PORT=apm-server:14250 jaegertracing/jaeger-agent:latest
 
@@ -271,6 +271,8 @@ Those scripts shut down any existing testing containers and start a fresh new en
 
 These are the scripts available to execute:
 
+* `agent.sh:` runs the tests for the given agent. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
+
 * `all.sh:` runs all tests on apm-server and every agent type.
 
 * `common.sh:` common scripts variables and functions. It does not execute anything.
@@ -286,6 +288,8 @@ These are the scripts available to execute:
 * `nodejs.sh:` runs Nodejs agent tests. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
 
 * `opbeans.sh:` runs the unit tests for the apm-integration-testing app and validates the linting. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
+
+* `opbeans-app.sh:` runs the apm-integration-testing app and validates the stack can be started. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
 
 * `python.sh:` runs Python agent tests. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
 

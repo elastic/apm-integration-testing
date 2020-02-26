@@ -16,7 +16,14 @@ elif [ -n "${RUBY_AGENT_BRANCH}" ]; then
     # This is required with the alpine version
     apk --no-cache add git
     echo "Installing ${RUBY_AGENT_REPO}:${RUBY_AGENT_BRANCH} from Github"
-    gem specific_install https://github.com/${RUBY_AGENT_REPO}.git -b "${RUBY_AGENT_BRANCH}"
+
+    # Support branches/tags and refs
+    set +e
+    if gem specific_install https://github.com/${RUBY_AGENT_REPO}.git -b "${RUBY_AGENT_BRANCH}" ; then
+      set -e
+      gem specific_install https://github.com/${RUBY_AGENT_REPO}.git -r "${RUBY_AGENT_BRANCH}"
+    fi
+
 else
     gem install elastic-apm
 fi
