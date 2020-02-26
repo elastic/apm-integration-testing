@@ -3,4 +3,4 @@
 
 cd scripts/kibana/validate-ts-interfaces-against-apm-server-sample-docs
 yarn
-yarn setup && yarn lint
+yarn setup elastic "${MERGE_TARGET}" elastic "${MERGE_TARGET}" && yarn lint

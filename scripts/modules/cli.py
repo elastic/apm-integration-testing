@@ -65,13 +65,14 @@ class LocalSetup(object):
         '6.5': '6.5.4',
         '6.6': '6.6.2',
         '6.7': '6.7.2',
-        '6.8': '6.8.5',
+        '6.8': '6.8.6',
         '7.0': '7.0.1',
         '7.1': '7.1.1',
         '7.2': '7.2.1',
         '7.3': '7.3.2',
-        '7.4': '7.4.2',
-        '7.5': '7.5.1',
+        '7.4': '7.4.3',
+        '7.5': '7.5.2',
+        '7.6': '7.6.0',
         'master': '8.0.0',
     }
 
@@ -249,6 +250,7 @@ class LocalSetup(object):
 
         # Add option to skip image downloads
         parser.add_argument(
+            '--no-download',
             '--skip-download',
             action='store_true',
             dest='skip_download',
@@ -342,6 +344,13 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
+            "--apm-server-experimental-mode",
+            action="store_true",
+            help="start apm-server in experimental mode",
+            default=True,
+        )
+
+        parser.add_argument(
             '--opbeans-apm-js-server-url',
             action='store',
             help='server_url to use for Opbeans frontend service',
@@ -377,6 +386,13 @@ class LocalSetup(object):
             help='Define the environment variable ELASTIC_APM_VERIFY_SERVER_CERT=false' +
                  ' to disable the APM Server certificate verification.',
             default="false"
+        )
+
+        parser.add_argument(
+            '--output-format',
+            choices=("json", "yaml"),
+            help='Select the output format for the docker-compose.yml file.',
+            default="json"
         )
 
         self.store_options(parser)
@@ -486,7 +502,7 @@ class LocalSetup(object):
         subprocess.call(cmd, shell=True)
 
     def listoptions_handler(self):
-        print("{}".format(" ".join(self.available_options)))
+        print("{}".format("\n".join(sorted(self.available_options))))
 
     def start_handler(self):
         args = vars(self.args)
@@ -565,7 +581,19 @@ class LocalSetup(object):
             ),
         )
         docker_compose_path = args["docker_compose_path"]
-        json.dump(compose, docker_compose_path, indent=2, sort_keys=True)
+
+        if args.get("output_format") == 'yaml':
+            try:
+                import yaml
+            except ImportError:
+                print("Failed to import 'yaml': pip install yaml, or specify an alternative --output-format.")
+            yaml.dump(compose, docker_compose_path,
+                      explicit_start=True,
+                      default_flow_style=False,
+                      indent=2
+                      )
+        elif args.get("output_format") == 'json':
+            json.dump(compose, docker_compose_path, indent=2, sort_keys=True)
         docker_compose_path.flush()
 
         # try to figure out if writing to a real file, not amazing

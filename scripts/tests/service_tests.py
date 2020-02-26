@@ -697,8 +697,6 @@ class ApmServerServiceTest(ServiceTest):
         apm_server = ApmServer(version="7.3").render()["apm-server"]
         self.assertTrue("apm-server.kibana.enabled=true" in apm_server["command"],
                         "APM Server Kibana enabled by default")
-        self.assertTrue("apm-server.kibana.host=kibana:5601" in apm_server["command"],
-                        "APM Server Kibana host set by default")
 
         apm_server = ApmServer(version="7.3", apm_server_acm_disable=True).render()["apm-server"]
         self.assertTrue("apm-server.kibana.enabled=false" in apm_server["command"],
@@ -983,6 +981,22 @@ class KibanaServiceTest(ServiceTest):
         kibana = Kibana(version="7.3.0", kibana_snapshot=True, kibana_version="7.3.0").render()["kibana"]
         self.assertEqual("docker.elastic.co/kibana/kibana:7.3.0-SNAPSHOT", kibana["image"])
 
+    def test_kibana_login_assistance_message(self):
+        kibana = Kibana(version="7.6.0", xpack_secure=True, kibana_version="7.6.0").render()["kibana"]
+        self.assertIn("Login&#32;details:&#32;`admin/changeme`.", kibana['environment']["XPACK_SECURITY_LOGINASSISTANCEMESSAGE"])
+        kibana = Kibana(version="7.6.0", oss=True, xpack_secure=True, kibana_version="7.6.0").render()["kibana"]
+        self.assertNotIn("XPACK_SECURITY_LOGINASSISTANCEMESSAGE", kibana['environment'])
+
+    def test_kibana_disable_apm_servicemaps(self):
+        kibana = Kibana(version="7.7.0").render()["kibana"]
+        self.assertIn("XPACK_APM_SERVICEMAPENABLED", kibana['environment'])
+
+        kibana = Kibana(version="7.7.0", no_kibana_apm_servicemaps=True).render()["kibana"]
+        self.assertNotIn("XPACK_APM_SERVICEMAPENABLED", kibana['environment'])
+
+    def test_kibana_login_assistance_message_wihtout_xpack(self):
+        kibana = Kibana(version="7.6.0", xpack_secure=False, kibana_version="7.6.0").render()["kibana"]
+        self.assertNotIn("XPACK_SECURITY_LOGINASSISTANCEMESSAGE", kibana['environment'])
 
 class LogstashServiceTest(ServiceTest):
     def test_snapshot(self):

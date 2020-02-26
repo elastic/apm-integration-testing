@@ -8,7 +8,7 @@ server {
     rewrite ^/customers(.*)$ /;
 
     location /api/ {
-        proxy_pass {{ELASTIC_OPBEANS_API_SERVER}};
+        proxy_pass {{ ELASTIC_OPBEANS_API_SERVER }};
         proxy_set_header Host      $host;
         proxy_set_header X-Real-IP $remote_addr;
     }

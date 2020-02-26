@@ -5,7 +5,7 @@ repos:
     -   id: check-case-conflict
         exclude: ^target/
     -   id: check-executables-have-shebangs
-        exclude: ^target/
+        exclude: (^scripts/kibana/validate-ts-interfaces-against-apm-server-sample-docs/scripts/download-sample-docs.ts$|^target/)
     -   id: check-json
         exclude: ^target/
     -   id: check-merge-conflict
