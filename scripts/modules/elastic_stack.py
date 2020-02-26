@@ -15,6 +15,8 @@ class ApmServer(StackService, Service):
 
     SERVICE_PORT = "8200"
     DEFAULT_MONITOR_PORT = "6060"
+    DEFAULT_JAEGER_HTTP_PORT = "14268"
+    DEFAULT_JAEGER_GRPC_PORT = "14250"
     DEFAULT_OUTPUT = "elasticsearch"
     OUTPUTS = {"elasticsearch", "file", "kafka", "logstash"}
     DEFAULT_KIBANA_HOST = "kibana:5601"
@@ -45,10 +47,10 @@ class ApmServer(StackService, Service):
             ("apm-server.write_timeout", "1m"),
             ("logging.json", "true"),
             ("logging.metrics.enabled", "false"),
-            ("setup.kibana.host", self.DEFAULT_KIBANA_HOST),
             ("setup.template.settings.index.number_of_replicas", "0"),
             ("setup.template.settings.index.number_of_shards", "1"),
-            ("setup.template.settings.index.refresh_interval", "1ms"),
+            ("setup.template.settings.index.refresh_interval",
+                "{}".format(self.options.get("apm_server_index_refresh_interval"))),
             ("monitoring.elasticsearch" if self.at_least_version("7.2") else "xpack.monitoring.elasticsearch", "true"),
             ("monitoring.enabled" if self.at_least_version("7.2") else "xpack.monitoring.enabled", "true")
         ])
@@ -63,6 +65,9 @@ class ApmServer(StackService, Service):
             "enable_elasticsearch", True) else {}
         self.build = self.options.get("apm_server_build")
 
+        if self.options.get("apm-server-experimental-mode", True) and self.at_least_version("7.2"):
+            self.apm_server_command_args.append(("apm-server.mode", "experimental"))
+
         if self.options.get("apm_server_ilm_disable"):
             self.apm_server_command_args.append(("apm-server.ilm.enabled", "false"))
         elif self.at_least_version("7.2") and not self.at_least_version("7.3") and not self.oss:
@@ -73,7 +78,8 @@ class ApmServer(StackService, Service):
         elif self.at_least_version("7.3"):
             self.apm_server_command_args.extend([
                 ("apm-server.kibana.enabled", "true"),
-                ("apm-server.kibana.host", self.DEFAULT_KIBANA_HOST)])
+                ("apm-server.kibana.host",
+                    self.options.get("apm_server_kibana_url", ""))])
             agent_config_poll = self.options.get("agent_config_poll", "30s")
             self.apm_server_command_args.append(("apm-server.agent.config.cache.expiration", agent_config_poll))
             if self.options.get("xpack_secure"):
@@ -92,6 +98,15 @@ class ApmServer(StackService, Service):
                 self.apm_server_command_args.append(
                     ("setup.dashboards.enabled", "true")
                 )
+
+        if self.at_least_version("7.6"):
+            if options.get("apm_server_jaeger"):
+                self.apm_server_command_args.extend([
+                    ("apm-server.jaeger.http.enabled", "true"),
+                    ("apm-server.jaeger.http.host", "0.0.0.0:" + self.DEFAULT_JAEGER_HTTP_PORT),
+                    ("apm-server.jaeger.grpc.enabled", "true"),
+                    ("apm-server.jaeger.grpc.host", "0.0.0.0:" + self.DEFAULT_JAEGER_GRPC_PORT)
+                ])
 
         # configure authentication
         if options.get("apm_server_api_key_auth", False):
@@ -215,6 +230,7 @@ class ApmServer(StackService, Service):
         )
         parser.add_argument(
             "--apm-server-ilm-disable",
+            "--no-apm-server-ilm",
             action="store_true",
             help='disable ILM (enabled by default in 7.2+)'
         )
@@ -313,6 +329,12 @@ class ApmServer(StackService, Service):
             help="apm-server secret token.",
         )
         parser.add_argument(
+            '--no-apm-server-jaeger',
+            dest="apm_server_jaeger",
+            action="store_false",
+            help="make apm-server act as a Jaeger collector (HTTP and gRPC).",
+        )
+        parser.add_argument(
             '--apm-server-enable-tls',
             action="store_true",
             dest="apm_server_enable_tls",
@@ -352,8 +374,19 @@ class ApmServer(StackService, Service):
         )
         parser.add_argument(
             "--apm-server-acm-disable",
+            "--no-apm-server-acm",
             action="store_true",
             help="disable Agent Config Management",
+        )
+        parser.add_argument(
+            "--apm-server-kibana-url",
+            default=cls.DEFAULT_KIBANA_HOST,
+            help="Change the default kibana URL (kibana:5601)"
+        )
+        parser.add_argument(
+            "--apm-server-index-refresh-interval",
+            default="1ms",
+            help="change the index refresh interval (default 1ms)",
         )
 
     def build_candidate_manifest(self):
@@ -384,6 +417,17 @@ class ApmServer(StackService, Service):
             command_args.extend(["-E", param + "=" + value])
 
         healthcheck_path = "/" if self.at_least_version("6.5") else "/healthcheck"
+
+        ports = [
+            self.publish_port(self.port, self.SERVICE_PORT),
+            self.publish_port(self.apm_server_monitor_port, self.DEFAULT_MONITOR_PORT),
+        ]
+        if ("apm-server.jaeger.http.enabled", "true") in self.apm_server_command_args:
+            ports.append(self.publish_port(self.DEFAULT_JAEGER_HTTP_PORT))
+
+        if ("apm-server.jaeger.grpc.enabled", "true") in self.apm_server_command_args:
+            ports.append(self.publish_port(self.DEFAULT_JAEGER_GRPC_PORT))
+
         content = dict(
             cap_add=["CHOWN", "DAC_OVERRIDE", "SETGID", "SETUID"],
             cap_drop=["ALL"],
@@ -391,10 +435,7 @@ class ApmServer(StackService, Service):
             depends_on=self.depends_on,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, path=healthcheck_path),
             labels=["co.elastic.apm.stack-version=" + self.version],
-            ports=[
-                self.publish_port(self.port, self.SERVICE_PORT),
-                self.publish_port(self.apm_server_monitor_port, self.DEFAULT_MONITOR_PORT),
-            ]
+            ports=ports
         )
 
         if self.build:
@@ -551,6 +592,8 @@ class Elasticsearch(StackService, Service):
 
         self.environment = self.default_environment + [
             java_opts_env, "path.data=/usr/share/elasticsearch/data/" + data_dir]
+        if self.at_least_version("8.0"):
+            self.environment.append("indices.id_field_data.enabled=true")
         if not self.oss:
             xpack_security_enabled = "false"
             if self.xpack_secure:
@@ -652,8 +695,16 @@ class Kibana(StackService, Service):
                 self.environment["ELASTICSEARCH_PASSWORD"] = "changeme"
                 self.environment["ELASTICSEARCH_USERNAME"] = "kibana_system_user"
                 self.environment["STATUS_ALLOWANONYMOUS"] = "true"
-        self.environment["ELASTICSEARCH_URL"] = ",".join(self.options.get(
-            "kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
+                if self.at_least_version("7.6"):
+                    self.environment["XPACK_SECURITY_LOGINASSISTANCEMESSAGE"] = (
+                        "Login&#32;details:&#32;`{}/{}`.&#32;Further&#32;details&#32;[here]({}).").format(
+                        "admin", self.environment["ELASTICSEARCH_PASSWORD"],
+                        "https://github.com/elastic/apm-integration-testing#logging-in")
+            if self.at_least_version("7.6"):
+                if not options.get("no_kibana_apm_servicemaps"):
+                    self.environment["XPACK_APM_SERVICEMAPENABLED"] = "true"
+        urls = self.options.get("kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS]
+        self.environment["ELASTICSEARCH_URL"] = ",".join(urls)
 
     @classmethod
     def add_arguments(cls, parser):
@@ -662,6 +713,12 @@ class Kibana(StackService, Service):
             action="append",
             dest="kibana_elasticsearch_urls",
             help="kibana elasticsearch output url(s)."
+        )
+
+        parser.add_argument(
+            "--no-kibana-apm-servicemaps",
+            action="store_true",
+            help="disable the APM service maps UI",
         )
 
     def _content(self):

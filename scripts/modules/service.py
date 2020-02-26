@@ -7,6 +7,7 @@ from .helpers import resolve_bc, parse_version, _camel_hyphen
 DEFAULT_STACK_VERSION = "8.0"
 DEFAULT_APM_SERVER_URL = "http://apm-server:8200"
 DEFAULT_APM_JS_SERVER_URL = "http://localhost:8200"
+DEFAULT_SERVICE_VERSION = "9c2e41c8-fb2f-4b75-a89d-5089fb55fc64"
 
 
 class Service(object):
@@ -98,8 +99,10 @@ class Service(object):
         return self._oss
 
     @staticmethod
-    def publish_port(external, internal, expose=False):
+    def publish_port(external, internal=None, expose=False):
         addr = "" if expose else "127.0.0.1:"
+        if internal is None:
+            internal = external
         return addr + ":".join((str(external), str(internal)))
 
     @property

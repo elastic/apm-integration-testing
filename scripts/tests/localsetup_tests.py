@@ -64,6 +64,7 @@ class OpbeansServiceTest(ServiceTest):
                       - "127.0.0.1:3004:3000"
                     environment:
                       - ELASTIC_APM_SERVICE_NAME=opbeans-dotnet
+                      - ELASTIC_APM_SERVICE_VERSION=9c2e41c8-fb2f-4b75-a89d-5089fb55fc64
                       - ELASTIC_APM_SERVER_URLS=http://apm-server:8200
                       - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
                       - ELASTIC_APM_VERIFY_SERVER_CERT=true
@@ -122,6 +123,7 @@ class OpbeansServiceTest(ServiceTest):
                       - "127.0.0.1:3003:3000"
                     environment:
                       - ELASTIC_APM_SERVICE_NAME=opbeans-go
+                      - ELASTIC_APM_SERVICE_VERSION=9c2e41c8-fb2f-4b75-a89d-5089fb55fc64
                       - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                       - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
                       - ELASTIC_APM_VERIFY_SERVER_CERT=true
@@ -182,6 +184,7 @@ class OpbeansServiceTest(ServiceTest):
                       - "127.0.0.1:3002:3000"
                     environment:
                       - ELASTIC_APM_SERVICE_NAME=opbeans-java
+                      - ELASTIC_APM_SERVICE_VERSION=9c2e41c8-fb2f-4b75-a89d-5089fb55fc64
                       - ELASTIC_APM_APPLICATION_PACKAGES=co.elastic.apm.opbeans
                       - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                       - ELASTIC_APM_VERIFY_SERVER_CERT=true
@@ -321,6 +324,7 @@ class OpbeansServiceTest(ServiceTest):
                     environment:
                         - DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans
                         - ELASTIC_APM_SERVICE_NAME=opbeans-python
+                        - ELASTIC_APM_SERVICE_VERSION=9c2e41c8-fb2f-4b75-a89d-5089fb55fc64
                         - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                         - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
                         - ELASTIC_APM_VERIFY_SERVER_CERT=true
@@ -408,6 +412,7 @@ class OpbeansServiceTest(ServiceTest):
                     environment:
                       - ELASTIC_APM_SERVER_URL=http://apm-server:8200
                       - ELASTIC_APM_SERVICE_NAME=opbeans-ruby
+                      - ELASTIC_APM_SERVICE_VERSION=9c2e41c8-fb2f-4b75-a89d-5089fb55fc64
                       - ELASTIC_APM_VERIFY_SERVER_CERT=true
                       - DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans-ruby
                       - REDIS_URL=redis://redis:6379
@@ -670,7 +675,7 @@ class LocalTest(unittest.TestCase):
                 command: [apm-server, -e, --httpprof, ':6060', -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
                     -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
                     -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
-                    -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
+                    -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
                     -E, xpack.monitoring.elasticsearch=true, -E, xpack.monitoring.enabled=true, -E, setup.dashboards.enabled=true,
                     -E, 'output.elasticsearch.hosts=["elasticsearch:9200"]', -E, output.elasticsearch.enabled=true]
@@ -748,7 +753,7 @@ class LocalTest(unittest.TestCase):
                 command: [apm-server, -e, --httpprof, ':6060', -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
                     -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
                     -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
-                    -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
+                    -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
                     -E, xpack.monitoring.elasticsearch=true, -E, xpack.monitoring.enabled=true, -E, setup.dashboards.enabled=true,
                     -E, 'output.elasticsearch.hosts=["elasticsearch:9200"]', -E, output.elasticsearch.enabled=true ]
@@ -808,6 +813,17 @@ class LocalTest(unittest.TestCase):
         """)  # noqa: 501
         self.assertDictEqual(got, want)
 
+    def test_version_options(self):
+        docker_compose_yml = stringIO()
+        image_cache_dir = "/foo"
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-java", "--image-cache-dir", image_cache_dir, "--opbeans-java-service-version", "1.2.3"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        self.assertIn('ELASTIC_APM_SERVICE_VERSION=1.2.3', got['services']['opbeans-java']['environment'])
+
     def test_start_master_default(self):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
@@ -826,11 +842,13 @@ class LocalTest(unittest.TestCase):
                 command: [apm-server, -e, --httpprof, ':6060', -E, apm-server.rum.enabled=true, -E, apm-server.rum.event_rate.limit=1000,
                     -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
                     -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
-                    -E, 'setup.kibana.host=kibana:5601', -E, setup.template.settings.index.number_of_replicas=0,
+                    -E, setup.template.settings.index.number_of_replicas=0,
                     -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
-                    -E, monitoring.elasticsearch=true, -E, monitoring.enabled=true,
+                    -E, monitoring.elasticsearch=true, -E, monitoring.enabled=true, -E, apm-server.mode=experimental,
                     -E, apm-server.kibana.enabled=true, -E, 'apm-server.kibana.host=kibana:5601', -E, apm-server.agent.config.cache.expiration=30s,
                     -E, apm-server.kibana.username=apm_server_user, -E, apm-server.kibana.password=changeme,
+                    -E, apm-server.jaeger.http.enabled=true, -E, "apm-server.jaeger.http.host=0.0.0.0:14268",
+                    -E, apm-server.jaeger.grpc.enabled=true, -E, "apm-server.jaeger.grpc.host=0.0.0.0:14250",
                     -E, 'output.elasticsearch.hosts=["elasticsearch:9200"]',
                     -E, output.elasticsearch.username=apm_server_user, -E, output.elasticsearch.password=changeme,
                     -E, output.elasticsearch.enabled=true,
@@ -849,7 +867,7 @@ class LocalTest(unittest.TestCase):
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
-                ports: ['127.0.0.1:8200:8200', '127.0.0.1:6060:6060']
+                ports: ['127.0.0.1:8200:8200', '127.0.0.1:6060:6060', '127.0.0.1:14268:14268', '127.0.0.1:14250:14250']
 
             elasticsearch:
                 container_name: localtesting_8.0.0_elasticsearch
@@ -861,6 +879,7 @@ class LocalTest(unittest.TestCase):
                     path.repo=/usr/share/elasticsearch/data/backups,
                     'ES_JAVA_OPTS=-XX:UseAVX=2 -Xms1g -Xmx1g',
                     path.data=/usr/share/elasticsearch/data/8.0.0,
+                    indices.id_field_data.enabled=true,
                     xpack.security.authc.anonymous.roles=remote_monitoring_collector,
                     xpack.security.authc.realms.file.file1.order=0,
                     xpack.security.authc.realms.native.native1.order=1,
@@ -899,8 +918,10 @@ class LocalTest(unittest.TestCase):
                     ELASTICSEARCH_USERNAME: kibana_system_user,
                     SERVER_NAME: kibana.example.org,
                     STATUS_ALLOWANONYMOUS: 'true',
+                    XPACK_APM_SERVICEMAPENABLED: 'true',
                     XPACK_MONITORING_ENABLED: 'true',
-                    XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'
+                    XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false',
+                    XPACK_SECURITY_LOGINASSISTANCEMESSAGE: 'Login&#32;details:&#32;`admin/changeme`.&#32;Further&#32;details&#32;[here](https://github.com/elastic/apm-integration-testing#logging-in).'
                 }
                 healthcheck:
                     interval: 10s
@@ -1381,6 +1402,14 @@ class LocalTest(unittest.TestCase):
         opbeans_python = got["services"]["opbeans-python"]
         self.assertIn("ELASTIC_APM_SERVER_URL=https://apm-server:8200", opbeans_python["environment"])
         self.assertIn("ELASTIC_APM_JS_SERVER_URL=https://apm-server:8200", opbeans_python["environment"])
+
+    def test_apm_server_kibana_url(self):
+      apmServer = ApmServer(apm_server_kibana_url="http://kibana.example.com:5601").render()["apm-server"]
+      self.assertIn("apm-server.kibana.host=http://kibana.example.com:5601", apmServer["command"])
+
+    def test_apm_server_index_refresh_interval(self):
+      apmServer = ApmServer(apm_server_index_refresh_interval="10ms").render()["apm-server"]
+      self.assertIn("setup.template.settings.index.refresh_interval=10ms", apmServer["command"])
 
     def test_parse(self):
         cases = [

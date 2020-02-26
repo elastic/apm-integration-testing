@@ -15,10 +15,11 @@ RUN rm -fr vendor/go.elastic.co/apm
 
 ARG GO_AGENT_REPO=elastic/apm-agent-go
 ARG GO_AGENT_BRANCH=master
-# adding this file will invalidate the layer cache when the branch head changes
-ADD https://api.github.com/repos/${GO_AGENT_REPO}/git/refs/heads/${GO_AGENT_BRANCH} version.json
+
 RUN git clone https://github.com/${GO_AGENT_REPO}.git /src/go.elastic.co/apm
-RUN (cd /src/go.elastic.co/apm && git checkout ${GO_AGENT_BRANCH})
+RUN (cd /src/go.elastic.co/apm \
+    && git fetch -q origin '+refs/pull/*:refs/remotes/origin/pr/*' \
+    && git checkout ${GO_AGENT_BRANCH})
 # Add "replace" stanzas to go.mod to use the local agent repo
 RUN go list -m all | grep apm | cut -d' ' -f1 | xargs -i go mod edit -replace {}=/src/{}
 RUN go build

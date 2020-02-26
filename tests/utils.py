@@ -26,7 +26,8 @@ def check_server_transaction(endpoint, elasticsearch, payload, headers=None, ct=
     elasticsearch.clean()
     if headers is None:
         headers = {'Content-Type': 'application/x-ndjson'}
-    r = requests.post(endpoint.url, data=payload, headers=headers)
+    headers['Authorization'] = 'Bearer {}'.format(default.from_env("APM_SECRET_TOKEN"))
+    r = requests.post(endpoint.url, data=payload, headers=headers, verify=False)
     check_request_response(r, endpoint)
     check_elasticsearch_count(elasticsearch, ct)
 

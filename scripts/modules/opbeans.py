@@ -5,7 +5,7 @@
 from collections import OrderedDict
 
 from .helpers import add_agent_environment, curl_healthcheck, wget_healthcheck
-from .service import Service, DEFAULT_APM_SERVER_URL, DEFAULT_APM_JS_SERVER_URL
+from .service import Service, DEFAULT_APM_SERVER_URL, DEFAULT_APM_JS_SERVER_URL, DEFAULT_SERVICE_VERSION
 
 
 class OpbeansService(Service):
@@ -16,6 +16,7 @@ class OpbeansService(Service):
         self.opbeans_dt_probability = options.get("opbeans_dt_probability", 0.5)
         if hasattr(self, "DEFAULT_SERVICE_NAME"):
             self.service_name = options.get(self.option_name() + "_service_name", self.DEFAULT_SERVICE_NAME)
+        self.service_version = options.get(self.option_name() + "_service_version", DEFAULT_SERVICE_VERSION)
         self.agent_branch = options.get(self.option_name() + "_agent_branch") or ""
         self.agent_repo = options.get(self.option_name() + "_agent_repo") or ""
         self.agent_local_repo = options.get(self.option_name() + "_agent_local_repo")
@@ -53,6 +54,12 @@ class OpbeansService(Service):
             default=None,
             dest=cls.option_name() + '_service_environment',
             help=cls.name() + " service.environment value to display."
+        )
+        parser.add_argument(
+            '--' + cls.name() + '-service-version',
+            default=None,
+            dest=cls.option_name() + '_service_version',
+            help=cls.name() + " service version"
         )
         if hasattr(cls, 'DEFAULT_SERVICE_NAME'):
             parser.add_argument(
@@ -121,6 +128,7 @@ class OpbeansDotnet(OpbeansService):
             ),
             environment=[
                 "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
+                "ELASTIC_APM_SERVICE_VERSION={}".format(self.service_version),
                 "ELASTIC_APM_SERVER_URLS={}".format(self.apm_server_url),
                 "ELASTIC_APM_JS_SERVER_URL={}".format(self.apm_js_server_url),
                 "ELASTIC_APM_VERIFY_SERVER_CERT={}".format(str(not self.options.get("no_verify_server_cert")).lower()),
@@ -200,6 +208,7 @@ class OpbeansGo(OpbeansService):
             ),
             environment=[
                 "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
+                "ELASTIC_APM_SERVICE_VERSION={}".format(self.service_version),
                 "ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
                 "ELASTIC_APM_JS_SERVER_URL={}".format(self.apm_js_server_url),
                 "ELASTIC_APM_VERIFY_SERVER_CERT={}".format(str(not self.options.get("no_verify_server_cert")).lower()),
@@ -288,6 +297,7 @@ class OpbeansJava(OpbeansService):
             ),
             environment=[
                 "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
+                "ELASTIC_APM_SERVICE_VERSION={}".format(self.service_version),
                 "ELASTIC_APM_APPLICATION_PACKAGES=co.elastic.apm.opbeans",
                 "ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
                 "ELASTIC_APM_VERIFY_SERVER_CERT={}".format(str(not self.options.get("no_verify_server_cert")).lower()),
@@ -482,6 +492,7 @@ class OpbeansPython(OpbeansService):
             environment=[
                 "DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans",
                 "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
+                "ELASTIC_APM_SERVICE_VERSION={}".format(self.service_version),
                 "ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
                 "ELASTIC_APM_JS_SERVER_URL={}".format(self.apm_js_server_url),
                 "ELASTIC_APM_VERIFY_SERVER_CERT={}".format(str(not self.options.get("no_verify_server_cert")).lower()),
@@ -577,6 +588,7 @@ class OpbeansRuby(OpbeansService):
             environment=[
                 "ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
                 "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
+                "ELASTIC_APM_SERVICE_VERSION={}".format(self.service_version),
                 "ELASTIC_APM_VERIFY_SERVER_CERT={}".format(str(not self.options.get("no_verify_server_cert")).lower()),
                 "DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans-ruby",
                 "REDIS_URL=redis://redis:6379",

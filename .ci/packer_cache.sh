@@ -52,6 +52,9 @@ opbeans/opbeans-node:latest
 opbeans/opbeans-python:latest
 opbeans/opbeans-ruby:latest
 openjdk:10-jre-slim
+php:7-alpine
+php:7.2-alpine
+php:7.3-alpine
 pypy:2
 pypy:3
 python:2.7

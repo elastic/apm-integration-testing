@@ -1,6 +1,5 @@
 SHELL := /bin/bash
-PYTHON ?= python
-PYTHON3 ?= python3
+PYTHON ?= python3
 VENV ?= ./venv
 
 COMPOSE_ARGS ?=
@@ -24,6 +23,7 @@ RUM_URL ?= http://rum:8000
 
 ES_USER ?= elastic
 ES_PASS ?= changeme
+APM_SECRET_TOKEN ?= SuPeRsEcReT
 
 # Make sure we run local versions of everything, particularly commands
 # installed into our virtualenv with pip eg. `docker-compose`.
@@ -40,7 +40,8 @@ all: test
 # The tests are written in Python. Make a virtualenv to handle the dependencies.
 # make doesn't play nicely with custom VENV, intended only for CI usage
 venv: requirements.txt
-	test -d $(VENV) || virtualenv -q --python=$(PYTHON3) $(VENV);\
+	test -d $(VENV) || virtualenv -q --python=$(PYTHON) $(VENV);\
+	source $(VENV)/bin/activate || exit 1;\
 	pip install -q -r requirements.txt;\
 	touch $(VENV);\
 
@@ -136,6 +137,7 @@ dockerized-test:
 		-e ENABLE_ES_DUMP=$(ENABLE_ES_DUMP) \
 		-e ES_USER=$${ES_USER} \
 		-e ES_PASS=$${ES_PASS} \
+		-e APM_SECRET_TOKEN=$${APM_SECRET_TOKEN} \
 		-v "$(PWD)/$(JUNIT_RESULTS_DIR)":"/app/$(JUNIT_RESULTS_DIR)" \
 		--rm \
 		--entrypoint make \
