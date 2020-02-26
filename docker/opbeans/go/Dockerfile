@@ -2,25 +2,34 @@
 #
 # GO_AGENT_REPO and GO_AGENT_BRANCH parameterise the Go agent
 # repo and branch (or commit) to use.
-FROM golang:1.12
+FROM golang:stretch
 ENV GO111MODULE=on
+ARG OPBEANS_GO_REPO=elastic/opbeans-go
+ARG OPBEANS_GO_BRANCH=master
 WORKDIR /src/opbeans-go
-RUN git clone https://github.com/elastic/opbeans-go.git .
+
+RUN git clone https://github.com/${OPBEANS_GO_REPO}.git . \
+    && git fetch -q origin '+refs/pull/*:refs/remotes/origin/pr/*' \
+    && git checkout ${OPBEANS_GO_BRANCH}
 RUN rm -fr vendor/go.elastic.co/apm
+
 ARG GO_AGENT_REPO=elastic/apm-agent-go
 ARG GO_AGENT_BRANCH=master
-# adding this file will invalidate the layer cache when the branch head changes
-# it does not work with TAGs
-#ADD https://api.github.com/repos/${GO_AGENT_REPO}/git/refs/heads/${GO_AGENT_BRANCH} version.json
+
 RUN git clone https://github.com/${GO_AGENT_REPO}.git /src/go.elastic.co/apm
-RUN (cd /src/go.elastic.co/apm && git checkout ${GO_AGENT_BRANCH})
+RUN (cd /src/go.elastic.co/apm \
+    && git fetch -q origin '+refs/pull/*:refs/remotes/origin/pr/*' \
+    && git checkout ${GO_AGENT_BRANCH})
 # Add "replace" stanzas to go.mod to use the local agent repo
 RUN go list -m all | grep apm | cut -d' ' -f1 | xargs -i go mod edit -replace {}=/src/{}
 RUN go build
 
 # Stage 1: copy static assets from opbeans/opbeans-frontend and
 # opbeans-go from stage 0 into a minimal image.
-FROM gcr.io/distroless/base-debian10@sha256:afb0261acca92ecd6a19ab4e32aa05a55bd096faa26afdb0c24e2a359f91386d
+FROM gcr.io/distroless/base
+ENV ELASTIC_APM_ENABLE_LOG_CORRELATION=true
+ENV ELASTIC_APM_LOG_LEVEL=DEBUG
+
 COPY --from=opbeans/opbeans-frontend:latest /app/build /opbeans-frontend
 COPY --from=0 /src/opbeans-go/opbeans-go /
 COPY --from=0 /src/opbeans-go/db /
