@@ -34,6 +34,7 @@ export KIBANA_URL := $(KIBANA_URL)
 export ES_URL := $(ES_URL)
 export ES_USER := $(ES_USER)
 export ES_PASS := $(ES_PASS)
+export APM_SECRET_TOKEN := $(APM_SECRET_TOKEN)
 
 all: test
 
