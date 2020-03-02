@@ -2,6 +2,11 @@ from timeout_decorator import TimeoutError
 from tests.fixtures import default
 import requests
 
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse
+
 
 def check_agent_transaction(endpoint, elasticsearch, ct=2):
     elasticsearch.clean()
@@ -53,3 +58,12 @@ def check_elasticsearch_count(elasticsearch,
 
     assert actual == expected, "Expected {}, queried {}".format(
         expected, actual)
+
+
+def getElasticsearchURL():
+    es_url = default.from_env("ES_URL")
+    es_user = default.from_env("ES_USER")
+    es_pass = default.from_env("ES_PASS")
+    url = urlparse(es_url)
+    url = url._replace(netloc='{}:{}@{}'.format(es_user, es_pass, url.netloc))
+    return url.geturl()

@@ -36,7 +36,7 @@ texttable==0.9.1
 timeout-decorator==0.4.0
 tornado==5.1
 urllib3==1.25.7
-virtualenv==16.0.0
+virtualenv==16.7.9
 waiting==1.4.1
 webium==1.2.1
 websocket-client==0.54.0

@@ -4,7 +4,7 @@ import elasticsearch
 import pytest
 import timeout_decorator
 
-from tests.fixtures import default
+from tests.utils import getElasticsearchURL
 
 
 @pytest.fixture(scope="session")
@@ -37,4 +37,4 @@ def es():
                 ct = s['count']
             return ct
 
-    return Elasticsearch(default.from_env("ES_URL"))
+    return Elasticsearch(getElasticsearchURL())
