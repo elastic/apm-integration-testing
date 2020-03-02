@@ -998,13 +998,15 @@ class KibanaServiceTest(ServiceTest):
         kibana = Kibana(version="7.6.0", xpack_secure=False, kibana_version="7.6.0").render()["kibana"]
         self.assertNotIn("XPACK_SECURITY_LOGINASSISTANCEMESSAGE", kibana['environment'])
 
-    def test_kibana_encryption_key_in_7_6(self):
+    def test_kibana_encryption_keys_in_7_6(self):
         kibana = Kibana(version="7.6.0", kibana_version="7.6.0").render()["kibana"]
         self.assertNotIn("XPACK_SECURITY_ENCRYPTIONKEY", kibana['environment'])
+        self.assertNotIn("XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY", kibana['environment'])
 
-    def test_kibana_encryption_key_in_7_7(self):
+    def test_kibana_encryption_keys_in_7_7(self):
         kibana = Kibana(version="7.7.0", kibana_version="7.7.0").render()["kibana"]
         self.assertIn("XPACK_SECURITY_ENCRYPTIONKEY", kibana['environment'])
+        self.assertIn("XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY", kibana['environment'])
 
 
 class LogstashServiceTest(ServiceTest):
