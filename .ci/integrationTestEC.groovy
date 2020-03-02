@@ -14,7 +14,6 @@ pipeline {
   }
   triggers {
     cron 'H H(3-4) * * 1-5'
-    issueCommentTrigger('(?i).*jenkins\\W+run\\W+(?:the\\W+)?tests(?:\\W+please)?.*')
   }
   options {
     timeout(time: 1, unit: 'HOURS')
@@ -66,7 +65,7 @@ pipeline {
           }
           axis {
               name 'ELASTIC_STACK_VERSION'
-              values '8.0.0-SNAPSHOT', '7.5.1-SNAPSHOT', '7.4.3-SNAPSHOT'
+              values '8.0.0-SNAPSHOT', '7.7.0-SNAPSHOT', '7.6.1-SNAPSHOT', '6.8.7-SNAPSHOT'
           }
         }
         stages {
@@ -82,10 +81,9 @@ pipeline {
               dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
               dir("${EC_DIR}/ansible"){
                 withVaultEnv(){
-                  updateEnvConfig()
-                  sh(label: "Deploy Cluster", script: "make deploy-cluster")
-                  sh(label: "Rename cluster-info folder", script: "mv cluster-info cluster-info-${ELASTIC_STACK_VERSION}x${TEST}")
-                  archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info*/**')
+                  sh(label: "Deploy Cluster", script: "make create-cluster")
+                  sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.md cluster-info-${ELASTIC_STACK_VERSION}x${TEST}.md")
+                  archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
                 }
               }
             }
@@ -102,7 +100,7 @@ pipeline {
         }
         post {
           cleanup {
-            wrappingUp("${TEST}")
+            grabResultsAndLogs("${TEST}")
             destroyClusters()
           }
         }
@@ -129,36 +127,26 @@ def withVaultEnv(Closure body){
   }
 }
 
-def updateEnvConfig(){
-  def config = readYaml(file: "${CLUSTER_CONFIG_FILE}")
-  config.cluster_name = "${config.cluster_name}-${ELASTIC_STACK_VERSION}-${TEST}-${BUILD_NUMBER}"
-  config.elasticsearch.version = "${ELASTIC_STACK_VERSION}"
-  config.kibana.version = "${ELASTIC_STACK_VERSION}"
-  config.apm.version = "${ELASTIC_STACK_VERSION}"
-  sh(label: 'Delete old config', script: "rm ${CLUSTER_CONFIG_FILE}")
-  writeYaml(file: "${CLUSTER_CONFIG_FILE}", data: config)
-  archiveArtifacts(allowEmptyArchive: true, artifacts: "${CLUSTER_CONFIG_FILE}", onlyIfSuccessful: true)
-}
-
 def withConfigEnv(Closure body) {
-  def ecSecrets = "${env.EC_WS}/ansible/build/k8s"
-  def apm = readYaml(file: "${ecSecrets}/apm-secrets.yaml")
-  def es = readYaml(file: "${ecSecrets}/es-secrets.yaml")
-  def kb = readYaml(file: "${ecSecrets}/kibana-secrets.yaml")
+  def config = readYaml(file: "ansible/config-general.yml")
+  def apm = getVaultSecret(secret: "secret/${config.k8s_vault_apm_def_secret}")?.data
+  def es = getVaultSecret(secret: "secret/${config.k8s_vault_elasticsearch_def_secret}")?.data
+  def kb = getVaultSecret(secret: "secret/${config.k8s_vault_apm_def_secret}")?.data
+
   withEnvMask(vars: [
-    [var: 'APM_SERVER_URL', password: apm.stringData.url],
-    [var: 'APM_SERVER_SECRET_TOKEN', password: apm.stringData.token],
-    [var: 'ES_URL', password: es.stringData.url],
-    [var: 'ES_USER', password: es.stringData.user],
-    [var: 'ES_PASS', password: es.stringData.password],
-    [var: 'KIBANA_URL', password: kb.stringData.url],
-    [var: 'BUILD_OPTS', password: "${params.BUILD_OPTS} --apm-server-url ${apm.stringData.url} --apm-server-secret-token ${apm.stringData.token}"]
+    [var: 'APM_SERVER_URL', password: apm.value.url],
+    [var: 'APM_SERVER_SECRET_TOKEN', password: apm.value.token],
+    [var: 'ES_URL', password: es.value.url],
+    [var: 'ES_USER', password: es.value.username],
+    [var: 'ES_PASS', password: es.value.password],
+    [var: 'KIBANA_URL', password: kb.value.url],
+    [var: 'BUILD_OPTS', password: "${params.BUILD_OPTS} --apm-server-url ${apm.value.url} --apm-server-secret-token ${apm.value.token}"]
   ]){
     body()
   }
 }
 
-def wrappingUp(label){
+def grabResultsAndLogs(label){
   dir("${BASE_DIR}"){
     def stepName = label.replace(";","/")
       .replace("--","_")
@@ -179,21 +167,9 @@ def wrappingUp(label){
 
 def destroyClusters(){
   def deployConfig = readYaml(file: "${CLUSTER_CONFIG_FILE}")
-  dir("${EC_DIR}/ansible/build"){
+  dir("${EC_DIR}/ansible"){
     catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-      if(deployConfig.k8s.enabled){
-        sh(label: 'Destroy k8s cluster', script: 'make destroy-cluster')
-      }
-    }
-    catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-      if(deployConfig.elasticsearch.type == 'ec'){
-        withVaultToken(){
-          retry(3){
-            sh(label: 'Destroy EC clsuter', script: 'make -C elastic-cloud set-auth-env destroy-cluster')
-            sleep(10)
-          }
-        }
-      }
+      sh(label: 'Destroy k8s cluster', script: 'make destroy-cluster')
     }
   }
 }
