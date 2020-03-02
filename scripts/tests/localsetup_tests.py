@@ -920,6 +920,8 @@ class LocalTest(unittest.TestCase):
                     STATUS_ALLOWANONYMOUS: 'true',
                     XPACK_APM_SERVICEMAPENABLED: 'true',
                     XPACK_MONITORING_ENABLED: 'true',
+                    XPACK_SECURITY_ENCRYPTIONKEY: 'fhjskloppd678ehkdfdlliverpoolfcr',
+                    XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: 'fhjskloppd678ehkdfdlliverpoolfcr',
                     XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false',
                     XPACK_SECURITY_LOGINASSISTANCEMESSAGE: 'Login&#32;details:&#32;`admin/changeme`.&#32;Further&#32;details&#32;[here](https://github.com/elastic/apm-integration-testing#logging-in).'
                 }
