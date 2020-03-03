@@ -12,12 +12,6 @@ import subprocess
 import sys
 import uuid
 import time
-try:
-    import asyncio
-    HAS_ASYNC=True
-except ImportError:
-    # This was probably Python 2
-    HAS_ASYNC=False
 
 try:
     from urllib.request import urlopen, urlretrieve, Request
