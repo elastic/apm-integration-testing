@@ -11,6 +11,13 @@ import re
 import subprocess
 import sys
 import uuid
+import time
+try:
+    import asyncio
+    HAS_ASYNC=True
+except ImportError:
+    # This was probably Python 2
+    HAS_ASYNC=False
 
 try:
     from urllib.request import urlopen, urlretrieve, Request
@@ -81,6 +88,71 @@ def load_images(urls, cache_dir):
 DEFAULT_HEALTHCHECK_INTERVAL = "10s"
 DEFAULT_HEALTHCHECK_RETRIES = 12
 
+def _print_done(service_name):
+    # 22 chars to ...
+    done = '\033[32mdone'
+    num_spaces = 21 - len(service_name)
+    s = ' '
+    dots = '...'
+    for _ in range(num_spaces):
+        s = s + ' '
+    print("{service}{spaces}{dots} {done}".format(service=service_name, spaces=s, dots=dots, done=done))
+
+def try_to_set_slowlog():
+    # This is a bit tricky to follow. What we're doing here is forking a "manager"
+    # process that will occasionally attempt to configure the slow log. After it
+    # detects that the slowlog has successfully been configured, it declares victory
+    # and terminates itself.
+    manager_process = multiprocessing.Process(target=_set_slowlog_json)
+    manager_process.start()
+
+def _set_slowlog_json():
+    this_try = 0
+    tries = 30
+    while this_try <= tries:
+        this_try += 1
+        time.sleep(3)
+        completed_process = subprocess.run([
+            "curl",
+            "--fail-early",
+            "-f",
+            "--connect-timeout",
+            "1",
+            "-u",
+            "admin:changeme",
+            "-s",
+            "-X",
+            "PUT",
+            "localhost:9200/_settings?pretty",
+            "-H",
+            "Content-Type: application/json",
+            "-d",
+            '{\
+            "index.indexing.slowlog.threshold.index.warn": "10s",\
+            "index.indexing.slowlog.threshold.index.info": "5s",\
+            "index.indexing.slowlog.threshold.index.debug": "2s",\
+            "index.indexing.slowlog.threshold.index.trace": "500ms",\
+            "index.indexing.slowlog.level": "info",\
+            "index.indexing.slowlog.source": "1000",\
+            "index.search.slowlog.threshold.query.warn": "10s",\
+            "index.search.slowlog.threshold.query.info": "5s",\
+            "index.search.slowlog.threshold.query.debug": "2s",\
+            "index.search.slowlog.threshold.query.trace": "500ms",\
+            "index.search.slowlog.threshold.fetch.warn": "1s",\
+            "index.search.slowlog.threshold.fetch.info": "800ms",\
+            "index.search.slowlog.threshold.fetch.debug": "500ms",\
+            "index.search.slowlog.threshold.fetch.trace": "200ms",\
+            "index.search.slowlog.level": "info"\
+            }'
+        ], stdout=subprocess.PIPE)
+
+        if completed_process.returncode != 0 or completed_process.stdout is None:
+            continue
+        else:
+            json_ret = json.loads(completed_process.stdout)
+            if json_ret.get("acknowledged"):
+                _print_done('Configuring slowlog')
+                break
 
 def curl_healthcheck(port, host="localhost", path="/healthcheck",
                      interval=DEFAULT_HEALTHCHECK_INTERVAL, retries=DEFAULT_HEALTHCHECK_RETRIES):
