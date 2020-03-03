@@ -82,6 +82,7 @@ def load_images(urls, cache_dir):
 DEFAULT_HEALTHCHECK_INTERVAL = "10s"
 DEFAULT_HEALTHCHECK_RETRIES = 12
 
+
 def _print_done(service_name):
     # 22 chars to ...
     done = '\033[32mdone'
@@ -92,6 +93,7 @@ def _print_done(service_name):
         s = s + ' '
     print("{service}{spaces}{dots} {done}".format(service=service_name, spaces=s, dots=dots, done=done))
 
+
 def try_to_set_slowlog():
     # This is a bit tricky to follow. What we're doing here is forking a "manager"
     # process that will occasionally attempt to configure the slow log. After it
@@ -99,6 +101,7 @@ def try_to_set_slowlog():
     # and terminates itself.
     manager_process = multiprocessing.Process(target=_set_slowlog_json)
     manager_process.start()
+
 
 def _set_slowlog_json():
     this_try = 0
@@ -147,6 +150,7 @@ def _set_slowlog_json():
             if json_ret.get("acknowledged"):
                 _print_done('Configuring slowlog')
                 break
+
 
 def curl_healthcheck(port, host="localhost", path="/healthcheck",
                      interval=DEFAULT_HEALTHCHECK_INTERVAL, retries=DEFAULT_HEALTHCHECK_RETRIES):
