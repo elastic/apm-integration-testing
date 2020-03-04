@@ -6,7 +6,7 @@ import argparse
 import json
 import os
 
-from .helpers import curl_healthcheck
+from .helpers import curl_healthcheck, try_to_set_slowlog
 from .service import StackService, Service
 
 
@@ -592,6 +592,8 @@ class Elasticsearch(StackService, Service):
 
         self.environment = self.default_environment + [
             java_opts_env, "path.data=/usr/share/elasticsearch/data/" + data_dir]
+        if options.get("elasticsearch_slow_log"):
+            try_to_set_slowlog(options.get("apm_server_elasticsearch_password"))
         if self.at_least_version("8.0"):
             self.environment.append("indices.id_field_data.enabled=true")
         if not self.oss:
@@ -634,6 +636,12 @@ class Elasticsearch(StackService, Service):
             "--elasticsearch-xpack-audit",
             action="store_true",
             help="enable very verbose xpack auditing",
+        )
+
+        parser.add_argument(
+            "--elasticsearch-slow-log",
+            action="store_true",
+            help="enable the Elasticsearch slow log"
         )
 
         class storeDict(argparse.Action):
