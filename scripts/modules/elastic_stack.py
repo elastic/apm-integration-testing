@@ -593,7 +593,7 @@ class Elasticsearch(StackService, Service):
         self.environment = self.default_environment + [
             java_opts_env, "path.data=/usr/share/elasticsearch/data/" + data_dir]
         if options.get("elasticsearch_slow_log"):
-            try_to_set_slowlog()
+            try_to_set_slowlog(options.get("apm_server_elasticsearch_password"))
         if self.at_least_version("8.0"):
             self.environment.append("indices.id_field_data.enabled=true")
         if not self.oss:

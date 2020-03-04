@@ -94,16 +94,16 @@ def _print_done(service_name):
     print("{service}{spaces}{dots} {done}".format(service=service_name, spaces=s, dots=dots, done=done))
 
 
-def try_to_set_slowlog():
+def try_to_set_slowlog(password):
     # This is a bit tricky to follow. What we're doing here is forking a "manager"
     # process that will occasionally attempt to configure the slow log. After it
     # detects that the slowlog has successfully been configured, it declares victory
     # and terminates itself.
-    manager_process = multiprocessing.Process(target=_set_slowlog_json)
+    manager_process = multiprocessing.Process(target=_set_slowlog_json, args=(password,))
     manager_process.start()
 
 
-def _set_slowlog_json():
+def _set_slowlog_json(password):
     this_try = 0
     tries = 30
     while this_try <= tries:
@@ -116,7 +116,7 @@ def _set_slowlog_json():
             "--connect-timeout",
             "1",
             "-u",
-            "admin:changeme",
+            "admin:{}".format(password if password is not None else "changeme"),
             "-s",
             "-X",
             "PUT",
@@ -142,7 +142,6 @@ def _set_slowlog_json():
             "index.search.slowlog.level": "info"\
             }'
         ], stdout=subprocess.PIPE)
-
         if completed_process.returncode != 0 or completed_process.stdout is None:
             continue
         else:
