@@ -61,7 +61,7 @@ pipeline {
         axes {
           axis {
               name 'TEST'
-              values 'all', 'dotnet', 'go', 'java', 'nodejs', 'python', 'ruby', 'rum'
+              values 'all', 'dotnet'
           }
           axis {
               name 'ELASTIC_STACK_VERSION'
