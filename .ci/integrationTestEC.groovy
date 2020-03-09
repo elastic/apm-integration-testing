@@ -7,7 +7,10 @@ pipeline {
       matrix {
         agent { label 'linux && immutable' }
         environment {
-          PATH = "/tmp/aaaa/.ci/scripts:/tmp/bin:aaaa/bin:aaaa/.ci/scripts:${env.PATH}"
+          TMPDIR = "/tmp"
+          REUSE_CONTAINERS = "true"
+          HOME = "/tmp"
+          PATH = "/tmp/aaaa/.ci/scripts:/tmp/bin:aaaa/bin:aaaa/.ci/scripts"
         }
         axes {
           axis {
