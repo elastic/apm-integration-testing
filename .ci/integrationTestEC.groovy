@@ -1,16 +1,21 @@
 #!/usr/bin/env groovy
 
 pipeline {
-  agent { label 'linux && immutable' }
+  agent { label 'linux' }
   stages {
-    stage('Tests On Elastic Cloud'){
+    stage('Tests'){
       matrix {
-        agent { label 'linux && immutable' }
+        agent { label 'linux' }
         environment {
           TMPDIR = "/tmp"
           REUSE_CONTAINERS = "true"
           HOME = "/tmp"
-          PATH = "/tmp/aaaa/.ci/scripts:/tmp/bin:aaaa/bin:aaaa/.ci/scripts"
+          CONFIG_HOME = "/tmp"
+          EC_WS ="/tmp/aaaa"
+          VENV = "/tmp/.venv"
+          PATH = "/tmp/aaaa/.ci/scripts:/tmp/bin:aaaa/bin:aaaa/.ci/scripts:${env.PATH}"
+          CLUSTER_CONFIG_FILE="aaaaa/tests/environments/elastic_cloud.yml"
+          ENABLE_ES_DUMP = "true"
         }
         axes {
           axis {
