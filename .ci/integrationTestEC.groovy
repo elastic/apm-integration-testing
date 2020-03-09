@@ -30,7 +30,7 @@ pipeline {
         stages {
           stage('Prepare Test'){
             steps {
-              log(level: "INFO", text: "Running tests - ${ELASTIC_STACK_VERSION} x ${TEST}")
+              echo "Running tests - ${ELASTIC_STACK_VERSION} x ${TEST}"
             }
           }
         }
