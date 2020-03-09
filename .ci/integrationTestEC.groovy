@@ -28,6 +28,22 @@ pipeline {
     string(name: 'BUILD_OPTS', defaultValue: "--no-elasticsearch --no-apm-server --no-kibana --no-apm-server-dashboards --no-apm-server-self-instrument", description: "Addicional build options to passing compose.py")
   }
   stages {
+    /**
+     Checkout the code and stash it, to use it on other stages.
+    */
+    stage('Checkout'){
+      steps {
+        deleteDir()
+        gitCheckout(basedir: "${BASE_DIR}")
+        dir("${EC_DIR}"){
+          git(branch: 'master-v2.0',
+            credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba',
+            url: 'git@github.com:elastic/observability-test-environments.git'
+          )
+        }
+        stash allowEmpty: true, name: 'source', useDefaultExcludes: false
+      }
+    }
     stage('Tests On Elastic Cloud'){
       matrix {
         agent { label 'linux && immutable' }
@@ -48,6 +64,12 @@ pipeline {
               deleteDir()
               unstash 'source'
             }
+          }
+        }
+        post {
+          cleanup {
+            grabResultsAndLogs("${TEST}")
+            destroyClusters()
           }
         }
       }
