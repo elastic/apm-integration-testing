@@ -3,6 +3,15 @@
 
 pipeline {
   agent { label 'linux && immutable' }
+  environment {
+    BASE_DIR="src/github.com/elastic/apm-integration-testing"
+    EC_DIR="src/github.com/elastic/observability-test-environments"
+    NOTIFY_TO = credentials('notify-to')
+    JOB_GCS_BUCKET = credentials('gcs-bucket')
+    PIPELINE_LOG_LEVEL='INFO'
+    DOCKERELASTIC_SECRET = 'secret/apm-team/ci/docker-registry/prod'
+    DOCKER_REGISTRY = 'docker.elastic.co'
+  }
   triggers {
     cron 'H H(3-4) * * 1-5'
   }
