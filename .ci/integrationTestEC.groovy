@@ -7,7 +7,7 @@ pipeline {
       matrix {
         agent { label 'linux' }
         environment {
-          REUSE_CONTAINERS = "true"
+          TMPDIR = "/tmp"
           HOME = "/tmp"
           CONFIG_HOME = "/tmp"
           EC_WS ="/tmp/aaaa"
