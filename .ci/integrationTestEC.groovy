@@ -86,11 +86,6 @@ pipeline {
       }
     }
   }
-  post {
-    cleanup {
-      notifyBuildResult()
-    }
-  }
 }
 
 def withVaultEnv(Closure body){
@@ -102,53 +97,6 @@ def withVaultEnv(Closure body){
       [var: 'VAULT_AUTHTYPE', password: 'approle']
     ]){
       body()
-    }
-  }
-}
-
-def withConfigEnv(Closure body) {
-  def config = readYaml(file: "ansible/config-general.yml")
-  def apm = getVaultSecret(secret: "secret/${config.k8s_vault_apm_def_secret}")?.data
-  def es = getVaultSecret(secret: "secret/${config.k8s_vault_elasticsearch_def_secret}")?.data
-  def kb = getVaultSecret(secret: "secret/${config.k8s_vault_apm_def_secret}")?.data
-
-  withEnvMask(vars: [
-    [var: 'APM_SERVER_URL', password: apm.value.url],
-    [var: 'APM_SERVER_SECRET_TOKEN', password: apm.value.token],
-    [var: 'ES_URL', password: es.value.url],
-    [var: 'ES_USER', password: es.value.username],
-    [var: 'ES_PASS', password: es.value.password],
-    [var: 'KIBANA_URL', password: kb.value.url],
-    [var: 'BUILD_OPTS', password: "${params.BUILD_OPTS} --apm-server-url ${apm.value.url} --apm-server-secret-token ${apm.value.token}"]
-  ]){
-    body()
-  }
-}
-
-def grabResultsAndLogs(label){
-  dir("${BASE_DIR}"){
-    def stepName = label.replace(";","/")
-      .replace("--","_")
-      .replace(".","_")
-      .replace(" ","_")
-    sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
-    sh('make stop-env || echo 0')
-    archiveArtifacts(
-        allowEmptyArchive: true,
-        artifacts: 'docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
-        defaultExcludes: false)
-    junit(
-      allowEmptyResults: true,
-      keepLongStdio: true,
-      testResults: "**/tests/results/*-junit*.xml")
-  }
-}
-
-def destroyClusters(){
-  def deployConfig = readYaml(file: "${CLUSTER_CONFIG_FILE}")
-  dir("${EC_DIR}/ansible"){
-    catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-      sh(label: 'Destroy k8s cluster', script: 'make destroy-cluster')
     }
   }
 }
