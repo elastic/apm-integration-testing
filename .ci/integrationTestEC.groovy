@@ -3,15 +3,6 @@
 
 pipeline {
   agent { label 'linux && immutable' }
-  environment {
-    BASE_DIR="src/github.com/elastic/apm-integration-testing"
-    EC_DIR="src/github.com/elastic/observability-test-environments"
-    NOTIFY_TO = credentials('notify-to')
-    JOB_GCS_BUCKET = credentials('gcs-bucket')
-    PIPELINE_LOG_LEVEL='INFO'
-    DOCKERELASTIC_SECRET = 'secret/apm-team/ci/docker-registry/prod'
-    DOCKER_REGISTRY = 'docker.elastic.co'
-  }
   triggers {
     cron 'H H(3-4) * * 1-5'
   }
@@ -28,22 +19,6 @@ pipeline {
     string(name: 'BUILD_OPTS', defaultValue: "--no-elasticsearch --no-apm-server --no-kibana --no-apm-server-dashboards --no-apm-server-self-instrument", description: "Addicional build options to passing compose.py")
   }
   stages {
-    /**
-     Checkout the code and stash it, to use it on other stages.
-    */
-    stage('Checkout'){
-      steps {
-        deleteDir()
-        gitCheckout(basedir: "${BASE_DIR}")
-        dir("${EC_DIR}"){
-          git(branch: 'master-v2.0',
-            credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba',
-            url: 'git@github.com:elastic/observability-test-environments.git'
-          )
-        }
-        stash allowEmpty: true, name: 'source', useDefaultExcludes: false
-      }
-    }
     stage('Tests On Elastic Cloud'){
       matrix {
         agent { label 'linux && immutable' }
