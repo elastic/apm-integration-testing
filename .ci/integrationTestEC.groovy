@@ -8,6 +8,7 @@ pipeline {
         agent { label 'linux' }
         environment {
           TMPDIR = "/tmp"
+          REUSE_CONTAINERS = "true"
           HOME = "/tmp"
           CONFIG_HOME = "/tmp"
           EC_WS ="/tmp/aaaa"
