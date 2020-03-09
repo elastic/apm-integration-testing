@@ -7,15 +7,7 @@ pipeline {
       matrix {
         agent { label 'linux && immutable' }
         environment {
-          TMPDIR = "/tmp"
-          REUSE_CONTAINERS = "true"
-          HOME = "/tmp"
-          CONFIG_HOME = "/tmp"
-          EC_WS ="/tmp/aaaa"
-          VENV = "/tmp/.venv"
-          PATH = "/tmp/aaaa/.ci/scripts:/tmp/bin:aaaa/bin:aaaa/.ci/scripts"
-          CLUSTER_CONFIG_FILE="aaaaa/tests/environments/elastic_cloud.yml"
-          ENABLE_ES_DUMP = "true"
+          PATH = "/tmp/aaaa/.ci/scripts:/tmp/bin:aaaa/bin:aaaa/.ci/scripts:${env.PATH}"
         }
         axes {
           axis {
