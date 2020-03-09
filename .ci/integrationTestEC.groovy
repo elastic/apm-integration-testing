@@ -13,7 +13,7 @@ pipeline {
           CONFIG_HOME = "/tmp"
           EC_WS ="/tmp/aaaa"
           VENV = "/tmp/.venv"
-          PATH = "/tmp/aaaa/.ci/scripts:/tmp/bin:aaaa/bin:aaaa/.ci/scripts:${env.PATH}"
+          PATH = "/tmp/aaaa/.ci/scripts:/tmp/bin:aaaa/bin:aaaa/.ci/scripts"
           CLUSTER_CONFIG_FILE="aaaaa/tests/environments/elastic_cloud.yml"
           ENABLE_ES_DUMP = "true"
         }
