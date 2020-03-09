@@ -61,11 +61,11 @@ pipeline {
         axes {
           axis {
               name 'TEST'
-              values 'all', 'dotnet'
+              values 'all', 'dotnet', 'go', 'java', 'nodejs', 'python', 'ruby', 'rum'
           }
           axis {
               name 'ELASTIC_STACK_VERSION'
-              values '8.0.0-SNAPSHOT', '7.7.0-SNAPSHOT'
+              values '8.0.0-SNAPSHOT', '7.7.0-SNAPSHOT', '7.6.1-SNAPSHOT', '6.8.7-SNAPSHOT'
           }
         }
         stages {
@@ -74,27 +74,6 @@ pipeline {
               log(level: "INFO", text: "Running tests - ${ELASTIC_STACK_VERSION} x ${TEST}")
               deleteDir()
               unstash 'source'
-            }
-          }
-          stage('Provision Elastic Cloud environment'){
-            steps {
-              dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
-              dir("${EC_DIR}/ansible"){
-                withVaultEnv(){
-                  sh(label: "Deploy Cluster", script: "make create-cluster")
-                  sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.md cluster-info-${ELASTIC_STACK_VERSION}x${TEST}.md")
-                  archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
-                }
-              }
-            }
-          }
-          stage("Test") {
-            steps {
-              dir("${BASE_DIR}"){
-                withConfigEnv(){
-                  sh ".ci/scripts/${TEST}.sh"
-                }
-              }
             }
           }
         }
