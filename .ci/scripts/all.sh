@@ -7,6 +7,7 @@ test -z "$srcdir" && srcdir=.
 . "${srcdir}/common.sh"
 
 APM_SECRET_TOKEN=${APM_SECRET_TOKEN:-"SuPeRsEcReT"}
+APM_SERVER_URL=${APM_SERVER_URL:-"https://apm-server:8200"}
 
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS}\
   --no-apm-server-dashboards \
@@ -25,4 +26,4 @@ DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS}\
   --no-verify-server-cert \
   --apm-server-secret-token=SuPeRsEcReT"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
-PYTHONHTTPSVERIFY=0 APM_SERVER_URL="https://apm-server:8200" runTests env-agent-all docker-test-all
+PYTHONHTTPSVERIFY=0 APM_SERVER_URL="${APM_SERVER_URL}" runTests env-agent-all docker-test-all
