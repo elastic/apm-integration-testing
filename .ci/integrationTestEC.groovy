@@ -11,12 +11,14 @@ pipeline {
     PIPELINE_LOG_LEVEL='INFO'
     DOCKERELASTIC_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
+    ENABLE_ES_DUMP = "true"
+    REUSE_CONTAINERS = "true"
   }
   triggers {
     cron 'H H(3-4) * * 1-5'
   }
   options {
-    timeout(time: 1, unit: 'HOURS')
+    timeout(time: 2, unit: 'HOURS')
     timestamps()
     ansiColor('xterm')
     disableResume()
@@ -157,7 +159,7 @@ pipeline {
           }
         }
         post {
-          always {
+          cleanup {
             destroyClusters()
           }
         }
@@ -191,9 +193,7 @@ def withTestEnv(Closure body){
     "CONFIG_HOME=${env.WORKSPACE}",
     "VENV=${env.WORKSPACE}/.venv",
     "PATH=${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.VENV}/bin:${ecWs}/bin:${ecWs}/.ci/scripts:${env.PATH}",
-    "CLUSTER_CONFIG_FILE=${ecWs}/tests/environments/elastic_cloud.yml",
-    "ENABLE_ES_DUMP=true",
-    "REUSE_CONTAINERS=true"
+    "CLUSTER_CONFIG_FILE=${ecWs}/tests/environments/elastic_cloud.yml"
   ]){
     withVaultEnv(){
       body()
@@ -226,7 +226,7 @@ def withConfigEnv(Closure body) {
 
   withEnvMask(vars: [
     [var: 'APM_SERVER_URL', password: apm.url],
-    [var: 'APM_SERVER_SECRET_TOKEN', password: apm.token],
+    [var: 'ELASTIC_APM_SECRET_TOKEN', password: apm.token],
     [var: 'ES_URL', password: es.url],
     [var: 'ES_USER', password: es.username],
     [var: 'ES_PASS', password: es.password],
@@ -238,29 +238,34 @@ def withConfigEnv(Closure body) {
 }
 
 def grabResultsAndLogs(label){
-  dir("${BASE_DIR}"){
-    def stepName = label.replace(";","/")
-      .replace("--","_")
-      .replace(".","_")
-      .replace(" ","_")
-    sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
-    sh('make stop-env || echo 0')
-    archiveArtifacts(
-        allowEmptyArchive: true,
-        artifacts: 'docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
-        defaultExcludes: false)
-    junit(
-      allowEmptyResults: true,
-      keepLongStdio: true,
-      testResults: "**/tests/results/*-junit*.xml")
+  withConfigEnv(){
+    dir("${BASE_DIR}"){
+      def stepName = label.replace(";","/")
+        .replace("--","_")
+        .replace(".","_")
+        .replace(" ","_")
+      sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
+      sh('make stop-env || echo 0')
+      sh('.ci/scripts/remove_env.sh docker-info')
+      archiveArtifacts(
+          allowEmptyArchive: true,
+          artifacts: 'docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
+          defaultExcludes: false)
+      junit(
+        allowEmptyResults: true,
+        keepLongStdio: true,
+        testResults: "**/tests/results/*-junit*.xml")
+    }
   }
 }
 
 def destroyClusters(){
-  dir("${EC_DIR}/ansible"){
-    withTestEnv(){
-      catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-        sh(label: 'Destroy k8s cluster', script: 'make destroy-cluster')
+  stage('Destroy Cluster'){
+    dir("${EC_DIR}/ansible"){
+      withTestEnv(){
+        catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+          sh(label: 'Destroy k8s cluster', script: 'make destroy-cluster')
+        }
       }
     }
   }

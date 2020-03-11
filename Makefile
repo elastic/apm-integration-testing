@@ -23,7 +23,7 @@ RUM_URL ?= http://rum:8000
 
 ES_USER ?= elastic
 ES_PASS ?= changeme
-APM_SECRET_TOKEN ?= SuPeRsEcReT
+ELASTIC_APM_SECRET_TOKEN ?= SuPeRsEcReT
 
 # Make sure we run local versions of everything, particularly commands
 # installed into our virtualenv with pip eg. `docker-compose`.
@@ -34,7 +34,7 @@ export KIBANA_URL := $(KIBANA_URL)
 export ES_URL := $(ES_URL)
 export ES_USER := $(ES_USER)
 export ES_PASS := $(ES_PASS)
-export APM_SECRET_TOKEN := $(APM_SECRET_TOKEN)
+export ELASTIC_APM_SECRET_TOKEN := $(ELASTIC_APM_SECRET_TOKEN)
 
 all: test
 
@@ -138,7 +138,7 @@ dockerized-test:
 		-e ENABLE_ES_DUMP=$(ENABLE_ES_DUMP) \
 		-e ES_USER=$${ES_USER} \
 		-e ES_PASS=$${ES_PASS} \
-		-e APM_SECRET_TOKEN=$${APM_SECRET_TOKEN} \
+		-e ELASTIC_APM_SECRET_TOKEN=$${ELASTIC_APM_SECRET_TOKEN} \
 		-v "$(PWD)/$(JUNIT_RESULTS_DIR)":"/app/$(JUNIT_RESULTS_DIR)" \
 		--rm \
 		--entrypoint make \

@@ -1,6 +1,7 @@
 from timeout_decorator import TimeoutError
 from tests.fixtures import default
 import requests
+import time
 
 try:
     from urlparse import urlparse
@@ -26,7 +27,7 @@ def check_server_transaction(endpoint, elasticsearch, payload, headers=None, ct=
     elasticsearch.clean()
     if headers is None:
         headers = {'Content-Type': 'application/x-ndjson'}
-    headers['Authorization'] = 'Bearer {}'.format(default.from_env("APM_SECRET_TOKEN"))
+    headers['Authorization'] = 'Bearer {}'.format(default.from_env("ELASTIC_APM_SECRET_TOKEN"))
     r = requests.post(endpoint.url, data=payload, headers=headers, verify=False)
     check_request_response(r, endpoint)
     check_elasticsearch_count(elasticsearch, ct)
@@ -52,8 +53,9 @@ def check_elasticsearch_count(elasticsearch,
         try:
             actual = elasticsearch.count(query)
             retries += 1
+            time.sleep(10)
         except TimeoutError:
-            retries = max_retries
+            retries += 1
             actual = -1
 
     assert actual == expected, "Expected {}, queried {}".format(
