@@ -75,7 +75,7 @@ pipeline {
                   archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
                 }
               }
-              stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: 'secrets'
+              stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: "secrets-${ELASTIC_STACK_VERSION}"
             }
           }
           stage("Test Go") {
@@ -216,7 +216,7 @@ def withVaultEnv(Closure body){
 }
 
 def withConfigEnv(Closure body) {
-  unstash "secrets"
+  unstash "secrets-${ELASTIC_STACK_VERSION}"
   def config = readYaml(file: "${EC_DIR}/ansible/build/config_secrets.yml")
   def esJson = getVaultSecret(secret: "${config.k8s_vault_elasticsearch_def_secret}")?.data.value
   def apmJson = getVaultSecret(secret: "${config.k8s_vault_apm_def_secret}")?.data.value
