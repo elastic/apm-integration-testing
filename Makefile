@@ -25,6 +25,8 @@ ES_USER ?= elastic
 ES_PASS ?= changeme
 ELASTIC_APM_SECRET_TOKEN ?= SuPeRsEcReT
 
+PYTHONHTTPSVERIFY ?= 1
+
 # Make sure we run local versions of everything, particularly commands
 # installed into our virtualenv with pip eg. `docker-compose`.
 export PATH := ./bin:$(VENV)/bin:$(PATH)
@@ -135,7 +137,7 @@ dockerized-test:
 		-e RAILS_URL=$(RAILS_URL) \
 		-e RUM_URL=$(RUM_URL) \
 		-e PYTHONDONTWRITEBYTECODE=1 \
-		-e PYTHONHTTPSVERIFY=${PYTHONHTTPSVERIFY:-"1"} \
+		-e PYTHONHTTPSVERIFY=$(PYTHONHTTPSVERIFY) \
 		-e ENABLE_ES_DUMP=$(ENABLE_ES_DUMP) \
 		-e ES_USER=$${ES_USER} \
 		-e ES_PASS=$${ES_PASS} \
