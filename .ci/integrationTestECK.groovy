@@ -20,7 +20,7 @@ pipeline {
     cron 'H H(3-4) * * 1-5'
   }
   options {
-    timeout(time: 2, unit: 'HOURS')
+    timeout(time: 3, unit: 'HOURS')
     timestamps()
     ansiColor('xterm')
     disableResume()
