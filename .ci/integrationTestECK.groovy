@@ -103,16 +103,6 @@ pipeline {
                   stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: "secrets-${ELASTIC_STACK_VERSION}"
                 }
               }
-              stage("Test All") {
-                steps {
-                  runTest('all')
-                }
-                post {
-                  cleanup {
-                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-all")
-                  }
-                }
-              }
               stage("Test .NET") {
                 steps {
                   runTest('dotnet')
@@ -180,6 +170,16 @@ pipeline {
                 post {
                   cleanup {
                     grabResultsAndLogs("${ELASTIC_STACK_VERSION}-rum")
+                  }
+                }
+              }
+              stage("Test All") {
+                steps {
+                  runTest('all')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-all")
                   }
                 }
               }
