@@ -59,7 +59,7 @@ pipeline {
         stages {
           stage('Prepare Test'){
             steps {
-              log(level: "INFO", text: "Running tests - ${ELASTIC_STACK_VERSION} x ${TEST}")
+              log(level: "INFO", text: "Running tests - ${ELASTIC_STACK_VERSION}")
               deleteDir()
               unstash 'source'
             }
@@ -70,11 +70,11 @@ pipeline {
               dir("${EC_DIR}/ansible"){
                 withTestEnv(){
                   sh(label: "Deploy Cluster", script: "make create-cluster")
-                  sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${ELASTIC_STACK_VERSION}x${TEST}.html")
+                  sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${ELASTIC_STACK_VERSION}.html")
                   archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
-                  stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: 'secrets'
                 }
               }
+              stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: 'secrets'
             }
           }
           stage("Test All") {
