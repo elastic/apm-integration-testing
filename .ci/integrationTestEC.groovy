@@ -30,6 +30,7 @@ pipeline {
   }
   parameters {
     string(name: 'BUILD_OPTS', defaultValue: "--no-elasticsearch --no-apm-server --no-kibana --no-apm-server-dashboards --no-apm-server-self-instrument", description: "Addicional build options to passing compose.py")
+    booleanParam(name: 'destroy_mode', defaultValue: false, description: 'Run the script in destroy mode to destroy any cluster provisioned and delete vault secrets.')
   }
   stages {
     /**
@@ -65,97 +66,105 @@ pipeline {
               unstash 'source'
             }
           }
-          stage('Provision Elastic Cloud environment'){
-            steps {
-              dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
-              dir("${EC_DIR}/ansible"){
-                withTestEnv(){
-                  sh(label: "Deploy Cluster", script: "make create-cluster")
-                  sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${ELASTIC_STACK_VERSION}.html")
-                  archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
+          stage('Run ITs'){
+            when {
+              expression { return ! params.destroy_mode }
+            }
+            stages {
+              stage('Provision Elastic Cloud environment'){
+                steps {
+                  dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
+                  dir("${EC_DIR}/ansible"){
+                    withTestEnv(){
+                      sh(label: "Deploy Cluster", script: "make create-cluster")
+                      sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${ELASTIC_STACK_VERSION}.html")
+                      archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
+                    }
+                  }
+                  stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: "secrets-${ELASTIC_STACK_VERSION}"
                 }
               }
-              stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: "secrets-${ELASTIC_STACK_VERSION}"
-            }
-          }
-          stage("Test Go") {
-            steps {
-              runTest('go')
-            }
-            post {
-              cleanup {
-                grabResultsAndLogs("${ELASTIC_STACK_VERSION}-go")
+              stage("Test Go") {
+                steps {
+                  runTest('go')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-go")
+                  }
+                }
               }
-            }
-          }
-          stage("Test .NET") {
-            steps {
-              runTest('dotnet')
-            }
-            post {
-              cleanup {
-                grabResultsAndLogs("${ELASTIC_STACK_VERSION}-dotnet")
+              stage("Test .NET") {
+                steps {
+                  runTest('dotnet')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-dotnet")
+                  }
+                }
               }
-            }
-          }
-          stage("Test Java") {
-            steps {
-              runTest('java')
-            }
-            post {
-              cleanup {
-                grabResultsAndLogs("${ELASTIC_STACK_VERSION}-java")
+              stage("Test Java") {
+                steps {
+                  runTest('java')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-java")
+                  }
+                }
               }
-            }
-          }
-          stage("Test Node.js") {
-            steps {
-              runTest('nodejs')
-            }
-            post {
-              cleanup {
-                grabResultsAndLogs("${ELASTIC_STACK_VERSION}-nodejs")
+              stage("Test Node.js") {
+                steps {
+                  runTest('nodejs')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-nodejs")
+                  }
+                }
               }
-            }
-          }
-          stage("Test Python") {
-            steps {
-              runTest('python')
-            }
-            post {
-              cleanup {
-                grabResultsAndLogs("${ELASTIC_STACK_VERSION}-python")
+              stage("Test Python") {
+                steps {
+                  runTest('python')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-python")
+                  }
+                }
               }
-            }
-          }
-          stage("Test Ruby") {
-            steps {
-              runTest('ruby')
-            }
-            post {
-              cleanup {
-                grabResultsAndLogs("${ELASTIC_STACK_VERSION}-ruby")
+              stage("Test Ruby") {
+                steps {
+                  runTest('ruby')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-ruby")
+                  }
+                }
               }
-            }
-          }
-          stage("Test RUM") {
-            steps {
-              runTest('rum')
-            }
-            post {
-              cleanup {
-                grabResultsAndLogs("${ELASTIC_STACK_VERSION}-rum")
+              stage("Test RUM") {
+                steps {
+                  runTest('rum')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-rum")
+                  }
+                }
               }
-            }
-          }
-          stage("Test All") {
-            steps {
-              runTest('all')
-            }
-            post {
-              cleanup {
-                grabResultsAndLogs("${ELASTIC_STACK_VERSION}-all")
+              stage("Test All") {
+                steps {
+                  runTest('all')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-all")
+                  }
+                }
               }
+
             }
           }
         }
