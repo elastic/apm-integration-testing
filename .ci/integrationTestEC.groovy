@@ -13,6 +13,8 @@ pipeline {
     DOCKER_REGISTRY = 'docker.elastic.co'
     ENABLE_ES_DUMP = "true"
     REUSE_CONTAINERS = "true"
+    LANG = "C.UTF-8"
+    LC_ALL = "C.UTF-8"
   }
   triggers {
     cron 'H H(3-4) * * 1-5'
