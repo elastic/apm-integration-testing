@@ -87,7 +87,7 @@ pipeline {
             }
             steps {
               dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
-              sh(label: 'Push Docker images', script: "${EC_DIR}/.ci/scripts/pushDockerImages.sh ${ELASTIC_STACK_VERSION} 'observability-ci' ${VERSION} ${DOCKER_REGISTRY}")
+              sh(label: 'Push Docker images', script: "${EC_DIR}/.ci/scripts/pushDockerImages.sh ${ELASTIC_STACK_VERSION} 'observability-ci' ${ELASTIC_STACK_VERSION} ${DOCKER_REGISTRY}")
             }
           }
           stage('Provision ECK environment'){
