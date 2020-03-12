@@ -30,6 +30,7 @@ pipeline {
   }
   parameters {
     string(name: 'BUILD_OPTS', defaultValue: "--no-elasticsearch --no-apm-server --no-kibana --no-apm-server-dashboards --no-apm-server-self-instrument", description: "Addicional build options to passing compose.py")
+    booleanParam(name: 'update_docker_images', defaultValue: true, description: 'Enable/Disable the Docker images update.')
   }
   stages {
     /**
@@ -64,6 +65,29 @@ pipeline {
               log(level: "INFO", text: "Running tests - ${ELASTIC_STACK_VERSION}")
               deleteDir()
               unstash 'source'
+            }
+          }
+          stage('Fetch docker images'){
+            when {
+              expression { return params.update_docker_images }
+            }
+            steps {
+              dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
+              sh(label: 'Get Docker images', script: "${EC_DIR}/.ci/scripts/getDockerImages.sh ${ELASTIC_STACK_VERSION}")
+            }
+            post {
+              always {
+                archiveArtifacts(allowEmptyArchive: false, artifacts: 'metadata.txt')
+              }
+            }
+          }
+          stage('Push Docker images'){
+            when {
+              expression { return params.update_docker_images }
+            }
+            steps {
+              dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
+              sh(label: 'Push Docker images', script: "${EC_DIR}/.ci/scripts/pushDockerImages.sh ${ELASTIC_STACK_VERSION} 'observability-ci' ${VERSION} ${DOCKER_REGISTRY}")
             }
           }
           stage('Provision ECK environment'){
