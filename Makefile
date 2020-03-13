@@ -37,6 +37,7 @@ export ES_URL := $(ES_URL)
 export ES_USER := $(ES_USER)
 export ES_PASS := $(ES_PASS)
 export ELASTIC_APM_SECRET_TOKEN := $(ELASTIC_APM_SECRET_TOKEN)
+export PYTHONHTTPSVERIFY := $(PYTHONHTTPSVERIFY)
 
 all: test
 
