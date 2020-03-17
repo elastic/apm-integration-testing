@@ -5,13 +5,17 @@ import pytest
 import timeout_decorator
 
 from tests.utils import getElasticsearchURL
+from tests.fixtures import default
 
 
 @pytest.fixture(scope="session")
 def es():
     class Elasticsearch(object):
         def __init__(self, url):
-            self.es = elasticsearch.Elasticsearch([url])
+            verify = default.from_env("PYTHONHTTPSVERIFY") == "1"
+            self.es = elasticsearch.Elasticsearch(url,
+                                                  verify_certs=verify,
+                                                  connection_class=elasticsearch.RequestsHttpConnection)
             self.index = "apm-*"
 
         def clean(self):

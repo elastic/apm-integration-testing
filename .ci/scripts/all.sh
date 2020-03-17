@@ -6,7 +6,10 @@ test -z "$srcdir" && srcdir=.
 # shellcheck disable=SC1090
 . "${srcdir}/common.sh"
 
-APM_SECRET_TOKEN=${APM_SECRET_TOKEN:-"SuPeRsEcReT"}
+# export the variables to force the be defined in the Docker container
+export ELASTIC_APM_SECRET_TOKEN=${ELASTIC_APM_SECRET_TOKEN:-"SuPeRsEcReT"}
+export APM_SERVER_URL=${APM_SERVER_URL:-"https://apm-server:8200"}
+export PYTHONHTTPSVERIFY=0
 
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS}\
   --no-apm-server-dashboards \
@@ -22,7 +25,9 @@ DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS}\
   --force-build \
   --no-xpack-secure \
   --apm-server-enable-tls \
-  --no-verify-server-cert \
-  --apm-server-secret-token=SuPeRsEcReT"
+  --no-verify-server-cert  \
+  --apm-server-secret-token=${ELASTIC_APM_SECRET_TOKEN} \
+  --apm-server-url=${APM_SERVER_URL}"
+
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
-PYTHONHTTPSVERIFY=0 APM_SERVER_URL="https://apm-server:8200" runTests env-agent-all docker-test-all
+runTests env-agent-all docker-test-all

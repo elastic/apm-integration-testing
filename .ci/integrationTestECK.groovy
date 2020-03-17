@@ -11,12 +11,17 @@ pipeline {
     PIPELINE_LOG_LEVEL='DEBUG'
     DOCKERELASTIC_SECRET = 'secret/apm-team/ci/docker-registry/prod'
     DOCKER_REGISTRY = 'docker.elastic.co'
+    ENABLE_ES_DUMP = "true"
+    REUSE_CONTAINERS = "true"
+    LANG = "C.UTF-8"
+    LC_ALL = "C.UTF-8"
+    PYTHONHTTPSVERIFY = "0"
   }
   triggers {
     cron 'H H(3-4) * * 1-5'
   }
   options {
-    timeout(time: 1, unit: 'HOURS')
+    timeout(time: 3, unit: 'HOURS')
     timestamps()
     ansiColor('xterm')
     disableResume()
@@ -26,6 +31,9 @@ pipeline {
   }
   parameters {
     string(name: 'BUILD_OPTS', defaultValue: "--no-elasticsearch --no-apm-server --no-kibana --no-apm-server-dashboards --no-apm-server-self-instrument", description: "Addicional build options to passing compose.py")
+    booleanParam(name: 'update_docker_images', defaultValue: true, description: 'Enable/Disable the Docker images update.')
+    booleanParam(name: 'destroy_mode', defaultValue: false, description: 'Run the script in destroy mode to destroy any cluster provisioned and delete vault secrets.')
+    string(name: 'build_num_to_destroy', defaultValue: "", description: "Build number to destroy, it is needed on destroy_mode")
   }
   stages {
     /**
@@ -47,52 +55,131 @@ pipeline {
     stage('Tests On ECK'){
       matrix {
         agent { label 'linux && immutable' }
-        environment {
-          TMPDIR = "${env.WORKSPACE}"
-          REUSE_CONTAINERS = "true"
-          HOME = "${env.WORKSPACE}"
-          CONFIG_HOME = "${env.WORKSPACE}"
-          EC_WS ="${env.WORKSPACE}/${env.EC_DIR}"
-          VENV = "${env.WORKSPACE}/.venv"
-          PATH = "${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.VENV}/bin:${env.EC_WS}/bin:${env.EC_WS}/.ci/scripts:${env.PATH}"
-          CLUSTER_CONFIG_FILE="${env.EC_WS}/tests/environments/eck.yml"
-          ENABLE_ES_DUMP = "true"
-        }
         axes {
           axis {
-              name 'TEST'
-              values 'all', 'dotnet', 'go', 'java', 'nodejs', 'python', 'ruby', 'rum'
-          }
-          axis {
               name 'ELASTIC_STACK_VERSION'
-              values '8.0.0-SNAPSHOT', '7.7.0-SNAPSHOT', '7.6.1-SNAPSHOT', '6.8.7-SNAPSHOT'
+              values '8.0.0-SNAPSHOT', '7.7.0-SNAPSHOT', '7.6.1-SNAPSHOT'
           }
         }
         stages {
           stage('Prepare Test'){
             steps {
-              log(level: "INFO", text: "Running tests - ${ELASTIC_STACK_VERSION} x ${TEST}")
+              log(level: "INFO", text: "Running tests - ${ELASTIC_STACK_VERSION}")
               deleteDir()
               unstash 'source'
             }
           }
-          stage('Provision ECK environment'){
-            steps {
-              dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
-              dir("${EC_DIR}/ansible"){
-                withVaultEnv(){
-                  sh(label: "Deploy Cluster", script: "make create-cluster")
-                  sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.md cluster-info-${ELASTIC_STACK_VERSION}x${TEST}.md")
-                  archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
+          stage('Run ITs'){
+            when {
+              expression { return ! params.destroy_mode }
+            }
+            stages {
+              stage('Prepare Docker images'){
+                when {
+                  expression { return params.update_docker_images }
+                }
+                steps {
+                  dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
+                  sh(label: 'Get Docker images', script: "${EC_DIR}/.ci/scripts/getDockerImages.sh ${ELASTIC_STACK_VERSION}")
+                  sh(label: 'Push Docker images', script: "${EC_DIR}/.ci/scripts/pushDockerImages.sh ${ELASTIC_STACK_VERSION} 'observability-ci' ${ELASTIC_STACK_VERSION} ${DOCKER_REGISTRY}")
+                }
+                post {
+                  always {
+                    archiveArtifacts(allowEmptyArchive: false, artifacts: 'metadata.txt')
+                  }
                 }
               }
-            }
-          }
-          stage("Test") {
-            steps {
-              dir("${BASE_DIR}"){
-                withConfigEnv(){
-                  sh ".ci/scripts/${TEST}.sh"
+              stage('Provision ECK environment'){
+                steps {
+                  dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
+                  dir("${EC_DIR}/ansible"){
+                    withTestEnv(){
+                      sh(label: "Deploy Cluster", script: "make create-cluster")
+                      sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${ELASTIC_STACK_VERSION}.html")
+                      archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
+                    }
+                  }
+                  stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: "secrets-${ELASTIC_STACK_VERSION}"
+                }
+              }
+              stage("Test .NET") {
+                steps {
+                  runTest('dotnet')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-dotnet")
+                  }
+                }
+              }
+              stage("Test Go") {
+                steps {
+                  runTest('go')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-go")
+                  }
+                }
+              }
+              stage("Test Java") {
+                steps {
+                  runTest('java')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-java")
+                  }
+                }
+              }
+              stage("Test Node.js") {
+                steps {
+                  runTest('nodejs')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-nodejs")
+                  }
+                }
+              }
+              stage("Test Python") {
+                steps {
+                  runTest('python')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-python")
+                  }
+                }
+              }
+              stage("Test Ruby") {
+                steps {
+                  runTest('ruby')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-ruby")
+                  }
+                }
+              }
+              stage("Test RUM") {
+                steps {
+                  runTest('rum')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-rum")
+                  }
+                }
+              }
+              stage("Test All") {
+                steps {
+                  runTest('all')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-all")
+                  }
                 }
               }
             }
@@ -100,7 +187,6 @@ pipeline {
         }
         post {
           cleanup {
-            wrappingUp("${TEST}")
             destroyClusters()
           }
         }
@@ -110,6 +196,35 @@ pipeline {
   post {
     cleanup {
       notifyBuildResult()
+    }
+  }
+}
+
+def runTest(test){
+  deleteDir()
+  unstash 'source'
+  withConfigEnv(){
+    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+      dir("${BASE_DIR}"){
+        sh ".ci/scripts/${test}.sh"
+      }
+    }
+  }
+}
+
+def withTestEnv(Closure body){
+  def ecWs ="${env.WORKSPACE}/${env.EC_DIR}"
+  withEnv([
+    "TMPDIR =${env.WORKSPACE}",
+    "HOME=${env.WORKSPACE}",
+    "CONFIG_HOME=${env.WORKSPACE}",
+    "VENV=${env.WORKSPACE}/.venv",
+    "PATH=${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.VENV}/bin:${ecWs}/bin:${ecWs}/.ci/scripts:${env.PATH}",
+    "CLUSTER_CONFIG_FILE=${ecWs}/tests/environments/eck.yml",
+    "BUILD_NUMBER=${ params.destroy_mode ? params.build_num_to_destroy : env.BUILD_NUMBER}"
+  ]){
+    withVaultEnv(){
+      body()
     }
   }
 }
@@ -128,48 +243,58 @@ def withVaultEnv(Closure body){
 }
 
 def withConfigEnv(Closure body) {
-  def config = readYaml(file: "ansible/config-general.yml")
-  def apm = getVaultSecret(secret: "secret/${config.k8s_vault_apm_def_secret}")?.data
-  def es = getVaultSecret(secret: "secret/${config.k8s_vault_elasticsearch_def_secret}")?.data
-  def kb = getVaultSecret(secret: "secret/${config.k8s_vault_apm_def_secret}")?.data
+  unstash "secrets-${ELASTIC_STACK_VERSION}"
+  def config = readYaml(file: "${EC_DIR}/ansible/build/config_secrets.yml")
+  def esJson = getVaultSecret(secret: "${config.k8s_vault_elasticsearch_def_secret}")?.data.value
+  def apmJson = getVaultSecret(secret: "${config.k8s_vault_apm_def_secret}")?.data.value
+  def kbJson = getVaultSecret(secret: "${config.k8s_vault_kibana_def_secret}")?.data.value
+  def es = readJSON(text: esJson)
+  def apm = readJSON(text: apmJson)
+  def kb = readJSON(text: kbJson)
 
   withEnvMask(vars: [
-    [var: 'APM_SERVER_URL', password: apm.value.url],
-    [var: 'APM_SERVER_SECRET_TOKEN', password: apm.value.token],
-    [var: 'ES_URL', password: es.value.url],
-    [var: 'ES_USER', password: es.value.username],
-    [var: 'ES_PASS', password: es.value.password],
-    [var: 'KIBANA_URL', password: kb.value.url],
-    [var: 'BUILD_OPTS', password: "${params.BUILD_OPTS} --apm-server-url ${apm.value.url} --apm-server-secret-token ${apm.value.token}"]
+    [var: 'APM_SERVER_URL', password: apm.url],
+    [var: 'ELASTIC_APM_SECRET_TOKEN', password: apm.token],
+    [var: 'ES_URL', password: es.url],
+    [var: 'ES_USER', password: es.username],
+    [var: 'ES_PASS', password: es.password],
+    [var: 'KIBANA_URL', password: kb.url],
+    [var: 'BUILD_OPTS', password: "${params.BUILD_OPTS} --apm-server-url ${apm.url} --apm-server-secret-token ${apm.token}"]
   ]){
     body()
   }
 }
 
 def grabResultsAndLogs(label){
-  dir("${BASE_DIR}"){
-    def stepName = label.replace(";","/")
-      .replace("--","_")
-      .replace(".","_")
-      .replace(" ","_")
-    sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
-    sh('make stop-env || echo 0')
-    archiveArtifacts(
-        allowEmptyArchive: true,
-        artifacts: 'docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
-        defaultExcludes: false)
-    junit(
-      allowEmptyResults: true,
-      keepLongStdio: true,
-      testResults: "**/tests/results/*-junit*.xml")
+  withConfigEnv(){
+    dir("${BASE_DIR}"){
+      def stepName = label.replace(";","/")
+        .replace("--","_")
+        .replace(".","_")
+        .replace(" ","_")
+      sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
+      sh('make stop-env || echo 0')
+      sh('.ci/scripts/remove_env.sh docker-info')
+      archiveArtifacts(
+          allowEmptyArchive: true,
+          artifacts: 'docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
+          defaultExcludes: false)
+      junit(
+        allowEmptyResults: true,
+        keepLongStdio: true,
+        testResults: "**/tests/results/*-junit*.xml")
+    }
   }
 }
 
 def destroyClusters(){
-  def deployConfig = readYaml(file: "${CLUSTER_CONFIG_FILE}")
-  dir("${EC_DIR}/ansible"){
-    catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-      sh(label: 'Destroy k8s cluster', script: 'make destroy-cluster')
+  stage('Destroy Cluster'){
+    dir("${EC_DIR}/ansible"){
+      withTestEnv(){
+        catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+          sh(label: 'Destroy k8s cluster', script: 'make destroy-cluster')
+        }
+      }
     }
   }
 }

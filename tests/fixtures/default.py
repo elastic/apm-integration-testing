@@ -27,7 +27,8 @@ RUM_SERVICE_NAME = "rumapp"
 RUM_URL = "http://localhost:8000"
 ES_USER = "elastic"
 ES_PASS = "changeme"
-APM_SECRET_TOKEN = "SuPeRsEcReT"
+ELASTIC_APM_SECRET_TOKEN = "SuPeRsEcReT"
+PYTHONHTTPSVERIFY = "1"
 
 
 def from_env(var):

@@ -1,7 +1,7 @@
 FROM python:3.7
 
 #Install elasticdump
-RUN curl -sL https://deb.nodesource.com/setup_11.x | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
     && apt-get -yqq update \
     && apt-get install -yqq nodejs \
     && rm -rf /var/lib/apt/lists/* \
