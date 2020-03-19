@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -ex
+set -x
 
 CSPROJ="TestAspNetCoreApp.csproj"
 
@@ -17,6 +17,10 @@ if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
 
   ### Otherwise: /usr/share/dotnet/sdk/2.2.203/NuGet.targets(119,5): error : The local source '/src/local-packages' doesn't exist. [/src/dotnet-agent/ElasticApmAgent.sln]
   mkdir /src/local-packages
+
+  ### Errorlevels might happen when fetching PRs with some errors like: error: cannot lock ref 'refs/remotes/origin/pr/82/head': 'refs/remotes/origin/pr/82' exists; cannot create
+  ### Let's fail if something bad happens when building the agent from the source code
+  set -e
   dotnet restore
   dotnet pack -c Release -o /src/local-packages
 
