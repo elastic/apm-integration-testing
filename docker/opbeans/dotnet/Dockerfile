@@ -4,7 +4,7 @@
 #   if unset then it uses the build generated above. (TODO: to be done)
 # DOTNET_AGENT_REPO and DOTNET_AGENT_BRANCH parameterise the DOTNET agent
 # repo and branch (or commit) to use.
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2 AS opbeans-dotnet
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1.100 AS opbeans-dotnet
 ARG DOTNET_AGENT_REPO=elastic/apm-agent-dotnet
 ARG DOTNET_AGENT_BRANCH=master
 ARG DOTNET_AGENT_VERSION=
