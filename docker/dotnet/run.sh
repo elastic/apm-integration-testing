@@ -17,6 +17,15 @@ if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
 
   ### Otherwise: /usr/share/dotnet/sdk/2.2.203/NuGet.targets(119,5): error : The local source '/src/local-packages' doesn't exist. [/src/dotnet-agent/ElasticApmAgent.sln]
   mkdir /src/local-packages
+
+  ### Errorlevels might happen when fetching PRs with some errors like: error: cannot lock ref 'refs/remotes/origin/pr/82/head': 'refs/remotes/origin/pr/82' exists; cannot create
+  ### Let's fail if something bad happens when building the agent from the source code
+  set -e
+  # Remove Full Framework projects
+  ## See https://github.com/elastic/apm-agent-dotnet/blob/480be30a699ba276ebd2a7055083e92f9f1e2207/.ci/linux/test.sh#L9-L11
+  dotnet sln remove sample/AspNetFullFrameworkSampleApp/AspNetFullFrameworkSampleApp.csproj
+  dotnet sln remove src/Elastic.Apm.AspNetFullFramework/Elastic.Apm.AspNetFullFramework.csproj
+  dotnet sln remove test/Elastic.Apm.AspNetFullFramework.Tests/Elastic.Apm.AspNetFullFramework.Tests.csproj
   dotnet restore
   dotnet pack -c Release -o /src/local-packages
 
