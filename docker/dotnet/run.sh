@@ -21,11 +21,15 @@ if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
   ### Errorlevels might happen when fetching PRs with some errors like: error: cannot lock ref 'refs/remotes/origin/pr/82/head': 'refs/remotes/origin/pr/82' exists; cannot create
   ### Let's fail if something bad happens when building the agent from the source code
   set -e
-  # Remove Full Framework projects
-  ## See https://github.com/elastic/apm-agent-dotnet/blob/480be30a699ba276ebd2a7055083e92f9f1e2207/.ci/linux/test.sh#L9-L11
-  dotnet sln remove sample/AspNetFullFrameworkSampleApp/AspNetFullFrameworkSampleApp.csproj
-  dotnet sln remove src/Elastic.Apm.AspNetFullFramework/Elastic.Apm.AspNetFullFramework.csproj
-  dotnet sln remove test/Elastic.Apm.AspNetFullFramework.Tests/Elastic.Apm.AspNetFullFramework.Tests.csproj
+  # Remove Full Framework projects with backward compatibility
+  if [ -e .ci/linux/remove-projects.sh ] ; then
+    .ci/linux/remove-projects.sh
+  else
+    ## See https://github.com/elastic/apm-agent-dotnet/blob/480be30a699ba276ebd2a7055083e92f9f1e2207/.ci/linux/test.sh#L9-L11
+    dotnet sln remove sample/AspNetFullFrameworkSampleApp/AspNetFullFrameworkSampleApp.csproj
+    dotnet sln remove src/Elastic.Apm.AspNetFullFramework/Elastic.Apm.AspNetFullFramework.csproj
+    dotnet sln remove test/Elastic.Apm.AspNetFullFramework.Tests/Elastic.Apm.AspNetFullFramework.Tests.csproj
+  fi
   dotnet restore
   dotnet pack -c Release -o /src/local-packages
 
