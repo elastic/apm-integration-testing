@@ -51,7 +51,7 @@ opbeans/opbeans-loadgen:latest
 opbeans/opbeans-node:latest
 opbeans/opbeans-python:latest
 opbeans/opbeans-ruby:latest
-openjdk:10-jre-slim
+adoptopenjdk:11-jre-hotspot
 php:7-alpine
 php:7.2-alpine
 php:7.3-alpine
