@@ -401,7 +401,7 @@ class LocalSetup(object):
 
     def run_docker_compose_process(self, docker_compose_cmd):
         try:
-            subprocess.call(docker_compose_cmd)
+            subprocess.check_call(docker_compose_cmd)
         except OSError as err:
             print('ERROR: Docker Compose might be missing. See below for further details.\n')
             raise OSError(err)
