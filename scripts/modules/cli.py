@@ -401,7 +401,7 @@ class LocalSetup(object):
 
     def run_docker_compose_process(self, docker_compose_cmd):
         try:
-            subprocess.call(docker_compose_cmd)
+            return subprocess.call(docker_compose_cmd)
         except OSError as err:
             print('ERROR: Docker Compose might be missing. See below for further details.\n')
             raise OSError(err)
@@ -506,6 +506,9 @@ class LocalSetup(object):
 
     def start_handler(self):
         args = vars(self.args)
+        returncode1 = 0
+        returncode2 = 0
+        returncode3 = 0
 
         if "version" not in args:
             # use stack-version directly if not supported, to allow use of specific releases, eg 6.2.3
@@ -614,7 +617,7 @@ class LocalSetup(object):
                     docker_compose_build.append("--no-cache")
                 if args["build_parallel"]:
                     docker_compose_build.append("--parallel")
-                self.run_docker_compose_process(docker_compose_build + build_services)
+                returncode1 = self.run_docker_compose_process(docker_compose_build + build_services)
 
             # pull any images
             image_services = [name for name, service in compose["services"].items() if
@@ -623,7 +626,7 @@ class LocalSetup(object):
                 pull_params = ["pull"]
                 if not sys.stdin.isatty():
                     pull_params.extend(["-q"])
-                self.run_docker_compose_process(docker_compose_cmd + pull_params + image_services)
+                returncode2 = self.run_docker_compose_process(docker_compose_cmd + pull_params + image_services)
 
             # really start
             up_params = ["up", "-d"]
@@ -631,7 +634,16 @@ class LocalSetup(object):
                 up_params.append("--remove-orphans")
             if not sys.stdin.isatty():
                 up_params.extend(["--quiet-pull"])
-            self.run_docker_compose_process(docker_compose_cmd + up_params)
+            returncode3 = self.run_docker_compose_process(docker_compose_cmd + up_params)
+
+            if returncode1 != 0:
+                sys.exit(returncode1)
+
+            if returncode2 != 0:
+                sys.exit(returncode2)
+
+            if returncode3 != 0:
+                sys.exit(returncode3)
 
     @staticmethod
     def status_handler():
