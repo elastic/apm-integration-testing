@@ -19,16 +19,14 @@ RUN cd /agent/apm-agent-java \
 COPY maven-package.sh /agent
 RUN ./maven-package.sh "${JAVA_AGENT_BUILT_VERSION}"
 
-FROM openjdk:10-jre-slim
+FROM openjdk:11-slim
 COPY --from=0 /app /app
 COPY --from=0 /agent/apm-agent.jar /app
 RUN apt-get -qq update \
-  && apt-get -qq install -y curl \
+  && apt-get -qq install -y --no-install-recommends curl \
   && apt-get -qq clean \
   && rm -fr /var/lib/apt/lists/*
 WORKDIR /app
 EXPOSE 8090
 ENV ELASTIC_APM_API_REQUEST_TIME 50ms
 CMD ["java", "-javaagent:/app/apm-agent.jar", "-Delastic.apm.service_name=springapp", "-Delastic.apm.application_packages=hello", "-Delastic.apm.max_queue_size=2048", "-Delastic.apm.ignore_urls=/healthcheck", "-jar","/app/target/hello-spring-0.1.jar"]
-
-
