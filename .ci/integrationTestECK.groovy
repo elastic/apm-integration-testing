@@ -95,7 +95,11 @@ pipeline {
                   dir("${EC_DIR}/ansible"){
                     withTestEnv(){
                       sh(label: "Deploy Cluster", script: "make create-cluster")
-                      sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${ELASTIC_STACK_VERSION}.html")
+                      sh(label: "Rename cluster-info folder", script: """
+                        if [ -f build/cluster-info.html ]; then
+                          mv build/cluster-info.html cluster-info-${ELASTIC_STACK_VERSION}.html
+                        fi
+                      """)
                       archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
                     }
                   }
