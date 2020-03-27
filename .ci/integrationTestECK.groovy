@@ -220,7 +220,7 @@ def withTestEnv(Closure body){
     "CONFIG_HOME=${env.WORKSPACE}",
     "VENV=${env.WORKSPACE}/.venv",
     "PATH=${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.VENV}/bin:${ecWs}/bin:${ecWs}/.ci/scripts:${env.PATH}",
-    "CLUSTER_CONFIG_FILE=${ecWs}/tests/environments/eck.yml",
+    "CLUSTER_CONFIG_FILE=${ecWs}/tests/environments/eck-kind.yml",
     "BUILD_NUMBER=${ params.destroy_mode ? params.build_num_to_destroy : env.BUILD_NUMBER}"
   ]){
     withVaultEnv(){
