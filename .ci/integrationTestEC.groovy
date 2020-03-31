@@ -41,10 +41,15 @@ pipeline {
       steps {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
-        gitCheckout(basedir: "${EC_DIR}", branch: 'current',
-          credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba',
-          repo: 'git@github.com:elastic/observability-test-environments.git'
-        )
+        dir("${EC_DIR}"){
+          checkout([$class: 'GitSCM', branches: [[name: "current"]],
+            doGenerateSubmoduleConfigurations: false,
+            userRemoteConfigs: [[
+              refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pr/*',
+              credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba',
+              url: 'git@github.com:elastic/observability-test-environments.git']]
+          ])
+        }
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
