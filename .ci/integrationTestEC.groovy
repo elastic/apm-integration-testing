@@ -41,12 +41,10 @@ pipeline {
       steps {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
-        dir("${EC_DIR}"){
-          git(branch: 'current',
-            credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba',
-            url: 'git@github.com:elastic/observability-test-environments.git'
-          )
-        }
+        gitCheckout(basedir: "${EC_DIR}", branch: 'current',
+          credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba',
+          repo: 'git@github.com:elastic/observability-test-environments.git'
+        )
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
