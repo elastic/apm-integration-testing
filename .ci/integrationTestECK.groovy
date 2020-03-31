@@ -34,6 +34,7 @@ pipeline {
     booleanParam(name: 'update_docker_images', defaultValue: true, description: 'Enable/Disable the Docker images update.')
     booleanParam(name: 'destroy_mode', defaultValue: false, description: 'Run the script in destroy mode to destroy any cluster provisioned and delete vault secrets.')
     string(name: 'build_num_to_destroy', defaultValue: "", description: "Build number to destroy, it is needed on destroy_mode")
+    choice(choices: ['eck-kind.yml', 'eck.yml'], description: 'Select the file to deploy the test environment (eck-kind.yml - Kind, eck.yml - GCP)', name: 'environment_file')
   }
   stages {
     /**
@@ -227,7 +228,7 @@ def withTestEnv(Closure body){
     "CONFIG_HOME=${env.WORKSPACE}",
     "VENV=${env.WORKSPACE}/.venv",
     "PATH=${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.VENV}/bin:${ecWs}/bin:${ecWs}/.ci/scripts:${env.PATH}",
-    "CLUSTER_CONFIG_FILE=${ecWs}/tests/environments/eck-kind.yml",
+    "CLUSTER_CONFIG_FILE=${ecWs}/tests/environments/${params.environment_file}",
     "BUILD_NUMBER=${ params.destroy_mode ? params.build_num_to_destroy : env.BUILD_NUMBER}"
   ]){
     withVaultEnv(){
