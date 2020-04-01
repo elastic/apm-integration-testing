@@ -260,6 +260,12 @@ def withConfigEnv(Closure body) {
   def apm = readJSON(text: apmJson)
   def kb = readJSON(text: kbJson)
 
+  if(params.environment_file == 'eck-kind.yml'){
+    es.url = 'https://elasticsearch.127.0.0.1.ip.es.io:443'
+    kb.url = 'https://kibana.127.0.0.1.ip.es.io:443'
+    apm.url = 'https://apm.127.0.0.1.ip.es.io:443'
+  }
+
   withEnvMask(vars: [
     [var: 'APM_SERVER_URL', password: apm.url],
     [var: 'ELASTIC_APM_SECRET_TOKEN', password: apm.token],
