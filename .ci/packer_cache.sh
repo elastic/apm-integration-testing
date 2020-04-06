@@ -7,13 +7,6 @@ DOCKER_IMAGES="alpine:3.4
 alpine:latest
 busybox:latest
 docker.elastic.co/beats-dev/fpm:1.11.0
-docker.elastic.co/beats-dev/golang-crossbuild:1.12.4-arm
-docker.elastic.co/beats-dev/golang-crossbuild:1.12.4-darwin
-docker.elastic.co/beats-dev/golang-crossbuild:1.12.4-main
-docker.elastic.co/beats-dev/golang-crossbuild:1.12.4-main-debian7
-docker.elastic.co/beats-dev/golang-crossbuild:1.12.4-mips
-docker.elastic.co/beats-dev/golang-crossbuild:1.12.4-ppc
-docker.elastic.co/beats-dev/golang-crossbuild:1.12.4-s390x
 docker.elastic.co/observability-ci/apm-integration-testing:daily
 docker.elastic.co/observability-ci/golang-mage:1.12.4
 docker.elastic.co/observability-ci/jruby:9.1-7-jdk
