@@ -4,16 +4,14 @@ ARG RUM_AGENT_BRANCH=master
 ARG RUM_AGENT_REPO=elastic/apm-agent-rum-js
 ARG APM_SERVER_URL
 
-RUN apt -qq update \
-    && apt -qq install -yq libgconf-2-4 \
-    && apt -qq install -y curl git --no-install-recommends \
+RUN apt update -qq \
+    && apt install -qq -y curl git gnupg libgconf-2-4 --no-install-recommends \
     && curl -sSfkL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && apt -qq update \
-    && apt -qq install -y google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst ttf-freefont python g++ build-essential \
+    && apt update -qq \
+    && apt install -qq -y google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst ttf-freefont python g++ build-essential \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
-    && apt -qq purge --auto-remove -y \
     && rm -rf /src/*.deb
 
 # It's a good idea to use dumb-init to help prevent zombie chrome processes.
