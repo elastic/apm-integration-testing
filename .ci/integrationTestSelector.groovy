@@ -141,6 +141,7 @@ pipeline {
         TMPDIR = "${WORKSPACE}"
         ENABLE_ES_DUMP = "true"
         PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
+        NAME = 'all'
       }
       steps {
         deleteDir()
@@ -162,6 +163,7 @@ pipeline {
       environment {
         TMPDIR = "${WORKSPACE}/${BASE_DIR}"
         HOME = "${WORKSPACE}/${BASE_DIR}"
+        NAME = 'ui'
       }
       steps {
         deleteDir()
@@ -188,6 +190,7 @@ pipeline {
         TMPDIR = "${WORKSPACE}"
         ENABLE_ES_DUMP = "true"
         PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
+        NAME = 'opbeans'
       }
       steps {
         deleteDir()
