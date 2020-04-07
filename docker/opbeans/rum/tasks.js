@@ -11,7 +11,7 @@ function sleep(ms) {
 
 async function run() {
   const browser = await puppeteer.launch({
-    args: ['--disable-dev-shm-usage'] // see https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#tips
+    args: ['--disable-dev-shm-usage', '--remote-debugging-port=9222'] // see https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#tips
   })
   const page = await browser.newPage()
   page.on('console', msg => console.log(
