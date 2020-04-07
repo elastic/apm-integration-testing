@@ -14,6 +14,8 @@
       numToKeep: 300
     node: linux
     concurrent: true
+    periodic-folder-trigger: 1w
+    prune-dead-branches: true
     publishers:
     - email:
         recipients: infra-root+build@elastic.co
