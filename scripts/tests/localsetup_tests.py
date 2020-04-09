@@ -226,8 +226,8 @@ class OpbeansServiceTest(ServiceTest):
 
     def test_opbeans_java_version(self):
         opbeans = OpbeansJava(opbeans_java_version="bar").render()["opbeans-java"]
-        branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_JAVA_VERSION")]
-        self.assertEqual(branch, ["OPBEANS_JAVA_VERSION=bar"])
+        version = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_JAVA_VERSION")]
+        self.assertEqual(version, ["OPBEANS_JAVA_VERSION=bar"])
 
     def test_opbeans_node(self):
         opbeans_node = OpbeansNode(version="6.2.4").render()
