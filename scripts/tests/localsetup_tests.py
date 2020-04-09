@@ -224,6 +224,11 @@ class OpbeansServiceTest(ServiceTest):
         branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_JAVA_IMAGE")]
         self.assertEqual(branch, ["OPBEANS_JAVA_IMAGE=foo"])
 
+    def test_opbeans_java_infer_spans(self):
+        opbeans = OpbeansJava(opbeans_java_infer_spans=True).render()["opbeans-java"]
+        infer = [e for e in opbeans["environment"] if e.startswith("ELASTIC_APM_PROFILING_INFERRED_SPANS_ENABLED")]
+        self.assertEqual(infer, ["ELASTIC_APM_PROFILING_INFERRED_SPANS_ENABLED=true"])
+
     def test_opbeans_java_version(self):
         opbeans = OpbeansJava(opbeans_java_version="bar").render()["opbeans-java"]
         version = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_JAVA_VERSION")]

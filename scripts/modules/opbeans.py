@@ -265,11 +265,18 @@ class OpbeansJava(OpbeansService):
             default=cls.DEFAULT_OPBEANS_VERSION,
             help=cls.name() + " version for the docker image of opbeans java"
         )
+        # only support by the java agent for now
+        parser.add_argument(
+            '--' + cls.name() + '-infer-spans',
+            action="store_true",
+            help=cls.name() + " enable inferred span collection"
+        )
 
     def __init__(self, **options):
         super(OpbeansJava, self).__init__(**options)
         self.opbeans_image = options.get('opbeans_java_image')
         self.opbeans_version = options.get('opbeans_java_version')
+        self.infer_spans = options.get('opbeans_java_infer_spans')
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
@@ -325,6 +332,8 @@ class OpbeansJava(OpbeansService):
             content["volumes"] = [
                 "{}:/local-install".format(self.agent_local_repo),
             ]
+        if self.infer_spans:
+            content["environment"].append("ELASTIC_APM_PROFILING_INFERRED_SPANS_ENABLED=true")
         return content
 
 
