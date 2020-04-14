@@ -17,7 +17,7 @@ class AgentRUMJS(Service):
         self.agent_repo = options.get("rum_agent_repo", self.DEFAULT_AGENT_REPO)
         if options.get("enable_apm_server", True):
             ## TODO: define the api key variable
-            if options.get("enable_api_key", True):
+            if options.get("enable_features", False):
                 service_name = "features"
                 self.env_file = [ ".env-api-key" ]
             else:
@@ -91,7 +91,7 @@ class AgentGoNetHttp(Service):
         self.agent_repo = options.get("go_agent_repo", self.DEFAULT_AGENT_REPO)
         if options.get("enable_apm_server", True):
             ## TODO: define the api key variable
-            if options.get("enable_api_key", True):
+            if options.get("enable_features", False):
                 service_name = "features"
                 self.env_file = [ ".env-api-key" ]
             else:
@@ -142,7 +142,7 @@ class AgentNodejsExpress(Service):
         self.agent_package = options.get("nodejs_agent_package", self.DEFAULT_AGENT_PACKAGE)
         if options.get("enable_apm_server", True):
             ## TODO: define the api key variable
-            if options.get("enable_api_key", True):
+            if options.get("enable_features", False):
                 service_name = "features"
                 self.env_file = [ ".env-api-key" ]
             else:
@@ -193,7 +193,7 @@ class AgentPython(Service):
         self.agent_package = options.get("python_agent_package", self.DEFAULT_AGENT_PACKAGE)
         if options.get("enable_apm_server", True):
             ## TODO: define the api key variable
-            if options.get("enable_api_key", True):
+            if options.get("enable_features", False):
                 service_name = "features"
                 self.env_file = [ ".env-api-key" ]
             else:
@@ -313,7 +313,7 @@ class AgentRubyRails(Service):
         self.agent_repo = options.get("ruby_agent_repo", self.DEFAULT_AGENT_REPO)
         if options.get("enable_apm_server", True):
             ## TODO: define the api key variable
-            if options.get("enable_api_key", True):
+            if options.get("enable_features", False):
                 service_name = "features"
                 self.env_file = [ ".env-api-key" ]
             else:
@@ -392,7 +392,7 @@ class AgentJavaSpring(Service):
         self.agent_repo = options.get("java_agent_repo", self.DEFAULT_AGENT_REPO)
         if options.get("enable_apm_server", True):
             ## TODO: define the api key variable
-            if options.get("enable_api_key", True):
+            if options.get("enable_features", False):
                 service_name = "features"
                 self.env_file = [ ".env-api-key" ]
             else:
@@ -464,7 +464,7 @@ class AgentDotnet(Service):
         self.agent_repo = options.get("dotnet_agent_repo", self.DEFAULT_AGENT_REPO)
         if options.get("enable_apm_server", True):
             ## TODO: define the api key variable
-            if options.get("enable_api_key", True):
+            if options.get("enable_features", False):
                 service_name = "features"
                 self.env_file = [ ".env-api-key" ]
             else:

@@ -111,7 +111,7 @@ class OpbeansDotnet(OpbeansService):
         depends_on = {}
         if self.options.get("enable_apm_server", True):
             ## TODO: define the api key variable
-            if options.get("enable_api_key", True):
+            if options.get("enable_features", False):
                 service_name = "features"
                 self.env_file = [ ".env-api-key" ]
             else:
@@ -201,7 +201,7 @@ class OpbeansGo(OpbeansService):
 
         if self.options.get("enable_apm_server", True):
             ## TODO: define the api key variable
-            if options.get("enable_api_key", True):
+            if options.get("enable_features", False):
                 service_name = "features"
                 self.env_file = [ ".env-api-key" ]
             else:
@@ -306,7 +306,7 @@ class OpbeansJava(OpbeansService):
 
         if self.options.get("enable_apm_server", True):
             ## TODO: define the api key variable
-            if options.get("enable_api_key", True):
+            if options.get("enable_features", False):
                 service_name = "features"
                 self.env_file = [ ".env-api-key" ]
             else:
@@ -410,7 +410,7 @@ class OpbeansNode(OpbeansService):
 
         if self.options.get("enable_apm_server", True):
             ## TODO: define the api key variable
-            if options.get("enable_api_key", True):
+            if options.get("enable_features", False):
                 service_name = "features"
                 self.env_file = [ ".env-api-key" ]
             else:
@@ -522,7 +522,7 @@ class OpbeansPython(OpbeansService):
 
         if self.options.get("enable_apm_server", True):
             ## TODO: define the api key variable
-            if options.get("enable_api_key", True):
+            if options.get("enable_features", False):
                 service_name = "features"
                 self.env_file = [ ".env-api-key" ]
             else:
@@ -627,7 +627,7 @@ class OpbeansRuby(OpbeansService):
 
         if self.options.get("enable_apm_server", True):
             ## TODO: define the api key variable
-            if options.get("enable_api_key", True):
+            if options.get("enable_features", False):
                 service_name = "features"
                 self.env_file = [ ".env-api-key" ]
             else:
