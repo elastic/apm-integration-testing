@@ -19,6 +19,7 @@ class AgentRUMJS(Service):
             ## TODO: define the api key variable
             if options.get("enable_api_key", True):
                 service_name = "features"
+                self.env_file = [ ".env-api-key" ]
             else:
                 service_name = "apm-server"
             self.depends_on = {
@@ -58,6 +59,7 @@ class AgentRUMJS(Service):
                 "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
                 "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
             },
+            env_file=self.env_file,
             depends_on=self.depends_on,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "rum", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
@@ -91,6 +93,7 @@ class AgentGoNetHttp(Service):
             ## TODO: define the api key variable
             if options.get("enable_api_key", True):
                 service_name = "features"
+                self.env_file = [ ".env-api-key" ]
             else:
                 service_name = "apm-server"
             self.depends_on = {
@@ -119,6 +122,7 @@ class AgentGoNetHttp(Service):
                 "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
                 "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
             },
+            env_file=self.env_file,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "gonethttpapp"),
             depends_on=self.depends_on,
             image=None,
@@ -140,6 +144,7 @@ class AgentNodejsExpress(Service):
             ## TODO: define the api key variable
             if options.get("enable_api_key", True):
                 service_name = "features"
+                self.env_file = [ ".env-api-key" ]
             else:
                 service_name = "apm-server"
             self.depends_on = {
@@ -174,6 +179,7 @@ class AgentNodejsExpress(Service):
                 "EXPRESS_SERVICE_NAME": "expressapp",
                 "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
             },
+            env_file=self.env_file,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
@@ -189,6 +195,7 @@ class AgentPython(Service):
             ## TODO: define the api key variable
             if options.get("enable_api_key", True):
                 service_name = "features"
+                self.env_file = [ ".env-api-key" ]
             else:
                 service_name = "apm-server"
             self.depends_on = {
@@ -230,6 +237,7 @@ class AgentPythonDjango(AgentPython):
                 "DJANGO_PORT": self.SERVICE_PORT,
                 "DJANGO_SERVICE_NAME": "djangoapp",
             },
+            env_file=self.env_file,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "djangoapp"),
             depends_on=self.depends_on,
             image=None,
@@ -262,6 +270,7 @@ class AgentPythonFlask(AgentPython):
                 "FLASK_SERVICE_NAME": "flaskapp",
                 "GUNICORN_CMD_ARGS": "-w 4 -b 0.0.0.0:{}".format(self.SERVICE_PORT),
             },
+            env_file=self.env_file,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "flaskapp"),
             depends_on=self.depends_on,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
@@ -306,6 +315,7 @@ class AgentRubyRails(Service):
             ## TODO: define the api key variable
             if options.get("enable_api_key", True):
                 service_name = "features"
+                self.env_file = [ ".env-api-key" ]
             else:
                 service_name = "apm-server"
             self.depends_on = {
@@ -340,6 +350,7 @@ class AgentRubyRails(Service):
                 "RUBY_AGENT_VERSION": self.agent_version,
                 "RUBY_AGENT_REPO": self.agent_repo,
             },
+            env_file=self.env_file,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "railsapp", retries=60),
             depends_on=self.depends_on,
             image=None,
@@ -383,6 +394,7 @@ class AgentJavaSpring(Service):
             ## TODO: define the api key variable
             if options.get("enable_api_key", True):
                 service_name = "features"
+                self.env_file = [ ".env-api-key" ]
             else:
                 service_name = "apm-server"
             self.depends_on = {
@@ -413,6 +425,7 @@ class AgentJavaSpring(Service):
                 "ELASTIC_APM_SERVICE_NAME": "springapp",
                 "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
             },
+            env_file=self.env_file,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "javaspring"),
             depends_on=self.depends_on,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
@@ -453,6 +466,7 @@ class AgentDotnet(Service):
             ## TODO: define the api key variable
             if options.get("enable_api_key", True):
                 service_name = "features"
+                self.env_file = [ ".env-api-key" ]
             else:
                 service_name = "apm-server"
             self.depends_on = {
@@ -483,6 +497,7 @@ class AgentDotnet(Service):
                 "ELASTIC_APM_SERVICE_NAME": "dotnetapp",
                 "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
             },
+            env_file=self.env_file,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "dotnetapp"),
             depends_on=self.depends_on,
             image=None,

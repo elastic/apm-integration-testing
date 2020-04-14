@@ -113,6 +113,7 @@ class OpbeansDotnet(OpbeansService):
             ## TODO: define the api key variable
             if options.get("enable_api_key", True):
                 service_name = "features"
+                self.env_file = [ ".env-api-key" ]
             else:
                 service_name = "apm-server"
             self.depends_on = {
@@ -146,6 +147,7 @@ class OpbeansDotnet(OpbeansService):
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
                 "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
+            env_file=self.env_file,
             depends_on=depends_on,
             image=None,
             labels=None,
@@ -201,6 +203,7 @@ class OpbeansGo(OpbeansService):
             ## TODO: define the api key variable
             if options.get("enable_api_key", True):
                 service_name = "features"
+                self.env_file = [ ".env-api-key" ]
             else:
                 service_name = "apm-server"
             self.depends_on = {
@@ -240,6 +243,7 @@ class OpbeansGo(OpbeansService):
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
                 "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
+            env_file=self.env_file,
             depends_on=depends_on,
             image=None,
             labels=None,
@@ -304,6 +308,7 @@ class OpbeansJava(OpbeansService):
             ## TODO: define the api key variable
             if options.get("enable_api_key", True):
                 service_name = "features"
+                self.env_file = [ ".env-api-key" ]
             else:
                 service_name = "apm-server"
             self.depends_on = {
@@ -343,6 +348,7 @@ class OpbeansJava(OpbeansService):
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
                 "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
+            env_file=self.env_file,
             depends_on=depends_on,
             image=None,
             labels=None,
@@ -406,6 +412,7 @@ class OpbeansNode(OpbeansService):
             ## TODO: define the api key variable
             if options.get("enable_api_key", True):
                 service_name = "features"
+                self.env_file = [ ".env-api-key" ]
             else:
                 service_name = "apm-server"
             self.depends_on = {
@@ -446,6 +453,7 @@ class OpbeansNode(OpbeansService):
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
                 "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
+            env_file=self.env_file,
             depends_on=depends_on,
             image=None,
             labels=None,
@@ -516,6 +524,7 @@ class OpbeansPython(OpbeansService):
             ## TODO: define the api key variable
             if options.get("enable_api_key", True):
                 service_name = "features"
+                self.env_file = [ ".env-api-key" ]
             else:
                 service_name = "apm-server"
             self.depends_on = {
@@ -556,6 +565,7 @@ class OpbeansPython(OpbeansService):
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
                 "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
+            env_file=self.env_file,
             depends_on=depends_on,
             image=None,
             labels=None,
@@ -619,6 +629,7 @@ class OpbeansRuby(OpbeansService):
             ## TODO: define the api key variable
             if options.get("enable_api_key", True):
                 service_name = "features"
+                self.env_file = [ ".env-api-key" ]
             else:
                 service_name = "apm-server"
             self.depends_on = {
@@ -654,6 +665,7 @@ class OpbeansRuby(OpbeansService):
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
                 "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
             ],
+            env_file=self.env_file,
             depends_on=depends_on,
             image=None,
             labels=None,
@@ -706,6 +718,7 @@ class OpbeansRum(Service):
                 "OPBEANS_BASE_URL=http://{}:{}".format(self.backend_service, self.backend_port),
                 "ELASTIC_APM_VERIFY_SERVER_CERT={}".format(str(not self.options.get("no_verify_server_cert")).lower()),
             ],
+            env_file=self.env_file,
             image=None,
             labels=None,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, path="/"),
@@ -759,6 +772,7 @@ class OpbeansLoadGenerator(Service):
                 "OPBEANS_URLS={}".format(','.join('{0}:http://{0}:3000'.format(s) for s in sorted(self.loadgen_services))),  # noqa: E501
                 "OPBEANS_RPMS={}".format(','.join('{}:{}'.format(k, v) for k, v in sorted(self.loadgen_rpms.items())))
             ],
+            env_file=self.env_file,
             labels=None,
         )
         return content

@@ -48,6 +48,8 @@ class Service(object):
 
         self.depends_on = {}
 
+        self.env_file = []
+
     @property
     def bc(self):
         return self._bc
