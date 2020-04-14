@@ -29,3 +29,6 @@ target/
 
 # For the docs generation
 .apm-its
+
+# .env-api-key is created on the fly for the apiKey
+.env-api-key

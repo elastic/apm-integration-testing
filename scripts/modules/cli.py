@@ -25,7 +25,7 @@ from .elastic_stack import (  # noqa: F401
     ApmServer, Elasticsearch, Kibana
 )
 from .aux_services import (  # noqa: F401
-    Kafka, Logstash, Postgres, Redis, Zookeeper
+    Kafka, Logstash, Postgres, Redis, Zookeeper, Features
 )
 from .opbeans import (  # noqa: F401
     OpbeansNode, OpbeansRuby, OpbeansPython, OpbeansDotnet,

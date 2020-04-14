@@ -116,3 +116,29 @@ class Zookeeper(Service):
             logging=None,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
+
+
+class Features(Service):
+
+    def _content(self):
+        return dict(
+            build={
+                "context": "docker/features",
+                "dockerfile": "Dockerfile"
+            },
+            container_name="features",
+            environment={
+                "ELASTIC_APM_API_KEY": "true"
+            },
+            healthcheck={
+                "interval": "2s",
+                "retries": 10,
+                "test": [
+                    "CMD-SHELL",
+                    "[ -f /tmp/ready ] && echo 'found' || exit 1"
+                ]
+            },
+            depends_on={"apm-server": {"condition": "service_healthy"}} if self.options.get(
+                "enable_apm_server", True) else {},
+            volumes=["./:/usr/share"]
+        )

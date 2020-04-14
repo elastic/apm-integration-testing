@@ -16,8 +16,13 @@ class AgentRUMJS(Service):
         self.agent_branch = options.get("rum_agent_branch", self.DEFAULT_AGENT_BRANCH)
         self.agent_repo = options.get("rum_agent_repo", self.DEFAULT_AGENT_REPO)
         if options.get("enable_apm_server", True):
+            ## TODO: define the api key variable
+            if options.get("enable_api_key", True):
+                service_name = "features"
+            else:
+                service_name = "apm-server"
             self.depends_on = {
-                "apm-server": {"condition": "service_healthy"},
+                service_name: {"condition": "service_healthy"},
             }
 
     @classmethod
@@ -83,8 +88,13 @@ class AgentGoNetHttp(Service):
         self.agent_version = options.get("go_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_repo = options.get("go_agent_repo", self.DEFAULT_AGENT_REPO)
         if options.get("enable_apm_server", True):
+            ## TODO: define the api key variable
+            if options.get("enable_api_key", True):
+                service_name = "features"
+            else:
+                service_name = "apm-server"
             self.depends_on = {
-                "apm-server": {"condition": "service_healthy"},
+                service_name: {"condition": "service_healthy"},
             }
 
     @add_agent_environment([
@@ -127,10 +137,14 @@ class AgentNodejsExpress(Service):
         super(AgentNodejsExpress, self).__init__(**options)
         self.agent_package = options.get("nodejs_agent_package", self.DEFAULT_AGENT_PACKAGE)
         if options.get("enable_apm_server", True):
+            ## TODO: define the api key variable
+            if options.get("enable_api_key", True):
+                service_name = "features"
+            else:
+                service_name = "apm-server"
             self.depends_on = {
-                "apm-server": {"condition": "service_healthy"},
+                service_name: {"condition": "service_healthy"},
             }
-
     @classmethod
     def add_arguments(cls, parser):
         super(AgentNodejsExpress, cls).add_arguments(parser)
@@ -172,8 +186,13 @@ class AgentPython(Service):
         super(AgentPython, self).__init__(**options)
         self.agent_package = options.get("python_agent_package", self.DEFAULT_AGENT_PACKAGE)
         if options.get("enable_apm_server", True):
+            ## TODO: define the api key variable
+            if options.get("enable_api_key", True):
+                service_name = "features"
+            else:
+                service_name = "apm-server"
             self.depends_on = {
-                "apm-server": {"condition": "service_healthy"},
+                service_name: {"condition": "service_healthy"},
             }
 
     @classmethod
@@ -284,8 +303,13 @@ class AgentRubyRails(Service):
         self.agent_version_state = options.get("ruby_agent_version_state", self.DEFAULT_AGENT_VERSION_STATE)
         self.agent_repo = options.get("ruby_agent_repo", self.DEFAULT_AGENT_REPO)
         if options.get("enable_apm_server", True):
+            ## TODO: define the api key variable
+            if options.get("enable_api_key", True):
+                service_name = "features"
+            else:
+                service_name = "apm-server"
             self.depends_on = {
-                "apm-server": {"condition": "service_healthy"},
+                service_name: {"condition": "service_healthy"},
             }
 
     @add_agent_environment([
@@ -356,8 +380,13 @@ class AgentJavaSpring(Service):
         self.agent_release = options.get("java_agent_release", self.DEFAULT_AGENT_RELEASE)
         self.agent_repo = options.get("java_agent_repo", self.DEFAULT_AGENT_REPO)
         if options.get("enable_apm_server", True):
+            ## TODO: define the api key variable
+            if options.get("enable_api_key", True):
+                service_name = "features"
+            else:
+                service_name = "apm-server"
             self.depends_on = {
-                "apm-server": {"condition": "service_healthy"},
+                service_name: {"condition": "service_healthy"},
             }
 
     @add_agent_environment([
@@ -421,8 +450,13 @@ class AgentDotnet(Service):
         self.agent_release = options.get("dotnet_agent_release", self.DEFAULT_AGENT_RELEASE)
         self.agent_repo = options.get("dotnet_agent_repo", self.DEFAULT_AGENT_REPO)
         if options.get("enable_apm_server", True):
+            ## TODO: define the api key variable
+            if options.get("enable_api_key", True):
+                service_name = "features"
+            else:
+                service_name = "apm-server"
             self.depends_on = {
-                "apm-server": {"condition": "service_healthy"},
+                service_name: {"condition": "service_healthy"},
             }
 
     @add_agent_environment([

@@ -110,7 +110,14 @@ class OpbeansDotnet(OpbeansService):
     def _content(self):
         depends_on = {}
         if self.options.get("enable_apm_server", True):
-            depends_on["apm-server"] = {"condition": "service_healthy"}
+            ## TODO: define the api key variable
+            if options.get("enable_api_key", True):
+                service_name = "features"
+            else:
+                service_name = "apm-server"
+            self.depends_on = {
+                service_name: {"condition": "service_healthy"},
+            }
         if self.options.get("enable_elasticsearch", True):
             depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
@@ -191,7 +198,14 @@ class OpbeansGo(OpbeansService):
         }
 
         if self.options.get("enable_apm_server", True):
-            depends_on["apm-server"] = {"condition": "service_healthy"}
+            ## TODO: define the api key variable
+            if options.get("enable_api_key", True):
+                service_name = "features"
+            else:
+                service_name = "apm-server"
+            self.depends_on = {
+                service_name: {"condition": "service_healthy"},
+            }
         if self.options.get("enable_elasticsearch", True):
             depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
@@ -287,7 +301,14 @@ class OpbeansJava(OpbeansService):
         }
 
         if self.options.get("enable_apm_server", True):
-            depends_on["apm-server"] = {"condition": "service_healthy"}
+            ## TODO: define the api key variable
+            if options.get("enable_api_key", True):
+                service_name = "features"
+            else:
+                service_name = "apm-server"
+            self.depends_on = {
+                service_name: {"condition": "service_healthy"},
+            }
         if self.options.get("enable_elasticsearch", True):
             depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
@@ -382,7 +403,14 @@ class OpbeansNode(OpbeansService):
         }
 
         if self.options.get("enable_apm_server", True):
-            depends_on["apm-server"] = {"condition": "service_healthy"}
+            ## TODO: define the api key variable
+            if options.get("enable_api_key", True):
+                service_name = "features"
+            else:
+                service_name = "apm-server"
+            self.depends_on = {
+                service_name: {"condition": "service_healthy"},
+            }
 
         content = dict(
             build=dict(
@@ -485,7 +513,14 @@ class OpbeansPython(OpbeansService):
         }
 
         if self.options.get("enable_apm_server", True):
-            depends_on["apm-server"] = {"condition": "service_healthy"}
+            ## TODO: define the api key variable
+            if options.get("enable_api_key", True):
+                service_name = "features"
+            else:
+                service_name = "apm-server"
+            self.depends_on = {
+                service_name: {"condition": "service_healthy"},
+            }
         if self.options.get("enable_elasticsearch", True):
             depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
@@ -581,7 +616,14 @@ class OpbeansRuby(OpbeansService):
         }
 
         if self.options.get("enable_apm_server", True):
-            depends_on["apm-server"] = {"condition": "service_healthy"}
+            ## TODO: define the api key variable
+            if options.get("enable_api_key", True):
+                service_name = "features"
+            else:
+                service_name = "apm-server"
+            self.depends_on = {
+                service_name: {"condition": "service_healthy"},
+            }
         if self.options.get("enable_elasticsearch", True):
             depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
