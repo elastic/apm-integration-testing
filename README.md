@@ -397,3 +397,29 @@ Test all the docker images for the Opbeans
 Test all the docker images for the agents
 
     make -C docker all-agents-tests
+
+
+### Use Cases
+
+Some of the uses cases that are not fully automated and required some manual actions.
+
+#### To run Agents using an ApiKey
+
+Run the script to start only Elasticsearch:
+
+```bash
+python scripts/compose.py start 8.0.0 --no-apm-server --no-kibana
+```
+
+Then, run the script to generate the API key:
+
+```bash
+apiKey=$(scripts/create-api-key.sh)
+echo $apiKey
+```
+
+Finally, run the apm-its with the required services and the flag `--elastic-apm-api-key ${apiKey}`, for instance:
+
+```bash
+python scripts/compose.py start 8.0.0 --with-agent-dotnet --elastic-apm-api-key ${apiKey}
+```
