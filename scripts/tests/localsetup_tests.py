@@ -1429,3 +1429,27 @@ class LocalTest(unittest.TestCase):
         for ver, want in cases:
             got = parse_version(ver)
             self.assertEqual(want, got)
+
+    @mock.patch(cli.__name__ + ".load_images")
+    def test_elasticsearch_tls(self, _ignore_load_images):
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--elasticsearch-enable-tls"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        services = set(got["services"])
+        self.assertIn("elasticsearch", services)
+
+        elasticsearch = got["services"]["elasticsearch"]
+        self.assertIn("xpack.security.http.ssl.enabled=true", elasticsearch["environment"])
+        self.assertIn("xpack.security.transport.ssl.enabled=true", elasticsearch["environment"])
+        self.assertIn("xpack.security.http.ssl.enabled=true", elasticsearch["environment"])
+        self.assertIn("xpack.security.http.ssl.enabled=true", elasticsearch["environment"])
+        self.assertIn("xpack.security.http.ssl.key=/usr/share/elasticsearch/config/certs/tls.key", elasticsearch["environment"])
+        self.assertIn("xpack.security.http.ssl.certificate=/usr/share/elasticsearch/config/certs/tls.crt", elasticsearch["environment"])
+        self.assertIn("xpack.security.http.ssl.certificate_authorities=/usr/share/elasticsearch/config/certs/tls.crt", elasticsearch["environment"])
+        self.assertIn("xpack.security.transport.ssl.key=/usr/share/elasticsearch/config/certs/tls.key", elasticsearch["environment"])
+        self.assertIn("xpack.security.transport.ssl.certificate=/usr/share/elasticsearch/config/certs/tls.crt", elasticsearch["environment"])
+        self.assertIn("xpack.security.transport.ssl.certificate_authorities=/usr/share/elasticsearch/config/certs/tls.crt", elasticsearch["environment"])

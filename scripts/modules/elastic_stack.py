@@ -603,8 +603,8 @@ class Elasticsearch(StackService, Service):
             if self.at_least_version("6.3"):
                 self.environment.append("xpack.monitoring.collection.enabled=true")
             if self.options.get("elasticsearch_enable_tls"):
-                certs = "/usr/share/apm-server/config/certs/tls.crt"
-                certsKey = "/usr/share/apm-server/config/certs/tls.key"
+                certs = "/usr/share/elasticsearch/config/certs/tls.crt"
+                certsKey = "/usr/share/elasticsearch/config/certs/tls.key"
                 self.environment.append("xpack.security.http.ssl.enabled=true")
                 self.environment.append("xpack.security.transport.ssl.enabled=true")
                 self.environment.append("xpack.security.http.ssl.key=" + certsKey)
