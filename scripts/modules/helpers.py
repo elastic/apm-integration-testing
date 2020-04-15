@@ -152,13 +152,18 @@ def _set_slowlog_json(password):
 
 
 def curl_healthcheck(port, host="localhost", path="/healthcheck",
-                     interval=DEFAULT_HEALTHCHECK_INTERVAL, retries=DEFAULT_HEALTHCHECK_RETRIES):
+                     interval=DEFAULT_HEALTHCHECK_INTERVAL, retries=DEFAULT_HEALTHCHECK_RETRIES, https=False):
+
+    protocol = 'http'
+    if https:
+        protocol = 'https'
+
     return {
         "interval": interval,
         "retries": retries,
-        "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent",
+        "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent",
                  "--output", "/dev/null",
-                 "http://{}:{}{}".format(host, port, path)]
+                 "{}://{}:{}{}".format(protocol, host, port, path)]
     }
 
 

@@ -462,22 +462,7 @@ class ApmServer(StackService, Service):
             ])
 
             content.update({
-                "healthcheck": {
-                    "interval": "10s",
-                    "retries": 12,
-                    "test": [
-                        "CMD",
-                        "curl",
-                        "--write-out",
-                        "'HTTP %{http_code}'",
-                        "--fail",
-                        "--silent",
-                        "--output",
-                        "/dev/null",
-                        "-k",
-                        "https://localhost:8200/"
-                    ]
-                },
+                "healthcheck": curl_healthcheck(self.SERVICE_PORT, path="/", interval="10s", retries=12, https=True)
             })
 
         overwrite_pipeline_path = self.options.get("apm_server_pipeline_path")
@@ -666,6 +651,7 @@ class Elasticsearch(StackService, Service):
                 "./docker/elasticsearch/users:/usr/share/elasticsearch/config/users",
                 "./docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles",
             ])
+
         return dict(
             environment=self.environment,
             healthcheck={
@@ -733,6 +719,7 @@ class Kibana(StackService, Service):
         )
 
     def _content(self):
+
         return dict(
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/api/status", retries=20),
             depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
