@@ -705,7 +705,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: '20'
                     retries: 10
-                    test: [CMD-SHELL, 'curl -s http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
+                    test: [CMD-SHELL, 'curl -s -k http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
                 image: docker.elastic.co/elasticsearch/elasticsearch-platinum:6.2.10-SNAPSHOT
                 labels: [co.elastic.apm.stack-version=6.2.10]
                 logging:
@@ -783,7 +783,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: '20'
                     retries: 10
-                    test: [CMD-SHELL, 'curl -s http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
+                    test: [CMD-SHELL, 'curl -s -k http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
                 image: docker.elastic.co/elasticsearch/elasticsearch:6.3.10-SNAPSHOT
                 labels: [co.elastic.apm.stack-version=6.3.10]
                 logging:
@@ -897,7 +897,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: '20'
                     retries: 10
-                    test: [CMD-SHELL, 'curl -s http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
+                    test: [CMD-SHELL, 'curl -s -k http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
                 image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0-SNAPSHOT
                 labels: [co.elastic.apm.stack-version=8.0.0]
                 logging:

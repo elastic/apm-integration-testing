@@ -602,6 +602,17 @@ class Elasticsearch(StackService, Service):
             self.environment.append("xpack.license.self_generated.type=trial")
             if self.at_least_version("6.3"):
                 self.environment.append("xpack.monitoring.collection.enabled=true")
+            if self.options.get("elasticsearch_enable_tls"):
+                certs = "/usr/share/apm-server/config/certs/tls.crt"
+                certsKey = "/usr/share/apm-server/config/certs/tls.key"
+                self.environment.append("xpack.security.http.ssl.enabled=true")
+                self.environment.append("xpack.security.transport.ssl.enabled=true")
+                self.environment.append("xpack.security.http.ssl.key=" + certsKey)
+                self.environment.append("xpack.security.http.ssl.certificate=" + certs)
+                self.environment.append("xpack.security.http.ssl.certificate_authorities=" + certs)
+                self.environment.append("xpack.security.transport.ssl.key=" + certsKey)
+                self.environment.append("xpack.security.transport.ssl.certificate=" + certs)
+                self.environment.append("xpack.security.transport.ssl.certificate_authorities=" + certs)
 
     @classmethod
     def add_arguments(cls, parser):
@@ -609,6 +620,13 @@ class Elasticsearch(StackService, Service):
         parser.add_argument(
             "--elasticsearch-data-dir",
             help="override elasticsearch data dir.  Defaults to the current es version."
+        )
+
+        parser.add_argument(
+            '--elasticsearch-enable-tls',
+            action="store_true",
+            dest="elasticsearch_enable_tls",
+            help="elasticsearch enable TLS with pre-configured selfsigned certificates.",
         )
 
         parser.add_argument(
@@ -651,13 +669,22 @@ class Elasticsearch(StackService, Service):
                 "./docker/elasticsearch/users:/usr/share/elasticsearch/config/users",
                 "./docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles",
             ])
+        if self.options.get("elasticsearch_enable_tls"):
+            volumes.extend([
+                "./scripts/tls/cert.crt:/usr/share/elasticsearch/config/certs/tls.crt",
+                "./scripts/tls/key.pem:/usr/share/elasticsearch/config/certs/tls.key"
+            ])
 
+        protocol = 'http'
+        if self.options.get("elasticsearch_enable_tls"):
+            protocol = 'https'
+        entrypoint = "{}://localhost:9200/_cluster/health".format(protocol)
         return dict(
             environment=self.environment,
             healthcheck={
                 "interval": "20",
                 "retries": 10,
-                "test": ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -vq '\"status\":\"red\"'"],
+                "test": ["CMD-SHELL", "curl -s -k {} | grep -vq '\"status\":\"red\"'".format(entrypoint)]
             },
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
             ulimits={
