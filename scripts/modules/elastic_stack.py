@@ -388,6 +388,11 @@ class ApmServer(StackService, Service):
             default="1ms",
             help="change the index refresh interval (default 1ms)",
         )
+        parser.add_argument(
+            '--elastic-apm-api-key',
+            dest='elastic_apm_api_key',
+            help='API Key to authenticate against the APM server.'
+        )
 
     def build_candidate_manifest(self):
         version = self.version
