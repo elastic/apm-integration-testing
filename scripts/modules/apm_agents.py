@@ -34,7 +34,7 @@ class AgentRUMJS(Service):
         )
 
     def _content(self):
-        default_environment={
+        default_environment = {
             "ELASTIC_APM_SERVICE_NAME": "rum",
             "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
             "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
@@ -97,7 +97,7 @@ class AgentGoNetHttp(Service):
         ("apm_server_url", "ELASTIC_APM_SERVER_URL"),
     ])
     def _content(self):
-        default_environment={
+        default_environment = {
             "ELASTIC_APM_API_REQUEST_TIME": "3s",
             "ELASTIC_APM_FLUSH_INTERVAL": "500ms",
             "ELASTIC_APM_SERVICE_NAME": "gonethttpapp",
@@ -155,7 +155,7 @@ class AgentNodejsExpress(Service):
         ("apm_server_url", "ELASTIC_APM_SERVER_URL"),
     ])
     def _content(self):
-        default_environment={
+        default_environment = {
             "EXPRESS_PORT": str(self.SERVICE_PORT),
             "EXPRESS_SERVICE_NAME": "expressapp",
             "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
@@ -217,7 +217,7 @@ class AgentPythonDjango(AgentPython):
         ("apm_server_url", "APM_SERVER_URL"),
     ])
     def _content(self):
-        default_environment={
+        default_environment = {
             "DJANGO_PORT": self.SERVICE_PORT,
             "DJANGO_SERVICE_NAME": "djangoapp",
         }
@@ -252,7 +252,7 @@ class AgentPythonFlask(AgentPython):
         ("apm_server_url", "APM_SERVER_URL"),
     ])
     def _content(self):
-        default_environment={
+        default_environment = {
             "FLASK_SERVICE_NAME": "flaskapp",
             "GUNICORN_CMD_ARGS": "-w 4 -b 0.0.0.0:{}".format(self.SERVICE_PORT),
         }
@@ -317,7 +317,7 @@ class AgentRubyRails(Service):
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
     ])
     def _content(self):
-        default_environment={
+        default_environment = {
             "APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
             "ELASTIC_APM_API_REQUEST_TIME": "3s",
             "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
@@ -395,7 +395,7 @@ class AgentJavaSpring(Service):
         ("apm_server_url", "ELASTIC_APM_SERVER_URL"),
     ])
     def _content(self):
-        default_environment={
+        default_environment = {
             "ELASTIC_APM_API_REQUEST_TIME": "3s",
             "ELASTIC_APM_SERVICE_NAME": "springapp",
             "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
@@ -465,7 +465,7 @@ class AgentDotnet(Service):
         ("apm_server_url", "ELASTIC_APM_SERVER_URLS"),
     ])
     def _content(self):
-        default_environment={
+        default_environment = {
             "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
             "ELASTIC_APM_API_REQUEST_TIME": "3s",
             "ELASTIC_APM_FLUSH_INTERVAL": "5",
