@@ -20,12 +20,6 @@ class AgentRUMJS(Service):
                 "apm-server": {"condition": "service_healthy"},
             }
 
-        self.environment = self.api_key_environment + [
-            "ELASTIC_APM_SERVICE_NAME=rum",
-            "ELASTIC_APM_SERVER_URL=" + self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
-            "ELASTIC_APM_VERIFY_SERVER_CERT=" + str(not self.options.get("no_verify_server_cert")).lower(),
-        ]
-
     @classmethod
     def add_arguments(cls, parser):
         super(AgentRUMJS, cls).add_arguments(parser)
@@ -40,6 +34,15 @@ class AgentRUMJS(Service):
         )
 
     def _content(self):
+        default_environment={
+            "ELASTIC_APM_SERVICE_NAME": "rum",
+            "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
+            "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
+        }
+        environment = default_environment
+        if self.apm_api_key:
+            environment.update(self.apm_api_key)
+
         return dict(
             build=dict(
                 context="docker/rum",
@@ -54,7 +57,7 @@ class AgentRUMJS(Service):
             image=None,
             labels=None,
             logging=None,
-            environment=self.environment,
+            environment=environment,
             depends_on=self.depends_on,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "rum", path="/"),
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
@@ -88,19 +91,23 @@ class AgentGoNetHttp(Service):
             self.depends_on = {
                 "apm-server": {"condition": "service_healthy"},
             }
-        self.environment = self.api_key_environment + [
-            "ELASTIC_APM_API_REQUEST_TIME=3s",
-            "ELASTIC_APM_FLUSH_INTERVAL=500ms",
-            "ELASTIC_APM_SERVICE_NAME=gonethttpapp",
-            "ELASTIC_APM_TRANSACTION_IGNORE_NAMES=healthcheck",
-            "ELASTIC_APM_VERIFY_SERVER_CERT=" + str(not self.options.get("no_verify_server_cert")).lower(),
-        ]
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
         ("apm_server_url", "ELASTIC_APM_SERVER_URL"),
     ])
     def _content(self):
+        default_environment={
+            "ELASTIC_APM_API_REQUEST_TIME": "3s",
+            "ELASTIC_APM_FLUSH_INTERVAL": "500ms",
+            "ELASTIC_APM_SERVICE_NAME": "gonethttpapp",
+            "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
+            "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
+        }
+        environment = default_environment
+        if self.apm_api_key:
+            environment.update(self.apm_api_key)
+
         return dict(
             build={
                 "context": "docker/go/nethttp",
@@ -111,7 +118,7 @@ class AgentGoNetHttp(Service):
                 },
             },
             container_name="gonethttpapp",
-            environment=self.environment,
+            environment=environment,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "gonethttpapp"),
             depends_on=self.depends_on,
             image=None,
@@ -133,11 +140,6 @@ class AgentNodejsExpress(Service):
             self.depends_on = {
                 "apm-server": {"condition": "service_healthy"},
             }
-        self.environment = self.api_key_environment + [
-            "EXPRESS_PORT=" + str(self.SERVICE_PORT),
-            "EXPRESS_SERVICE_NAME=expressapp",
-            "ELASTIC_APM_VERIFY_SERVER_CERT=" + str(not self.options.get("no_verify_server_cert")).lower(),
-        ]
 
     @classmethod
     def add_arguments(cls, parser):
@@ -153,6 +155,15 @@ class AgentNodejsExpress(Service):
         ("apm_server_url", "ELASTIC_APM_SERVER_URL"),
     ])
     def _content(self):
+        default_environment={
+            "EXPRESS_PORT": str(self.SERVICE_PORT),
+            "EXPRESS_SERVICE_NAME": "expressapp",
+            "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
+        }
+        environment = default_environment
+        if self.apm_api_key:
+            environment.update(self.apm_api_key)
+
         return dict(
             build={"context": "docker/nodejs/express", "dockerfile": "Dockerfile"},
             command="bash -c \"npm install {} && node app.js\"".format(
@@ -163,7 +174,7 @@ class AgentNodejsExpress(Service):
             image=None,
             labels=None,
             logging=None,
-            environment=self.environment,
+            environment=environment,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
 
@@ -179,7 +190,6 @@ class AgentPython(Service):
             self.depends_on = {
                 "apm-server": {"condition": "service_healthy"},
             }
-        self.environment = self.api_key_environment
 
     @classmethod
     def add_arguments(cls, parser):
@@ -207,15 +217,20 @@ class AgentPythonDjango(AgentPython):
         ("apm_server_url", "APM_SERVER_URL"),
     ])
     def _content(self):
+        default_environment={
+            "DJANGO_PORT": self.SERVICE_PORT,
+            "DJANGO_SERVICE_NAME": "djangoapp",
+        }
+        environment = default_environment
+        if self.apm_api_key:
+            environment.update(self.apm_api_key)
+
         ret = dict(
             build={"context": "docker/python/django", "dockerfile": "Dockerfile"},
             command="bash -c \"pip install -q -U {} && python testapp/manage.py runserver 0.0.0.0:{}\"".format(
                 self.agent_package, self.SERVICE_PORT),
             container_name="djangoapp",
-            environment=self.environment + [
-                "DJANGO_PORT=" + self.SERVICE_PORT,
-                "DJANGO_SERVICE_NAME=djangoapp",
-            ],
+            environment=environment,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "djangoapp"),
             depends_on=self.depends_on,
             image=None,
@@ -237,6 +252,14 @@ class AgentPythonFlask(AgentPython):
         ("apm_server_url", "APM_SERVER_URL"),
     ])
     def _content(self):
+        default_environment={
+            "FLASK_SERVICE_NAME": "flaskapp",
+            "GUNICORN_CMD_ARGS": "-w 4 -b 0.0.0.0:{}".format(self.SERVICE_PORT),
+        }
+        environment = default_environment
+        if self.apm_api_key:
+            environment.update(self.apm_api_key)
+
         ret = dict(
             build={"context": "docker/python/flask", "dockerfile": "Dockerfile"},
             command="bash -c \"pip install -q -U {} && gunicorn app:app\"".format(self.agent_package),
@@ -244,10 +267,7 @@ class AgentPythonFlask(AgentPython):
             image=None,
             labels=None,
             logging=None,
-            environment=self.environment + [
-                "FLASK_SERVICE_NAME=flaskapp",
-                "GUNICORN_CMD_ARGS=-w 4 -b 0.0.0.0:{}".format(self.SERVICE_PORT)
-            ],
+            environment=environment,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "flaskapp"),
             depends_on=self.depends_on,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
@@ -292,23 +312,27 @@ class AgentRubyRails(Service):
             self.depends_on = {
                 "apm-server": {"condition": "service_healthy"},
             }
-        self.environment = self.api_key_environment + [
-            "APM_SERVER_URL=" + self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
-            "ELASTIC_APM_API_REQUEST_TIME=3s",
-            "ELASTIC_APM_SERVER_URL=" + self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
-            "ELASTIC_APM_VERIFY_SERVER_CERT=" + str(not self.options.get("no_verify_server_cert")).lower(),
-            "ELASTIC_APM_SERVICE_NAME=railsapp",
-            "RAILS_PORT=" + str(self.SERVICE_PORT),
-            "RAILS_SERVICE_NAME=railsapp",
-            "RUBY_AGENT_VERSION_STATE=" + self.agent_version_state,
-            "RUBY_AGENT_VERSION=" + self.agent_version,
-            "RUBY_AGENT_REPO=" + self.agent_repo
-        ]
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
     ])
     def _content(self):
+        default_environment={
+            "APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
+            "ELASTIC_APM_API_REQUEST_TIME": "3s",
+            "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
+            "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
+            "ELASTIC_APM_SERVICE_NAME": "railsapp",
+            "RAILS_PORT": self.SERVICE_PORT,
+            "RAILS_SERVICE_NAME": "railsapp",
+            "RUBY_AGENT_VERSION_STATE": self.agent_version_state,
+            "RUBY_AGENT_VERSION": self.agent_version,
+            "RUBY_AGENT_REPO": self.agent_repo,
+        }
+        environment = default_environment
+        if self.apm_api_key:
+            environment.update(self.apm_api_key)
+
         return dict(
             build={
                 "context": "docker/ruby/rails",
@@ -321,7 +345,7 @@ class AgentRubyRails(Service):
             command="bash -c \"bundle install && RAILS_ENV=production bundle exec rails s -b 0.0.0.0 -p {}\"".format(
                 self.SERVICE_PORT),
             container_name="railsapp",
-            environment=self.environment,
+            environment=environment,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "railsapp", retries=60),
             depends_on=self.depends_on,
             image=None,
@@ -365,17 +389,21 @@ class AgentJavaSpring(Service):
             self.depends_on = {
                 "apm-server": {"condition": "service_healthy"},
             }
-        self.environment = self.api_key_environment + [
-            "ELASTIC_APM_API_REQUEST_TIME=3s",
-            "ELASTIC_APM_SERVICE_NAME=springapp",
-            "ELASTIC_APM_VERIFY_SERVER_CERT=" + str(not self.options.get("no_verify_server_cert")).lower()
-        ]
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
         ("apm_server_url", "ELASTIC_APM_SERVER_URL"),
     ])
     def _content(self):
+        default_environment={
+            "ELASTIC_APM_API_REQUEST_TIME": "3s",
+            "ELASTIC_APM_SERVICE_NAME": "springapp",
+            "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
+        }
+        environment = default_environment
+        if self.apm_api_key:
+            environment.update(self.apm_api_key)
+
         return dict(
             build={
                 "context": "docker/java/spring",
@@ -390,7 +418,7 @@ class AgentJavaSpring(Service):
             image=None,
             labels=None,
             logging=None,
-            environment=self.environment,
+            environment=environment,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "javaspring"),
             depends_on=self.depends_on,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
@@ -431,20 +459,23 @@ class AgentDotnet(Service):
             self.depends_on = {
                 "apm-server": {"condition": "service_healthy"},
             }
-        self.environment = self.api_key_environment + [
-            "ELASTIC_APM_VERIFY_SERVER_CERT=" + str(not self.options.get("no_verify_server_cert")).lower(),
-            "ELASTIC_APM_API_REQUEST_TIME=3s",
-            "ELASTIC_APM_FLUSH_INTERVAL=5",
-            "ELASTIC_APM_TRANSACTION_SAMPLE_RATE=1",
-            "ELASTIC_APM_SERVICE_NAME=dotnetapp",
-            "ELASTIC_APM_TRANSACTION_IGNORE_NAMES=healthcheck"
-        ]
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
         ("apm_server_url", "ELASTIC_APM_SERVER_URLS"),
     ])
     def _content(self):
+        default_environment={
+            "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
+            "ELASTIC_APM_API_REQUEST_TIME": "3s",
+            "ELASTIC_APM_FLUSH_INTERVAL": "5",
+            "ELASTIC_APM_TRANSACTION_SAMPLE_RATE": "1",
+            "ELASTIC_APM_SERVICE_NAME": "dotnetapp",
+            "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
+        }
+        environment = default_environment
+        if self.apm_api_key:
+            environment.update(self.apm_api_key)
 
         return dict(
             build={
@@ -457,7 +488,7 @@ class AgentDotnet(Service):
                 },
             },
             container_name="dotnetapp",
-            environment=self.environment,
+            environment=environment,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "dotnetapp"),
             depends_on=self.depends_on,
             image=None,
