@@ -69,6 +69,14 @@ class AgentServiceTest(ServiceTest):
         agent = AgentGoNetHttp(enable_apm_server=False).render()["agent-go-net-http"]
         self.assertFalse("apm-server" in agent["depends_on"])
 
+    def test_agent_go_apm_api_key_with_old_version_apm_server(self):
+        agent = AgentGoNetHttp(version="6.3.100", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-go-net-http"]
+        self.assertFalse("ELASTIC_APM_API_KEY" in agent["environment"])
+
+    def test_agent_go_apm_api_key_with_apm_server(self):
+        agent = AgentGoNetHttp(version="7.6", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-go-net-http"]
+        self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
+
     def test_agent_nodejs_express(self):
         agent = AgentNodejsExpress().render()
         self.assertDictEqual(
@@ -110,6 +118,14 @@ class AgentServiceTest(ServiceTest):
         agent = AgentNodejsExpress(enable_apm_server=False).render()["agent-nodejs-express"]
         self.assertFalse("apm-server" in agent["depends_on"])
 
+    def test_agent_nodejs_express_apm_api_key_with_old_version_apm_server(self):
+        agent = AgentNodejsExpress(version="6.3.100", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-nodejs-express"]
+        self.assertFalse("ELASTIC_APM_API_KEY" in agent["environment"])
+
+    def test_agent_nodejs_express_apm_api_key_with_apm_server(self):
+        agent = AgentNodejsExpress(version="7.6", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-nodejs-express"]
+        self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
+
     def test_agent_python_django(self):
         agent = AgentPythonDjango().render()
         self.assertDictEqual(
@@ -147,6 +163,14 @@ class AgentServiceTest(ServiceTest):
         agent = AgentPythonDjango(enable_apm_server=False).render()["agent-python-django"]
         self.assertFalse("apm-server" in agent["depends_on"])
 
+    def test_agent_python_django_apm_api_key_with_old_version_apm_server(self):
+        agent = AgentPythonDjango(version="6.3.100", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-python-django"]
+        self.assertFalse("ELASTIC_APM_API_KEY" in agent["environment"])
+
+    def test_agent_python_django_apm_api_key_with_apm_server(self):
+        agent = AgentPythonDjango(version="7.6", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-python-django"]
+        self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
+
     def test_agent_python_flask(self):
         agent = AgentPythonFlask(version="6.2.4").render()
         self.assertDictEqual(
@@ -183,6 +207,14 @@ class AgentServiceTest(ServiceTest):
 
         agent = AgentPythonFlask(enable_apm_server=False).render()["agent-python-flask"]
         self.assertFalse("apm-server" in agent["depends_on"])
+
+    def test_agent_python_flask_apm_api_key_with_old_version_apm_server(self):
+        agent = AgentPythonFlask(version="6.3.100", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-python-flask"]
+        self.assertFalse("ELASTIC_APM_API_KEY" in agent["environment"])
+
+    def test_agent_python_flask_apm_api_key_with_apm_server(self):
+        agent = AgentPythonFlask(version="7.6", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-python-flask"]
+        self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
 
     def test_agent_ruby_rails(self):
         agent = AgentRubyRails().render()
@@ -243,6 +275,14 @@ class AgentServiceTest(ServiceTest):
         agent = AgentRubyRails(enable_apm_server=False).render()["agent-ruby-rails"]
         self.assertFalse("apm-server" in agent["depends_on"])
 
+    def test_agent_ruby_apm_api_key_with_old_version_apm_server(self):
+        agent = AgentRubyRails(version="6.3.100", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-ruby-rails"]
+        self.assertFalse("ELASTIC_APM_API_KEY" in agent["environment"])
+
+    def test_agent_ruby_apm_api_key_with_apm_server(self):
+        agent = AgentRubyRails(version="7.6", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-ruby-rails"]
+        self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
+
     def test_agent_java_spring(self):
         agent = AgentJavaSpring().render()
         self.assertDictEqual(
@@ -295,6 +335,14 @@ class AgentServiceTest(ServiceTest):
 
         agent = AgentJavaSpring(enable_apm_server=False).render()["agent-java-spring"]
         self.assertFalse("apm-server" in agent["depends_on"])
+
+    def test_agent_java_apm_api_key_with_old_version_apm_server(self):
+        agent = AgentJavaSpring(version="6.3.100", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-java-spring"]
+        self.assertFalse("ELASTIC_APM_API_KEY" in agent["environment"])
+
+    def test_agent_java_apm_api_key_with_apm_server(self):
+        agent = AgentJavaSpring(version="7.6", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-java-spring"]
+        self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
 
     def test_agent_dotnet(self):
         agent = AgentDotnet().render()
@@ -351,6 +399,14 @@ class AgentServiceTest(ServiceTest):
 
         agent = AgentDotnet(enable_apm_server=False).render()["agent-dotnet"]
         self.assertFalse("apm-server" in agent["depends_on"])
+
+    def test_agent_dotnet_apm_api_key_with_old_version_apm_server(self):
+        agent = AgentDotnet(version="6.3.100", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-dotnet"]
+        self.assertFalse("ELASTIC_APM_API_KEY" in agent["environment"])
+
+    def test_agent_dotnet_apm_api_key_with_apm_server(self):
+        agent = AgentDotnet(version="7.6", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-dotnet"]
+        self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
 
 
 class ApmServerServiceTest(ServiceTest):
