@@ -712,7 +712,7 @@ class Kibana(StackService, Service):
             self.docker_name = self.name() + "-x-pack"
         self.environment = self.default_environment.copy()
 
-        default_es_hosts = [self.default_elasticsearch_hosts(isTls=self.options.get("kibana_enable_tls", False))]
+        default_es_hosts = self.default_elasticsearch_hosts(isTls=self.options.get("kibana_enable_tls", False))
         urls = self.options.get("kibana_elasticsearch_urls") or [default_es_hosts]
         self.environment["ELASTICSEARCH_URL"] = ",".join(urls)
 
