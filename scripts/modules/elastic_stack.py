@@ -671,9 +671,9 @@ class Elasticsearch(StackService, Service):
             ])
         if self.options.get("elasticsearch_enable_tls"):
             volumes.extend([
-                "./scripts/tls/elasticsearch/cert.crt:/usr/share/elasticsearch/config/certs/tls.crt",
-                "./scripts/tls/elasticsearch/key.pem:/usr/share/elasticsearch/config/certs/tls.key",
-                "./scripts/tls/ca/cert.crt:/usr/share/elasticsearch/config/certs/ca.crt"
+                "./scripts/tls/elasticsearch/elasticsearch.crt:/usr/share/elasticsearch/config/certs/tls.crt",
+                "./scripts/tls/elasticsearch/elasticsearch.key:/usr/share/elasticsearch/config/certs/tls.key",
+                "./scripts/tls/ca/ca.crt:/usr/share/elasticsearch/config/certs/ca.crt"
             ])
 
         protocol = 'http'
@@ -771,9 +771,9 @@ class Kibana(StackService, Service):
         volumes = []
         if self.options.get("kibana_enable_tls"):
             volumes.extend([
-                "./scripts/tls/kibana/cert.crt:/usr/share/kibana/config/certs/tls.crt",
-                "./scripts/tls/kibana/key.pem:/usr/share/kibana/config/certs/tls.key",
-                "./scripts/tls/ca/cert.crt:/usr/share/kibana/config/certs/ca.crt"
+                "./scripts/tls/kibana/kibana.crt:/usr/share/kibana/config/certs/tls.crt",
+                "./scripts/tls/kibana/kibana.key:/usr/share/kibana/config/certs/tls.key",
+                "./scripts/tls/ca/ca.crt:/usr/share/kibana/config/certs/ca.crt"
             ])
 
         content = dict(
