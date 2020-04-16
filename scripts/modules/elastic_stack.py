@@ -671,8 +671,7 @@ class Elasticsearch(StackService, Service):
             ])
         if self.options.get("elasticsearch_enable_tls"):
             volumes.extend([
-                "./scripts/tls/cert.crt:/usr/share/elasticsearch/config/certs/tls.crt",
-                "./scripts/tls/key.pem:/usr/share/elasticsearch/config/certs/tls.key"
+                "./scripts/tls/elasticsearch:/usr/share/elasticsearch/config/certs"
             ])
 
         protocol = 'http'
@@ -769,8 +768,7 @@ class Kibana(StackService, Service):
         volumes = []
         if self.options.get("kibana_enable_tls"):
             volumes.extend([
-                "./scripts/tls/cert.crt:/usr/share/kibana/config/certs/tls.crt",
-                "./scripts/tls/key.pem:/usr/share/kibana/config/certs/tls.key"
+                "./scripts/tls/kibana:/usr/share/kibana/config/certs",
             ])
 
         content = dict(
