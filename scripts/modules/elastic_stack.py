@@ -457,7 +457,8 @@ class ApmServer(StackService, Service):
         volumes = []
         if self.options.get("apm_server_enable_tls"):
             volumes.extend([
-                "./scripts/tls/apm-server:/usr/share/apm-server/config/certs",
+                "./scripts/tls/apm-server/cert.crt:/usr/share/apm-server/config/certs/tls.crt",
+                "./scripts/tls/apm-server/key.pem:/usr/share/apm-server/config/certs/tls.key"
             ])
 
             content.update({
