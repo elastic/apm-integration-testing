@@ -1453,3 +1453,25 @@ class LocalTest(unittest.TestCase):
         self.assertIn("xpack.security.transport.ssl.key=/usr/share/elasticsearch/config/certs/tls.key", elasticsearch["environment"])
         self.assertIn("xpack.security.transport.ssl.certificate=/usr/share/elasticsearch/config/certs/tls.crt", elasticsearch["environment"])
         self.assertIn("xpack.security.transport.ssl.certificate_authorities=/usr/share/elasticsearch/config/certs/tls.crt", elasticsearch["environment"])
+
+    @mock.patch(cli.__name__ + ".load_images")
+    def test_kibana_tls(self, _ignore_load_images):
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--kibana-enable-tls"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        services = set(got["services"])
+        self.assertIn("kibana", services)
+
+        kibana = got["services"]["kibana"]
+
+        certs = "/usr/share/kibana/config/certs/tls.crt"
+        certsKey = "/usr/share/kibana/config/certs/tls.key"
+        self.assertIn("true", kibana["environment"]["SERVER_SSL_ENABLED"])
+        self.assertIn(certs, kibana["environment"]["SERVER_SSL_CERTIFICATE"])
+        self.assertIn(certsKey, kibana["environment"]["SERVER_SSL_KEY"])
+        self.assertIn(certs, kibana["environment"]["ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES"])
+        self.assertIn("https://kibana:5601/api/status", kibana["healthcheck"]["test"])

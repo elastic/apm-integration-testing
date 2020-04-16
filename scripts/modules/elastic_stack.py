@@ -727,6 +727,14 @@ class Kibana(StackService, Service):
             if self.at_least_version("7.6"):
                 if not options.get("no_kibana_apm_servicemaps"):
                     self.environment["XPACK_APM_SERVICEMAPENABLED"] = "true"
+            if self.options.get("kibana_enable_tls"):
+                certs = "/usr/share/kibana/config/certs/tls.crt"
+                certsKey = "/usr/share/kibana/config/certs/tls.key"
+                self.environment["SERVER_SSL_ENABLED"] = "true"
+                self.environment["SERVER_SSL_CERTIFICATE"] = certs
+                self.environment["SERVER_SSL_KEY"] = certsKey
+                self.environment["ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES"] = certs
+
         urls = self.options.get("kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS]
         self.environment["ELASTICSEARCH_URL"] = ",".join(urls)
 
@@ -740,20 +748,40 @@ class Kibana(StackService, Service):
         )
 
         parser.add_argument(
+            '--kibana-enable-tls',
+            action="store_true",
+            dest="kibana_enable_tls",
+            help="kibana enable TLS with pre-configured selfsigned certificates.",
+        )
+
+        parser.add_argument(
             "--no-kibana-apm-servicemaps",
             action="store_true",
             help="disable the APM service maps UI",
         )
 
     def _content(self):
+        isHttps = self.options.get("kibana_enable_tls", False)
 
-        return dict(
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/api/status", retries=20),
+        volumes = []
+        if self.options.get("kibana_enable_tls"):
+            volumes.extend([
+                "./scripts/tls/cert.crt:/usr/share/kibana/config/certs/tls.crt",
+                "./scripts/tls/key.pem:/usr/share/kibana/config/certs/tls.key"
+            ])
+
+        content = dict(
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/api/status", retries=20, https=isHttps),
             depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
                 "enable_elasticsearch", True) else {},
             environment=self.environment,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
+
+        if volumes:
+            content["volumes"] = volumes
+
+        return content
 
     @staticmethod
     def enabled():
