@@ -705,9 +705,14 @@ class Kibana(StackService, Service):
 
     def __init__(self, **options):
         super(Kibana, self).__init__(**options)
+
         if not self.at_least_version("6.3") and not self.oss:
             self.docker_name = self.name() + "-x-pack"
         self.environment = self.default_environment.copy()
+
+        urls = self.options.get("kibana_elasticsearch_urls") or [self.default_elasticsearch_hosts(isTls=self.options.get("kibana_enable_tls", False))]
+        self.environment["ELASTICSEARCH_URL"] = ",".join(urls)
+
         if not self.oss:
             self.environment["XPACK_MONITORING_ENABLED"] = "true"
             if self.at_least_version("6.3"):
@@ -734,9 +739,7 @@ class Kibana(StackService, Service):
                 self.environment["SERVER_SSL_CERTIFICATE"] = certs
                 self.environment["SERVER_SSL_KEY"] = certsKey
                 self.environment["ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES"] = certs
-
-        urls = self.options.get("kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS]
-        self.environment["ELASTICSEARCH_URL"] = ",".join(urls)
+                self.environment["ELASTICSEARCH_HOSTS"] = ",".join(urls)
 
     @classmethod
     def add_arguments(cls, parser):
