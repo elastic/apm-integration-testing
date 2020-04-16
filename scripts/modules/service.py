@@ -48,6 +48,13 @@ class Service(object):
 
         self.depends_on = {}
 
+        self.apm_api_key = {}
+        if self.options.get("elastic_apm_api_key"):
+            if self.at_least_version("7.6"):
+                self.apm_api_key = {"ELASTIC_APM_API_KEY": options.get("elastic_apm_api_key")}
+            else:
+                print('WARNING: elastic_apm_api_key is not supported for the current version. Use version +7.6.')
+
     @property
     def bc(self):
         return self._bc
