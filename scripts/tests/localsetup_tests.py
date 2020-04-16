@@ -1443,16 +1443,19 @@ class LocalTest(unittest.TestCase):
         self.assertIn("elasticsearch", services)
 
         elasticsearch = got["services"]["elasticsearch"]
+        certs = "/usr/share/elasticsearch/config/certs/tls.crt"
+        certsKey = "/usr/share/elasticsearch/config/certs/tls.key"
+        caCerts = "/usr/share/elasticsearch/config/certs/ca.crt"
         self.assertIn("xpack.security.http.ssl.enabled=true", elasticsearch["environment"])
         self.assertIn("xpack.security.transport.ssl.enabled=true", elasticsearch["environment"])
         self.assertIn("xpack.security.http.ssl.enabled=true", elasticsearch["environment"])
         self.assertIn("xpack.security.http.ssl.enabled=true", elasticsearch["environment"])
-        self.assertIn("xpack.security.http.ssl.key=/usr/share/elasticsearch/config/certs/tls.key", elasticsearch["environment"])
-        self.assertIn("xpack.security.http.ssl.certificate=/usr/share/elasticsearch/config/certs/tls.crt", elasticsearch["environment"])
-        self.assertIn("xpack.security.http.ssl.certificate_authorities=/usr/share/elasticsearch/config/certs/tls.crt", elasticsearch["environment"])
-        self.assertIn("xpack.security.transport.ssl.key=/usr/share/elasticsearch/config/certs/tls.key", elasticsearch["environment"])
-        self.assertIn("xpack.security.transport.ssl.certificate=/usr/share/elasticsearch/config/certs/tls.crt", elasticsearch["environment"])
-        self.assertIn("xpack.security.transport.ssl.certificate_authorities=/usr/share/elasticsearch/config/certs/tls.crt", elasticsearch["environment"])
+        self.assertIn("xpack.security.http.ssl.key=" + certsKey, elasticsearch["environment"])
+        self.assertIn("xpack.security.http.ssl.certificate=" + certs, elasticsearch["environment"])
+        self.assertIn("xpack.security.http.ssl.certificate_authorities=" + caCerts, elasticsearch["environment"])
+        self.assertIn("xpack.security.transport.ssl.key=" + certsKey, elasticsearch["environment"])
+        self.assertIn("xpack.security.transport.ssl.certificate=" + certs, elasticsearch["environment"])
+        self.assertIn("xpack.security.transport.ssl.certificate_authorities=" + caCerts, elasticsearch["environment"])
         self.assertIn("curl -s -k https://localhost:9200/_cluster/health | grep -vq '\"status\":\"red\"'", elasticsearch["healthcheck"]["test"])
 
     @mock.patch(cli.__name__ + ".load_images")
@@ -1468,11 +1471,11 @@ class LocalTest(unittest.TestCase):
         self.assertIn("kibana", services)
 
         kibana = got["services"]["kibana"]
-
         certs = "/usr/share/kibana/config/certs/tls.crt"
         certsKey = "/usr/share/kibana/config/certs/tls.key"
+        caCerts = "/usr/share/kibana/config/certs/ca.crt"
         self.assertIn("true", kibana["environment"]["SERVER_SSL_ENABLED"])
         self.assertIn(certs, kibana["environment"]["SERVER_SSL_CERTIFICATE"])
         self.assertIn(certsKey, kibana["environment"]["SERVER_SSL_KEY"])
-        self.assertIn(certs, kibana["environment"]["ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES"])
+        self.assertIn(caCerts, kibana["environment"]["ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES"])
         self.assertIn("https://kibana:5601/api/status", kibana["healthcheck"]["test"])

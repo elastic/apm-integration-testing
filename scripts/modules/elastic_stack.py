@@ -604,14 +604,15 @@ class Elasticsearch(StackService, Service):
             if self.options.get("elasticsearch_enable_tls"):
                 certs = "/usr/share/elasticsearch/config/certs/tls.crt"
                 certsKey = "/usr/share/elasticsearch/config/certs/tls.key"
+                caCerts = "/usr/share/elasticsearch/config/certs/ca.crt"
                 self.environment.append("xpack.security.http.ssl.enabled=true")
                 self.environment.append("xpack.security.transport.ssl.enabled=true")
                 self.environment.append("xpack.security.http.ssl.key=" + certsKey)
                 self.environment.append("xpack.security.http.ssl.certificate=" + certs)
-                self.environment.append("xpack.security.http.ssl.certificate_authorities=" + certs)
+                self.environment.append("xpack.security.http.ssl.certificate_authorities=" + caCerts)
                 self.environment.append("xpack.security.transport.ssl.key=" + certsKey)
                 self.environment.append("xpack.security.transport.ssl.certificate=" + certs)
-                self.environment.append("xpack.security.transport.ssl.certificate_authorities=" + certs)
+                self.environment.append("xpack.security.transport.ssl.certificate_authorities=" + caCerts)
 
     @classmethod
     def add_arguments(cls, parser):
@@ -670,7 +671,9 @@ class Elasticsearch(StackService, Service):
             ])
         if self.options.get("elasticsearch_enable_tls"):
             volumes.extend([
-                "./scripts/tls/elasticsearch:/usr/share/elasticsearch/config/certs"
+                "./scripts/tls/elasticsearch/cert.crt:/usr/share/elasticsearch/config/certs/tls.crt",
+                "./scripts/tls/elasticsearch/key.pem:/usr/share/elasticsearch/config/certs/tls.key",
+                "./scripts/tls/ca/cert.crt:/usr/share/elasticsearch/config/certs/ca.crt"
             ])
 
         protocol = 'http'
@@ -733,10 +736,11 @@ class Kibana(StackService, Service):
             if self.options.get("kibana_enable_tls"):
                 certs = "/usr/share/kibana/config/certs/tls.crt"
                 certsKey = "/usr/share/kibana/config/certs/tls.key"
+                caCerts = "/usr/share/kibana/config/certs/ca.crt"
                 self.environment["SERVER_SSL_ENABLED"] = "true"
                 self.environment["SERVER_SSL_CERTIFICATE"] = certs
                 self.environment["SERVER_SSL_KEY"] = certsKey
-                self.environment["ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES"] = certs
+                self.environment["ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES"] = caCerts
                 self.environment["ELASTICSEARCH_HOSTS"] = ",".join(urls)
 
     @classmethod
@@ -767,7 +771,9 @@ class Kibana(StackService, Service):
         volumes = []
         if self.options.get("kibana_enable_tls"):
             volumes.extend([
-                "./scripts/tls/kibana:/usr/share/kibana/config/certs",
+                "./scripts/tls/kibana/cert.crt:/usr/share/kibana/config/certs/tls.crt",
+                "./scripts/tls/kibana/key.pem:/usr/share/kibana/config/certs/tls.key",
+                "./scripts/tls/ca/cert.crt:/usr/share/kibana/config/certs/ca.crt"
             ])
 
         content = dict(
