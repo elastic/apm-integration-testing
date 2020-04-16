@@ -257,4 +257,46 @@ make test-agent-python
 
 Testing unrelease code for other agents follows a simliar pattern.
 
-See `version*` in https://github.com/elastic/apm-integration-testing/tree/master/scripts/ci for details on how CI tests specific agent/elastic stack version combinations.
+See `version*` in https://github.com/elastic/apm-integration-testing/tree/master/.ci/scripts for details on how CI tests specific agent/elastic stack version combinations.
+
+### Testing docker images
+
+Tests are written using [bats](https://github.com/sstephenson/bats) under the docker/tests dir
+
+    make -C docker test-<app>
+    make -C docker test-opbeans-<agent>
+    make -C docker test-<agent>
+
+Test all the docker images for the Opbeans
+
+    make -C docker all-opbeans-tests
+
+Test all the docker images for the agents
+
+    make -C docker all-agents-tests
+
+
+### Use Cases
+
+Some of the uses cases that are not fully automated and required some manual actions.
+
+#### To run Agents using an ApiKey
+
+Run the script to start only Elasticsearch:
+
+```bash
+python scripts/compose.py start 8.0.0 --no-apm-server --no-kibana
+```
+
+Then, run the script to generate the API key:
+
+```bash
+apiKey=$(scripts/create-api-key.sh)
+echo $apiKey
+```
+
+Finally, run the apm-its with the required services and the flag `--elastic-apm-api-key ${apiKey}`, for instance:
+
+```bash
+python scripts/compose.py start 8.0.0 --with-agent-dotnet --elastic-apm-api-key ${apiKey}
+```
