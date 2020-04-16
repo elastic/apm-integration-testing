@@ -1453,6 +1453,7 @@ class LocalTest(unittest.TestCase):
         self.assertIn("xpack.security.transport.ssl.key=/usr/share/elasticsearch/config/certs/tls.key", elasticsearch["environment"])
         self.assertIn("xpack.security.transport.ssl.certificate=/usr/share/elasticsearch/config/certs/tls.crt", elasticsearch["environment"])
         self.assertIn("xpack.security.transport.ssl.certificate_authorities=/usr/share/elasticsearch/config/certs/tls.crt", elasticsearch["environment"])
+        self.assertIn("curl -s -k https://localhost:9200/_cluster/health | grep -vq '\"status\":\"red\"'", elasticsearch["healthcheck"]["test"])
 
     @mock.patch(cli.__name__ + ".load_images")
     def test_kibana_tls(self, _ignore_load_images):
