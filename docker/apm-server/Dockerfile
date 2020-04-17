@@ -30,7 +30,6 @@ FROM ${apm_server_base_image}
 ENV SRC=/go/src/github.com/elastic/apm-server
 COPY --from=build ${SRC}/apm-server /usr/share/apm-server/apm-server
 COPY --from=build ${SRC}/apm-server.yml /usr/share/apm-server/apm-server.yml
-COPY --from=build ${SRC}/fields.yml /usr/share/apm-server/fields.yml
 
 CMD ./apm-server -e -d "*"
 
