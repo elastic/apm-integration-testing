@@ -462,27 +462,12 @@ class ApmServer(StackService, Service):
         volumes = []
         if self.options.get("apm_server_enable_tls"):
             volumes.extend([
-                "./scripts/tls/cert.crt:/usr/share/apm-server/config/certs/tls.crt",
-                "./scripts/tls/key.pem:/usr/share/apm-server/config/certs/tls.key"
+                "./scripts/tls/apm-server/cert.crt:/usr/share/apm-server/config/certs/tls.crt",
+                "./scripts/tls/apm-server/key.pem:/usr/share/apm-server/config/certs/tls.key"
             ])
 
             content.update({
-                "healthcheck": {
-                    "interval": "10s",
-                    "retries": 12,
-                    "test": [
-                        "CMD",
-                        "curl",
-                        "--write-out",
-                        "'HTTP %{http_code}'",
-                        "--fail",
-                        "--silent",
-                        "--output",
-                        "/dev/null",
-                        "-k",
-                        "https://localhost:8200/"
-                    ]
-                },
+                "healthcheck": curl_healthcheck(self.SERVICE_PORT, path="/", interval="10s", retries=12, https=True)
             })
 
         overwrite_pipeline_path = self.options.get("apm_server_pipeline_path")
@@ -622,6 +607,18 @@ class Elasticsearch(StackService, Service):
             self.environment.append("xpack.license.self_generated.type=trial")
             if self.at_least_version("6.3"):
                 self.environment.append("xpack.monitoring.collection.enabled=true")
+            if self.options.get("elasticsearch_enable_tls"):
+                certs = "/usr/share/elasticsearch/config/certs/tls.crt"
+                certsKey = "/usr/share/elasticsearch/config/certs/tls.key"
+                caCerts = "/usr/share/elasticsearch/config/certs/ca.crt"
+                self.environment.append("xpack.security.http.ssl.enabled=true")
+                self.environment.append("xpack.security.transport.ssl.enabled=true")
+                self.environment.append("xpack.security.http.ssl.key=" + certsKey)
+                self.environment.append("xpack.security.http.ssl.certificate=" + certs)
+                self.environment.append("xpack.security.http.ssl.certificate_authorities=" + caCerts)
+                self.environment.append("xpack.security.transport.ssl.key=" + certsKey)
+                self.environment.append("xpack.security.transport.ssl.certificate=" + certs)
+                self.environment.append("xpack.security.transport.ssl.certificate_authorities=" + caCerts)
 
     @classmethod
     def add_arguments(cls, parser):
@@ -629,6 +626,13 @@ class Elasticsearch(StackService, Service):
         parser.add_argument(
             "--elasticsearch-data-dir",
             help="override elasticsearch data dir.  Defaults to the current es version."
+        )
+
+        parser.add_argument(
+            '--elasticsearch-enable-tls',
+            action="store_true",
+            dest="elasticsearch_enable_tls",
+            help="elasticsearch enable TLS with pre-configured selfsigned certificates.",
         )
 
         parser.add_argument(
@@ -671,12 +675,23 @@ class Elasticsearch(StackService, Service):
                 "./docker/elasticsearch/users:/usr/share/elasticsearch/config/users",
                 "./docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles",
             ])
+        if self.options.get("elasticsearch_enable_tls"):
+            volumes.extend([
+                "./scripts/tls/elasticsearch/elasticsearch.crt:/usr/share/elasticsearch/config/certs/tls.crt",
+                "./scripts/tls/elasticsearch/elasticsearch.key:/usr/share/elasticsearch/config/certs/tls.key",
+                "./scripts/tls/ca/ca.crt:/usr/share/elasticsearch/config/certs/ca.crt"
+            ])
+
+        protocol = 'http'
+        if self.options.get("elasticsearch_enable_tls"):
+            protocol = 'https'
+        entrypoint = "{}://localhost:9200/_cluster/health".format(protocol)
         return dict(
             environment=self.environment,
             healthcheck={
                 "interval": "20",
                 "retries": 10,
-                "test": ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -vq '\"status\":\"red\"'"],
+                "test": ["CMD-SHELL", "curl -s -k {} | grep -vq '\"status\":\"red\"'".format(entrypoint)]
             },
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
             ulimits={
@@ -697,9 +712,15 @@ class Kibana(StackService, Service):
 
     def __init__(self, **options):
         super(Kibana, self).__init__(**options)
+
         if not self.at_least_version("6.3") and not self.oss:
             self.docker_name = self.name() + "-x-pack"
         self.environment = self.default_environment.copy()
+
+        default_es_hosts = self.default_elasticsearch_hosts(isTls=self.options.get("kibana_enable_tls", False))
+        urls = self.options.get("kibana_elasticsearch_urls") or [default_es_hosts]
+        self.environment["ELASTICSEARCH_URL"] = ",".join(urls)
+
         if not self.oss:
             self.environment["XPACK_MONITORING_ENABLED"] = "true"
             if self.at_least_version("6.3"):
@@ -719,8 +740,15 @@ class Kibana(StackService, Service):
             if self.at_least_version("7.6"):
                 if not options.get("no_kibana_apm_servicemaps"):
                     self.environment["XPACK_APM_SERVICEMAPENABLED"] = "true"
-        urls = self.options.get("kibana_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS]
-        self.environment["ELASTICSEARCH_URL"] = ",".join(urls)
+            if self.options.get("kibana_enable_tls"):
+                certs = "/usr/share/kibana/config/certs/tls.crt"
+                certsKey = "/usr/share/kibana/config/certs/tls.key"
+                caCerts = "/usr/share/kibana/config/certs/ca.crt"
+                self.environment["SERVER_SSL_ENABLED"] = "true"
+                self.environment["SERVER_SSL_CERTIFICATE"] = certs
+                self.environment["SERVER_SSL_KEY"] = certsKey
+                self.environment["ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES"] = caCerts
+                self.environment["ELASTICSEARCH_HOSTS"] = ",".join(urls)
 
     @classmethod
     def add_arguments(cls, parser):
@@ -732,19 +760,41 @@ class Kibana(StackService, Service):
         )
 
         parser.add_argument(
+            '--kibana-enable-tls',
+            action="store_true",
+            dest="kibana_enable_tls",
+            help="kibana enable TLS with pre-configured selfsigned certificates.",
+        )
+
+        parser.add_argument(
             "--no-kibana-apm-servicemaps",
             action="store_true",
             help="disable the APM service maps UI",
         )
 
     def _content(self):
-        return dict(
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/api/status", retries=20),
+        isHttps = self.options.get("kibana_enable_tls", False)
+
+        volumes = []
+        if self.options.get("kibana_enable_tls"):
+            volumes.extend([
+                "./scripts/tls/kibana/kibana.crt:/usr/share/kibana/config/certs/tls.crt",
+                "./scripts/tls/kibana/kibana.key:/usr/share/kibana/config/certs/tls.key",
+                "./scripts/tls/ca/ca.crt:/usr/share/kibana/config/certs/ca.crt"
+            ])
+
+        content = dict(
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/api/status", retries=20, https=isHttps),
             depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
                 "enable_elasticsearch", True) else {},
             environment=self.environment,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
+
+        if volumes:
+            content["volumes"] = volumes
+
+        return content
 
     @staticmethod
     def enabled():

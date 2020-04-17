@@ -85,7 +85,7 @@ class OpbeansServiceTest(ServiceTest):
                       apm-server:
                         condition: service_healthy
                     healthcheck:
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-dotnet:3000/"]
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-dotnet:3000/"]
                         interval: 10s
                         retries: 36""")
         )
@@ -214,7 +214,7 @@ class OpbeansServiceTest(ServiceTest):
                       apm-server:
                         condition: service_healthy
                     healthcheck:
-                      test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-java:3000/"]
+                      test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-java:3000/"]
                       interval: 10s
                       retries: 36""")  # noqa: 501
         )
@@ -358,7 +358,7 @@ class OpbeansServiceTest(ServiceTest):
                         redis:
                             condition: service_healthy
                     healthcheck:
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-python:3000/"]
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-python:3000/"]
                         interval: 10s
                         retries: 12
             """)  # noqa: 501
@@ -486,7 +486,7 @@ class OpbeansServiceTest(ServiceTest):
                          opbeans-node:
                              condition: service_healthy
                      healthcheck:
-                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output", "/dev/null", "http://localhost:9222/"]
+                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:9222/"]
                          interval: 10s
                          retries: 12""")  # noqa: 501
         )
@@ -691,7 +691,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: 10s
                     retries: 12
-                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', -k, --fail, --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
                 image: docker.elastic.co/apm/apm-server:6.2.10-SNAPSHOT
                 labels: [co.elastic.apm.stack-version=6.2.10]
                 logging:
@@ -705,7 +705,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: '20'
                     retries: 10
-                    test: [CMD-SHELL, 'curl -s http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
+                    test: [CMD-SHELL, 'curl -s -k http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
                 image: docker.elastic.co/elasticsearch/elasticsearch-platinum:6.2.10-SNAPSHOT
                 labels: [co.elastic.apm.stack-version=6.2.10]
                 logging:
@@ -724,7 +724,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: 10s
                     retries: 20
-                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', -k, --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
                 image: docker.elastic.co/kibana/kibana-x-pack:6.2.10-SNAPSHOT
                 labels: [co.elastic.apm.stack-version=6.2.10]
                 logging:
@@ -769,7 +769,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: 10s
                     retries: 12
-                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', -k, --fail, --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
                 image: docker.elastic.co/apm/apm-server:6.3.10-SNAPSHOT
                 labels: [co.elastic.apm.stack-version=6.3.10]
                 logging:
@@ -783,7 +783,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: '20'
                     retries: 10
-                    test: [CMD-SHELL, 'curl -s http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
+                    test: [CMD-SHELL, 'curl -s -k http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
                 image: docker.elastic.co/elasticsearch/elasticsearch:6.3.10-SNAPSHOT
                 labels: [co.elastic.apm.stack-version=6.3.10]
                 logging:
@@ -802,7 +802,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: 10s
                     retries: 20
-                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', -k, --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
                 image: docker.elastic.co/kibana/kibana:6.3.10-SNAPSHOT
                 labels: [co.elastic.apm.stack-version=6.3.10]
                 logging:
@@ -866,7 +866,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: 10s
                     retries: 12
-                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://localhost:8200/']
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', -k, --fail, --silent, --output, /dev/null, 'http://localhost:8200/']
                 image: docker.elastic.co/apm/apm-server:8.0.0-SNAPSHOT
                 labels: [co.elastic.apm.stack-version=8.0.0]
                 logging:
@@ -897,7 +897,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: '20'
                     retries: 10
-                    test: [CMD-SHELL, 'curl -s http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
+                    test: [CMD-SHELL, 'curl -s -k http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
                 image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0-SNAPSHOT
                 labels: [co.elastic.apm.stack-version=8.0.0]
                 logging:
@@ -933,7 +933,7 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: 10s
                     retries: 20
-                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', -k, --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
                 image: docker.elastic.co/kibana/kibana:8.0.0-SNAPSHOT
                 labels: [co.elastic.apm.stack-version=8.0.0]
                 logging:
@@ -1429,3 +1429,53 @@ class LocalTest(unittest.TestCase):
         for ver, want in cases:
             got = parse_version(ver)
             self.assertEqual(want, got)
+
+    @mock.patch(cli.__name__ + ".load_images")
+    def test_elasticsearch_tls(self, _ignore_load_images):
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--elasticsearch-enable-tls"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        services = set(got["services"])
+        self.assertIn("elasticsearch", services)
+
+        elasticsearch = got["services"]["elasticsearch"]
+        certs = "/usr/share/elasticsearch/config/certs/tls.crt"
+        certsKey = "/usr/share/elasticsearch/config/certs/tls.key"
+        caCerts = "/usr/share/elasticsearch/config/certs/ca.crt"
+        self.assertIn("xpack.security.http.ssl.enabled=true", elasticsearch["environment"])
+        self.assertIn("xpack.security.transport.ssl.enabled=true", elasticsearch["environment"])
+        self.assertIn("xpack.security.http.ssl.enabled=true", elasticsearch["environment"])
+        self.assertIn("xpack.security.http.ssl.enabled=true", elasticsearch["environment"])
+        self.assertIn("xpack.security.http.ssl.key=" + certsKey, elasticsearch["environment"])
+        self.assertIn("xpack.security.http.ssl.certificate=" + certs, elasticsearch["environment"])
+        self.assertIn("xpack.security.http.ssl.certificate_authorities=" + caCerts, elasticsearch["environment"])
+        self.assertIn("xpack.security.transport.ssl.key=" + certsKey, elasticsearch["environment"])
+        self.assertIn("xpack.security.transport.ssl.certificate=" + certs, elasticsearch["environment"])
+        self.assertIn("xpack.security.transport.ssl.certificate_authorities=" + caCerts, elasticsearch["environment"])
+        self.assertIn("curl -s -k https://localhost:9200/_cluster/health | grep -vq '\"status\":\"red\"'", elasticsearch["healthcheck"]["test"])
+
+    @mock.patch(cli.__name__ + ".load_images")
+    def test_kibana_tls(self, _ignore_load_images):
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--kibana-enable-tls"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        services = set(got["services"])
+        self.assertIn("kibana", services)
+
+        kibana = got["services"]["kibana"]
+        certs = "/usr/share/kibana/config/certs/tls.crt"
+        certsKey = "/usr/share/kibana/config/certs/tls.key"
+        caCerts = "/usr/share/kibana/config/certs/ca.crt"
+        self.assertIn("true", kibana["environment"]["SERVER_SSL_ENABLED"])
+        self.assertIn(certs, kibana["environment"]["SERVER_SSL_CERTIFICATE"])
+        self.assertIn(certsKey, kibana["environment"]["SERVER_SSL_KEY"])
+        self.assertIn(caCerts, kibana["environment"]["ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES"])
+        self.assertIn("https://kibana:5601/api/status", kibana["healthcheck"]["test"])

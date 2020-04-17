@@ -14,6 +14,7 @@ class Service(object):
     """encapsulate docker-compose service definition"""
 
     DEFAULT_ELASTICSEARCH_HOSTS = "elasticsearch:9200"
+    DEFAULT_ELASTICSEARCH_HOSTS_TLS = "https://elasticsearch:9200"
     DEFAULT_KIBANA_HOST = "kibana:5601"
 
     # is this a side car service for opbeans. If yes, it will automatically
@@ -153,6 +154,12 @@ class Service(object):
 
     def image_download_url(self):
         pass
+
+    def default_elasticsearch_hosts(self, isTls=False):
+        if isTls:
+            return self.DEFAULT_ELASTICSEARCH_HOSTS_TLS
+        else:
+            return self.DEFAULT_ELASTICSEARCH_HOSTS
 
     @abstractmethod
     def _content(self):
