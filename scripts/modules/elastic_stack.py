@@ -725,6 +725,8 @@ class Kibana(StackService, Service):
             self.environment["XPACK_MONITORING_ENABLED"] = "true"
             if self.at_least_version("6.3"):
                 self.environment["XPACK_XPACK_MAIN_TELEMETRY_ENABLED"] = "false"
+            if self.at_least_version("7.6"):
+                self.environment["TELEMETRY_ENABLED"] = "false"
             if self.at_least_version("7.7"):
                 self.environment["XPACK_SECURITY_ENCRYPTIONKEY"] = "fhjskloppd678ehkdfdlliverpoolfcr"
                 self.environment["XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY"] = "fhjskloppd678ehkdfdlliverpoolfcr"

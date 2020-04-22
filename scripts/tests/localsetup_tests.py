@@ -923,6 +923,7 @@ class LocalTest(unittest.TestCase):
                     ELASTICSEARCH_USERNAME: kibana_system_user,
                     SERVER_NAME: kibana.example.org,
                     STATUS_ALLOWANONYMOUS: 'true',
+                    TELEMETRY_ENABLED: 'false',
                     XPACK_APM_SERVICEMAPENABLED: 'true',
                     XPACK_MONITORING_ENABLED: 'true',
                     XPACK_SECURITY_ENCRYPTIONKEY: 'fhjskloppd678ehkdfdlliverpoolfcr',
