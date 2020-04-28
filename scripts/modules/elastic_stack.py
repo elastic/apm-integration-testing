@@ -447,6 +447,7 @@ class ApmServer(StackService, Service):
             build_spec_parts = self.build.split("@", 1)
             repo = build_spec_parts[0]
             branch = build_spec_parts[1] if len(build_spec_parts) > 1 else "master"
+            binary = "apm-server-oss" if self.oss else "apm-server"
             content.update({
                 "build": {
                     "context": "docker/apm-server",
@@ -454,6 +455,7 @@ class ApmServer(StackService, Service):
                         "apm_server_base_image": self.default_image(),
                         "apm_server_branch_or_commit": branch,
                         "apm_server_repo": repo,
+                        "apm_server_binary": binary,
                     }
                 },
                 "image": None,
