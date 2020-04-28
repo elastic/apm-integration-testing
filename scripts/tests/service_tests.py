@@ -676,6 +676,7 @@ class ApmServerServiceTest(ServiceTest):
         self.assertIsNone(apm_server.get("image"))
         self.assertDictEqual(apm_server["build"], {
             'args': {'apm_server_base_image': 'docker.elastic.co/apm/apm-server:6.3.100',
+                     'apm_server_binary': 'apm-server',
                      'apm_server_branch_or_commit': 'bar',
                      'apm_server_repo': 'foo.git'},
             'context': 'docker/apm-server'})
@@ -685,6 +686,17 @@ class ApmServerServiceTest(ServiceTest):
         self.assertIsNone(apm_server.get("image"))
         self.assertDictEqual(apm_server["build"], {
             'args': {'apm_server_base_image': 'docker.elastic.co/apm/apm-server:6.3.100',
+                     'apm_server_binary': 'apm-server',
+                     'apm_server_branch_or_commit': 'master',
+                     'apm_server_repo': 'foo.git'},
+            'context': 'docker/apm-server'})
+
+    def test_apm_server_build_oss(self):
+        apm_server = ApmServer(version="6.3.100", apm_server_build="foo.git", release=True, oss=True).render()["apm-server"]
+        self.assertIsNone(apm_server.get("image"))
+        self.assertDictEqual(apm_server["build"], {
+            'args': {'apm_server_base_image': 'docker.elastic.co/apm/apm-server-oss:6.3.100',
+                     'apm_server_binary': 'apm-server-oss',
                      'apm_server_branch_or_commit': 'master',
                      'apm_server_repo': 'foo.git'},
             'context': 'docker/apm-server'})
