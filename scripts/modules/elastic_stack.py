@@ -393,6 +393,13 @@ class ApmServer(StackService, Service):
             dest='elastic_apm_api_key',
             help='API Key to authenticate against the APM server.'
         )
+        parser.add_argument(
+            '--apm-server-enable-debug',
+            action="store_true",
+            dest="apm_server_enable_debug",
+            default=False,
+            help="apm-server enable all the debugging output.",
+        )
 
     def build_candidate_manifest(self):
         version = self.version
@@ -433,10 +440,14 @@ class ApmServer(StackService, Service):
         if ("apm-server.jaeger.grpc.enabled", "true") in self.apm_server_command_args:
             ports.append(self.publish_port(self.DEFAULT_JAEGER_GRPC_PORT))
 
+        command = ["apm-server", "-e", "--httpprof", ":{}".format(self.apm_server_monitor_port)] + command_args
+        if self.options.get("apm_server_enable_debug"):
+            command = command + ["-d", "\"*\""]
+
         content = dict(
             cap_add=["CHOWN", "DAC_OVERRIDE", "SETGID", "SETUID"],
             cap_drop=["ALL"],
-            command=["apm-server", "-e", "--httpprof", ":{}".format(self.apm_server_monitor_port)] + command_args,
+            command=command,
             depends_on=self.depends_on,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, path=healthcheck_path),
             labels=["co.elastic.apm.stack-version=" + self.version],
