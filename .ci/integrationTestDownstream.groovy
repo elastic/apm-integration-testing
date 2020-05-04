@@ -223,14 +223,12 @@ def wrappingup(label){
       .replace(" ","_")
     sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
     sh('make stop-env || echo 0')
+    def testResultsPattern = '**/tests/results/*-junit*.xml'
     archiveArtifacts(
         allowEmptyArchive: true,
-        artifacts: 'docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
+        artifacts: "docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json,${testResultsPattern}",
         defaultExcludes: false)
-    junit(
-      allowEmptyResults: true,
-      keepLongStdio: true,
-      testResults: "**/tests/results/*-junit*.xml")
+    junit(testResults: testResultsPattern, allowEmptyResults: true, keepLongStdio: true)
     // Let's generate the debug report ...
     sh(label: 'Generate debug docs', script: '.ci/scripts/generate-debug-docs.sh | tee docs.txt')
     archiveArtifacts(artifacts: 'docs.txt')
