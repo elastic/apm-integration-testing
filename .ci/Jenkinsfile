@@ -131,7 +131,7 @@ def runJob(testName, buildOpts = ''){
   def jobName = "apm-integration-test-downstream/${branch}"
   def buildObject
   try {
-    buildObject = build(job: "apm-integration-test-downstream/${branch}",
+    buildObject = build(job: jobName,
       parameters: [
       string(name: 'INTEGRATION_TEST', value: testName),
       string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
