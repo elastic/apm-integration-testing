@@ -152,7 +152,7 @@ pipeline {
           processor.processResults(mapResults)
           archiveArtifacts allowEmptyArchive: true, artifacts: 'results.json,results.html', defaultExcludes: false
         }
-        notifyBuildResult()
+        notifyBuildResult(prComment: false)
       }
     }
   }

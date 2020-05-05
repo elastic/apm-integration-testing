@@ -209,7 +209,7 @@ pipeline {
   post {
     cleanup {
       githubCheckNotify(currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILURE')
-      notifyBuildResult()
+      notifyBuildResult(prComment: false)
     }
   }
 }
