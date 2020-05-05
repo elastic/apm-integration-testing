@@ -442,7 +442,7 @@ class ApmServer(StackService, Service):
 
         command = ["apm-server", "-e", "--httpprof", ":{}".format(self.apm_server_monitor_port)] + command_args
         if self.options.get("apm_server_enable_debug"):
-            command = command + ["-d", "\"*\""]
+            command = command + ["-d", "*"]
 
         content = dict(
             cap_add=["CHOWN", "DAC_OVERRIDE", "SETGID", "SETUID"],

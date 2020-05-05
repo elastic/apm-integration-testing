@@ -792,7 +792,7 @@ class ApmServerServiceTest(ServiceTest):
     def test_debug(self):
         apm_server = ApmServer(version="6.8.0", apm_server_enable_debug=True).render()["apm-server"]
         self.assertTrue("-d" in apm_server["command"])
-        self.assertTrue("\"*\"" in apm_server["command"])
+        self.assertTrue("*" in apm_server["command"])
 
 class ElasticsearchServiceTest(ServiceTest):
     def test_6_2_release(self):
