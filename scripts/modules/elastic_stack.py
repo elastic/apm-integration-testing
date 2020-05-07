@@ -20,6 +20,7 @@ class ApmServer(StackService, Service):
     DEFAULT_OUTPUT = "elasticsearch"
     OUTPUTS = {"elasticsearch", "file", "kafka", "logstash"}
     DEFAULT_KIBANA_HOST = "kibana:5601"
+    STACK_CA_PATH = "/usr/share/apm-serer/config/certs/stack-ca.crt"
 
     def __init__(self, **options):
         super(ApmServer, self).__init__(**options)
@@ -65,6 +66,9 @@ class ApmServer(StackService, Service):
             "enable_elasticsearch", True) else {}
         self.build = self.options.get("apm_server_build")
 
+        self.es_tls = self.options.get("elasticsearch_enable_tls", False)
+        self.kibana_tls = self.options.get("kibana_enable_tls", False)
+
         if self.options.get("apm-server-experimental-mode", True) and self.at_least_version("7.2"):
             self.apm_server_command_args.append(("apm-server.mode", "experimental"))
 
@@ -78,8 +82,13 @@ class ApmServer(StackService, Service):
         elif self.at_least_version("7.3"):
             self.apm_server_command_args.extend([
                 ("apm-server.kibana.enabled", "true"),
-                ("apm-server.kibana.host",
-                    self.options.get("apm_server_kibana_url", ""))])
+                ("apm-server.kibana.host", self.options.get("apm_server_kibana_url", self.DEFAULT_KIBANA_HOST))])
+            if self.kibana_tls:
+                self.apm_server_command_args.extend([
+                    ("apm-server.kibana.protocol", "https"),
+                    ("apm-server.kibana.ssl.certificate_authorities", '["' + self.STACK_CA_PATH + '"]'),
+                ])
+
             agent_config_poll = self.options.get("agent_config_poll", "30s")
             self.apm_server_command_args.append(("apm-server.agent.config.cache.expiration", agent_config_poll))
             if self.options.get("xpack_secure"):
@@ -144,7 +153,7 @@ class ApmServer(StackService, Service):
 
         es_urls = []
 
-        def add_es_config(args, prefix="output"):
+        def add_es_config(args, prefix="output", tls=self.es_tls):
             """add elasticsearch configuration options."""
             args.append((prefix + ".elasticsearch.hosts", json.dumps(es_urls)))
             for cfg in ("username", "password"):
@@ -153,8 +162,11 @@ class ApmServer(StackService, Service):
                     args.append((prefix + ".elasticsearch.{}".format(cfg), self.options[es_opt]))
                 elif self.options.get("xpack_secure"):
                     args.append((prefix + ".elasticsearch.{}".format(cfg), default_apm_server_creds.get(cfg)))
+            if tls:
+                args.append((prefix +
+                    ".elasticsearch.ssl.certificate_authorities", "['" + self.STACK_CA_PATH + "']"))
 
-        es_urls = self.options.get("apm_server_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS]
+        es_urls = self.options.get("apm_server_elasticsearch_urls") or [self.default_elasticsearch_hosts(self.es_tls)]
 
         if self.apm_server_output == "elasticsearch":
             add_es_config(self.apm_server_command_args)
@@ -473,6 +485,11 @@ class ApmServer(StackService, Service):
             })
 
         volumes = []
+        # don't unconditionally add this ca so quick start can be depenedency free
+        if self.es_tls or self.kibana_tls:
+            volumes.extend([
+                "./scripts/tls/ca/ca.crt:/usr/share/apm-serer/config/certs/stack-ca.crt"
+            ])
         if self.options.get("apm_server_enable_tls"):
             volumes.extend([
                 "./scripts/tls/apm-server/cert.crt:/usr/share/apm-server/config/certs/tls.crt",
@@ -595,6 +612,7 @@ class Elasticsearch(StackService, Service):
 
         self.environment = self.default_environment + [
             java_opts_env, "path.data=/usr/share/elasticsearch/data/" + data_dir]
+        self.es_tls = not self.oss and self.options.get("elasticsearch_enable_tls", False)
         if options.get("elasticsearch_slow_log"):
             try_to_set_slowlog(options.get("apm_server_elasticsearch_password"))
         if self.at_least_version("8.0"):
@@ -620,7 +638,7 @@ class Elasticsearch(StackService, Service):
             self.environment.append("xpack.license.self_generated.type=trial")
             if self.at_least_version("6.3"):
                 self.environment.append("xpack.monitoring.collection.enabled=true")
-            if self.options.get("elasticsearch_enable_tls"):
+            if self.es_tls:
                 certs = "/usr/share/elasticsearch/config/certs/tls.crt"
                 certsKey = "/usr/share/elasticsearch/config/certs/tls.key"
                 caCerts = "/usr/share/elasticsearch/config/certs/ca.crt"
@@ -688,16 +706,14 @@ class Elasticsearch(StackService, Service):
                 "./docker/elasticsearch/users:/usr/share/elasticsearch/config/users",
                 "./docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles",
             ])
-        if self.options.get("elasticsearch_enable_tls"):
+        if self.es_tls:
             volumes.extend([
                 "./scripts/tls/elasticsearch/elasticsearch.crt:/usr/share/elasticsearch/config/certs/tls.crt",
                 "./scripts/tls/elasticsearch/elasticsearch.key:/usr/share/elasticsearch/config/certs/tls.key",
                 "./scripts/tls/ca/ca.crt:/usr/share/elasticsearch/config/certs/ca.crt"
             ])
 
-        protocol = 'http'
-        if self.options.get("elasticsearch_enable_tls"):
-            protocol = 'https'
+        protocol = 'https' if self.es_tls else 'http'
         entrypoint = "{}://localhost:9200/_cluster/health".format(protocol)
         return dict(
             environment=self.environment,
@@ -730,7 +746,8 @@ class Kibana(StackService, Service):
             self.docker_name = self.name() + "-x-pack"
         self.environment = self.default_environment.copy()
 
-        default_es_hosts = self.default_elasticsearch_hosts(isTls=self.options.get("kibana_enable_tls", False))
+        self.kibana_tls = self.options.get("kibana_enable_tls", False)
+        default_es_hosts = self.default_elasticsearch_hosts(tls=self.kibana_tls)
         urls = self.options.get("kibana_elasticsearch_urls") or [default_es_hosts]
         self.environment["ELASTICSEARCH_URL"] = ",".join(urls)
 
@@ -755,7 +772,7 @@ class Kibana(StackService, Service):
             if self.at_least_version("7.6"):
                 if not options.get("no_kibana_apm_servicemaps"):
                     self.environment["XPACK_APM_SERVICEMAPENABLED"] = "true"
-            if self.options.get("kibana_enable_tls"):
+            if self.kibana_tls:
                 certs = "/usr/share/kibana/config/certs/tls.crt"
                 certsKey = "/usr/share/kibana/config/certs/tls.key"
                 caCerts = "/usr/share/kibana/config/certs/ca.crt"
@@ -778,7 +795,7 @@ class Kibana(StackService, Service):
             '--kibana-enable-tls',
             action="store_true",
             dest="kibana_enable_tls",
-            help="kibana enable TLS with pre-configured selfsigned certificates.",
+            help="kibana enable TLS with pre-configured self-signed certificates.",
         )
 
         parser.add_argument(
@@ -788,10 +805,8 @@ class Kibana(StackService, Service):
         )
 
     def _content(self):
-        isHttps = self.options.get("kibana_enable_tls", False)
-
         volumes = []
-        if self.options.get("kibana_enable_tls"):
+        if self.kibana_tls:
             volumes.extend([
                 "./scripts/tls/kibana/kibana.crt:/usr/share/kibana/config/certs/tls.crt",
                 "./scripts/tls/kibana/kibana.key:/usr/share/kibana/config/certs/tls.key",
@@ -799,7 +814,7 @@ class Kibana(StackService, Service):
             ])
 
         content = dict(
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/api/status", retries=20, https=isHttps),
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/api/status", retries=20, https=self.kibana_tls),
             depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
                 "enable_elasticsearch", True) else {},
             environment=self.environment,
