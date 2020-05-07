@@ -155,8 +155,8 @@ class Service(object):
     def image_download_url(self):
         pass
 
-    def default_elasticsearch_hosts(self, isTls=False):
-        if isTls:
+    def default_elasticsearch_hosts(self, tls=False):
+        if tls:
             return self.DEFAULT_ELASTICSEARCH_HOSTS_TLS
         else:
             return self.DEFAULT_ELASTICSEARCH_HOSTS

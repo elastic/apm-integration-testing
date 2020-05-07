@@ -472,6 +472,13 @@ class ApmServerServiceTest(ServiceTest):
                             "{} not set while output=elasticsearch and overrides set: ".format(o) + " ".join(
                                 apm_server["command"]))
 
+    def test_elasticsearch_output_tls(self):
+        apm_server = ApmServer(version="7.8.100", apm_server_output="elasticsearch",
+                               elasticsearch_enable_tls=True,
+                               ).render()["apm-server"]
+        self.assertTrue("output.elasticsearch.ssl.certificate_authorities=['/usr/share/apm-server/config/certs/stack-ca.crt']" in apm_server["command"],
+                        "CA not set when elasticsearch TLS is enabled")
+
     def test_ilm_default(self):
         """enable ILM by default in 7.2+"""
         apm_server = ApmServer(version="6.3.100").render()["apm-server"]
@@ -572,6 +579,13 @@ class ApmServerServiceTest(ServiceTest):
         ]
         for o in kafka_options:
             self.assertTrue(o in apm_server["command"], "{} not set while output=kafka".format(o))
+
+    def test_kibana_tls(self):
+        apm_server = ApmServer(version="7.8.100", kibana_enable_tls=True).render()["apm-server"]
+        self.assertTrue(
+            "apm-server.kibana.ssl.certificate_authorities=[\"/usr/share/apm-server/config/certs/stack-ca.crt\"]" in apm_server["command"],
+            "CA not set when kibana TLS is enabled"
+        )
 
     def test_opt(self):
         apm_server = ApmServer(version="7.1.10", apm_server_opt=("an.opt=foo", "opt2=bar")).render()["apm-server"]
