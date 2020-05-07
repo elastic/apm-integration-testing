@@ -163,8 +163,7 @@ class ApmServer(StackService, Service):
                 elif self.options.get("xpack_secure"):
                     args.append((prefix + ".elasticsearch.{}".format(cfg), default_apm_server_creds.get(cfg)))
             if tls:
-                args.append((prefix +
-                    ".elasticsearch.ssl.certificate_authorities", "['" + self.STACK_CA_PATH + "']"))
+                args.append((prefix + ".elasticsearch.ssl.certificate_authorities", "['" + self.STACK_CA_PATH + "']"))
 
         es_urls = self.options.get("apm_server_elasticsearch_urls") or [self.default_elasticsearch_hosts(self.es_tls)]
 
@@ -814,7 +813,8 @@ class Kibana(StackService, Service):
             ])
 
         content = dict(
-            healthcheck=curl_healthcheck(self.SERVICE_PORT, "kibana", path="/api/status", retries=20, https=self.kibana_tls),
+            healthcheck=curl_healthcheck(
+                self.SERVICE_PORT, "kibana", path="/api/status", retries=20, https=self.kibana_tls),
             depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
                 "enable_elasticsearch", True) else {},
             environment=self.environment,
