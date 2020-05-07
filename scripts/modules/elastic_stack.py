@@ -20,7 +20,7 @@ class ApmServer(StackService, Service):
     DEFAULT_OUTPUT = "elasticsearch"
     OUTPUTS = {"elasticsearch", "file", "kafka", "logstash"}
     DEFAULT_KIBANA_HOST = "kibana:5601"
-    STACK_CA_PATH = "/usr/share/apm-serer/config/certs/stack-ca.crt"
+    STACK_CA_PATH = "/usr/share/apm-server/config/certs/stack-ca.crt"
 
     def __init__(self, **options):
         super(ApmServer, self).__init__(**options)
@@ -487,7 +487,7 @@ class ApmServer(StackService, Service):
         # don't unconditionally add this ca so quick start can be depenedency free
         if self.es_tls or self.kibana_tls:
             volumes.extend([
-                "./scripts/tls/ca/ca.crt:/usr/share/apm-serer/config/certs/stack-ca.crt"
+                "./scripts/tls/ca/ca.crt:/usr/share/apm-server/config/certs/stack-ca.crt"
             ])
         if self.options.get("apm_server_enable_tls"):
             volumes.extend([

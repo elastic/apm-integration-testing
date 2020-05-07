@@ -476,7 +476,7 @@ class ApmServerServiceTest(ServiceTest):
         apm_server = ApmServer(version="7.8.100", apm_server_output="elasticsearch",
                                elasticsearch_enable_tls=True,
                                ).render()["apm-server"]
-        self.assertTrue("output.elasticsearch.ssl.certificate_authorities=['/usr/share/apm-serer/config/certs/stack-ca.crt']" in apm_server["command"],
+        self.assertTrue("output.elasticsearch.ssl.certificate_authorities=['/usr/share/apm-server/config/certs/stack-ca.crt']" in apm_server["command"],
                         "CA not set when elasticsearch TLS is enabled")
 
     def test_ilm_default(self):
@@ -583,7 +583,7 @@ class ApmServerServiceTest(ServiceTest):
     def test_kibana_tls(self):
         apm_server = ApmServer(version="7.8.100", kibana_enable_tls=True).render()["apm-server"]
         self.assertTrue(
-            "apm-server.kibana.ssl.certificate_authorities=[\"/usr/share/apm-serer/config/certs/stack-ca.crt\"]" in apm_server["command"],
+            "apm-server.kibana.ssl.certificate_authorities=[\"/usr/share/apm-server/config/certs/stack-ca.crt\"]" in apm_server["command"],
             "CA not set when kibana TLS is enabled"
         )
 
