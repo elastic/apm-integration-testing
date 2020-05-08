@@ -40,6 +40,7 @@ metricbeat.modules:
 metricbeat.autodiscover:
   providers:
     - type: docker
+      hints.enabled: true
       templates:
         - condition:
             contains:
@@ -57,14 +58,6 @@ metricbeat.autodiscover:
               hosts: ["postgres://${data.host}:5432?sslmode=disable"]
               password: verysecure
               username: postgres
-        - condition:
-            contains:
-              docker.container.image: "elasticsearch"
-          config:
-            - module: elasticsearch
-              metricsets: ["node", "node_stats"]
-              period: 10s
-              hosts: "${data.host}:9200"
         - condition:
             contains:
               docker.container.image: "kafka"

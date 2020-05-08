@@ -785,7 +785,11 @@ class LocalTest(unittest.TestCase):
                     retries: 10
                     test: [CMD-SHELL, 'curl -s -k http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
                 image: docker.elastic.co/elasticsearch/elasticsearch:6.3.10-SNAPSHOT
-                labels: [co.elastic.apm.stack-version=6.3.10]
+                labels:
+                    - co.elastic.apm.stack-version=6.3.10
+                    - co.elastic.metrics/module=elasticsearch
+                    - co.elastic.metrics/metricsets=node,node_stats
+                    - co.elastic.metrics/hosts=http://$${data.host}:9200
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
@@ -899,7 +903,11 @@ class LocalTest(unittest.TestCase):
                     retries: 10
                     test: [CMD-SHELL, 'curl -s -k http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
                 image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0-SNAPSHOT
-                labels: [co.elastic.apm.stack-version=8.0.0]
+                labels:
+                    - co.elastic.apm.stack-version=8.0.0
+                    - co.elastic.metrics/module=elasticsearch
+                    - co.elastic.metrics/metricsets=node,node_stats
+                    - co.elastic.metrics/hosts=http://$${data.host}:9200
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}

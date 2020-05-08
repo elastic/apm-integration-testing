@@ -808,6 +808,7 @@ class ApmServerServiceTest(ServiceTest):
         self.assertTrue("-d" in apm_server["command"])
         self.assertTrue("*" in apm_server["command"])
 
+
 class ElasticsearchServiceTest(ServiceTest):
     def test_6_2_release(self):
         elasticsearch = Elasticsearch(version="6.2.4", release=True).render()["elasticsearch"]
@@ -871,6 +872,14 @@ class ElasticsearchServiceTest(ServiceTest):
         java_opts = [e for e in elasticsearch["environment"] if e.startswith("ES_JAVA_OPTS=")]
         self.assertListEqual(["ES_JAVA_OPTS=-XX:+UseConcMarkSweepGC"], java_opts)
 
+    def test_tls(self):
+        elasticsearch = Elasticsearch(version="7.11.100", elasticsearch_tls_enable=True).render()["elasticsearch"]
+        self.assertListEqual(["co.elastic.apm.stack-version=7.11.100",
+                              "co.elastic.metrics/module=elasticsearch",
+                              "co.elastic.metrics/metricsets=node,node_stats",
+                              "co.elastic.metrics/hosts=http://$${data.host}:9200"
+                              ], elasticsearch["labels"])
+
 
 class FilebeatServiceTest(ServiceTest):
     def test_filebeat_pre_6_1(self):
@@ -896,7 +905,8 @@ class FilebeatServiceTest(ServiceTest):
                     volumes:
                         - ./docker/filebeat/filebeat.simple.yml:/usr/share/filebeat/filebeat.yml
                         - /var/lib/docker/containers:/var/lib/docker/containers
-                        - /var/run/docker.sock:/var/run/docker.sock""")
+                        - /var/run/docker.sock:/var/run/docker.sock
+                        - ./scripts/tls/ca/ca.crt:/usr/share/beats/config/certs/stack-ca.crt""")
         )
 
     def test_filebeat_post_6_1(self):
@@ -922,7 +932,8 @@ class FilebeatServiceTest(ServiceTest):
                     volumes:
                         - ./docker/filebeat/filebeat.6.x-compat.yml:/usr/share/filebeat/filebeat.yml
                         - /var/lib/docker/containers:/var/lib/docker/containers
-                        - /var/run/docker.sock:/var/run/docker.sock""")
+                        - /var/run/docker.sock:/var/run/docker.sock
+                        - ./scripts/tls/ca/ca.crt:/usr/share/beats/config/certs/stack-ca.crt""")
         )
 
     def test_filebeat_7_1(self):
@@ -1188,7 +1199,8 @@ class MetricbeatServiceTest(ServiceTest):
                             condition: service_healthy
                     volumes:
                         - ./docker/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
-                        - /var/run/docker.sock:/var/run/docker.sock""")
+                        - /var/run/docker.sock:/var/run/docker.sock
+                        - ./scripts/tls/ca/ca.crt:/usr/share/beats/config/certs/stack-ca.crt""")
         )
 
     def test_logstash_output(self):
@@ -1203,7 +1215,7 @@ class MetricbeatServiceTest(ServiceTest):
             self.assertTrue(o in beat["command"], "{} not set in {} while output=logstash".format(o, beat["command"]))
 
     def test_metricbeat_elasticsearch_output_tls(self):
-        metricbeat = Filebeat(version="7.8.100", elasticsearch_enable_tls=True).render()["metricbeat"]
+        metricbeat = Metricbeat(version="7.8.100", elasticsearch_enable_tls=True).render()["metricbeat"]
         self.assertTrue(
             "output.elasticsearch.ssl.certificate_authorities=['/usr/share/beats/config/certs/stack-ca.crt']" in
             metricbeat["command"],
@@ -1267,6 +1279,7 @@ class PacketbeatServiceTest(ServiceTest):
                     volumes:
                         - ./docker/packetbeat/packetbeat.yml:/usr/share/packetbeat/packetbeat.yml
                         - /var/run/docker.sock:/var/run/docker.sock
+                        - ./scripts/tls/ca/ca.crt:/usr/share/beats/config/certs/stack-ca.crt
                     network_mode: 'service:apm-server'
                     privileged: 'true'
                     cap_add: ['NET_ADMIN', 'NET_RAW']""")  # noqa: 501
@@ -1288,7 +1301,7 @@ class PacketbeatServiceTest(ServiceTest):
                         in packetbeat["volumes"])
 
     def test_packetbeat_elasticsearch_output_tls(self):
-        packetbeat = Filebeat(version="7.8.100", elasticsearch_enable_tls=True).render()["packetbeat"]
+        packetbeat = Packetbeat(version="7.8.100", elasticsearch_enable_tls=True).render()["packetbeat"]
         self.assertTrue(
             "output.elasticsearch.ssl.certificate_authorities=['/usr/share/beats/config/certs/stack-ca.crt']" in
             packetbeat["command"],
@@ -1310,7 +1323,7 @@ class PacketbeatServiceTest(ServiceTest):
 
 class HeartbeatServiceTest(ServiceTest):
     def test_heartbeat_elasticsearch_output_tls(self):
-        heartbeat = Filebeat(version="7.8.100", elasticsearch_enable_tls=True).render()["heartbeat"]
+        heartbeat = Heartbeat(version="7.8.100", elasticsearch_enable_tls=True).render()["heartbeat"]
         self.assertTrue(
             "output.elasticsearch.ssl.certificate_authorities=['/usr/share/beats/config/certs/stack-ca.crt']" in
             heartbeat["command"],
