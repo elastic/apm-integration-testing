@@ -94,9 +94,8 @@ pipeline {
       launch integration tests.
     */
     stage("Integration Tests") {
-      agent none
       steps {
-        log(level: "INFO", text: "Launching Agent tests in parallel")
+        log(level: 'INFO', text: "Launching Agent tests in parallel")
         /*
           Declarative pipeline's parallel stages lose the reference to the downstream job,
           because of that, I use the parallel step. It is probably a bug.
@@ -133,9 +132,10 @@ pipeline {
 
 def runJob(testName, buildOpts = ''){
   def branch = env.CHANGE_ID?.trim() ? env.CHANGE_TARGET : env.BRANCH_NAME
-  def job
+  def jobName = "apm-integration-test-downstream/${branch}"
+  def buildObject
   try {
-    job = build(job: "apm-integration-test-downstream/${branch}",
+    buildObject = build(job: jobName,
       parameters: [
       string(name: 'INTEGRATION_TEST', value: testName),
       string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
@@ -148,9 +148,16 @@ def runJob(testName, buildOpts = ''){
       quietPeriod: 10,
       wait: true)
   } catch(e) {
-    job = e
+    buildObject = e
     error("Downstream job for '${testName}' failed")
   } finally {
-    itsDownstreamJobs["${testName}"] = job
+    itsDownstreamJobs["${testName}"] = buildObject
+
+    catchError(buildResult: 'SUCCESS', message: "Aggregate test results from dowsntream job has failed failed. Let's keep moving.") {
+      dir(testName) {
+        copyArtifacts(projectName: jobName, selector: specific(buildNumber: buildObject.number.toString()))
+        junit(testResults: '**/tests/results/*-junit*.xml', allowEmptyResults: true, keepLongStdio: true)
+      }
+    }
   }
 }
