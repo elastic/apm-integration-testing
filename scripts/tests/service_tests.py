@@ -1,15 +1,15 @@
 from __future__ import print_function
 
+import json
 import os
 import unittest
-import json
+
 import yaml
 
 from ..modules.apm_agents import (
     AgentGoNetHttp, AgentNodejsExpress, AgentPythonDjango, AgentPythonFlask, AgentRubyRails,
     AgentJavaSpring, AgentDotnet
 )
-
 from ..modules.aux_services import Logstash, Kafka, Zookeeper
 from ..modules.beats import Filebeat, Heartbeat, Metricbeat, Packetbeat
 from ..modules.elastic_stack import ApmServer, Elasticsearch, Kibana
@@ -935,6 +935,13 @@ class FilebeatServiceTest(ServiceTest):
         self.assertTrue(
             "./docker/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml" in filebeat["filebeat"]["volumes"])
 
+    def test_filebeat_elasticsearch_output_tls(self):
+        filebeat = Filebeat(version="7.8.100", elasticsearch_enable_tls=True).render()["filebeat"]
+        self.assertTrue(
+            "output.elasticsearch.ssl.certificate_authorities=['/usr/share/beats/config/certs/stack-ca.crt']" in
+            filebeat["command"],
+            "CA not set when elasticsearch TLS is enabled")
+
     def test_filebeat_elasticsearch_urls(self):
         filebeat = Filebeat(version="6.1.1", release=True, filebeat_elasticsearch_urls=[
                             "elasticsearch01:9200"]).render()["filebeat"]
@@ -1195,6 +1202,13 @@ class MetricbeatServiceTest(ServiceTest):
         for o in options:
             self.assertTrue(o in beat["command"], "{} not set in {} while output=logstash".format(o, beat["command"]))
 
+    def test_metricbeat_elasticsearch_output_tls(self):
+        metricbeat = Filebeat(version="7.8.100", elasticsearch_enable_tls=True).render()["metricbeat"]
+        self.assertTrue(
+            "output.elasticsearch.ssl.certificate_authorities=['/usr/share/beats/config/certs/stack-ca.crt']" in
+            metricbeat["command"],
+            "CA not set when elasticsearch TLS is enabled")
+
     def test_metricbeat_elasticsearch_urls(self):
         beat = Metricbeat(version="6.2.4", release=True, metricbeat_elasticsearch_urls=[
                           "elasticsearch01:9200"]).render()["metricbeat"]
@@ -1273,6 +1287,13 @@ class PacketbeatServiceTest(ServiceTest):
         self.assertTrue("./docker/packetbeat/packetbeat.yml:/usr/share/packetbeat/packetbeat.yml"
                         in packetbeat["volumes"])
 
+    def test_packetbeat_elasticsearch_output_tls(self):
+        packetbeat = Filebeat(version="7.8.100", elasticsearch_enable_tls=True).render()["packetbeat"]
+        self.assertTrue(
+            "output.elasticsearch.ssl.certificate_authorities=['/usr/share/beats/config/certs/stack-ca.crt']" in
+            packetbeat["command"],
+            "CA not set when elasticsearch TLS is enabled")
+
     def test_packetbeat_elasticsearch_urls(self):
         beat = Packetbeat(version="6.2.4", release=True,
                           packetbeat_elasticsearch_urls=["elasticsearch01:9200"]).render()["packetbeat"]
@@ -1288,6 +1309,13 @@ class PacketbeatServiceTest(ServiceTest):
 
 
 class HeartbeatServiceTest(ServiceTest):
+    def test_heartbeat_elasticsearch_output_tls(self):
+        heartbeat = Filebeat(version="7.8.100", elasticsearch_enable_tls=True).render()["heartbeat"]
+        self.assertTrue(
+            "output.elasticsearch.ssl.certificate_authorities=['/usr/share/beats/config/certs/stack-ca.crt']" in
+            heartbeat["command"],
+            "CA not set when elasticsearch TLS is enabled")
+
     def test_heartbeat_elasticsearch_urls(self):
         beat = Heartbeat(version="6.2.4", release=True,
                          heartbeat_elasticsearch_urls=["elasticsearch01:9200"]).render()["heartbeat"]
@@ -1295,8 +1323,8 @@ class HeartbeatServiceTest(ServiceTest):
         self.assertTrue("output.elasticsearch.hosts=[\"elasticsearch01:9200\"]" in beat['command'])
 
         beat = Heartbeat(version="6.2.4", release=True,
-                          heartbeat_elasticsearch_urls=["elasticsearch01:9200", "elasticsearch02:9200"]
-                          ).render()["heartbeat"]
+                         heartbeat_elasticsearch_urls=["elasticsearch01:9200", "elasticsearch02:9200"]
+                         ).render()["heartbeat"]
         self.assertTrue("elasticsearch" in beat['depends_on'])
         self.assertTrue(
             "output.elasticsearch.hosts=[\"elasticsearch01:9200\", \"elasticsearch02:9200\"]" in beat['command'])

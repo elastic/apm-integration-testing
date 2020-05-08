@@ -487,7 +487,7 @@ class ApmServer(StackService, Service):
         # don't unconditionally add this ca so quick start can be depenedency free
         if self.es_tls or self.kibana_tls:
             volumes.extend([
-                "./scripts/tls/ca/ca.crt:/usr/share/apm-server/config/certs/stack-ca.crt"
+                "./scripts/tls/ca/ca.crt:" + self.STACK_CA_PATH,
             ])
         if self.options.get("apm_server_enable_tls"):
             volumes.extend([
