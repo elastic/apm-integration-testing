@@ -48,7 +48,7 @@ class BeatMixin(object):
         def add_es_config(args, prefix="output", tls=self.es_tls):
             """add elasticsearch configuration options."""
             es_urls = options.get("{}_elasticsearch_urls".format(self.name())) or \
-                      [self.default_elasticsearch_hosts(tls=self.kibana_tls)]
+                [self.default_elasticsearch_hosts(tls=self.kibana_tls)]
             default_beat_creds = {"username": "{}_user".format(self.name()), "password": "changeme"}
             args.append((prefix + ".elasticsearch.hosts", json.dumps(es_urls)))
             for cfg in ("username", "password"):
