@@ -487,7 +487,7 @@ class ApmServer(StackService, Service):
         # don't unconditionally add this ca so quick start can be depenedency free
         if self.es_tls or self.kibana_tls:
             volumes.extend([
-                "./scripts/tls/ca/ca.crt:/usr/share/apm-server/config/certs/stack-ca.crt"
+                "./scripts/tls/ca/ca.crt:" + self.STACK_CA_PATH,
             ])
         if self.options.get("apm_server_enable_tls"):
             volumes.extend([
@@ -698,6 +698,21 @@ class Elasticsearch(StackService, Service):
         )
 
     def _content(self):
+        protocol = 'https' if self.es_tls else 'http'
+
+        labels = self.default_labels()
+        if self.at_least_version("6.3"):
+            labels.extend([
+                "co.elastic.metrics/module=elasticsearch",
+                "co.elastic.metrics/metricsets=node,node_stats",
+                "co.elastic.metrics/hosts={}://$${{data.host}}:9200".format(protocol),
+            ])
+            if self.es_tls:
+                labels.extend([
+                    "co.elastic.metrics/ssl.enabled=true",
+                    "co.elastic.metrics/ssl.verification_mode=none",
+                ])
+
         volumes = ["esdata:/usr/share/elasticsearch/data"]
         if self.xpack_secure:
             volumes.extend([
@@ -712,7 +727,6 @@ class Elasticsearch(StackService, Service):
                 "./scripts/tls/ca/ca.crt:/usr/share/elasticsearch/config/certs/ca.crt"
             ])
 
-        protocol = 'https' if self.es_tls else 'http'
         entrypoint = "{}://localhost:9200/_cluster/health".format(protocol)
         return dict(
             environment=self.environment,
@@ -721,6 +735,7 @@ class Elasticsearch(StackService, Service):
                 "retries": 10,
                 "test": ["CMD-SHELL", "curl -s -k {} | grep -vq '\"status\":\"red\"'".format(entrypoint)]
             },
+            labels=labels,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
             ulimits={
                 "memlock": {"hard": -1, "soft": -1},

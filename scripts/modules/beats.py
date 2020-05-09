@@ -7,6 +7,7 @@ from .service import StackService, Service
 class BeatMixin(object):
     DEFAULT_OUTPUT = "elasticsearch"
     OUTPUTS = {"elasticsearch", "logstash"}
+    STACK_CA_PATH = "/usr/share/beats/config/certs/stack-ca.crt"
 
     @classmethod
     def add_arguments(cls, parser):
@@ -41,9 +42,13 @@ class BeatMixin(object):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
         self.environment = {}
 
-        def add_es_config(args, prefix="output"):
+        self.es_tls = options.get("elasticsearch_enable_tls", False)
+        self.kibana_tls = options.get("kibana_enable_tls", False)
+
+        def add_es_config(args, prefix="output", tls=self.es_tls):
             """add elasticsearch configuration options."""
-            es_urls = options.get("{}_elasticsearch_urls".format(self.name())) or [self.DEFAULT_ELASTICSEARCH_HOSTS]
+            es_urls = options.get("{}_elasticsearch_urls".format(self.name())) or \
+                [self.default_elasticsearch_hosts(tls=self.kibana_tls)]
             default_beat_creds = {"username": "{}_user".format(self.name()), "password": "changeme"}
             args.append((prefix + ".elasticsearch.hosts", json.dumps(es_urls)))
             for cfg in ("username", "password"):
@@ -52,6 +57,8 @@ class BeatMixin(object):
                     args.append((prefix + ".elasticsearch.{}".format(cfg), options[es_opt]))
                 elif options.get("xpack_secure"):
                     args.append((prefix + ".elasticsearch.{}".format(cfg), default_beat_creds.get(cfg)))
+            if tls:
+                args.append((prefix + ".elasticsearch.ssl.certificate_authorities", "['" + self.STACK_CA_PATH + "']"))
 
         command_args = []
         add_es_config(command_args)
@@ -73,6 +80,12 @@ class BeatMixin(object):
                     ("output.kafka.hosts", "[\"kafka:9092\"]"),
                     ("output.kafka.topics", "[{default: '{}', topic: '{}'}]".format(self.name(), self.name())),
                 ])
+
+        if self.kibana_tls:
+            command_args.extend([
+                ("setup.kibana.protocol", "https"),
+                ("setup.kibana.ssl.certificate_authorities", '["' + self.STACK_CA_PATH + '"]'),
+            ])
 
         for param, value in command_args:
             self.command.extend(["-E", param + "=" + value])
@@ -136,6 +149,7 @@ class Filebeat(BeatMixin, StackService, Service):
                 self.filebeat_config_path + ":/usr/share/filebeat/filebeat.yml",
                 "/var/lib/docker/containers:/var/lib/docker/containers",
                 "/var/run/docker.sock:/var/run/docker.sock",
+                "./scripts/tls/ca/ca.crt:" + self.STACK_CA_PATH,
             ]
         )
 
@@ -161,6 +175,7 @@ class Heartbeat(BeatMixin, StackService, Service):
                 self.heartbeat_config_path + ":/usr/share/heartbeat/heartbeat.yml",
                 "/var/lib/docker/containers:/var/lib/docker/containers",
                 "/var/run/docker.sock:/var/run/docker.sock",
+                "./scripts/tls/ca/ca.crt:" + self.STACK_CA_PATH,
             ]
         )
 
@@ -192,6 +207,7 @@ class Metricbeat(BeatMixin, StackService, Service):
                  if self.at_least_version("7.2")
                  else "./docker/metricbeat/metricbeat.6.x-compat.yml:/usr/share/metricbeat/metricbeat.yml"),
                 "/var/run/docker.sock:/var/run/docker.sock",
+                "./scripts/tls/ca/ca.crt:" + self.STACK_CA_PATH,
             ]
         )
 
@@ -217,5 +233,6 @@ class Packetbeat(BeatMixin, StackService, Service):
                  if self.at_least_version("7.2")
                  else "./docker/packetbeat/packetbeat.6.x-compat.yml:/usr/share/packetbeat/packetbeat.yml"),
                 "/var/run/docker.sock:/var/run/docker.sock",
+                "./scripts/tls/ca/ca.crt:" + self.STACK_CA_PATH,
             ]
         )
