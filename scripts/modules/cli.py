@@ -660,7 +660,7 @@ class LocalSetup(object):
                 g = os.path.abspath(os.path.join(os.path.dirname(
                     __file__),
                     '../../docker/opbeans/node/sourcemaps/*.map')
-                    )
+                )
                 sourcemap_file = glob.glob(g)[0]
             except IndexError:
                 print(
