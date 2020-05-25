@@ -657,7 +657,10 @@ class LocalSetup(object):
                 sys.exit(1)
         else:
             try:
-                g = os.path.abspath(os.path.join(os.path.dirname(__file__), '../docker/opbeans/node/sourcemaps/*.map'))
+                g = os.path.abspath(os.path.join(os.path.dirname(
+                    __file__),
+                    '../../docker/opbeans/node/sourcemaps/*.map')
+                )
                 sourcemap_file = glob.glob(g)[0]
             except IndexError:
                 print(
@@ -689,7 +692,7 @@ class LocalSetup(object):
             '-F service_name="{service_name}" '
             '-F service_version="{service_version}" '
             '-F bundle_filepath="{bundle_path}" '
-            '-F sourcemap=@/tmp/sourcemap '
+            '-F sourcemap=@{sourcemap_file} '
             '{auth_header}'
             '{server_url}/v1/client-side/sourcemaps'
         ).format(
@@ -700,6 +703,7 @@ class LocalSetup(object):
             auth_header=auth_header,
             server_url=self.args.apm_server_url,
         )
+        print(cmd)
         cmd = "docker run --rm --network apm-integration-testing " + \
               "-v {}:/tmp/sourcemap centos:7 ".format(sourcemap_file) + cmd
         subprocess.check_output(cmd, shell=True).decode('utf8').strip()
