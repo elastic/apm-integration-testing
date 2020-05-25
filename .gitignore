@@ -21,6 +21,7 @@ node_modules
 **/obj
 **/bin
 docker-info/
+.vscode/
 
 # For the BATS testing
 bats-core/
