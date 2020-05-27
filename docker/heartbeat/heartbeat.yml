@@ -5,6 +5,9 @@ output.elasticsearch:
 setup.kibana:
   host: "${KIBANA_HOST:kibana:5601}"
 
+processors:
+  - add_observer_metadata:
+
 heartbeat.monitors:
   - type: icmp
     schedule: '*/5 * * * * * *'
