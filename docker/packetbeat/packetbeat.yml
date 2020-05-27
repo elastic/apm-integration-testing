@@ -1,9 +1,3 @@
-processors:
-  - add_host_metadata: ~
-  - add_cloud_metadata: ~
-  - add_docker_metadata: ~
-  - add_kubernetes_metadata: ~
-
 packetbeat.interfaces.snaplen: 1514
 packetbeat.interfaces.type: af_packet
 packetbeat.interfaces.buffer_size_mb: 250
