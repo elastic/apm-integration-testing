@@ -689,7 +689,7 @@ class LocalTest(unittest.TestCase):
                     elasticsearch: {condition: service_healthy}
                     kibana: {condition: service_healthy}
                 environment: [
-                    BEATS_STRICT_PERM=false
+                    BEAT_STRICT_PERMS=false
                 ]
                 healthcheck:
                     interval: 10s
@@ -770,7 +770,7 @@ class LocalTest(unittest.TestCase):
                     elasticsearch: {condition: service_healthy}
                     kibana: {condition: service_healthy}
                 environment: [
-                    BEATS_STRICT_PERM=false
+                    BEAT_STRICT_PERMS=false
                 ]
                 healthcheck:
                     interval: 10s
@@ -874,7 +874,7 @@ class LocalTest(unittest.TestCase):
                     elasticsearch: {condition: service_healthy}
                     kibana: {condition: service_healthy}
                 environment: [
-                    BEATS_STRICT_PERM=false
+                    BEAT_STRICT_PERMS=false
                 ]
                 healthcheck:
                     interval: 10s

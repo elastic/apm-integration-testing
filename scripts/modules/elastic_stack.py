@@ -461,7 +461,7 @@ class ApmServer(StackService, Service):
             command=command,
             depends_on=self.depends_on,
             environment=[
-                "BEATS_STRICT_PERM=false"  # Workaround https://github.com/elastic/beats/issues/18858
+                "BEAT_STRICT_PERMS=false"  # Workaround https://github.com/elastic/beats/issues/18858
             ],
             healthcheck=curl_healthcheck(self.SERVICE_PORT, path=healthcheck_path),
             labels=["co.elastic.apm.stack-version=" + self.version],
