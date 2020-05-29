@@ -1,3 +1,4 @@
+---
 packetbeat.interfaces.snaplen: 1514
 packetbeat.interfaces.type: af_packet
 packetbeat.interfaces.buffer_size_mb: 250
@@ -29,7 +30,7 @@ processors:
   - add_docker_metadata:
       host: "unix:///var/run/docker.sock"
   - add_host_metadata:
-      #extremely verbose if enabled
+      # extremely verbose if enabled
       netinfo.enabled: false
 monitoring.enabled: true
 queue.mem:
