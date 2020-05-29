@@ -688,6 +688,9 @@ class LocalTest(unittest.TestCase):
                 depends_on:
                     elasticsearch: {condition: service_healthy}
                     kibana: {condition: service_healthy}
+                environment: [
+                    BEAT_STRICT_PERMS=false
+                ]
                 healthcheck:
                     interval: 10s
                     retries: 12
@@ -766,6 +769,9 @@ class LocalTest(unittest.TestCase):
                 depends_on:
                     elasticsearch: {condition: service_healthy}
                     kibana: {condition: service_healthy}
+                environment: [
+                    BEAT_STRICT_PERMS=false
+                ]
                 healthcheck:
                     interval: 10s
                     retries: 12
@@ -867,6 +873,9 @@ class LocalTest(unittest.TestCase):
                 depends_on:
                     elasticsearch: {condition: service_healthy}
                     kibana: {condition: service_healthy}
+                environment: [
+                    BEAT_STRICT_PERMS=false
+                ]
                 healthcheck:
                     interval: 10s
                     retries: 12
