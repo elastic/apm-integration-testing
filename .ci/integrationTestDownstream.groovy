@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-@Library('apm@test/docker-logs') _
+@Library('apm@current') _
 
 import co.elastic.matrix.*
 import groovy.transform.Field
