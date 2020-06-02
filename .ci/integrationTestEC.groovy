@@ -252,16 +252,12 @@ def withConfigEnv(Closure body) {
 def grabResultsAndLogs(label){
   withConfigEnv(){
     dir("${BASE_DIR}"){
-      def stepName = label.replace(";","/")
-        .replace("--","_")
-        .replace(".","_")
-        .replace(" ","_")
-      sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
+      dockerLogs(step: label, failNever: true)
       sh('make stop-env || echo 0')
       sh('.ci/scripts/remove_env.sh docker-info')
       archiveArtifacts(
           allowEmptyArchive: true,
-          artifacts: 'docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
+          artifacts: '**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
           defaultExcludes: false)
       junit(
         allowEmptyResults: true,

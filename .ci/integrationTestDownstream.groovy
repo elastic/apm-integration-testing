@@ -217,16 +217,12 @@ def runScript(Map params = [:]){
 
 def wrappingup(label){
   dir("${BASE_DIR}"){
-    def stepName = label.replace(";","/")
-      .replace("--","_")
-      .replace(".","_")
-      .replace(" ","_")
-    sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
+    dockerLogs(step: label, failNever: true)
     sh('make stop-env || echo 0')
     def testResultsPattern = '**/tests/results/*-junit*.xml'
     archiveArtifacts(
         allowEmptyArchive: true,
-        artifacts: "docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json,${testResultsPattern}",
+        artifacts: "**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json,${testResultsPattern}",
         defaultExcludes: false)
     junit(testResults: testResultsPattern, allowEmptyResults: true, keepLongStdio: true)
     // Let's generate the debug report ...
