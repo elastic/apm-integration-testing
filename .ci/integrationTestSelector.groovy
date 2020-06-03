@@ -218,13 +218,12 @@ pipeline {
 def wrappingup(Map params = [:]){
   def isJunit = params.containsKey('isJunit') ? params.get('isJunit') : true
   dir("${BASE_DIR}"){
-    def stepName = agentMapping.id(params.INTEGRATION_TEST)
-    sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
+    dockerLogs(step: "${env.NAME}", failNever: true)
     sh('make stop-env || echo 0')
     def testResultsPattern = '**/tests/results/*-junit*.xml'
     archiveArtifacts(
         allowEmptyArchive: true,
-        artifacts: "docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json,${testResultsPattern}",
+        artifacts: "**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json,${testResultsPattern}",
         defaultExcludes: false)
     if (isJunit) {
       junit(allowEmptyResults: true, keepLongStdio: true, testResults: testResultsPattern)
