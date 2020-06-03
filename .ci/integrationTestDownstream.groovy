@@ -20,6 +20,9 @@ pipeline {
     JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
     PIPELINE_LOG_LEVEL = 'INFO'
     DISABLE_BUILD_PARALLEL = "${params.DISABLE_BUILD_PARALLEL}"
+    ENABLE_ES_DUMP = "true"
+    DETAILS_ARTIFACT = 'docs.txt'
+    DETAILS_ARTIFACT_URL = "${env.BUILD_URL}artifact/${env.DETAILS_ARTIFACT}"
   }
   options {
     timeout(time: 1, unit: 'HOURS')
@@ -216,15 +219,15 @@ def runScript(Map params = [:]){
 
 def wrappingup(label){
   dir("${BASE_DIR}"){
-    def stepName = label.replace(";","/")
-      .replace("--","_")
-      .replace(".","_")
-    sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
+    dockerLogs(step: label, failNever: true)
     sh('make stop-env || echo 0')
     archiveArtifacts(
         allowEmptyArchive: true,
-        artifacts: 'docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
+        artifacts: "**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json",
         defaultExcludes: false)
+    // Let's generate the debug report ...
+    sh(label: 'Generate debug docs', script: ".ci/scripts/generate-debug-docs.sh | tee ${env.DETAILS_ARTIFACT}")
+    archiveArtifacts(artifacts: "${env.DETAILS_ARTIFACT}")
     junit(
       allowEmptyResults: true,
       keepLongStdio: true,
