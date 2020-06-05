@@ -32,8 +32,14 @@ if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
   mv /src/NuGet.Config .
   # shellcheck disable=SC2016
   sed -ibck 's#<PropertyGroup>#<PropertyGroup><RestoreSources>$(RestoreSources);/src/local-packages;https://api.nuget.org/v3/index.json</RestoreSources>#' ${CSPROJ}
-  DOTNET_AGENT_VERSION=$(grep 'PackageVersion' ${BUILD_PROPS} | sed 's#<.*>\(.*\)<.*>#\1#' | tr -d " ")
 
+  ### Search the version of the agent using VersionPrefix otherwise PackageVersion (to keep backward compatibility)
+  SEARCH="VersionPrefix"
+  if ! grep ${SEARCH} ${BUILD_PROPS} ; then
+    SEARCH="PackageVersion"
+  fi
+
+  DOTNET_AGENT_VERSION=$(grep "${SEARCH}" ${BUILD_PROPS} | sed 's#<.*>\(.*\)<.*>#\1#' | tr -d " ")
   if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
     echo 'INFO: search version in the csproj. (only for agent version < 1.3)'
     DOTNET_AGENT_VERSION=$(grep 'PackageVersion' ${CSPROJ_VERSION} | sed 's#<.*>\(.*\)<.*>#\1#' | tr -d " ")
