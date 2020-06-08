@@ -210,7 +210,7 @@ pipeline {
   post {
     cleanup {
       githubCheckNotify(currentBuild.currentResult == 'SUCCESS' ? 'SUCCESS' : 'FAILURE')
-      notifyBuildResult()
+      notifyBuildResult(prComment: false)
     }
   }
 }
@@ -221,12 +221,13 @@ def wrappingup(Map params = [:]){
     def stepName = agentMapping.id(params.INTEGRATION_TEST)
     sh("./scripts/docker-get-logs.sh '${stepName}'|| echo 0")
     sh('make stop-env || echo 0')
+    def testResultsPattern = '**/tests/results/*-junit*.xml'
     archiveArtifacts(
         allowEmptyArchive: true,
-        artifacts: 'docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
+        artifacts: "docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json,${testResultsPattern}",
         defaultExcludes: false)
     if (isJunit) {
-      junit(allowEmptyResults: true, keepLongStdio: true, testResults: "**/tests/results/*-junit*.xml")
+      junit(allowEmptyResults: true, keepLongStdio: true, testResults: testResultsPattern)
     }
     // Let's generate the debug report ...
     sh(label: 'Generate debug docs', script: ".ci/scripts/generate-debug-docs.sh | tee ${env.DETAILS_ARTIFACT}")
