@@ -1,14 +1,22 @@
 #!/usr/bin/env bash
 set -x
-git clone https://github.com/${OPBEANS_DOTNET_REPO}.git /src/opbeans-dotnet -b ${OPBEANS_DOTNET_BRANCH}
+
+git clone https://github.com/"${OPBEANS_DOTNET_REPO}".git /src/opbeans-dotnet
+cd /src/opbeans-dotnet || exit
+git fetch -q origin '+refs/pull/*:refs/remotes/origin/pr/*'
+git checkout "${OPBEANS_DOTNET_BRANCH}"
+
 CSPROJ="opbeans-dotnet.csproj"
 
 PACKAGE=Elastic.Apm.NetCoreAll
 CSPROJ_VERSION="/src/dotnet-agent/src/Elastic.Apm.NetCoreAll/${PACKAGE}.csproj"
 
 if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
-  git clone https://github.com/${DOTNET_AGENT_REPO}.git /src/dotnet-agent -b ${DOTNET_AGENT_BRANCH}
-  cd /src/dotnet-agent
+  git clone https://github.com/"${DOTNET_AGENT_REPO}".git /src/dotnet-agent
+  cd /src/dotnet-agent || exit
+  git fetch -q origin '+refs/pull/*:refs/remotes/origin/pr/*'
+  git checkout "${DOTNET_AGENT_BRANCH}"
+
   ### Otherwise: /usr/share/dotnet/sdk/2.2.203/NuGet.targets(119,5): error : The local source '/src/local-packages' doesn't exist. [/src/dotnet-agent/ElasticApmAgent.sln]
   mkdir /src/local-packages
 
@@ -30,8 +38,23 @@ if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
   cd /src/opbeans-dotnet/opbeans-dotnet
   mv /src/NuGet.Config .
   sed -ibck 's#<PropertyGroup>#<PropertyGroup><RestoreSources>$(RestoreSources);/src/local-packages;https://api.nuget.org/v3/index.json</RestoreSources>#' ${CSPROJ}
-  DOTNET_AGENT_VERSION=$(cat ${CSPROJ_VERSION} | grep 'PackageVersion' | sed 's#<.*>\(.*\)<.*>#\1#' | tr -d " ")
-  dotnet add package ${PACKAGE} -v ${DOTNET_AGENT_VERSION}
+
+  ### Search the version of the agent using VersionPrefix otherwise PackageVersion (to keep backward compatibility)
+  SEARCH="VersionPrefix"
+  if ! grep ${SEARCH} ${BUILD_PROPS} ; then
+    SEARCH="PackageVersion"
+  fi
+
+  DOTNET_AGENT_VERSION=$(grep "${SEARCH}" ${BUILD_PROPS} | sed 's#<.*>\(.*\)<.*>#\1#' | tr -d " ")
+  if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
+    echo 'INFO: search version in the csproj. (only for agent version < 1.3)'
+    DOTNET_AGENT_VERSION=$(grep 'PackageVersion' ${CSPROJ_VERSION} | sed 's#<.*>\(.*\)<.*>#\1#' | tr -d " ")
+    if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
+      echo 'ERROR: DOTNET_AGENT_VERSION could not be calculated.' && exit 1
+    fi
+  fi
+
+  dotnet add package ${PACKAGE} -v "${DOTNET_AGENT_VERSION}"
 else
   ### Otherwise: The default NuGet.Config will fail as it's required
   mkdir /src/local-packages
