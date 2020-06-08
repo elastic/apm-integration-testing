@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -x
-git clone https://github.com/${OPBEANS_DOTNET_REPO}.git /src/opbeans-dotnet -b ${OPBEANS_DOTNET_BRANCH}
+
+git clone https://github.com/"${OPBEANS_DOTNET_REPO}".git /src/opbeans-dotnet
+cd /src/opbeans-dotnet || exit
+git fetch -q origin '+refs/pull/*:refs/remotes/origin/pr/*'
+git checkout "${OPBEANS_DOTNET_BRANCH}"
+
 CSPROJ="opbeans-dotnet.csproj"
 
 PACKAGE=Elastic.Apm.NetCoreAll
@@ -8,8 +13,11 @@ CSPROJ_VERSION="/src/dotnet-agent/src/Elastic.Apm.NetCoreAll/${PACKAGE}.csproj"
 BUILD_PROPS="/src/dotnet-agent/src/Directory.Build.props"
 
 if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
-  git clone https://github.com/"${DOTNET_AGENT_REPO}".git /src/dotnet-agent -b "${DOTNET_AGENT_BRANCH}"
+  git clone https://github.com/"${DOTNET_AGENT_REPO}".git /src/dotnet-agent
   cd /src/dotnet-agent || exit
+  git fetch -q origin '+refs/pull/*:refs/remotes/origin/pr/*'
+  git checkout "${DOTNET_AGENT_BRANCH}"
+
   ### Otherwise: /usr/share/dotnet/sdk/2.2.203/NuGet.targets(119,5): error : The local source '/src/local-packages' doesn't exist. [/src/dotnet-agent/ElasticApmAgent.sln]
   mkdir /src/local-packages
 
