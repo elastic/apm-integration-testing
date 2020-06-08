@@ -1,4 +1,6 @@
-FROM opbeans/opbeans-ruby:latest
+ARG OPBEANS_RUBY_IMAGE=opbeans/opbeans-ruby
+ARG OPBEANS_RUBY_VERSION=latest
+FROM ${OPBEANS_RUBY_IMAGE}:${OPBEANS_RUBY_VERSION}
 
 RUN apk update && \
     apk --no-cache add curl bash && \

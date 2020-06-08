@@ -1,4 +1,6 @@
-FROM opbeans/opbeans-node:latest
+ARG OPBEANS_NODE_IMAGE=opbeans/opbeans-node
+ARG OPBEANS_NODE_VERSION=latest
+FROM ${OPBEANS_NODE_IMAGE}:${OPBEANS_NODE_VERSION}
 
 RUN apk update && \
     apk --no-cache add curl bash && \
