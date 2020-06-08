@@ -185,6 +185,7 @@ Those scripts shut down any existing testing containers and start a fresh new en
 
 These are the scripts available to execute:
 
+* `agent.sh:` runs the tests for the given agent. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `all.sh:` runs all test on apm-server and every agent type.
 * `common.sh:` common scripts variables and functions, it does not execute anything.
 * `dotnet.sh:` runs .NET tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
@@ -192,6 +193,8 @@ These are the scripts available to execute:
 * `java.sh:` runs Java tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `kibana.sh:` runs kibana agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `nodejs.sh:` runs Nodejs agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
+* `opbeans.sh:` runs the unit tests for the apm-integration-testing app and validates the linting. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
+* `opbeans-app.sh:` runs the apm-integration-testing app and validates the stack can be started. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `python.sh:` runs Python agent tests, you can choose the versions to run see the [environment variables](environment-variables) configuration.
 * `ruby.sh:` runs Ruby agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `server.sh:` runs APM Server tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
