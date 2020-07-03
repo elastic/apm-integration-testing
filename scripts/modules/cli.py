@@ -74,6 +74,8 @@ class LocalSetup(object):
         '7.5': '7.5.2',
         '7.6': '7.6.2',
         '7.7': '7.7.0',
+        '7.8': '7.8.0',
+        '7.9': '7.9.0',
         'master': '8.0.0',
     }
 
@@ -342,6 +344,13 @@ class LocalSetup(object):
             action="store",
             help="apm server url to use for all clients",
             default=DEFAULT_APM_SERVER_URL,
+        )
+
+        parser.add_argument(
+            "--index-suffix",
+            action="store",
+            help="index suffix to add to all event indices",
+            default="",
         )
 
         parser.add_argument(
