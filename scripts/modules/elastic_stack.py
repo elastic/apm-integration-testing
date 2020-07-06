@@ -69,8 +69,16 @@ class ApmServer(StackService, Service):
         self.es_tls = self.options.get("elasticsearch_enable_tls", False)
         self.kibana_tls = self.options.get("kibana_enable_tls", False)
 
-        if self.options.get("apm-server-experimental-mode", True) and self.at_least_version("7.2"):
+        if self.options.get("apm_server_experimental_mode", True) and self.at_least_version("7.2"):
             self.apm_server_command_args.append(("apm-server.mode", "experimental"))
+
+        index_suffix = self.options.get("index_suffix")
+        if index_suffix and self.at_least_version("7.9"):
+            mapping = []
+            for et in ["profile", "error", "transaction", "span", "metric"]:
+                mapping.append({"event_type": et, "index_suffix": index_suffix})
+            mapping_str = json.dumps(mapping)
+            self.apm_server_command_args.append(("apm-server.ilm.setup.mapping", mapping_str))
 
         if self.options.get("apm_server_ilm_disable"):
             self.apm_server_command_args.append(("apm-server.ilm.enabled", "false"))
