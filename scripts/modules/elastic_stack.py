@@ -76,7 +76,7 @@ class ApmServer(StackService, Service):
         if index_suffix and self.at_least_version("7.9"):
             mapping = []
             for et in ["profile", "error", "transaction", "span", "metric"]:
-                mapping.append({"event_type":et, "index_suffix":index_suffix})
+                mapping.append({"event_type": et, "index_suffix": index_suffix})
             mapping_str = json.dumps(mapping)
             self.apm_server_command_args.append(("apm-server.ilm.setup.mapping", mapping_str))
 
