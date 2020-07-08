@@ -130,7 +130,7 @@ pipeline {
             sendDataToElasticsearch(es: json.data.url, data: datafile, restCall: '/jenkins-builds-it-results/_doc/')
           }
         }
-        notifyBuildResult()
+        notifyBuildResult(prComment: false)
       }
     }
   }
