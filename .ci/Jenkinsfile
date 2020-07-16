@@ -127,8 +127,8 @@ pipeline {
 }
 
 def runJob(testName, buildOpts = ''){
-  def branch = env.CHANGE_ID?.trim() ? env.CHANGE_TARGET : env.BRANCH_NAME
-  def jobName = "apm-integration-test-downstream/${branch}"
+  def mergeTarget = env.CHANGE_ID?.trim() ? env.CHANGE_TARGET : env.BRANCH_NAME
+  def jobName = "apm-integration-test-downstream/${env.CHANGE_ID?.trim() ? env.CHANGE_ID : env.BRANCH_NAME}"
   def buildObject
   try {
     buildObject = build(job: jobName,
@@ -136,7 +136,7 @@ def runJob(testName, buildOpts = ''){
       string(name: 'INTEGRATION_TEST', value: testName),
       string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
       string(name: 'INTEGRATION_TESTING_VERSION', value: "${env.GIT_BASE_COMMIT}"),
-      string(name: 'MERGE_TARGET', value: "${branch}"),
+      string(name: 'MERGE_TARGET', value: "${mergeTarget}"),
       string(name: 'BUILD_OPTS', value: "${params.BUILD_OPTS} ${buildOpts}"),
       string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
       booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: '')],
