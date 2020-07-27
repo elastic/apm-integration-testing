@@ -4,7 +4,7 @@ echo "* You must define ELASTIC_OPBEANS_API_SERVER to redirect all request to ht
 echo "* You can define ELASTIC_APM_JS_BASE_SERVER_URL to send the APM request (default http://localhost:8200)                                  *"
 echo "* You can define ELASTIC_APM_JS_BASE_SERVICE_VERSION to set the service version (default v1.0.0)                                         *"
 echo "* You can define ELASTIC_APM_JS_BASE_SERVICE_NAME to set the service name (default opbeans-rum)                                          *"
-echo "* You can define EXTRA_OPTS to set any adicional option you need (default empty) EXTRA_OPTS='setting1: value1, setting2: value2'                                           *"
+echo "* You can define EXTRA_OPTS to set any additional option you need (default empty) EXTRA_OPTS='setting1: value1, setting2: value2'                                           *"
 echo "******************************************************************************************************************************************"
 
 ELASTIC_OPBEANS_API_SERVER=${ELASTIC_OPBEANS_API_SERVER:-"http://localhost:3000"}
