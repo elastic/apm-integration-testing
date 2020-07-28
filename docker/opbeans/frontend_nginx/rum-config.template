@@ -7,7 +7,8 @@ Math.random = function() {
 
 // see https://github.com/elastic/opbeans-frontend/blob/849a7a7/src/rum.js#L40-L55
 var rumConfig = {
-	serverUrl: '{{ ELASTIC_APM_JS_BASE_SERVER_URL }}',
-	serviceName: '{{ ELASTIC_APM_JS_BASE_SERVICE_NAME }}',
-	serviceVersion: '{{ ELASTIC_APM_JS_BASE_SERVICE_VERSION }}'
+  serverUrl: '{{ ELASTIC_APM_JS_BASE_SERVER_URL }}',
+  serviceName: '{{ ELASTIC_APM_JS_BASE_SERVICE_NAME }}',
+  serviceVersion: '{{ ELASTIC_APM_JS_BASE_SERVICE_VERSION }}',
+  {{ EXTRA_OPTS }}
 }

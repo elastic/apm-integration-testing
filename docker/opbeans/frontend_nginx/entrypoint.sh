@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 echo "******************************************************************************************************************************************"
-echo "* You must define ELASTIC_OPBEANS_API_SERVER to reditect all request to http://host:port/api/* (default http://localhost:3000) *"
-echo "* You can define ELASTIC_APM_JS_BASE_SERVER_URL to send the APM request (default http://localhost:8200)                                         *"
+echo "* You must define ELASTIC_OPBEANS_API_SERVER to redirect all request to http://host:port/api/* (default http://localhost:3000)           *"
+echo "* You can define ELASTIC_APM_JS_BASE_SERVER_URL to send the APM request (default http://localhost:8200)                                  *"
 echo "* You can define ELASTIC_APM_JS_BASE_SERVICE_VERSION to set the service version (default v1.0.0)                                         *"
-echo "* You can define ELASTIC_APM_JS_BASE_SERVICE_NAME to set the service name (default opbeans-rum)                                         *"
+echo "* You can define ELASTIC_APM_JS_BASE_SERVICE_NAME to set the service name (default opbeans-rum)                                          *"
+echo "* You can define EXTRA_OPTS to set any additional option you need (default empty) EXTRA_OPTS='setting1: value1, setting2: value2'                                           *"
 echo "******************************************************************************************************************************************"
 
 ELASTIC_OPBEANS_API_SERVER=${ELASTIC_OPBEANS_API_SERVER:-"http://localhost:3000"}
@@ -20,6 +21,7 @@ sed "s@{{ ELASTIC_OPBEANS_API_SERVER }}@${ELASTIC_OPBEANS_API_SERVER}@g" /etc/ng
 sed -e "s@{{ ELASTIC_APM_JS_BASE_SERVER_URL }}@${ELASTIC_APM_JS_BASE_SERVER_URL}@g" \
     -e "s@{{ ELASTIC_APM_JS_BASE_SERVICE_VERSION }}@${ELASTIC_APM_JS_BASE_SERVICE_VERSION}@g" \
     -e "s@{{ ELASTIC_APM_JS_BASE_SERVICE_NAME }}@${ELASTIC_APM_JS_BASE_SERVICE_NAME}@g" \
+    -e "s@{{ EXTRA_OPTS }}@${EXTRA_OPTS}@g" \
     /usr/share/nginx/html/rum-config.template > /usr/share/nginx/html/rum-config.js
 
 exec nginx-debug -g 'daemon off;'
