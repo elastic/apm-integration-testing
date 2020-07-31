@@ -5,11 +5,11 @@ ARG RUM_AGENT_REPO=elastic/apm-agent-rum-js
 ARG APM_SERVER_URL
 
 RUN apt update -qq \
-    && apt install -qq -y curl git gnupg libgconf-2-4 libxss1 --no-install-recommends \
+    && apt install -qq -y curl git gnupg libgconf-2-4 libxss1  python g++ build-essential --no-install-recommends \
     && curl -sSfkL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
     && apt update -qq \
-    && apt install -qq -y google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst ttf-freefont python g++ build-essential \
+    && apt install -qq -y google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst ttf-freefont \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /src/*.deb
@@ -25,7 +25,13 @@ RUN (cd /rumjs-integration-test \
 
 WORKDIR /rumjs-integration-test
 
-RUN npm install
+# the install is retry threee times with a pause of 10 seconds
+RUN for i in 1 2 3; \
+    do \
+      npm install --no-optional; \
+      sleep 10; \
+      ([ $i -eq 3 ] && exit 1) || true; \
+    done;
 
 # Run the build on all the packages/* to make sure the files referenced in both
 # main and module fields are available when they are required by successive dependencies
