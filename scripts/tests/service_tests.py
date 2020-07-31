@@ -38,6 +38,7 @@ class AgentServiceTest(ServiceTest):
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_FLUSH_INTERVAL: 500ms
+                        ELASTIC_APM_LOG_LEVEL: 'info'
                         ELASTIC_APM_SERVICE_NAME: gonethttpapp
                         ELASTIC_APM_TRANSACTION_IGNORE_NAMES: healthcheck
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
@@ -92,6 +93,7 @@ class AgentServiceTest(ServiceTest):
                     command: bash -c "npm install elastic-apm-node && node app.js"
                     environment:
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
+                        ELASTIC_APM_LOG_LEVEL: 'info'
                         EXPRESS_SERVICE_NAME: expressapp
                         EXPRESS_PORT: "8010"
                     healthcheck:
@@ -142,6 +144,7 @@ class AgentServiceTest(ServiceTest):
                     environment:
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
                         DJANGO_SERVICE_NAME: djangoapp
+                        ELASTIC_APM_LOG_LEVEL: 'info'
                         DJANGO_PORT: 8003
                     healthcheck:
                         interval: 10s
@@ -186,6 +189,7 @@ class AgentServiceTest(ServiceTest):
                             condition: 'service_healthy'
                     environment:
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
+                        ELASTIC_APM_LOG_LEVEL: 'info'
                         FLASK_SERVICE_NAME: flaskapp
                         GUNICORN_CMD_ARGS: "-w 4 -b 0.0.0.0:8001"
                     healthcheck:
@@ -235,6 +239,7 @@ class AgentServiceTest(ServiceTest):
                     environment:
                         APM_SERVER_URL: http://apm-server:8200
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
+                        ELASTIC_APM_LOG_LEVEL: 'info'
                         ELASTIC_APM_SERVER_URL: http://apm-server:8200
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
                         ELASTIC_APM_SERVICE_NAME: railsapp
@@ -301,6 +306,7 @@ class AgentServiceTest(ServiceTest):
                             condition: 'service_healthy'
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
+                        ELASTIC_APM_LOG_LEVEL: 'info'
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
                         ELASTIC_APM_SERVICE_NAME: springapp
                     healthcheck:
@@ -363,6 +369,7 @@ class AgentServiceTest(ServiceTest):
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_FLUSH_INTERVAL: '5'
+                        ELASTIC_APM_LOG_LEVEL: info
                         ELASTIC_APM_TRANSACTION_SAMPLE_RATE: '1'
                         ELASTIC_APM_SERVICE_NAME: dotnetapp
                         ELASTIC_APM_TRANSACTION_IGNORE_NAMES: 'healthcheck'
