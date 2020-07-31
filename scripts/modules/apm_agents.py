@@ -3,7 +3,7 @@
 #
 
 from .helpers import curl_healthcheck, add_agent_environment
-from .service import Service, DEFAULT_APM_SERVER_URL
+from .service import Service, DEFAULT_APM_SERVER_URL, DEFAULT_APM_LOG_LEVEL
 
 
 class AgentRUMJS(Service):
@@ -38,6 +38,7 @@ class AgentRUMJS(Service):
             "ELASTIC_APM_SERVICE_NAME": "rum",
             "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
             "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
+            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL)
         }
         environment = default_environment
         if self.apm_api_key:
@@ -98,6 +99,7 @@ class AgentGoNetHttp(Service):
     ])
     def _content(self):
         default_environment = {
+            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL),
             "ELASTIC_APM_API_REQUEST_TIME": "3s",
             "ELASTIC_APM_FLUSH_INTERVAL": "500ms",
             "ELASTIC_APM_SERVICE_NAME": "gonethttpapp",
@@ -159,6 +161,7 @@ class AgentNodejsExpress(Service):
             "EXPRESS_PORT": str(self.SERVICE_PORT),
             "EXPRESS_SERVICE_NAME": "expressapp",
             "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
+            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL),
         }
         environment = default_environment
         if self.apm_api_key:
@@ -218,6 +221,7 @@ class AgentPythonDjango(AgentPython):
     ])
     def _content(self):
         default_environment = {
+            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL),
             "DJANGO_PORT": self.SERVICE_PORT,
             "DJANGO_SERVICE_NAME": "djangoapp",
         }
@@ -253,6 +257,7 @@ class AgentPythonFlask(AgentPython):
     ])
     def _content(self):
         default_environment = {
+            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL),
             "FLASK_SERVICE_NAME": "flaskapp",
             "GUNICORN_CMD_ARGS": "-w 4 -b 0.0.0.0:{}".format(self.SERVICE_PORT),
         }
@@ -319,6 +324,7 @@ class AgentRubyRails(Service):
     def _content(self):
         default_environment = {
             "APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
+            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL),
             "ELASTIC_APM_API_REQUEST_TIME": "3s",
             "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
             "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
@@ -399,6 +405,7 @@ class AgentJavaSpring(Service):
             "ELASTIC_APM_API_REQUEST_TIME": "3s",
             "ELASTIC_APM_SERVICE_NAME": "springapp",
             "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
+            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL),
         }
         environment = default_environment
         if self.apm_api_key:
@@ -472,6 +479,7 @@ class AgentDotnet(Service):
             "ELASTIC_APM_TRANSACTION_SAMPLE_RATE": "1",
             "ELASTIC_APM_SERVICE_NAME": "dotnetapp",
             "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
+            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL),
         }
         environment = default_environment
         if self.apm_api_key:

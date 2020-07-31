@@ -18,6 +18,7 @@ DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
   --no-apm-server-self-instrument \
   --no-kibana --with-agent-dotnet \
   --force-build \
-  --no-xpack-secure"
+  --no-xpack-secure \
+  --apm-log-level debug"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
 runTests env-agent-dotnet docker-test-agent-dotnet

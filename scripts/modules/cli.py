@@ -13,7 +13,7 @@ import re
 from .beats import BeatMixin
 from .helpers import load_images
 from .opbeans import OpbeansService, OpbeansRum
-from .service import Service, DEFAULT_APM_SERVER_URL
+from .service import Service, DEFAULT_APM_SERVER_URL, DEFAULT_APM_LOG_LEVEL
 
 # these imports are used by discover_services function to discover services from modules loaded
 
@@ -345,6 +345,14 @@ class LocalSetup(object):
             action="store",
             help="apm server url to use for all clients",
             default=DEFAULT_APM_SERVER_URL,
+        )
+
+        parser.add_argument(
+            "--apm-log-level",
+            action="store",
+            help="APM log level to use",
+            choices=["off", "error", "warn", "info", "debug", "trace"],
+            default=DEFAULT_APM_LOG_LEVEL
         )
 
         parser.add_argument(

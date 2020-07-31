@@ -19,6 +19,7 @@ DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
   --no-kibana \
   --with-agent-java-spring \
   --force-build \
-  --no-xpack-secure"
+  --no-xpack-secure \
+  --apm-log-level debug"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
 runTests env-agent-java docker-test-agent-java
