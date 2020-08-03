@@ -20,7 +20,7 @@ DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
   --with-agent-go-net-http \
   --force-build \
   --no-xpack-secure \
-  --apm-log-level debug"
+  --apm-log-level=debug"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
 
 runTests env-agent-go docker-test-agent-go
