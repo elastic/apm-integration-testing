@@ -28,7 +28,7 @@ DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS}\
   --no-verify-server-cert  \
   --apm-server-secret-token=${ELASTIC_APM_SECRET_TOKEN} \
   --apm-server-url=${APM_SERVER_URL} \
-  --apm-log-level debug"
+  --apm-log-level=debug"
 
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
 runTests env-agent-all docker-test-all

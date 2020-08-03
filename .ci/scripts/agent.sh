@@ -14,6 +14,6 @@ DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
   --no-apm-server-self-instrument \
   --apm-server-agent-config-poll=1s \
   --force-build --no-xpack-secure \
-  --apm-log-level debug"
+  --apm-log-level=debug"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
 runTests "env-agent-${AGENT}" "docker-test-agent-${AGENT}"
