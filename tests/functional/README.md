@@ -23,7 +23,7 @@ The way we are going to specify our software, which is the deployment of the tes
 
 >Gherkin uses a set of special keywords to give structure and meaning to executable specifications. Each keyword is translated to many spoken languages. Most lines in a Gherkin document start with one of the keywords.
 
-The key part here is **executable specifications**: we will be able to automate the verification of the spefications anf potentially get a coverage of these specs.
+The key part here is **executable specifications**: we will be able to automate the verification of the specifications and potentially get a coverage of these specs.
 
 ### Cypress: a test runner not using Selenium
 
