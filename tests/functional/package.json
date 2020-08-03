@@ -24,10 +24,9 @@
   "scripts": {
     "format": "prettier --write '**/*.js'",
     "format:ci": "npm run lint && prettier --check '**/*.js'",
-    "install": "cypress install",
     "lint": "eslint -c cypress/.eslintrc.json cypress/**/*.js",
     "test": "cypress open",
-    "pretest:ci": "rm -fr cypress/cucumber-json cypress/html-reports cypress/test-results && mkdir -p cypress/html-reports",
+    "pretest:ci": "rm -fr cypress/cucumber-json cypress/html-reports cypress/test-results && mkdir -p cypress/html-reports && cypress install",
     "test:ci": "cypress run",
     "posttest:ci": "node ./cucumber-html-reporter.js"
   },
