@@ -1,0 +1,53 @@
+{
+  "name": "observability-environments-tests",
+  "version": "1.0.0",
+  "description": "Functional tests for the Observability Test Environments",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "cucumber-html-reporter": "^5.2.0",
+    "cypress": "^4.9.0",
+    "cypress-cucumber-preprocessor": "^2.5.0",
+    "eslint": "^6.0.1",
+    "eslint-plugin-cypress": "^2.2.1",
+    "prettier": "1.18.2"
+  },
+  "cypress-cucumber-preprocessor": {
+    "nonGlobalStepDefinitions": true,
+    "cucumberJson": {
+      "generate": true,
+      "outputFolder": "cypress/cucumber-json",
+      "filePrefix": "",
+      "fileSuffix": ".cucumber"
+    }
+  },
+  "scripts": {
+    "format": "prettier --write '**/*.js'",
+    "format:ci": "npm run lint && prettier --check '**/*.js'",
+    "install": "cypress install",
+    "lint": "eslint -c cypress/.eslintrc.json cypress/**/*.js",
+    "test": "cypress open",
+    "pretest:ci": "rm -fr cypress/cucumber-json cypress/html-reports cypress/test-results && mkdir -p cypress/html-reports",
+    "test:ci": "cypress run",
+    "posttest:ci": "node ./cucumber-html-reporter.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elastic/apm-integration-testing.git"
+  },
+  "keywords": [
+    "apm",
+    "bdd",
+    "elastic",
+    "elasticsearch",
+    "kibana",
+    "opbeans",
+    "tests"
+  ],
+  "author": "Observability Automation Team",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/elastic/apm-integration-testing/issues"
+  },
+  "homepage": "https://github.com/elastic/apm-integration-testing#readme"
+}

@@ -30,3 +30,11 @@ target/
 
 # For the docs generation
 .apm-its
+
+# For Cypress tests
+tests/functional/**/cypress.env.json
+tests/functional/**/cypress/cucumber-json
+tests/functional/**/cypress/html-reports
+tests/functional/**/cypress/screenshots
+tests/functional/**/cypress/test-results
+tests/functional/**/cypress/videos

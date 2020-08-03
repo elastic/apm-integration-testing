@@ -1,0 +1,21 @@
+{
+  "baseUrl": "http://localhost:5601",
+  "env": {
+    "clusterName": "apm-integration-tests",
+    "elasticsearchUrl": "http://locahost:9200",
+    "kibanaUrl": "http://localhost:5601",
+    "password": "changeme",
+    "user": "admin"
+  },
+  "ignoreTestFiles": "*.js",
+  "reporter": "junit",
+  "reporterOptions": {
+    "mochaFile": "cypress/test-results/functional-tests.xml",
+    "toConsole": false,
+    "outputs": false,
+    "attachments": false
+  },
+  "viewportWidth": 1280,
+  "viewportHeight": 800,
+  "video": false
+}
