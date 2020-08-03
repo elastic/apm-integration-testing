@@ -70,7 +70,7 @@ It's **very important** to spin up the services that are going to be used in the
 
 ## Running the tests
 
-Place your terminal in the root irectory of these tests there and execute Node's classic:
+Place your terminal in the root directory of these tests and there execute Node's classic:
 
 ```shell
 $ npm run test
