@@ -6,7 +6,7 @@
   "dependencies": {},
   "devDependencies": {
     "cucumber-html-reporter": "^5.2.0",
-    "cypress": "^4.9.0",
+    "cypress": "^4.12.0",
     "cypress-cucumber-preprocessor": "^2.5.0",
     "eslint": "^6.0.1",
     "eslint-plugin-cypress": "^2.2.1",
