@@ -221,7 +221,6 @@ class AgentPythonDjango(AgentPython):
     ])
     def _content(self):
         default_environment = {
-            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL),
             "DJANGO_PORT": self.SERVICE_PORT,
             "DJANGO_SERVICE_NAME": "djangoapp",
         }
@@ -257,7 +256,6 @@ class AgentPythonFlask(AgentPython):
     ])
     def _content(self):
         default_environment = {
-            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL),
             "FLASK_SERVICE_NAME": "flaskapp",
             "GUNICORN_CMD_ARGS": "-w 4 -b 0.0.0.0:{}".format(self.SERVICE_PORT),
         }
