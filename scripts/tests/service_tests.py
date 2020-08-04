@@ -238,7 +238,7 @@ class AgentServiceTest(ServiceTest):
                     environment:
                         APM_SERVER_URL: http://apm-server:8200
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
-                        ELASTIC_APM_LOG_LEVEL: 'info'
+                        ELASTIC_APM_LOG_LEVEL: 1
                         ELASTIC_APM_SERVER_URL: http://apm-server:8200
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
                         ELASTIC_APM_SERVICE_NAME: railsapp
