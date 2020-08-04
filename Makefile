@@ -1,3 +1,4 @@
+.PHONY: help
 SHELL := /bin/bash
 PYTHON ?= python3
 VENV ?= ./venv
@@ -39,45 +40,48 @@ export ES_PASS := $(ES_PASS)
 export ELASTIC_APM_SECRET_TOKEN := $(ELASTIC_APM_SECRET_TOKEN)
 export PYTHONHTTPSVERIFY := $(PYTHONHTTPSVERIFY)
 
+help: ## Display this help text
+	@grep -E '^[a-zA-Z_-]+[%]?:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
 all: test
 
 # The tests are written in Python. Make a virtualenv to handle the dependencies.
 # make doesn't play nicely with custom VENV, intended only for CI usage
-venv: requirements.txt
+venv: requirements.txt ## Prepare the virtual environment
 	test -d $(VENV) || virtualenv -q --python=$(PYTHON) $(VENV);\
 	source $(VENV)/bin/activate || exit 1;\
 	pip install -q -r requirements.txt;\
 	touch $(VENV);\
 
-lint: venv
+lint: venv  ## Lint the project
 	flake8 --ignore=D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403,W504  tests/ scripts/compose.py scripts/modules
 
 .PHONY: create-x509-cert
-create-x509-cert:
+create-x509-cert:  ## Create an x509 certificate for use with the test suite
 	openssl req -x509 -newkey rsa:4096 -keyout scripts/tls/key.pem -out scripts/tls/cert.crt -days "${CERT_VALID_DAYS}" -subj '/CN=apm-server' -nodes
 
 .PHONY: lint
 
-start-env: venv
+start-env: venv ## Start the test environment
 	$(PYTHON) scripts/compose.py start $(COMPOSE_ARGS)
 	docker-compose up -d
 
-stop-env: venv
+stop-env: venv ## Stop the test environment
 	docker-compose down -v --remove-orphans || true
 
-destroy-env: venv
+destroy-env: venv ## Destroy the test environment
 	[ -n "$(docker ps -aqf network=apm-integration-testing)" ] && (docker ps -aqf network=apm-integration-testing | xargs -t docker rm -f && docker network rm apm-integration-testing) || true
 
 # default (all) started for now
 env-%: venv
 	$(MAKE) start-env
 
-test: test-all
+test: test-all  ## Run all the tests
 
 test-agent-%-version: venv
 	pytest tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s -m version $(JUNIT_OPT)/agent-$*-version-junit.xml
 
-test-agent-%: venv
+test-agent-%: venv ## Test a specific agent. ex: make test-agent-java
 	pytest tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/agent-$*-junit.xml
 
 test-compose: venv
@@ -88,7 +92,7 @@ test-compose-2:
 	./venv2/bin/pip2 install mock pytest pyyaml
 	./venv2/bin/pytest --noconftest scripts/tests/*_tests.py
 
-test-kibana: venv
+test-kibana: venv ## Run the Kibana integration tests
 	pytest tests/kibana/test_integration.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/kibana-junit.xml
 
 test-server: venv
