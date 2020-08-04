@@ -467,6 +467,22 @@ class AgentDotnet(Service):
                 "apm-server": {"condition": "service_healthy"},
             }
 
+    def _map_log_level(self, lvl):
+        """
+        Resolves a standard log level such as 'info' to
+        a specific log level string as required by the .NET agent.
+
+        See https://www.elastic.co/guide/en/apm/agent/dotnet/current/config-supportability.html#config-log-level
+        """
+        log_level_map = {
+            "info": "Info",
+            "error": "Error",
+            "warning": "Warning",
+            "debug": "Debug",
+            "trace": "Trace"
+        }
+        return log_level_map[lvl]
+
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
         ("apm_server_url", "ELASTIC_APM_SERVER_URLS"),
@@ -479,7 +495,9 @@ class AgentDotnet(Service):
             "ELASTIC_APM_TRANSACTION_SAMPLE_RATE": "1",
             "ELASTIC_APM_SERVICE_NAME": "dotnetapp",
             "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
-            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL),
+            "ELASTIC_APM_LOG_LEVEL": self._map_log_level(
+                self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL).lower()
+                ),
         }
         environment = default_environment
         if self.apm_api_key:
