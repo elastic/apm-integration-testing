@@ -317,13 +317,36 @@ class AgentRubyRails(Service):
                 "apm-server": {"condition": "service_healthy"},
             }
 
+    def _map_log_level(self, lvl):
+        """
+        Resolves a standard log level such as 'info' to
+        a specific log level string as required by the Ruby agent.
+        See https://www.rubydoc.info/stdlib/logger/Logger/Severity
+        and https://www.elastic.co/guide/en/apm/agent/ruby/1.x/configuration.html#config-log-level
+        """
+
+        if lvl == "trace":
+            print("WARNING: Trace log level requested but not supported by Ruby agent. "
+                  "Setting to debug and continuing.")
+            return 0
+
+        log_level_map = {
+            "debug": 0,
+            "info": 1,
+            "warning": 2,
+            "error": 3,
+        }
+        return log_level_map[lvl]
+
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
     ])
     def _content(self):
         default_environment = {
             "APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
-            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL),
+            "ELASTIC_APM_LOG_LEVEL": self._map_log_level(
+                self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL).lower()
+            ),
             "ELASTIC_APM_API_REQUEST_TIME": "3s",
             "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
             "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
