@@ -496,7 +496,7 @@ class AgentDotnet(Service):
             "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
             "ELASTIC_APM_LOG_LEVEL": self._map_log_level(
                 self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL).lower()
-                ),
+            ),
         }
         environment = default_environment
         if self.apm_api_key:
