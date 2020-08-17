@@ -423,3 +423,7 @@ Finally, run the apm-its with the required services and the flag `--elastic-apm-
 ```bash
 python scripts/compose.py start 8.0.0 --with-agent-dotnet --elastic-apm-api-key ${apiKey}
 ```
+
+## APM CI
+
+More information on the APM Integration Tests in the CI [is available here](docs/ci.md).
