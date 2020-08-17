@@ -119,3 +119,9 @@ When clicking on the drop-down, output such as the following will be displayed:
 ```
 
 As you can see, the build number of the downstream job is listed there. To navigate to the build in question, go to the [Downstream Jobs](https://apm-ci.elastic.co/job/apm-integration-test-downstream/) view in Jenkins. Then choose the same branch as the failure you are investigating and then view the list of builds in the pane on the left-hand side of the screen. Search for the build with the same number as above. In our example, this is build `#6238`.
+
+### Locating debug logs
+
+Once you have located the downstream test using one of the two methods described above, click on the `Console logs` link to see the full logs.
+
+Happy debugging!
