@@ -23,7 +23,7 @@ app.config['ELASTIC_APM'] = {
     'SECRET_TOKEN': os.getenv('APM_SERVER_SECRET_TOKEN', '1234'),
     'TRANSACTIONS_IGNORE_PATTERNS': ['.*healthcheck']
 }
-apm = ElasticAPM(app, logging=True)
+apm = ElasticAPM(app, logging=logging.ERROR)
 
 
 @app.route('/')
@@ -68,9 +68,7 @@ def oof_route():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(format='%(levelname)s %(asctime)s %(process)d %(message)s', level=logging.WARNING)
+    logging.getLogger('elasticapm').setLevel(os.environ.get("ELASTIC_APM_LOG_LEVEL", "ERROR").upper())
     app.run(host='0.0.0.0', port=int(os.environ['FLASK_PORT']))
 
-    # Create a logging handler and attach it.
-    handler = LoggingHandler(client=apm.client)
-    handler.setLevel(logging.INFO)
-    app.logger.addHandler(handler)

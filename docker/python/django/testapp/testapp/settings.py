@@ -114,6 +114,11 @@ LOGGING = {
             'handlers': ['elasticapm'],
             'propagate': False,
         },
+        'elasticapm': {
+            'level': os.environ.get("ELASTIC_APM_LOG_LEVEL", 'ERROR').upper(),
+            'handlers': ['console'],
+            'propagate': True,
+        },
         # Log errors from the Elastic APM module to the console (recommended)
         'elasticapm.errors': {
             'level': 'ERROR',
