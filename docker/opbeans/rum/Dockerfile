@@ -4,7 +4,7 @@ FROM node:12-slim
 # Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer
 # installs, work.
 RUN apt update -qq \
-    && apt install -qq -y curl git gnupg libgconf-2-4 libxss1  python g++ build-essential --no-install-recommends \
+    && apt install -qq -y curl git gnupg libgconf-2-4 libxss1 libxtst6 python g++ build-essential --no-install-recommends \
     && curl -sSfkL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
     && apt update -qq \
