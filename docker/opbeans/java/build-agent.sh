@@ -12,8 +12,11 @@ if [ -n "${JAVA_AGENT_BRANCH}" ] ; then
   git fetch -q origin '+refs/pull/*:refs/remotes/origin/pr/*'
   git checkout "${JAVA_AGENT_BRANCH}"
 
-  mvn -q --batch-mode clean install -DskipTests=true -Dhttps.protocols=TLSv1.2 -Dmaven.javadoc.skip=true \
-      -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+  mvn -q --batch-mode clean install \
+    -DskipTests=true \
+    -Dhttps.protocols=TLSv1.2 \
+    -Dmaven.javadoc.skip=true \
+    -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
   # shellcheck disable=SC2016
   VERSION=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:1.3.1:exec)
   export VERSION="${VERSION}"

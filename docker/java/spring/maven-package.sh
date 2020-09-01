@@ -7,8 +7,11 @@ ARTIFACT_ID=elastic-apm-agent
 if [ -z "${JAVA_AGENT_BUILT_VERSION}" ] ; then
   cd /agent/apm-agent-java
   git log -1
-  mvn -q --batch-mode clean install -DskipTests=true -Dhttps.protocols=TLSv1.2 -Dmaven.javadoc.skip=true \
-      -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+  mvn -q --batch-mode clean install \
+    -DskipTests=true \
+    -Dhttps.protocols=TLSv1.2 \
+    -Dmaven.javadoc.skip=true \
+    -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
   # shellcheck disable=SC2016
   JAVA_AGENT_BUILT_VERSION=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:1.3.1:exec)
   export JAVA_AGENT_BUILT_VERSION="${JAVA_AGENT_BUILT_VERSION}"
@@ -23,7 +26,9 @@ fi
 cd /app
 mvn -q --batch-mode -DAGENT_API_VERSION="${JAVA_AGENT_BUILT_VERSION}" \
   -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-  -DskipTests=true -Dhttps.protocols=TLSv1.2 -Dmaven.javadoc.skip=true \
+  -DskipTests=true \
+  -Dhttps.protocols=TLSv1.2 \
+  -Dmaven.javadoc.skip=true \
   package
 
 cp "/root/.m2/repository/co/elastic/apm/${ARTIFACT_ID}/${JAVA_AGENT_BUILT_VERSION}/${ARTIFACT_ID}-${JAVA_AGENT_BUILT_VERSION}.jar" /agent/apm-agent.jar
