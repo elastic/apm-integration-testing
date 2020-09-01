@@ -1,18 +1,17 @@
 FROM node:8-slim
 
-RUN apt-get -qq update && apt-get -qq install -y \
-	libgconf-2-4 \
-	apt-transport-https \
-	ca-certificates \
-	curl \
-	gnupg \
-	--no-install-recommends \
-	&& curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
-	&& echo "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
-	&& apt-get -qq update && apt-get -qq install -y \
-	google-chrome-unstable libxss1 fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf \
-	--no-install-recommends \
-	&& rm -rf /var/lib/apt/lists/*
+# Install latest chrome dev package and fonts to support major charsets (Chinese, Japanese, Arabic, Hebrew, Thai and a few others)
+# Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer
+# installs, work.
+RUN apt update -qq \
+    && apt install -qq -y curl git gnupg libgconf-2-4 libxss1 libxtst6 python g++ build-essential --no-install-recommends \
+    && curl -sSfkL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
+    && apt update -qq \
+    && apt install -qq -y google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst ttf-freefont \
+      --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /src/*.deb
 
 # Add Chrome as a user
 RUN groupadd -r chrome && useradd -r -g chrome -G audio,video chrome \
