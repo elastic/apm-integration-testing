@@ -17,7 +17,7 @@ else
       -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
       -DrepoUrl=http://repo1.maven.apache.org/maven2 \
       -Dhttps.protocols=TLSv1.2 \
-      -Dartifact=co.elastic.apm:"${ARTIFACT_ID}:${JAVA_AGENT_BUILT_VERSION}"
+      -Dartifact="co.elastic.apm:${ARTIFACT_ID}:${JAVA_AGENT_BUILT_VERSION}"
 fi
 
 cd /app
