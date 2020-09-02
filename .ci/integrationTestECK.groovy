@@ -273,12 +273,12 @@ def grabResultsAndLogs(label){
       sh('.ci/scripts/remove_env.sh docker-info')
       archiveArtifacts(
           allowEmptyArchive: true,
-          artifacts: '**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
+          artifacts: 'tests/results/data-*.json,tests/results/packetbeat-*.json',
           defaultExcludes: false)
       junit(
         allowEmptyResults: true,
         keepLongStdio: true,
-        testResults: "**/tests/results/*-junit*.xml")
+        testResults: "tests/results/*-junit*.xml")
     }
   }
 }
