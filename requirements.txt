@@ -33,6 +33,7 @@ pytest-variables==1.9.0
 pytest==5.4.3
 requests==2.22.0
 selenium==3.8.0
+setuptools==49.6.0
 singledispatch==3.4.0.3
 six==1.11.0
 texttable==0.9.1
