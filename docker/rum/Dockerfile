@@ -28,7 +28,7 @@ WORKDIR /rumjs-integration-test
 # the install is retry threee times with a pause of 10 seconds
 RUN for i in 1 2 3; \
     do \
-      npm install --no-optional; \
+      npm install --no-optional --no-audit; \
       sleep 10; \
       ([ $i -eq 3 ] && exit 1) || true; \
     done;
