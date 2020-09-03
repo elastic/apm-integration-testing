@@ -67,7 +67,7 @@ pipeline {
             always {
               junit(allowEmptyResults: true,
                 keepLongStdio: true,
-                testResults: "${BASE_DIR}/**/*junit.xml")
+                testResults: "${BASE_DIR}/tests/results/*junit.xml")
             }
           }
         }
@@ -156,7 +156,7 @@ def runJob(testName, buildOpts = ''){
     catchError(buildResult: 'SUCCESS', message: "Aggregate test results from dowsntream job has failed failed. Let's keep moving.") {
       dir(testName) {
         copyArtifacts(projectName: jobName, selector: specific(buildNumber: buildObject.number.toString()))
-        junit(testResults: '**/tests/results/*-junit*.xml', allowEmptyResults: true, keepLongStdio: true)
+        junit(testResults: 'tests/results/*-junit*.xml', allowEmptyResults: true, keepLongStdio: true)
       }
     }
   }

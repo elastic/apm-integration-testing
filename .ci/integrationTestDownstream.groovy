@@ -218,10 +218,10 @@ def wrappingup(label){
   dir("${BASE_DIR}"){
     dockerLogs(step: label, failNever: true)
     sh('make stop-env || echo 0')
-    def testResultsPattern = '**/tests/results/*-junit*.xml'
+    def testResultsPattern = 'tests/results/*-junit*.xml'
     archiveArtifacts(
         allowEmptyArchive: true,
-        artifacts: "**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json,${testResultsPattern}",
+        artifacts: "tests/results/data-*.json,tests/results/packetbeat-*.json,${testResultsPattern}",
         defaultExcludes: false)
     junit(testResults: testResultsPattern, allowEmptyResults: true, keepLongStdio: true)
     // Let's generate the debug report ...
