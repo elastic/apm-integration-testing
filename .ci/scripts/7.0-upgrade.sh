@@ -5,7 +5,7 @@ test -z "$srcdir" && srcdir=.
 # shellcheck source=/dev/null
 . "${srcdir}/common.sh"
 
-docker build --build-arg GO_AGENT_BRANCH=v1.5.0 -t localtesting_6.6.2_opbeans-go docker/opbeans/go
+docker build --build-arg GO_AGENT_BRANCH=v1.6.0 --build-arg OPBEANS_GO_BRANCH=v1.6.0 -t localtesting_6.6.2_opbeans-go docker/opbeans/go
 docker build --build-arg JAVA_AGENT_VERSION=v1.10.0 -t localtesting_6.6.2_opbeans-java docker/opbeans/java
 docker build --build-arg PYTHON_AGENT_VERSION=v5.2.1 -t localtesting_6.6.2_opbeans-python docker/opbeans/python
 docker build --build-arg NODE_AGENT_VERSION=v3.0.0 -t localtesting_6.6.2_opbeans-node docker/opbeans/node
