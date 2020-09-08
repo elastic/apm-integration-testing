@@ -810,7 +810,6 @@ class Kibana(StackService, Service):
                 if self.at_least_version("7.9"):
                     self.environment["XPACK_INGESTMANAGER_FLEET_TLSCHECKDISABLED"] = "true"
 
-
     @classmethod
     def add_arguments(cls, parser):
         parser.add_argument(
