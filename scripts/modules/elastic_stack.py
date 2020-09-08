@@ -806,6 +806,9 @@ class Kibana(StackService, Service):
                 self.environment["SERVER_SSL_KEY"] = certsKey
                 self.environment["ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES"] = caCerts
                 self.environment["ELASTICSEARCH_HOSTS"] = ",".join(urls)
+            else:
+                if self.at_least_version("7.9"):
+                    self.environment["XPACK_INGESTMANAGER_FLEET_TLSCHECKDISABLED"] = "true"
 
     @classmethod
     def add_arguments(cls, parser):
