@@ -71,4 +71,3 @@ if __name__ == '__main__':
     logging.basicConfig(format='%(levelname)s %(asctime)s %(process)d %(message)s', level=logging.WARNING)
     logging.getLogger('elasticapm').setLevel(os.environ.get("ELASTIC_APM_LOG_LEVEL", "ERROR").upper())
     app.run(host='0.0.0.0', port=int(os.environ['FLASK_PORT']))
-
