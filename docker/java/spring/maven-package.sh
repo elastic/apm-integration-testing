@@ -21,6 +21,7 @@ else
   mvn -q --batch-mode org.apache.maven.plugins:maven-dependency-plugin:2.1:get \
       -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
       -Dhttps.protocols=TLSv1.2 \
+      -DrepoUrl=https://repo1.maven.apache.org/maven2 \
       -Dmaven.wagon.http.retryHandler.count=3 \
       -Dhttp.keepAlive=false \
       -Dartifact="co.elastic.apm:${ARTIFACT_ID}:${JAVA_AGENT_BUILT_VERSION}"
