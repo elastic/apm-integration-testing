@@ -18,7 +18,6 @@ if [ -n "${JAVA_AGENT_BRANCH}" ] ; then
     -Dmaven.javadoc.skip=true \
     -Dmaven.wagon.http.retryHandler.count=3 \
     -Dhttp.keepAlive=false \
-    -Dmaven.wagon.http.pool=false \
     -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
   # shellcheck disable=SC2016
   VERSION=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:1.3.1:exec)
