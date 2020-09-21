@@ -38,6 +38,7 @@ class Service(object):
         self._oss = options.get(self.option_name() + "_oss") or options.get("oss")
         self._release = options.get(self.option_name() + "_release") or options.get("release")
         self._snapshot = options.get(self.option_name() + "_snapshot") or options.get("snapshot")
+        self._ubi8 = options.get(self.option_name() + "_ubi8") or options.get("ubi8")
 
         # version is service specific or stack or default
         self._version = options.get(self.option_name() + "_version") or options.get("version", DEFAULT_STACK_VERSION)
@@ -69,6 +70,8 @@ class Service(object):
         image = "/".join((self.docker_registry, self.docker_path, self.docker_name))
         if self.oss:
             image += "-oss"
+        if self.ubi8:
+            image += "-ubi8"
         image += ":" + (version_override or self.version)
         # no command line option for setting snapshot, snapshot == no bc and not release
         if self.snapshot or not (any((self.bc, self.release))):
@@ -106,6 +109,10 @@ class Service(object):
     @property
     def oss(self):
         return self._oss
+
+    @property
+    def ubi8(self):
+        return self._ubi8
 
     @staticmethod
     def publish_port(external, internal=None, expose=False):
@@ -175,6 +182,8 @@ class StackService(object):
         image = self.docker_name
         if self.oss:
             image += "-oss"
+        if self.ubi8:
+            image += "-ubi8"
         key = "{image}-{version}-docker-image.tar.gz".format(
             image=image,
             version=version,
@@ -205,7 +214,7 @@ class StackService(object):
                 dest=cls.option_name() + "_" + image_detail_key,
                 help="stack {} override".format(image_detail_key),
             )
-        for image_detail_key in ("oss", "release", "snapshot"):
+        for image_detail_key in ("oss", "release", "snapshot", "ubi8"):
             parser.add_argument(
                 "--" + cls.name() + "-" + image_detail_key,
                 action="store_true",

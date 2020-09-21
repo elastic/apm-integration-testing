@@ -341,6 +341,14 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
+            '--ubi8',
+            action='store_true',
+            help='use ubi8 container images',
+            dest='ubi8',
+            default=False,
+        )
+
+        parser.add_argument(
             "--apm-server-url",
             action="store",
             help="apm server url to use for all clients",
