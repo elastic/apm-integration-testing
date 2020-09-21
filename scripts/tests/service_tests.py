@@ -732,7 +732,7 @@ class ApmServerServiceTest(ServiceTest):
         self.assertIsNone(apm_server.get("image"))
         self.assertDictEqual(apm_server["build"], {
             'args': {'apm_server_base_image': 'docker.elastic.co/apm/apm-server-ubi8:7.9.2',
-                     'apm_server_binary': 'apm-server-ubi8',
+                     'apm_server_binary': 'apm-server',
                      'apm_server_branch_or_commit': 'master',
                      'apm_server_repo': 'foo.git'},
             'context': 'docker/apm-server'})
@@ -1211,6 +1211,9 @@ class LogstashServiceTest(ServiceTest):
         self.assertTrue("elasticsearch" in logstash['depends_on'])
         self.assertEqual("elasticsearch01:9200,elasticsearch02:9200", logstash['environment']["ELASTICSEARCH_URL"])
 
+    def test_logstash_ubi8(self):
+        logstash = Logstash(version="7.10.0", release=True, ubi8=True).render()["logstash"]
+        self.assertEqual("docker.elastic.co/logstash/logstash-ubi8:7.10.0", logstash['image'])
 
 class MetricbeatServiceTest(ServiceTest):
     def test_metricbeat(self):
