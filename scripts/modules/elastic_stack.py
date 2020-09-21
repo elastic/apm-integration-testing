@@ -482,11 +482,7 @@ class ApmServer(StackService, Service):
             build_spec_parts = self.build.split("@", 1)
             repo = build_spec_parts[0]
             branch = build_spec_parts[1] if len(build_spec_parts) > 1 else "master"
-            binary = "apm-server"
-            if self.oss:
-                binary = "apm-server-oss"
-            if self.ubi8:
-                binary = "apm-server-ubi8"
+            binary = "apm-server-oss" if self.oss else "apm-server"
             content.update({
                 "build": {
                     "context": "docker/apm-server",
