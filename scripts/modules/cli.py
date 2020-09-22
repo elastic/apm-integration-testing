@@ -169,6 +169,8 @@ class LocalSetup(object):
 
         self.args = parser.parse_args(argv)
 
+        self.validate_options(self.args, parser)
+
         # py3
         if not hasattr(self.args, "func"):
             parser.error("command required")
@@ -341,6 +343,14 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
+            '--ubi8',
+            action='store_true',
+            help='use ubi8 container images',
+            dest='ubi8',
+            default=False,
+        )
+
+        parser.add_argument(
             "--apm-server-url",
             action="store",
             help="apm server url to use for all clients",
@@ -487,6 +497,13 @@ class LocalSetup(object):
         for subparsers_action in subparsers_actions:
             for choice, subparser in subparsers_action.choices.items():
                 self.available_options.add(choice)
+
+    def validate_options(self, args, parser):
+        """
+        Helper method to validate if certain options are compatible or not.
+        """
+        if hasattr(self.args, "oss") and hasattr(self.args, "ubi8") and args.oss and args.ubi8:
+            parser.error("oss and ubi8 options are incompatible. Choose one of them instead.")
 
     #
     # handlers

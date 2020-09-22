@@ -425,6 +425,8 @@ class ApmServer(StackService, Service):
         image = self.docker_name
         if self.oss:
             image += "-oss"
+        if self.ubi8:
+            image += "-ubi8"
 
         key = "{image}-{version}-docker-image.tar.gz".format(
             image=image,
