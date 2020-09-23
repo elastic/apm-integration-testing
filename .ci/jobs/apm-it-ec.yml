@@ -11,6 +11,7 @@
         discover-pr-forks-strategy: merge-current
         discover-pr-forks-trust: permission
         discover-pr-origin: merge-current
+        head-filter-regex: '(master|PR-.*|\d+\.x)'
         discover-tags: true
         notification-context: 'apm-it-ec'
         property-strategies:

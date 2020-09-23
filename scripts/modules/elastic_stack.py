@@ -69,8 +69,16 @@ class ApmServer(StackService, Service):
         self.es_tls = self.options.get("elasticsearch_enable_tls", False)
         self.kibana_tls = self.options.get("kibana_enable_tls", False)
 
-        if self.options.get("apm-server-experimental-mode", True) and self.at_least_version("7.2"):
+        if self.options.get("apm_server_experimental_mode", True) and self.at_least_version("7.2"):
             self.apm_server_command_args.append(("apm-server.mode", "experimental"))
+
+        index_suffix = self.options.get("index_suffix")
+        if index_suffix and self.at_least_version("7.9"):
+            mapping = []
+            for et in ["profile", "error", "transaction", "span", "metric"]:
+                mapping.append({"event_type": et, "index_suffix": index_suffix})
+            mapping_str = json.dumps(mapping)
+            self.apm_server_command_args.append(("apm-server.ilm.setup.mapping", mapping_str))
 
         if self.options.get("apm_server_ilm_disable"):
             self.apm_server_command_args.append(("apm-server.ilm.enabled", "false"))
@@ -417,6 +425,8 @@ class ApmServer(StackService, Service):
         image = self.docker_name
         if self.oss:
             image += "-oss"
+        if self.ubi8:
+            image += "-ubi8"
 
         key = "{image}-{version}-docker-image.tar.gz".format(
             image=image,
@@ -798,6 +808,9 @@ class Kibana(StackService, Service):
                 self.environment["SERVER_SSL_KEY"] = certsKey
                 self.environment["ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES"] = caCerts
                 self.environment["ELASTICSEARCH_HOSTS"] = ",".join(urls)
+            else:
+                if self.at_least_version("7.9"):
+                    self.environment["XPACK_INGESTMANAGER_FLEET_TLSCHECKDISABLED"] = "true"
 
     @classmethod
     def add_arguments(cls, parser):

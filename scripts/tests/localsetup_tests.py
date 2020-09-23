@@ -945,6 +945,7 @@ class LocalTest(unittest.TestCase):
                     XPACK_MONITORING_ENABLED: 'true',
                     XPACK_SECURITY_ENCRYPTIONKEY: 'fhjskloppd678ehkdfdlliverpoolfcr',
                     XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: 'fhjskloppd678ehkdfdlliverpoolfcr',
+                    XPACK_INGESTMANAGER_FLEET_TLSCHECKDISABLED: 'true',
                     XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false',
                     XPACK_SECURITY_LOGINASSISTANCEMESSAGE: 'Login&#32;details:&#32;`admin/changeme`.&#32;Further&#32;details&#32;[here](https://github.com/elastic/apm-integration-testing#logging-in).'
                 }
@@ -1362,6 +1363,62 @@ class LocalTest(unittest.TestCase):
             {
                 "https://staging.elastic.co/.../elasticsearch-6.9.5-docker-image.tar.gz",
                 "https://staging.elastic.co/.../kibana-6.9.5-docker-image.tar.gz",
+            },
+            image_cache_dir)
+
+    @mock.patch(service.__name__ + ".resolve_bc")
+    @mock.patch(cli.__name__ + ".load_images")
+    def test_start_bc_ubi8(self, mock_load_images, mock_resolve_bc):
+        mock_resolve_bc.return_value = {
+            "projects": {
+                "elasticsearch": {
+                    "packages": {
+                        "elasticsearch-ubi8-7.10.0-docker-image.tar.gz": {
+                            "url": "https://staging.elastic.co/.../elasticsearch-ubi8-7.10.0-docker-image.tar.gz",
+                            "type": "docker"
+                        },
+                    },
+                },
+                "kibana": {
+                    "packages": {
+                        "kibana-ubi8-7.10.0-docker-image.tar.gz": {
+                            "url": "https://staging.elastic.co/.../kibana-ubi8-7.10.0-docker-image.tar.gz",
+                            "type": "docker"
+                        },
+                    },
+                },
+                "apm-server": {
+                    "packages": {
+                        "apm-server-ubi8-7.10.0-docker-image.tar.gz": {
+                            "url": "https://staging.elastic.co/.../apm-server-ubi8-7.10.0-docker-image.tar.gz",
+                            "type": "docker"
+                        },
+                    },
+                },
+            },
+        }
+        docker_compose_yml = stringIO()
+        image_cache_dir = "/foo"
+        version = "7.10.0"
+        bc = "abcd1234"
+        self.assertNotIn(version, LocalSetup.SUPPORTED_VERSIONS)
+        setup = LocalSetup(argv=self.common_setup_args + [
+            version, "--ubi8",  "--bc", bc, "--image-cache-dir", image_cache_dir])
+        setup.set_docker_compose_path(docker_compose_yml)
+        setup()
+        docker_compose_yml.seek(0)
+        got = yaml.load(docker_compose_yml)
+        services = got["services"]
+        self.assertEqual(
+            "docker.elastic.co/elasticsearch/elasticsearch-ubi8:{}".format(version),
+            services["elasticsearch"]["image"]
+        )
+        self.assertEqual("docker.elastic.co/kibana/kibana-ubi8:{}".format(version), services["kibana"]["image"])
+        mock_load_images.assert_called_once_with(
+            {
+                "https://staging.elastic.co/.../elasticsearch-ubi8-7.10.0-docker-image.tar.gz",
+                "https://staging.elastic.co/.../kibana-ubi8-7.10.0-docker-image.tar.gz",
+                "https://staging.elastic.co/.../apm-server-ubi8-7.10.0-docker-image.tar.gz",
             },
             image_cache_dir)
 

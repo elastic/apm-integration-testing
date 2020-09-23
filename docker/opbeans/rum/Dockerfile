@@ -3,14 +3,15 @@ FROM node:12-slim
 # Install latest chrome dev package and fonts to support major charsets (Chinese, Japanese, Arabic, Hebrew, Thai and a few others)
 # Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer
 # installs, work.
-RUN apt update -qq  \
-    && apt install gnupg curl -qq -y --no-install-recommends\
-    && curl -sSkfL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+RUN apt update -qq \
+    && apt install -qq -y curl git gnupg libgconf-2-4 libxss1 libxtst6 python g++ build-essential --no-install-recommends \
+    && curl -sSfkL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
     && apt update -qq \
-    && apt install -qq -y google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf \
+    && apt install -qq -y google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst ttf-freefont \
       --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /src/*.deb
 
 # If running Docker >= 1.13.0 use docker run's --init arg to reap zombie processes, otherwise
 # uncomment the following lines to have `dumb-init` as PID 1
@@ -26,13 +27,20 @@ ENTRYPOINT ["dumb-init", "--"]
 WORKDIR /home/pptruser
 
 # Install puppeteer so it's available in the container.
-RUN npm i puppeteer \
-    # Add user so we don't need --no-sandbox.
-    # same layer as npm install to keep re-chowned files from using up several hundred MBs more space
-    && groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
-    && mkdir -p /home/pptruser/Downloads \
-    && chown -R pptruser:pptruser /home/pptruser
-#    && chown -R pptruser:pptruser /node_modules
+# the install is retry threee times with a pause of 10 seconds
+RUN for i in 1 2 3; \
+    do \
+      npm i puppeteer && break; \
+      sleep 10; \
+      ([ $i -eq 3 ] && exit 1) || true; \
+    done;
+
+# Add user so we don't need --no-sandbox.
+# same layer as npm install to keep re-chowned files from using up several hundred MBs more space
+RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
+      && mkdir -p /home/pptruser/Downloads \
+      && chown -R pptruser:pptruser /home/pptruser
+#    && chown -R pptruser:pptruser /node_modules;
 
 # Run everything after as non-privileged user.
 USER pptruser
@@ -42,7 +50,13 @@ USER pptruser
 
 COPY package*.json /home/pptruser/
 
-RUN npm install
+# the install is retry threee times with a pause of 10 seconds
+RUN for i in 1 2 3; \
+    do \
+      npm install --no-optional;\
+      sleep 10; \
+      ([ $i -eq 3 ] && exit 1) || true; \
+    done;
 
 #ENV CHROME_PATH=/usr/bin/chromium-browser
 

@@ -3,7 +3,7 @@
 #
 
 from .helpers import curl_healthcheck, add_agent_environment
-from .service import Service, DEFAULT_APM_SERVER_URL
+from .service import Service, DEFAULT_APM_SERVER_URL, DEFAULT_APM_LOG_LEVEL
 
 
 class AgentRUMJS(Service):
@@ -38,6 +38,7 @@ class AgentRUMJS(Service):
             "ELASTIC_APM_SERVICE_NAME": "rum",
             "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
             "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
+            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL)
         }
         environment = default_environment
         if self.apm_api_key:
@@ -98,6 +99,7 @@ class AgentGoNetHttp(Service):
     ])
     def _content(self):
         default_environment = {
+            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL),
             "ELASTIC_APM_API_REQUEST_TIME": "3s",
             "ELASTIC_APM_FLUSH_INTERVAL": "500ms",
             "ELASTIC_APM_SERVICE_NAME": "gonethttpapp",
@@ -159,6 +161,7 @@ class AgentNodejsExpress(Service):
             "EXPRESS_PORT": str(self.SERVICE_PORT),
             "EXPRESS_SERVICE_NAME": "expressapp",
             "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
+            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL),
         }
         environment = default_environment
         if self.apm_api_key:
@@ -283,6 +286,7 @@ class AgentPythonFlask(AgentPython):
         default_environment = {
             "FLASK_SERVICE_NAME": "flaskapp",
             "GUNICORN_CMD_ARGS": "-w 4 -b 0.0.0.0:{}".format(self.SERVICE_PORT),
+            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL),
         }
         environment = default_environment
         if self.apm_api_key:
@@ -341,12 +345,36 @@ class AgentRubyRails(Service):
                 "apm-server": {"condition": "service_healthy"},
             }
 
+    def _map_log_level(self, lvl):
+        """
+        Resolves a standard log level such as 'info' to
+        a specific log level string as required by the Ruby agent.
+        See https://www.rubydoc.info/stdlib/logger/Logger/Severity
+        and https://www.elastic.co/guide/en/apm/agent/ruby/1.x/configuration.html#config-log-level
+        """
+
+        if lvl == "trace":
+            print("WARNING: Trace log level requested but not supported by Ruby agent. "
+                  "Setting to debug and continuing.")
+            return 0
+
+        log_level_map = {
+            "debug": 0,
+            "info": 1,
+            "warning": 2,
+            "error": 3,
+        }
+        return log_level_map[lvl]
+
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
     ])
     def _content(self):
         default_environment = {
             "APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
+            "ELASTIC_APM_LOG_LEVEL": self._map_log_level(
+                self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL).lower()
+            ),
             "ELASTIC_APM_API_REQUEST_TIME": "3s",
             "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
             "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
@@ -427,6 +455,7 @@ class AgentJavaSpring(Service):
             "ELASTIC_APM_API_REQUEST_TIME": "3s",
             "ELASTIC_APM_SERVICE_NAME": "springapp",
             "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
+            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL),
         }
         environment = default_environment
         if self.apm_api_key:
@@ -488,6 +517,22 @@ class AgentDotnet(Service):
                 "apm-server": {"condition": "service_healthy"},
             }
 
+    def _map_log_level(self, lvl):
+        """
+        Resolves a standard log level such as 'info' to
+        a specific log level string as required by the .NET agent.
+
+        See https://www.elastic.co/guide/en/apm/agent/dotnet/current/config-supportability.html#config-log-level
+        """
+        log_level_map = {
+            "info": "Info",
+            "error": "Error",
+            "warning": "Warning",
+            "debug": "Debug",
+            "trace": "Trace"
+        }
+        return log_level_map[lvl]
+
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
         ("apm_server_url", "ELASTIC_APM_SERVER_URLS"),
@@ -500,6 +545,9 @@ class AgentDotnet(Service):
             "ELASTIC_APM_TRANSACTION_SAMPLE_RATE": "1",
             "ELASTIC_APM_SERVICE_NAME": "dotnetapp",
             "ELASTIC_APM_TRANSACTION_IGNORE_NAMES": "healthcheck",
+            "ELASTIC_APM_LOG_LEVEL": self._map_log_level(
+                self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL).lower()
+            ),
         }
         environment = default_environment
         if self.apm_api_key:

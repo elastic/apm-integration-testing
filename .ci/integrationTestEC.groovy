@@ -56,7 +56,7 @@ pipeline {
         axes {
           axis {
               name 'ELASTIC_STACK_VERSION'
-              values '8.0.0-SNAPSHOT', '7.8.0', '7.7.2-SNAPSHOT'
+              values '8.0.0-SNAPSHOT', '7.10.0-SNAPSHOT', '7.9.1'
           }
         }
         stages {
@@ -257,12 +257,12 @@ def grabResultsAndLogs(label){
       sh('.ci/scripts/remove_env.sh docker-info')
       archiveArtifacts(
           allowEmptyArchive: true,
-          artifacts: '**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
+          artifacts: 'tests/results/data-*.json,tests/results/packetbeat-*.json',
           defaultExcludes: false)
       junit(
         allowEmptyResults: true,
         keepLongStdio: true,
-        testResults: "**/tests/results/*-junit*.xml")
+        testResults: "tests/results/*-junit*.xml")
     }
   }
 }

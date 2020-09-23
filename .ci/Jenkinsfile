@@ -31,7 +31,7 @@ pipeline {
   }
   parameters {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "8.0.0", description: "Elastic Stack Git branch/tag to use")
-    string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
+    string(name: 'BUILD_OPTS', defaultValue: "", description: "Additional build options to pass to compose.py")
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
   }
   stages{
@@ -67,7 +67,7 @@ pipeline {
             always {
               junit(allowEmptyResults: true,
                 keepLongStdio: true,
-                testResults: "${BASE_DIR}/**/*junit.xml")
+                testResults: "${BASE_DIR}/tests/results/*junit.xml")
             }
           }
         }
@@ -127,8 +127,8 @@ pipeline {
 }
 
 def runJob(testName, buildOpts = ''){
-  def branch = env.CHANGE_ID?.trim() ? env.CHANGE_TARGET : env.BRANCH_NAME
-  def jobName = "apm-integration-test-downstream/${branch}"
+  def mergeTarget = env.CHANGE_ID?.trim() ? env.CHANGE_TARGET : env.BRANCH_NAME
+  def jobName = "apm-integration-test-downstream/${env.BRANCH_NAME}"
   def buildObject
   try {
     buildObject = build(job: jobName,
@@ -136,7 +136,7 @@ def runJob(testName, buildOpts = ''){
       string(name: 'INTEGRATION_TEST', value: testName),
       string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
       string(name: 'INTEGRATION_TESTING_VERSION', value: "${env.GIT_BASE_COMMIT}"),
-      string(name: 'MERGE_TARGET', value: "${branch}"),
+      string(name: 'MERGE_TARGET', value: "${mergeTarget}"),
       string(name: 'BUILD_OPTS', value: "${params.BUILD_OPTS} ${buildOpts}"),
       string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
       booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: '')],
@@ -152,7 +152,7 @@ def runJob(testName, buildOpts = ''){
     catchError(buildResult: 'SUCCESS', message: "Aggregate test results from dowsntream job has failed failed. Let's keep moving.") {
       dir(testName) {
         copyArtifacts(projectName: jobName, selector: specific(buildNumber: buildObject.number.toString()))
-        junit(testResults: '**/tests/results/*-junit*.xml', allowEmptyResults: true, keepLongStdio: true)
+        junit(testResults: 'tests/results/*-junit*.xml', allowEmptyResults: true, keepLongStdio: true)
       }
     }
   }

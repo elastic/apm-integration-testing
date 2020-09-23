@@ -38,6 +38,7 @@ class AgentServiceTest(ServiceTest):
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_FLUSH_INTERVAL: 500ms
+                        ELASTIC_APM_LOG_LEVEL: 'info'
                         ELASTIC_APM_SERVICE_NAME: gonethttpapp
                         ELASTIC_APM_TRANSACTION_IGNORE_NAMES: healthcheck
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
@@ -92,6 +93,7 @@ class AgentServiceTest(ServiceTest):
                     command: bash -c "npm install elastic-apm-node && node app.js"
                     environment:
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
+                        ELASTIC_APM_LOG_LEVEL: 'info'
                         EXPRESS_SERVICE_NAME: expressapp
                         EXPRESS_PORT: "8010"
                     healthcheck:
@@ -185,6 +187,7 @@ class AgentServiceTest(ServiceTest):
                         apm-server:
                             condition: 'service_healthy'
                     environment:
+                        ELASTIC_APM_LOG_LEVEL: 'info'
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
                         FLASK_SERVICE_NAME: flaskapp
                         GUNICORN_CMD_ARGS: "-w 4 -b 0.0.0.0:8001"
@@ -235,6 +238,7 @@ class AgentServiceTest(ServiceTest):
                     environment:
                         APM_SERVER_URL: http://apm-server:8200
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
+                        ELASTIC_APM_LOG_LEVEL: 1
                         ELASTIC_APM_SERVER_URL: http://apm-server:8200
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
                         ELASTIC_APM_SERVICE_NAME: railsapp
@@ -301,6 +305,7 @@ class AgentServiceTest(ServiceTest):
                             condition: 'service_healthy'
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
+                        ELASTIC_APM_LOG_LEVEL: 'info'
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
                         ELASTIC_APM_SERVICE_NAME: springapp
                     healthcheck:
@@ -363,6 +368,7 @@ class AgentServiceTest(ServiceTest):
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_FLUSH_INTERVAL: '5'
+                        ELASTIC_APM_LOG_LEVEL: Info
                         ELASTIC_APM_TRANSACTION_SAMPLE_RATE: '1'
                         ELASTIC_APM_SERVICE_NAME: dotnetapp
                         ELASTIC_APM_TRANSACTION_IGNORE_NAMES: 'healthcheck'
@@ -432,6 +438,12 @@ class ApmServerServiceTest(ServiceTest):
         apm_server = ApmServer(version="6.3.100", oss=True, release=True).render()["apm-server"]
         self.assertEqual(
             apm_server["image"], "docker.elastic.co/apm/apm-server-oss:6.3.100"
+        )
+
+    def test_ubi8_snapshot(self):
+        apm_server = ApmServer(version="8.0.0", ubi8=True, snapshot=True).render()["apm-server"]
+        self.assertEqual(
+            apm_server["image"], "docker.elastic.co/apm/apm-server-ubi8:8.0.0-SNAPSHOT"
         )
 
     def test_api_key_auth(self):
@@ -715,6 +727,16 @@ class ApmServerServiceTest(ServiceTest):
                      'apm_server_repo': 'foo.git'},
             'context': 'docker/apm-server'})
 
+    def test_apm_server_build_ubi8(self):
+        apm_server = ApmServer(version="7.9.2", apm_server_build="foo.git", release=True, ubi8=True).render()["apm-server"]
+        self.assertIsNone(apm_server.get("image"))
+        self.assertDictEqual(apm_server["build"], {
+            'args': {'apm_server_base_image': 'docker.elastic.co/apm/apm-server-ubi8:7.9.2',
+                     'apm_server_binary': 'apm-server',
+                     'apm_server_branch_or_commit': 'master',
+                     'apm_server_repo': 'foo.git'},
+            'context': 'docker/apm-server'})
+
     def test_apm_server_count(self):
         render = ApmServer(version="6.4.100", apm_server_count=2).render()
         apm_server_lb = render["apm-server"]
@@ -829,6 +851,16 @@ class ElasticsearchServiceTest(ServiceTest):
             elasticsearch["image"], "docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.4"
         )
         self.assertFalse(
+            any(e.startswith("xpack.security.enabled=") for e in elasticsearch["environment"]),
+            "xpack.security.enabled set while oss"
+        )
+
+    def test_7_10_ubi8_release(self):
+        elasticsearch = Elasticsearch(version="7.10.0", ubi8=True, release=True).render()["elasticsearch"]
+        self.assertEqual(
+            elasticsearch["image"], "docker.elastic.co/elasticsearch/elasticsearch-ubi8:7.10.0"
+        )
+        self.assertTrue(
             any(e.startswith("xpack.security.enabled=") for e in elasticsearch["environment"]),
             "xpack.security.enabled set while oss"
         )
@@ -1085,6 +1117,10 @@ class KibanaServiceTest(ServiceTest):
         kibana = Kibana(version="7.3.0", kibana_snapshot=True, kibana_version="7.3.0").render()["kibana"]
         self.assertEqual("docker.elastic.co/kibana/kibana:7.3.0-SNAPSHOT", kibana["image"])
 
+    def test_kibana_ubi8(self):
+        kibana = Kibana(version="7.10.0", release=True, kibana_ubi8=True, kibana_version="7.10.0").render()["kibana"]
+        self.assertEqual("docker.elastic.co/kibana/kibana-ubi8:7.10.0", kibana["image"])
+
     def test_kibana_login_assistance_message(self):
         kibana = Kibana(version="7.6.0", xpack_secure=True, kibana_version="7.6.0").render()["kibana"]
         self.assertIn("Login&#32;details:&#32;`admin/changeme`.", kibana['environment']["XPACK_SECURITY_LOGINASSISTANCEMESSAGE"])
@@ -1175,6 +1211,9 @@ class LogstashServiceTest(ServiceTest):
         self.assertTrue("elasticsearch" in logstash['depends_on'])
         self.assertEqual("elasticsearch01:9200,elasticsearch02:9200", logstash['environment']["ELASTICSEARCH_URL"])
 
+    def test_logstash_ubi8(self):
+        logstash = Logstash(version="7.10.0", release=True, ubi8=True).render()["logstash"]
+        self.assertEqual("docker.elastic.co/logstash/logstash-ubi8:7.10.0", logstash['image'])
 
 class MetricbeatServiceTest(ServiceTest):
     def test_metricbeat(self):

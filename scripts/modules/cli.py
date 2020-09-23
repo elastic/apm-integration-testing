@@ -13,7 +13,7 @@ import re
 from .beats import BeatMixin
 from .helpers import load_images
 from .opbeans import OpbeansService, OpbeansRum
-from .service import Service, DEFAULT_APM_SERVER_URL
+from .service import Service, DEFAULT_APM_SERVER_URL, DEFAULT_APM_LOG_LEVEL
 
 # these imports are used by discover_services function to discover services from modules loaded
 
@@ -65,7 +65,7 @@ class LocalSetup(object):
         '6.5': '6.5.4',
         '6.6': '6.6.2',
         '6.7': '6.7.2',
-        '6.8': '6.8.6',
+        '6.8': '6.8.12',
         '7.0': '7.0.1',
         '7.1': '7.1.1',
         '7.2': '7.2.1',
@@ -73,7 +73,10 @@ class LocalSetup(object):
         '7.4': '7.4.3',
         '7.5': '7.5.2',
         '7.6': '7.6.2',
-        '7.7': '7.7.0',
+        '7.7': '7.7.1',
+        '7.8': '7.8.1',
+        '7.9': '7.9.1',
+        '7.10': '7.10.0',
         'master': '8.0.0',
     }
 
@@ -165,6 +168,8 @@ class LocalSetup(object):
         self.store_options(parser)
 
         self.args = parser.parse_args(argv)
+
+        self.validate_options(self.args, parser)
 
         # py3
         if not hasattr(self.args, "func"):
@@ -338,10 +343,33 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
+            '--ubi8',
+            action='store_true',
+            help='use ubi8 container images',
+            dest='ubi8',
+            default=False,
+        )
+
+        parser.add_argument(
             "--apm-server-url",
             action="store",
             help="apm server url to use for all clients",
             default=DEFAULT_APM_SERVER_URL,
+        )
+
+        parser.add_argument(
+            "--apm-log-level",
+            action="store",
+            help="APM log level to use",
+            choices=["off", "error", "warn", "info", "debug", "trace"],
+            default=DEFAULT_APM_LOG_LEVEL
+        )
+
+        parser.add_argument(
+            "--index-suffix",
+            action="store",
+            help="index suffix to add to all event indices",
+            default="",
         )
 
         parser.add_argument(
@@ -469,6 +497,13 @@ class LocalSetup(object):
         for subparsers_action in subparsers_actions:
             for choice, subparser in subparsers_action.choices.items():
                 self.available_options.add(choice)
+
+    def validate_options(self, args, parser):
+        """
+        Helper method to validate if certain options are compatible or not.
+        """
+        if hasattr(self.args, "oss") and hasattr(self.args, "ubi8") and args.oss and args.ubi8:
+            parser.error("oss and ubi8 options are incompatible. Choose one of them instead.")
 
     #
     # handlers

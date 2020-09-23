@@ -10,8 +10,9 @@ import os
 app = Flask(__name__)
 app.debug = False
 
+
 app.config['ELASTIC_APM'] = {
-    'DEBUG': True,
+    'DEBUG': os.environ.get('ELASTIC_APM_LOG_LEVEL').lower() == 'debug',
     'SERVER_URL': os.environ['APM_SERVER_URL'],
     'SERVICE_NAME': os.environ['FLASK_SERVICE_NAME'],
     'TRANSACTION_SEND_FREQ': 1,  # 1.x

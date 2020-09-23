@@ -32,7 +32,7 @@ def pytest_collection_modifyitems(config, items):
         return
     skip_upgrade = pytest.mark.skip(reason="need --run-upgrade option to run")
     for item in items:
-        if item.get_marker("upgradetest"):
+        if item.get_closest_marker("upgradetest"):
             item.add_marker(skip_upgrade)
 
 
