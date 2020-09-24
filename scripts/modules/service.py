@@ -14,7 +14,7 @@ DEFAULT_SERVICE_VERSION = "9c2e41c8-fb2f-4b75-a89d-5089fb55fc64"
 class Service(object):
     """encapsulate docker-compose service definition"""
 
-    DEFAULT_ELASTICSEARCH_HOSTS = "elasticsearch:9200"
+    DEFAULT_ELASTICSEARCH_HOSTS = "http://elasticsearch:9200"
     DEFAULT_ELASTICSEARCH_HOSTS_TLS = "https://elasticsearch:9200"
     DEFAULT_KIBANA_HOST = "kibana:5601"
 
