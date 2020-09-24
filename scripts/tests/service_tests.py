@@ -462,7 +462,7 @@ class ApmServerServiceTest(ServiceTest):
         )
         self.assertTrue("elasticsearch" in apm_server["depends_on"])
         self.assertTrue("kibana" in apm_server["depends_on"])
-        self.assertTrue("output.elasticsearch.hosts=[\"elasticsearch:9200\"]" in apm_server["command"])
+        self.assertTrue("output.elasticsearch.hosts=[\"http://elasticsearch:9200\"]" in apm_server["command"])
 
     def test_elasticsearch_output_overrides(self):
         apm_server = ApmServer(version="6.3.100", apm_server_output="elasticsearch",
@@ -515,7 +515,7 @@ class ApmServerServiceTest(ServiceTest):
             "output.elasticsearch.enabled=false",
             "output.file.enabled=true",
             "output.file.path=" + os.devnull,
-            "monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
+            "monitoring.elasticsearch.hosts=[\"http://elasticsearch:9200\"]",
         ]
         for o in options:
             self.assertTrue(o in apm_server["command"], "{} not set while output=file".format(o))
@@ -523,17 +523,17 @@ class ApmServerServiceTest(ServiceTest):
     def test_monitoring_options_6(self):
         apm_server = ApmServer(version="6.8.0", apm_server_output="file").render()["apm-server"]
         self.assertTrue("xpack.monitoring.enabled=true" in apm_server["command"])
-        self.assertTrue("xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in apm_server["command"])
+        self.assertTrue("xpack.monitoring.elasticsearch.hosts=[\"http://elasticsearch:9200\"]" in apm_server["command"])
 
     def test_monitoring_options_71(self):
         apm_server = ApmServer(version="7.1.0", apm_server_output="file").render()["apm-server"]
         self.assertTrue("xpack.monitoring.enabled=true" in apm_server["command"])
-        self.assertTrue("xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in apm_server["command"])
+        self.assertTrue("xpack.monitoring.elasticsearch.hosts=[\"http://elasticsearch:9200\"]" in apm_server["command"])
 
     def test_monitoring_options_post_72(self):
         apm_server = ApmServer(version="7.2.0", apm_server_output="file").render()["apm-server"]
         self.assertTrue("monitoring.enabled=true" in apm_server["command"])
-        self.assertTrue("monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in apm_server["command"])
+        self.assertTrue("monitoring.elasticsearch.hosts=[\"http://elasticsearch:9200\"]" in apm_server["command"])
 
     def test_file_output_path(self):
         apm_server = ApmServer(version="7.3.100", apm_server_output="file",
@@ -542,7 +542,7 @@ class ApmServerServiceTest(ServiceTest):
             "output.elasticsearch.enabled=false",
             "output.file.enabled=true",
             "output.file.path=foo",
-            "monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
+            "monitoring.elasticsearch.hosts=[\"http://elasticsearch:9200\"]",
         ]
         for o in options:
             self.assertTrue(o in apm_server["command"], "{} not set while output=file".format(o))
@@ -553,7 +553,7 @@ class ApmServerServiceTest(ServiceTest):
             "output.elasticsearch.enabled=false",
             "output.logstash.enabled=true",
             "output.logstash.hosts=[\"logstash:5044\"]",
-            "monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
+            "monitoring.elasticsearch.hosts=[\"http://elasticsearch:9200\"]",
         ]
         for o in options:
             self.assertTrue(o in apm_server["command"], "{} not set while output=logstash".format(o))
@@ -577,7 +577,7 @@ class ApmServerServiceTest(ServiceTest):
     def test_kafka_output(self):
         apm_server = ApmServer(version="6.3.100", apm_server_output="kafka").render()["apm-server"]
         self.assertTrue(
-            "xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in apm_server["command"],
+            "xpack.monitoring.elasticsearch.hosts=[\"http://elasticsearch:9200\"]" in apm_server["command"],
             "xpack.monitoring.elasticsearch.hosts not set while output=kafka"
         )
         self.assertTrue(
@@ -922,7 +922,7 @@ class FilebeatServiceTest(ServiceTest):
                     image: docker.elastic.co/beats/filebeat:6.0.4
                     container_name: localtesting_6.0.4_filebeat
                     user: root
-                    command: ["filebeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true", "-E", 'output.elasticsearch.hosts=["elasticsearch:9200"]', "-E", "output.elasticsearch.enabled=true"]
+                    command: ["filebeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true", "-E", 'output.elasticsearch.hosts=["http://elasticsearch:9200"]', "-E", "output.elasticsearch.enabled=true"]
                     environment: {}
                     logging:
                         driver: 'json-file'
@@ -949,7 +949,7 @@ class FilebeatServiceTest(ServiceTest):
                     image: docker.elastic.co/beats/filebeat:6.1.1
                     container_name: localtesting_6.1.1_filebeat
                     user: root
-                    command: ["filebeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true", "-E", 'output.elasticsearch.hosts=["elasticsearch:9200"]', "-E", "output.elasticsearch.enabled=true"]
+                    command: ["filebeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true", "-E", 'output.elasticsearch.hosts=["http://elasticsearch:9200"]', "-E", "output.elasticsearch.enabled=true"]
                     environment: {}
                     logging:
                         driver: 'json-file'
@@ -1003,7 +1003,7 @@ class FilebeatServiceTest(ServiceTest):
             "output.elasticsearch.enabled=false",
             "output.logstash.enabled=true",
             "output.logstash.hosts=[\"logstash:5044\"]",
-            "xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
+            "xpack.monitoring.elasticsearch.hosts=[\"http://elasticsearch:9200\"]",
         ]
         for o in options:
             self.assertTrue(o in beat["command"], "{} not set in {} while output=logstash".format(o, beat["command"]))
@@ -1040,7 +1040,7 @@ class KibanaServiceTest(ServiceTest):
                     container_name: localtesting_6.2.4_kibana
                     environment:
                         SERVER_NAME: kibana.example.org
-                        ELASTICSEARCH_URL: elasticsearch:9200
+                        ELASTICSEARCH_HOSTS: http://elasticsearch:9200
                         XPACK_MONITORING_ENABLED: 'true'
                     ports:
                         - "127.0.0.1:5601:5601"
@@ -1069,7 +1069,7 @@ class KibanaServiceTest(ServiceTest):
                     container_name: localtesting_6.3.5_kibana
                     environment:
                         SERVER_NAME: kibana.example.org
-                        ELASTICSEARCH_URL: elasticsearch:9200
+                        ELASTICSEARCH_HOSTS: http://elasticsearch:9200
                         XPACK_MONITORING_ENABLED: 'true'
                         XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'
                     ports:
@@ -1094,12 +1094,12 @@ class KibanaServiceTest(ServiceTest):
         kibana = Kibana(version="6.3.5", release=True, kibana_elasticsearch_urls=[
                         "elasticsearch01:9200"]).render()["kibana"]
         self.assertTrue("elasticsearch" in kibana['depends_on'])
-        self.assertEqual("elasticsearch01:9200", kibana['environment']["ELASTICSEARCH_URL"])
+        self.assertEqual("elasticsearch01:9200", kibana['environment']["ELASTICSEARCH_HOSTS"])
 
         kibana = Kibana(version="6.3.5", release=True, kibana_elasticsearch_urls=[
                         "elasticsearch01:9200", "elasticsearch02:9200"]).render()["kibana"]
         self.assertTrue("elasticsearch" in kibana['depends_on'])
-        self.assertEqual("elasticsearch01:9200,elasticsearch02:9200", kibana['environment']["ELASTICSEARCH_URL"])
+        self.assertEqual("elasticsearch01:9200,elasticsearch02:9200", kibana['environment']["ELASTICSEARCH_HOSTS"])
 
     def test_kibana_port(self):
         kibana = Kibana(version="7.3.0", release=True, kibana_port="1234").render()["kibana"]
@@ -1167,7 +1167,7 @@ class LogstashServiceTest(ServiceTest):
             container_name: localtesting_6.3.0_logstash
             depends_on:
                 elasticsearch: {condition: service_healthy}
-            environment: {ELASTICSEARCH_URL: 'elasticsearch:9200'}
+            environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200'}
             healthcheck:
                 test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://logstash:9600/"]
                 interval: 10s
@@ -1224,7 +1224,7 @@ class MetricbeatServiceTest(ServiceTest):
                     image: docker.elastic.co/beats/metricbeat:7.2.0
                     container_name: localtesting_7.2.0_metricbeat
                     user: root
-                    command: ["metricbeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true", "-E", 'output.elasticsearch.hosts=["elasticsearch:9200"]', "-E", "output.elasticsearch.enabled=true"]
+                    command: ["metricbeat", "-e", "--strict.perms=false", "-E", "setup.dashboards.enabled=true", "-E", 'output.elasticsearch.hosts=["http://elasticsearch:9200"]', "-E", "output.elasticsearch.enabled=true"]
                     environment: {APM_SERVER_PPROF_HOST: 'apm-server:6060'}
                     logging:
                         driver: 'json-file'
@@ -1248,7 +1248,7 @@ class MetricbeatServiceTest(ServiceTest):
             "output.elasticsearch.enabled=false",
             "output.logstash.enabled=true",
             "output.logstash.hosts=[\"logstash:5044\"]",
-            "xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]",
+            "xpack.monitoring.elasticsearch.hosts=[\"http://elasticsearch:9200\"]",
         ]
         for o in options:
             self.assertTrue(o in beat["command"], "{} not set in {} while output=logstash".format(o, beat["command"]))
@@ -1278,19 +1278,19 @@ class MetricbeatServiceTest(ServiceTest):
 
     def test_config_6(self):
         beat = Metricbeat(version="6.8.0", release=True, metricbeat_output="logstash").render()["metricbeat"]
-        self.assertTrue("xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in beat["command"])
+        self.assertTrue("xpack.monitoring.elasticsearch.hosts=[\"http://elasticsearch:9200\"]" in beat["command"])
         self.assertTrue(
             "./docker/metricbeat/metricbeat.6.x-compat.yml:/usr/share/metricbeat/metricbeat.yml" in beat["volumes"])
 
     def test_config_71(self):
         beat = Metricbeat(version="7.1.0", release=True, metricbeat_output="logstash").render()["metricbeat"]
-        self.assertTrue("xpack.monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in beat["command"])
+        self.assertTrue("xpack.monitoring.elasticsearch.hosts=[\"http://elasticsearch:9200\"]" in beat["command"])
         self.assertTrue(
             "./docker/metricbeat/metricbeat.6.x-compat.yml:/usr/share/metricbeat/metricbeat.yml" in beat["volumes"])
 
     def test_config_post_72(self):
         beat = Metricbeat(version="7.2.0", release=True, metricbeat_output="logstash").render()["metricbeat"]
-        self.assertTrue("monitoring.elasticsearch.hosts=[\"elasticsearch:9200\"]" in beat["command"])
+        self.assertTrue("monitoring.elasticsearch.hosts=[\"http://elasticsearch:9200\"]" in beat["command"])
         self.assertTrue("./docker/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml" in beat["volumes"])
 
 
@@ -1303,7 +1303,7 @@ class PacketbeatServiceTest(ServiceTest):
                     image: docker.elastic.co/beats/packetbeat:7.3.0
                     container_name: localtesting_7.3.0_packetbeat
                     user: root
-                    command: ["packetbeat", "-e", "--strict.perms=false", "-E", "packetbeat.interfaces.device=eth0", "-E", "setup.dashboards.enabled=true", "-E", 'output.elasticsearch.hosts=["elasticsearch:9200"]', "-E", "output.elasticsearch.enabled=true"]
+                    command: ["packetbeat", "-e", "--strict.perms=false", "-E", "packetbeat.interfaces.device=eth0", "-E", "setup.dashboards.enabled=true", "-E", 'output.elasticsearch.hosts=["http://elasticsearch:9200"]', "-E", "output.elasticsearch.enabled=true"]
                     environment: {}
                     logging:
                         driver: 'json-file'
