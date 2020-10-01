@@ -774,9 +774,10 @@ class Kibana(StackService, Service):
         self.environment = self.default_environment.copy()
 
         self.kibana_tls = self.options.get("kibana_enable_tls", False)
-        default_es_hosts = self.default_elasticsearch_hosts(tls=self.kibana_tls)
+        self.es_tls = options.get("elasticsearch_enable_tls", False)
+        default_es_hosts = self.default_elasticsearch_hosts(tls=self.es_tls)
         urls = self.options.get("kibana_elasticsearch_urls") or [default_es_hosts]
-        self.environment["ELASTICSEARCH_URL"] = ",".join(urls)
+        self.environment["ELASTICSEARCH_HOSTS"] = ",".join(urls)
 
         if not self.oss:
             self.environment["XPACK_MONITORING_ENABLED"] = "true"
@@ -807,7 +808,6 @@ class Kibana(StackService, Service):
                 self.environment["SERVER_SSL_CERTIFICATE"] = certs
                 self.environment["SERVER_SSL_KEY"] = certsKey
                 self.environment["ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES"] = caCerts
-                self.environment["ELASTICSEARCH_HOSTS"] = ",".join(urls)
             else:
                 if self.at_least_version("7.9"):
                     self.environment["XPACK_INGESTMANAGER_FLEET_TLSCHECKDISABLED"] = "true"
