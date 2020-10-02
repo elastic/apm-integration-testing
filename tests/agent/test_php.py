@@ -13,7 +13,6 @@ def test_req_php_apache(php_apache):
 
 @pytest.mark.version
 @pytest.mark.php_apache
-@pytest.mark.skip(reason="no way to set transaction result currently")
 def test_concurrent_req_php_apache(php_apache):
     foo = Concurrent.Endpoint(php_apache.foo.url,
                               php_apache.app_name,
