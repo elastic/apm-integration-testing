@@ -43,8 +43,7 @@ class Concurrent:
                 self.agent = "python"
             elif app_name in ("expressapp",):
                 self.agent = "nodejs"
-            elif self.app_name in ("Unnamed PHP service",):
-                # TODO(GR): update when service can be set externally
+            elif self.app_name in ("phpapacheapp",):
                 self.agent = "php"
             elif self.app_name in ("railsapp",):
                 self.agent = "ruby"

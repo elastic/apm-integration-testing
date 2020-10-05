@@ -200,7 +200,9 @@ class AgentPhpApache(Service):
         return dict(
             build={"context": "docker/php/apache", "dockerfile": "Dockerfile"},
             container_name="phpapacheapp",
-            environment={},
+            environment={
+                "ELASTIC_APM_SERVICE_NAME": "phpapacheapp",
+            },
             healthcheck=curl_healthcheck("80", "phpapacheapp"),
             depends_on=self.depends_on,
             image=None,
