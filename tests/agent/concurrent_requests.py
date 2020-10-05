@@ -204,7 +204,7 @@ class Concurrent:
             assert transaction['type'] == 'request'
 
             if ep.agent != "php":
-                check_http(source, ep.agent)
+                check_http(source, ep.agent, ep.url)
 
             span_q = self.elasticsearch.term_q([
                 ("processor.event", "span"),
@@ -266,13 +266,13 @@ def check_agent(source, expected_agent_name):
     assert agent_name == expected_agent_name, agent_name
 
 
-def check_http(source, agent_name):
+def check_http(source, agent_name, endpoint_url):
     service = lookup(source, 'service')
     http = lookup(source, 'http')
     url = lookup(source, 'url')
     request = http["request"]
     assert request['method'].upper() == "GET", request['method']
-    exp_p = os.path.basename(os.path.normpath(ep.url.split('?')[0]))
+    exp_p = os.path.basename(os.path.normpath(endpoint_url.split('?')[0]))
     p = url['path'].strip("/")
     assert p == exp_p, url
 
