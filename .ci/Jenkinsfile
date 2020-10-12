@@ -122,19 +122,9 @@ pipeline {
   }
   post {
     cleanup {
-      notifyBuildResult(downstreamJobs: itsDownstreamJobs)
-    }
-    unsuccessful {
-      whenFalse(isPR()) {
-        doSlackSend()
-      }
+      notifyBuildResult(downstreamJobs: itsDownstreamJobs, slackComment: true, slackChannel: "#${params.SLACK_CHANNEL}")
     }
   }
-}
-
-def doSlackSend() {
-  def message = "Build failed: ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.RUN_DISPLAY_URL}|Open>)."
-  slackSend(channel: "#${params.SLACK_CHANNEL}", color: "danger", message: "${message}", tokenCredentialId: 'jenkins-slack-integration-token')
 }
 
 def runJob(testName, buildOpts = ''){
