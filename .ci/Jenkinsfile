@@ -32,6 +32,7 @@ pipeline {
   parameters {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "8.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Additional build options to pass to compose.py")
+    string(name: 'SLACK_CHANNEL', defaultValue: 'observablt-bots', description: 'The Slack channel where errors will be posted')
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
   }
   stages{
@@ -123,7 +124,17 @@ pipeline {
     cleanup {
       notifyBuildResult(downstreamJobs: itsDownstreamJobs)
     }
+    unsuccessful {
+      whenFalse(isPR()) {
+        doSlackSend()
+      }
+    }
   }
+}
+
+def doSlackSend() {
+  def message = "Build failed: ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.RUN_DISPLAY_URL}|Open>)."
+  slackSend(channel: "#${params.SLACK_CHANNEL}", color: "danger", message: "${message}", tokenCredentialId: 'jenkins-slack-integration-token')
 }
 
 def runJob(testName, buildOpts = ''){
