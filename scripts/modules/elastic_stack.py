@@ -809,7 +809,9 @@ class Kibana(StackService, Service):
                 self.environment["SERVER_SSL_KEY"] = certsKey
                 self.environment["ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES"] = caCerts
             else:
-                if self.at_least_version("7.9"):
+                if self.at_least_version("7.10"):
+                    self.environment["XPACK_FLEET_AGENTS_TLSCHECKDISABLED"] = "true"
+                elif self.at_least_version("7.9"):
                     self.environment["XPACK_INGESTMANAGER_FLEET_TLSCHECKDISABLED"] = "true"
 
     @classmethod
