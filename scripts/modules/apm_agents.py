@@ -202,6 +202,7 @@ class AgentPhpApache(Service):
             container_name="phpapacheapp",
             environment={
                 "ELASTIC_APM_SERVICE_NAME": "phpapacheapp",
+                "ELASTIC_APM_VERIFY_SERVER_CERT": "false" if self.options.get("no_verify_server_cert") else "true"
             },
             healthcheck=curl_healthcheck("80", "phpapacheapp"),
             depends_on=self.depends_on,
