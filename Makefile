@@ -19,9 +19,9 @@ EXPRESS_URL ?= http://expressapp:8010
 FLASK_URL ?= http://flaskapp:8001
 GO_NETHTTP_URL ?= http://gonethttpapp:8080
 JAVA_SPRING_URL ?= http://javaspring:8090
+PHP_APACHE_URL ?= http://phpapacheapp:8030
 RAILS_URL ?= http://railsapp:8020
 RUM_URL ?= http://rum:8000
-PHP_APACHE_URL ?= "http://agent-php-apache:8030"
 
 ES_USER ?= elastic
 ES_PASS ?= changeme
