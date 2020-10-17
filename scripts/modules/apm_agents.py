@@ -182,6 +182,37 @@ class AgentNodejsExpress(Service):
         )
 
 
+class AgentPhpApache(Service):
+    SERVICE_PORT = 8030
+
+    def __init__(self, **options):
+        super(AgentPhpApache, self).__init__(**options)
+        if options.get("enable_apm_server", True):
+            self.depends_on = {
+                "apm-server": {"condition": "service_healthy"},
+            }
+
+    @add_agent_environment([
+        ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
+        ("apm_server_url", "ELASTIC_APM_SERVER_URL"),
+    ])
+    def _content(self):
+        return dict(
+            build={"context": "docker/php/apache", "dockerfile": "Dockerfile"},
+            container_name="phpapacheapp",
+            environment={
+                "ELASTIC_APM_SERVICE_NAME": "phpapacheapp",
+                "ELASTIC_APM_VERIFY_SERVER_CERT": "false" if self.options.get("no_verify_server_cert") else "true"
+            },
+            healthcheck=curl_healthcheck("80", "phpapacheapp"),
+            depends_on=self.depends_on,
+            image=None,
+            labels=None,
+            logging=None,
+            ports=[self.publish_port(self.port, 80)],
+        )
+
+
 class AgentPython(Service):
     DEFAULT_AGENT_PACKAGE = "elastic-apm"
     _agent_python_arguments_added = False
