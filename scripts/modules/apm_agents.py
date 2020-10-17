@@ -183,6 +183,7 @@ class AgentNodejsExpress(Service):
 
 class AgentPhpApache(Service):
     SERVICE_PORT = 8030
+<<<<<<< HEAD
     DEFAULT_AGENT_VERSION = "main"
     DEFAULT_AGENT_RELEASE = ""
     DEFAULT_AGENT_REPO = "elastic/apm-agent-php"
@@ -211,6 +212,11 @@ class AgentPhpApache(Service):
         self.agent_version = options.get("php_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_release = options.get("php_agent_release", self.DEFAULT_AGENT_RELEASE)
         self.agent_repo = options.get("php_agent_repo", self.DEFAULT_AGENT_REPO)
+=======
+
+    def __init__(self, **options):
+        super(AgentPhpApache, self).__init__(**options)
+>>>>>>> bc74219 (add basic PHP agent integration tests (#863))
         if options.get("enable_apm_server", True):
             self.depends_on = {
                 "apm-server": {"condition": "service_healthy"},
@@ -222,6 +228,7 @@ class AgentPhpApache(Service):
     ])
     def _content(self):
         return dict(
+<<<<<<< HEAD
             build={
                 "context": "docker/php/apache",
                 "dockerfile": "Dockerfile",
@@ -231,6 +238,9 @@ class AgentPhpApache(Service):
                     "PHP_AGENT_REPO": self.agent_repo,
                 },
             },
+=======
+            build={"context": "docker/php/apache", "dockerfile": "Dockerfile"},
+>>>>>>> bc74219 (add basic PHP agent integration tests (#863))
             container_name="phpapacheapp",
             environment={
                 "ELASTIC_APM_SERVICE_NAME": "phpapacheapp",

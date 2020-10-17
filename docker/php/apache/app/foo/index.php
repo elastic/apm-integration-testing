@@ -4,11 +4,16 @@ use Elastic\Apm\ElasticApm;
 $transaction = ElasticApm::getCurrentTransaction();
 $span = $transaction->beginCurrentSpan(
     'foo',
+<<<<<<< HEAD
     'app'
+=======
+    'app',
+>>>>>>> bc74219 (add basic PHP agent integration tests (#863))
 );
 ?>
 foo
 <?php
+<<<<<<< HEAD
 function dummyFuncToAddDepthToStacktrace(int $depthLeft): void
 {
     global $span;
@@ -23,4 +28,7 @@ function dummyFuncToAddDepthToStacktrace(int $depthLeft): void
 }
 
 dummyFuncToAddDepthToStacktrace(16);
+=======
+$span->end();
+>>>>>>> bc74219 (add basic PHP agent integration tests (#863))
 ?>
