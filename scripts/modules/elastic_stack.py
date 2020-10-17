@@ -775,6 +775,7 @@ class Kibana(StackService, Service):
 
         self.kibana_tls = self.options.get("kibana_enable_tls", False)
         self.es_tls = options.get("elasticsearch_enable_tls", False)
+        self.kibana_yml = options.get("kibana_yml")
         default_es_hosts = self.default_elasticsearch_hosts(tls=self.es_tls)
         urls = self.options.get("kibana_elasticsearch_urls") or [default_es_hosts]
         self.environment["ELASTICSEARCH_HOSTS"] = ",".join(urls)
@@ -831,6 +832,13 @@ class Kibana(StackService, Service):
         )
 
         parser.add_argument(
+            '--kibana-yml',
+            const="./docker/kibana/kibana.yml",
+            nargs="?",
+            help='override kibana.yml'
+        )
+
+        parser.add_argument(
             "--no-kibana-apm-servicemaps",
             action="store_true",
             help="disable the APM service maps UI",
@@ -844,6 +852,9 @@ class Kibana(StackService, Service):
                 "./scripts/tls/kibana/kibana.key:/usr/share/kibana/config/certs/tls.key",
                 "./scripts/tls/ca/ca.crt:/usr/share/kibana/config/certs/ca.crt"
             ])
+
+        if self.kibana_yml:
+            volumes.append("{}:/usr/share/kibana/config/kibana.yml".format(self.kibana_yml))
 
         content = dict(
             healthcheck=curl_healthcheck(

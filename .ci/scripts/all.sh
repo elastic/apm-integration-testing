@@ -18,6 +18,7 @@ DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS}\
   --with-agent-dotnet \
   --with-agent-go-net-http \
   --with-agent-nodejs-express \
+  --with-agent-php-apache \
   --with-agent-ruby-rails \
   --with-agent-java-spring \
   --with-agent-python-django \

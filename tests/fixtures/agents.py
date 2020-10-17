@@ -38,6 +38,13 @@ def go_nethttp(apm_server):
 
 
 @pytest.fixture(scope="session")
+def php_apache(apm_server):
+    return Agent(default.from_env('PHP_APACHE_SERVICE_NAME'),
+                 default.from_env('PHP_APACHE_URL'),
+                 apm_server)
+
+
+@pytest.fixture(scope="session")
 def rails(apm_server):
     return Agent(default.from_env('RAILS_SERVICE_NAME'),
                  default.from_env('RAILS_URL'),

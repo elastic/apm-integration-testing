@@ -1148,6 +1148,9 @@ class KibanaServiceTest(ServiceTest):
         self.assertIn("XPACK_SECURITY_ENCRYPTIONKEY", kibana['environment'])
         self.assertIn("XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY", kibana['environment'])
 
+    def test_kibana_yml(self):
+        kibana = Kibana(kibana_yml="/path/to.yml").render()["kibana"]
+        self.assertIn("/path/to.yml:/usr/share/kibana/config/kibana.yml", kibana['volumes'])
 
 class LogstashServiceTest(ServiceTest):
     def test_snapshot(self):
