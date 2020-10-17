@@ -9,15 +9,9 @@ test -z "$srcdir" && srcdir=.
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
   --no-apm-server-dashboards \
   --no-apm-server-self-instrument \
-  --with-agent-rumjs \
-  --with-agent-dotnet \
-  --with-agent-go-net-http \
-  --with-agent-nodejs-express \
   --with-agent-php-apache \
-  --with-agent-ruby-rails \
-  --with-agent-java-spring \
-  --with-agent-python-django \
-  --with-agent-python-flask \
-  --force-build"
+  --apm-server-agent-config-poll=1s \
+  --force-build \
+  --no-xpack-secure"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
-runTests env-agent-all docker-test-all
+runTests env-agent-php docker-test-agent-php

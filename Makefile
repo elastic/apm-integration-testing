@@ -7,6 +7,21 @@ COMPOSE_ARGS ?=
 JUNIT_RESULTS_DIR=tests/results
 JUNIT_OPT=--junitxml $(JUNIT_RESULTS_DIR)
 
+APM_SERVER_URL ?= http://apm-server:8200
+ES_URL ?= http://elasticsearch:9200
+KIBANA_URL ?= http://kibana:5601
+DJANGO_URL ?= http://djangoapp:8003
+DOTNET_URL ?= http://dotnetapp:8100
+EXPRESS_URL ?= http://expressapp:8010
+FLASK_URL ?= http://flaskapp:8001
+GO_NETHTTP_URL ?= http://gonethttpapp:8080
+JAVA_SPRING_URL ?= http://javaspring:8090
+PHP_APACHE_URL ?= http://phpapacheapp
+RAILS_URL ?= http://railsapp:8020
+RUM_URL ?= http://rum:8000
+
+PYTHONHTTPSVERIFY ?= 1
+
 # Make sure we run local versions of everything, particularly commands
 # installed into our virtualenv with pip eg. `docker-compose`.
 export PATH := ./bin:$(VENV)/bin:$(PATH)
@@ -91,25 +106,26 @@ dockerized-test:
 	mkdir -p -m 777 "$(PWD)/$(JUNIT_RESULTS_DIR)"
 	chmod 777 "$(PWD)/$(JUNIT_RESULTS_DIR)"
 	docker run \
-	  --name=apm-integration-testing \
-	  --network=apm-integration-testing \
-	  --security-opt seccomp=unconfined \
-	  -e APM_SERVER_URL=http://apm-server:8200 \
-	  -e ES_URL=http://elasticsearch:9200 \
-	  -e KIBANA_URL=http://kibana:5601 \
-	  -e DJANGO_URL="http://djangoapp:8003" \
-	  -e DOTNET_URL="http://dotnetapp:8100" \
-	  -e EXPRESS_URL="http://expressapp:8010" \
-	  -e FLASK_URL="http://flaskapp:8001" \
-	  -e GO_NETHTTP_URL="http://gonethttpapp:8080" \
-	  -e JAVA_SPRING_URL="http://javaspring:8090" \
-	  -e RAILS_URL="http://railsapp:8020" \
-	  -e RUM_URL="http://rum:8000" \
-	  -e PYTHONDONTWRITEBYTECODE=1 \
-	  -v "$(PWD)/$(JUNIT_RESULTS_DIR)":"/app/$(JUNIT_RESULTS_DIR)" \
-	  --rm \
-	  --entrypoint make \
-	  apm-integration-testing \
-	  $(TARGET)
+		--name=apm-integration-testing \
+		--network=apm-integration-testing \
+		--security-opt seccomp=unconfined \
+		-e APM_SERVER_URL=$${APM_SERVER_URL} \
+		-e ES_URL=$${ES_URL} \
+		-e KIBANA_URL=$${KIBANA_URL} \
+		-e DJANGO_URL=$(DJANGO_URL) \
+		-e DOTNET_URL=$(DOTNET_URL) \
+		-e EXPRESS_URL=$(EXPRESS_URL) \
+		-e FLASK_URL=$(FLASK_URL) \
+		-e GO_NETHTTP_URL=$(GO_NETHTTP_URL) \
+		-e JAVA_SPRING_URL=$(JAVA_SPRING_URL) \
+		-e RAILS_URL=$(RAILS_URL) \
+		-e RUM_URL=$(RUM_URL) \
+		-e PHP_APACHE_URL=$(PHP_APACHE_URL) \
+		-e PYTHONDONTWRITEBYTECODE=1 \
+		-v "$(PWD)/$(JUNIT_RESULTS_DIR)":"/app/$(JUNIT_RESULTS_DIR)" \
+		--rm \
+		--entrypoint make \
+		apm-integration-testing \
+		$(TARGET)
 
 .PHONY: test-% docker-test-% dockerized-test docker-compose-wait

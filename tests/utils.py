@@ -27,7 +27,7 @@ def check_server_transaction(endpoint, elasticsearch, payload, headers=None, ct=
 
 def check_request_response(req, endpoint):
     msg = "Expected {}, got {}".format(endpoint.text, req.text)
-    assert req.text == endpoint.text, msg
+    assert req.text.strip() == endpoint.text, msg
     assert req.status_code == endpoint.status_code
 
 
