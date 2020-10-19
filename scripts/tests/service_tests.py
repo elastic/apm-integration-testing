@@ -8,7 +8,7 @@ import yaml
 
 from ..modules.apm_agents import (
     AgentGoNetHttp, AgentNodejsExpress, AgentPythonDjango, AgentPythonFlask, AgentRubyRails,
-    AgentJavaSpring, AgentDotnet
+    AgentJavaSpring, AgentDotnet, AgentPhpApache
 )
 from ..modules.aux_services import Logstash, Kafka, Zookeeper
 from ..modules.beats import Filebeat, Heartbeat, Metricbeat, Packetbeat
@@ -414,6 +414,57 @@ class AgentServiceTest(ServiceTest):
         agent = AgentDotnet(version="7.6", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-dotnet"]
         self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
 
+    def test_agent_php(self):
+        agent = AgentPhpApache().render()
+        self.assertDictEqual(
+            agent, yaml.load("""
+                agent-php-apache:
+                    build:
+                        args:
+                            PHP_AGENT_BRANCH: master
+                            PHP_AGENT_VERSION: ""
+                            PHP_AGENT_REPO: elastic/apm-agent-php
+                        dockerfile: Dockerfile
+                        context: docker/php/apache
+                    container_name: phpapacheapp
+                    depends_on:
+                        apm-server:
+                            condition: 'service_healthy'
+                    environment:
+                        ELASTIC_APM_SERVICE_NAME: 'phpapacheapp'
+                        ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
+                    healthcheck:
+                        interval: 10s
+                        retries: 12
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output",
+                        "/dev/null", "http://phpapacheapp:80/healthcheck"]
+                    ports:
+                        - 127.0.0.1:8030:80
+            """)
+        )
+
+        # test overrides
+        agent = AgentPhpApache(apm_server_url="http://foo").render()["agent-php-apache"]
+        self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"])
+
+    def test_agent_php_with_repo(self):
+        agent = AgentPhpApache(php_agent_repo="foo/myrepo.git").render()["agent-php-apache"]
+        self.assertEqual("foo/myrepo.git", agent["build"]["args"]["PHP_AGENT_REPO"])
+
+    def test_agent_php_with_branch(self):
+        agent = AgentPhpApache(php_agent_version="bar").render()["agent-php-apache"]
+        self.assertEqual("bar", agent["build"]["args"]["PHP_AGENT_BRANCH"])
+
+    def test_agent_php_with_release(self):
+        agent = AgentPhpApache(php_agent_release="1.0").render()["agent-php-apache"]
+        self.assertEqual("1.0", agent["build"]["args"]["PHP_AGENT_VERSION"])
+
+    def test_agent_php_enable_apm_server(self):
+        agent = AgentPhpApache(enable_apm_server=True).render()["agent-php-apache"]
+        self.assertTrue("apm-server" in agent["depends_on"])
+
+        agent = AgentPhpApache(enable_apm_server=False).render()["agent-php-apache"]
+        self.assertFalse("apm-server" in agent["depends_on"])
 
 class ApmServerServiceTest(ServiceTest):
     def test_default_snapshot(self):
