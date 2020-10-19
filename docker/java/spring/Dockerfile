@@ -23,7 +23,7 @@ FROM adoptopenjdk:11-jre-hotspot
 COPY --from=0 /app /app
 COPY --from=0 /agent/apm-agent.jar /app
 RUN apt-get -qq update \
-  && apt-get -qq install -y curl --no-install-recommends curl\
+  && apt-get -qq install -y --no-install-recommends curl \ 
   && apt-get -qq clean \
   && rm -fr /var/lib/apt/lists/*
 WORKDIR /app
