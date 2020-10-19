@@ -142,6 +142,16 @@ pipeline {
                   }
                 }
               }
+              stage("Test PHP") {
+                steps {
+                  runTest('php')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-php")
+                  }
+                }
+              }
               stage("Test Python") {
                 steps {
                   runTest('python')
