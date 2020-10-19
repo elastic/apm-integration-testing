@@ -10,7 +10,7 @@ RUN apt-get -qq update \
     wget \
  && rm -rf /var/lib/apt/lists/*
 
-ARG PHP_AGENT_REPO=elastic/apm-agent-dotnet
+ARG PHP_AGENT_REPO=elastic/apm-agent-php
 ARG PHP_AGENT_BRANCH=master
 ARG PHP_AGENT_VERSION=
 WORKDIR /src

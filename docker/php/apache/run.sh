@@ -21,4 +21,5 @@ else
   dpkg -i "/tmp/apm-agent-php.deb"
 fi
 
-cp -rf /src/app /var/www/html/
+## Copy the app to the /var/www/html folder
+cp -rf /src/app/* /var/www/html
