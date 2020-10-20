@@ -291,6 +291,8 @@ These are the scripts available to execute:
 
 * `opbeans-app.sh:` runs the apm-integration-testing app and validates the stack can be started. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
 
+* `php.sh:` runs PHP agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
+
 * `python.sh:` runs Python agent tests. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
 
 * `ruby.sh:` runs Ruby agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
@@ -320,6 +322,8 @@ It is possible to configure some options and versions to run by defining environ
 * `APM_AGENT_JAVA_VERSION`: selects the agent Java version to use. By default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
 
 * `APM_AGENT_NODEJS_VERSION`: selects the agent Nodejs version to use. By default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
+
+* `APM_AGENT_PHP_VERSION`: selects the agent PHP version to use. By default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
 
 * `APM_AGENT_PYTHON_VERSION`: selects the agent Python version to use. By default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
 

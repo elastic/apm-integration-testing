@@ -184,9 +184,34 @@ class AgentNodejsExpress(Service):
 
 class AgentPhpApache(Service):
     SERVICE_PORT = 8030
+    DEFAULT_AGENT_VERSION = "master"
+    DEFAULT_AGENT_RELEASE = ""
+    DEFAULT_AGENT_REPO = "elastic/apm-agent-php"
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(AgentPhpApache, cls).add_arguments(parser)
+        parser.add_argument(
+            "--php-agent-version",
+            default=cls.DEFAULT_AGENT_VERSION,
+            help='Use PHP agent version (master, 0.1, 0.2, ...)',
+        )
+        parser.add_argument(
+            "--php-agent-release",
+            default=cls.DEFAULT_AGENT_RELEASE,
+            help='Use PHP agent release version (0.1, 0.2, ...)',
+        )
+        parser.add_argument(
+            "--php-agent-repo",
+            default=cls.DEFAULT_AGENT_REPO,
+            help="GitHub repo to be used. Default: {}".format(cls.DEFAULT_AGENT_REPO),
+        )
 
     def __init__(self, **options):
         super(AgentPhpApache, self).__init__(**options)
+        self.agent_version = options.get("php_agent_version", self.DEFAULT_AGENT_VERSION)
+        self.agent_release = options.get("php_agent_release", self.DEFAULT_AGENT_RELEASE)
+        self.agent_repo = options.get("php_agent_repo", self.DEFAULT_AGENT_REPO)
         if options.get("enable_apm_server", True):
             self.depends_on = {
                 "apm-server": {"condition": "service_healthy"},
@@ -198,7 +223,15 @@ class AgentPhpApache(Service):
     ])
     def _content(self):
         return dict(
-            build={"context": "docker/php/apache", "dockerfile": "Dockerfile"},
+            build={
+                "context": "docker/php/apache",
+                "dockerfile": "Dockerfile",
+                "args": {
+                    "PHP_AGENT_BRANCH": self.agent_version,
+                    "PHP_AGENT_VERSION": self.agent_release,
+                    "PHP_AGENT_REPO": self.agent_repo,
+                },
+            },
             container_name="phpapacheapp",
             environment={
                 "ELASTIC_APM_SERVICE_NAME": "phpapacheapp",
