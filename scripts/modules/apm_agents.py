@@ -183,7 +183,11 @@ class AgentNodejsExpress(Service):
 
 class AgentPhpApache(Service):
     SERVICE_PORT = 8030
+<<<<<<< HEAD
     DEFAULT_AGENT_VERSION = "main"
+=======
+    DEFAULT_AGENT_VERSION = "master"
+>>>>>>> 4c63a2a (support PHP ITs (#946))
     DEFAULT_AGENT_RELEASE = ""
     DEFAULT_AGENT_REPO = "elastic/apm-agent-php"
 
@@ -193,7 +197,11 @@ class AgentPhpApache(Service):
         parser.add_argument(
             "--php-agent-version",
             default=cls.DEFAULT_AGENT_VERSION,
+<<<<<<< HEAD
             help='Use PHP agent version (main, 0.1, 0.2, ...)',
+=======
+            help='Use PHP agent version (master, 0.1, 0.2, ...)',
+>>>>>>> 4c63a2a (support PHP ITs (#946))
         )
         parser.add_argument(
             "--php-agent-release",

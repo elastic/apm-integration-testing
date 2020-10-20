@@ -263,7 +263,15 @@ These are the scripts available to execute:
 * `nodejs.sh:` runs Nodejs agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `opbeans.sh:` runs the unit tests for the apm-integration-testing app and validates the linting. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `opbeans-app.sh:` runs the apm-integration-testing app and validates the stack can be started. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
+<<<<<<< HEAD
 * `python.sh:` runs Python agent tests, you can choose the versions to run see the [environment variables](environment-variables) configuration.
+=======
+
+* `php.sh:` runs PHP agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
+
+* `python.sh:` runs Python agent tests. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
+
+>>>>>>> 4c63a2a (support PHP ITs (#946))
 * `ruby.sh:` runs Ruby agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `server.sh:` runs APM Server tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `unit-tests.sh:` runs the unit tests for the apm-integration-testing app and validate the linting, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
@@ -273,6 +281,7 @@ These are the scripts available to execute:
 It is possible to configure some options and versions to run by defining environment variables before to launch the scripts
 
 * `COMPOSE_ARGS`: replaces completely the default arguments compose.py used by scripts, see the compose.py help to know which ones you can use.
+<<<<<<< HEAD
 * `DISABLE_BUILD_PARALLEL`: by default Docker images are built in parallel, if you set `DISABLE_BUILD_PARALLEL=true` the Docker images will build in serie. It helps to make the logs more readable.
 * `BUILD_OPTS`: aggregates arguments to default arguments passing to compose.py see the compose.py help to know which ones you can use.
 * `ELASTIC_STACK_VERSION`: selects the Elastic Stack version to use on tests, by default is is used the master branch. You can choose any branch or tag from the Github repo.
@@ -283,6 +292,30 @@ It is possible to configure some options and versions to run by defining environ
 * `APM_AGENT_NODEJS_VERSION`: selects the agent Nodejs version to use, by default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
 * `APM_AGENT_PYTHON_VERSION`: selects the agent Python version to use, by default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
 * `APM_AGENT_RUBY_VERSION`: selects the agent Ruby version to use, by default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
+=======
+
+* `DISABLE_BUILD_PARALLEL`: by default Docker images are built in parallel. If you set `DISABLE_BUILD_PARALLEL=true` then the Docker images will build in series, which helps to make the logs more readable.
+
+* `BUILD_OPTS`: aggregates arguments to default arguments passing to compose.py. See `compose.py` help to know which ones you can use.
+
+* `ELASTIC_STACK_VERSION`: selects the Elastic Stack version to use on tests. By default is is used the master branch. You can choose any branch or tag from the Github repo.
+
+* `APM_SERVER_BRANCH`: selects the APM Server version to use on tests. By default it uses the master branch. You can choose any branch or tag from the Github repo.
+
+* `APM_AGENT_DOTNET_VERSION`: selects the agent .NET version to use. By default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
+
+* `APM_AGENT_GO_VERSION`: selects the agent Go version to use. By default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
+
+* `APM_AGENT_JAVA_VERSION`: selects the agent Java version to use. By default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
+
+* `APM_AGENT_NODEJS_VERSION`: selects the agent Nodejs version to use. By default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
+
+* `APM_AGENT_PHP_VERSION`: selects the agent PHP version to use. By default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
+
+* `APM_AGENT_PYTHON_VERSION`: selects the agent Python version to use. By default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
+
+* `APM_AGENT_RUBY_VERSION`: selects the agent Ruby version to use. By default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
+>>>>>>> 4c63a2a (support PHP ITs (#946))
 
 #### Specify an Agent Version
 

@@ -1,3 +1,8 @@
 PHP_AGENT:
+<<<<<<< HEAD
   - 'github;main'
   - 'release;latest'
+=======
+  - 'github;master'
+  - 'release;0.2'
+>>>>>>> 4c63a2a (support PHP ITs (#946))

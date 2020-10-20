@@ -27,8 +27,13 @@ pipeline {
     rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
   }
   parameters {
+<<<<<<< HEAD
     choice(name: 'INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All', 'Opbeans'], description: 'Name of the APM Agent you want to run the integration tests.')
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "", description: "Elastic Stack Git branch/tag to use")
+=======
+    choice(name: 'INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'PHP', 'Python', 'Ruby', 'RUM', 'UI', 'All', 'Opbeans'], description: 'Name of the Tests or APM Agent you want to run the integration tests.')
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "8.0.0", description: "Elastic Stack Git branch/tag to use")
+>>>>>>> 4c63a2a (support PHP ITs (#946))
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     string(name: 'GITHUB_CHECK_NAME', defaultValue: '', description: 'Name of the GitHub check to be updated. Only if this build is triggered from another parent stream.')
     string(name: 'GITHUB_CHECK_REPO', defaultValue: '', description: 'Name of the GitHub repo to be updated. Only if this build is triggered from another parent stream.')
@@ -93,7 +98,8 @@ pipeline {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           when {
-            expression { return (params.INTEGRATION_TEST != 'RUM') }
+            expression { return (params.INTEGRATION_TEST != 'RUM' &&
+                                 params.INTEGRATION_TEST != 'PHP') }  // TODO: When Opbeans PHP app is available then enable it
             beforeAgent true
           }
           steps {
