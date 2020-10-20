@@ -90,7 +90,8 @@ pipeline {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           when {
-            expression { return (params.INTEGRATION_TEST != 'RUM') }
+            expression { return (params.INTEGRATION_TEST != 'RUM' &&
+                                 params.INTEGRATION_TEST != 'PHP') }  // TODO: When Opbeans PHP app is available then enable it
             beforeAgent true
           }
           steps {
