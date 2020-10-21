@@ -22,5 +22,5 @@ function dummyFuncToAddDepthToStacktrace(int $depthLeft): void
     $span->end();
 }
 
-dummyFuncToAddDepthToStacktrace(16);
+dummyFuncToAddDepthToStacktrace(15);
 ?>
