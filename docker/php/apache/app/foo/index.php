@@ -31,5 +31,5 @@ function dummyFuncToAddDepthToStacktrace(int $depthLeft): void
 >>>>>>> 44983ff (Added stack depth to conform to 'assert 15 < len(stacktrace) < 70')
 }
 
-dummyFuncToAddDepthToStacktrace(15);
+dummyFuncToAddDepthToStacktrace(16);
 ?>
