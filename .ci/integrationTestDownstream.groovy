@@ -226,7 +226,7 @@ def wrappingup(label){
         defaultExcludes: false)
     junit(testResults: testResultsPattern, allowEmptyResults: true, keepLongStdio: true)
     // Let's generate the debug report ...
-    sh(label: 'Generate debug docs', script: '.ci/scripts/generate-debug-docs.sh | tee docs.txt')
+    sh(label: 'Generate debug docs', script: '.ci/scripts/generate-debug-docs.sh "downstream" | tee docs.txt')
     archiveArtifacts(artifacts: 'docs.txt')
   }
 }
