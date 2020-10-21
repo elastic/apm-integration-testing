@@ -85,9 +85,9 @@ class ApmServer(StackService, Service):
         elif self.at_least_version("7.2") and not self.at_least_version("7.3") and not self.oss:
             self.apm_server_command_args.append(("apm-server.ilm.enabled", "true"))
 
-        if self.options.get("apm_server_acm_disable"):
+        if self.options.get("apm_server_acm_disable") or not self.options.get("enable_kibana", True):
             self.apm_server_command_args.append(("apm-server.kibana.enabled", "false"))
-        elif self.at_least_version("7.3"):
+        elif self.at_least_version("7.3") and self.options.get("enable_kibana", True):
             self.apm_server_command_args.extend([
                 ("apm-server.kibana.enabled", "true"),
                 ("apm-server.kibana.host", self.options.get("apm_server_kibana_url", self.DEFAULT_KIBANA_HOST))])
