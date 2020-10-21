@@ -229,7 +229,7 @@ def wrappingup(Map params = [:]){
       junit(allowEmptyResults: true, keepLongStdio: true, testResults: testResultsPattern)
     }
     // Let's generate the debug report ...
-    sh(label: 'Generate debug docs', script: ".ci/scripts/generate-debug-docs.sh | tee ${env.DETAILS_ARTIFACT}")
+    sh(label: 'Generate debug docs', script: ".ci/scripts/generate-debug-docs.sh 'selector' | tee ${env.DETAILS_ARTIFACT}")
     archiveArtifacts(artifacts: "${env.DETAILS_ARTIFACT}")
   }
 }

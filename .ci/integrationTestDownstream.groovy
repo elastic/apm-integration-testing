@@ -21,6 +21,10 @@ pipeline {
     PIPELINE_LOG_LEVEL = 'INFO'
     DISABLE_BUILD_PARALLEL = "${params.DISABLE_BUILD_PARALLEL}"
     ENABLE_ES_DUMP = "true"
+    NAME = agentMapping.id(params.INTEGRATION_TEST)
+    INTEGRATION_TEST = "${params.INTEGRATION_TEST}"
+    ELASTIC_STACK_VERSION = "${params.ELASTIC_STACK_VERSION}"
+    BUILD_OPTS = "${params.BUILD_OPTS}"
   }
   options {
     timeout(time: 1, unit: 'HOURS')
@@ -82,14 +86,13 @@ pipeline {
         unstash "source"
         dir("${BASE_DIR}"){
           script {
-            def agentTests = agentMapping.id(params.INTEGRATION_TEST)
             integrationTestsGen = new IntegrationTestingParallelTaskGenerator(
-              xKey: agentMapping.agentVar(agentTests),
+              xKey: agentMapping.agentVar(env.NAME),
               yKey: agentMapping.agentVar('server'),
-              xFile: agentMapping.yamlVersionFile(agentTests),
+              xFile: agentMapping.yamlVersionFile(env.NAME),
               yFile: agentMapping.yamlVersionFile('server'),
-              exclusionFile: agentMapping.yamlVersionFile(agentTests),
-              tag: agentTests,
+              exclusionFile: agentMapping.yamlVersionFile(env.NAME),
+              tag: env.NAME,
               name: params.INTEGRATION_TEST,
               steps: this
               )
@@ -226,7 +229,7 @@ def wrappingup(label){
         defaultExcludes: false)
     junit(testResults: testResultsPattern, allowEmptyResults: true, keepLongStdio: true)
     // Let's generate the debug report ...
-    sh(label: 'Generate debug docs', script: '.ci/scripts/generate-debug-docs.sh | tee docs.txt')
+    sh(label: 'Generate debug docs', script: '.ci/scripts/generate-debug-docs.sh "downstream" | tee docs.txt')
     archiveArtifacts(artifacts: 'docs.txt')
   }
 }
