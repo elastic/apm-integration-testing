@@ -18,16 +18,13 @@ echo ""
 echo "# Let's run the apm-integration testing for ${NAME}"
 echo "export ELASTIC_STACK_VERSION=${ELASTIC_STACK_VERSION}"
 echo "export BUILD_OPTS=\"${BUILD_OPTS}\""
+SCRIPT_NAME=$(echo "${INTEGRATION_TEST}" | tr '[:upper:]' '[:lower:]')
 if [ "${TYPE}" == "selector" ] ; then
-    if [ "${INTEGRATION_TEST}" == "All" ] ; then
-        echo '.ci/scripts/ui.sh'
-    elif [ "${INTEGRATION_TEST}" == "Opbeans" ] ; then
-        echo ".ci/scripts/opbeans.sh"
-    elif [ "${INTEGRATION_TEST}" == "UI" ] ; then
-        echo ".ci/scripts/all.sh"
+    if [ "${SCRIPT_NAME}" == "all" ] || [ "${SCRIPT_NAME}" == "opbeans" ] || [ "${SCRIPT_NAME}" == "ui" ] ; then
+        echo ".ci/scripts/${SCRIPT_NAME}.sh"
     else
         echo ".ci/scripts/agent.sh ${NAME} ${APP}"
-        if [ "${INTEGRATION_TEST}" == "RUM" ] ; then
+        if [ "${SCRIPT_NAME}" == "rum" ] ; then
             echo "# Build docker image with the new rum agent"
             echo "git clone https://github.com/elastic/opbeans-frontend.git .opbeans-frontend"
             echo "cd .opbeans-frontend"
