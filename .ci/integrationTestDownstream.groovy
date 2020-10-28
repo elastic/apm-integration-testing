@@ -220,16 +220,24 @@ def runScript(Map params = [:]){
 
 def wrappingup(label){
   dir("${BASE_DIR}"){
+    def testResultsFolder = 'tests/results'
+    def testResultsPattern = "${testResultsFolder}/*-junit*.xml"
+    def labelFolder = normalise(label)
     dockerLogs(step: label, failNever: true)
     sh('make stop-env || echo 0')
-    def testResultsPattern = 'tests/results/*-junit*.xml'
+    sh(label: 'Folder to aggregate test results from stages',
+       script: "mkdir -p ${labelFolder}/${testResultsFolder} && cp -rf ${testResultsPattern} ${labelFolder}/${testResultsFolder}")
     archiveArtifacts(
         allowEmptyArchive: true,
-        artifacts: "tests/results/data-*.json,tests/results/packetbeat-*.json,${testResultsPattern}",
+        artifacts: "${testResultsFolder}/data-*.json,${testResultsFolder}/packetbeat-*.json,${labelFolder}/${testResultsPattern}",
         defaultExcludes: false)
     junit(testResults: testResultsPattern, allowEmptyResults: true, keepLongStdio: true)
     // Let's generate the debug report ...
     sh(label: 'Generate debug docs', script: '.ci/scripts/generate-debug-docs.sh "downstream" | tee docs.txt')
     archiveArtifacts(artifacts: 'docs.txt')
   }
+}
+
+def normalise(label) {
+  return label?.replace(';','/').replace('--','_').replace('.','_').replace(' ','_')
 }
