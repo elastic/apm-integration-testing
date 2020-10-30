@@ -10,7 +10,7 @@
 - job:
     view: APM-CI
     logrotate:
-      numToKeep: 300
+      numToKeep: 250
     node: linux
     concurrent: true
     periodic-folder-trigger: 1w
