@@ -278,7 +278,9 @@ def withConfigEnv(Closure body) {
 def grabResultsAndLogs(label){
   withConfigEnv(){
     dir("${BASE_DIR}"){
-      dockerLogs(step: label, failNever: true)
+      if(currentBuild.result == 'FAILURE' || currentBuild.result == 'UNSTABLE'){
+        dockerLogs(step: label, failNever: true)
+      }
       sh('make stop-env || echo 0')
       sh('.ci/scripts/remove_env.sh docker-info')
       archiveArtifacts(

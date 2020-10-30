@@ -223,7 +223,9 @@ def wrappingup(label){
     def testResultsFolder = 'tests/results'
     def testResultsPattern = "${testResultsFolder}/*-junit*.xml"
     def labelFolder = normalise(label)
-    dockerLogs(step: label, failNever: true)
+    if(currentBuild.result == 'FAILURE' || currentBuild.result == 'UNSTABLE'){
+      dockerLogs(step: label, failNever: true)
+    }
     sh('make stop-env || echo 0')
     sh(label: 'Folder to aggregate test results from stages',
        script: "mkdir -p ${labelFolder}/${testResultsFolder} && cp -rf ${testResultsPattern} ${labelFolder}/${testResultsFolder}")
