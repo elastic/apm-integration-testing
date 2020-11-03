@@ -216,7 +216,9 @@ def runScript(Map params = [:]){
 
 def wrappingup(label){
   dir("${BASE_DIR}"){
-    dockerLogs(step: label, failNever: true)
+    if(currentBuild.result == 'FAILURE' || currentBuild.result == 'UNSTABLE'){
+      dockerLogs(step: label, failNever: true)
+    }
     sh('make stop-env || echo 0')
     def testResultsPattern = 'tests/results/*-junit*.xml'
     archiveArtifacts(
