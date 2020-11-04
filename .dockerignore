@@ -5,11 +5,16 @@
 **/tmp
 *.py[cod]
 *.pyc
-.git
 .cache
+.ci/
 .coverage
+.git
+.github
+.pytest_cache
 /.idea
 apm-server
 docker-compose.yml
+docker/
 htmlcov/
+scripts/
 venv/

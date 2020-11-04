@@ -43,8 +43,8 @@ def pytest_runtest_logreport(report):
         name = report.nodeid.split(":", 2)[-1]
         try:
             es_url = getElasticsearchURL()
-            isDumpEnable = os.getenv("ENABLE_ES_DUMP")
-            if isDumpEnable is not None:
+            isDumpEnable = os.getenv("ENABLE_ES_DUMP", False)
+            if isDumpEnable:
                 subprocess.call(['elasticdump',
                                  '--input={}/apm-*'.format(es_url),
                                  '--output=/app/tests/results/data-{}.json'.format(name)])
