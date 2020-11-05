@@ -16,5 +16,4 @@ apm-server
 docker-compose.yml
 docker/
 htmlcov/
-scripts/
 venv/
