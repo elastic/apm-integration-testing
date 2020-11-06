@@ -363,7 +363,6 @@ class LocalSetup(object):
             action="store",
             help="APM log level to use",
             choices=["off", "error", "warn", "info", "debug", "trace"],
-            default=DEFAULT_APM_LOG_LEVEL
         )
 
         parser.add_argument(
