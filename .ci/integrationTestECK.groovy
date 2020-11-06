@@ -280,9 +280,9 @@ def grabResultsAndLogs(label){
     dir("${BASE_DIR}"){
       if(currentBuild.result == 'FAILURE' || currentBuild.result == 'UNSTABLE'){
         dockerLogs(step: label, failNever: true)
+        sh('.ci/scripts/remove_env.sh docker-info')
       }
       sh('make stop-env || echo 0')
-      sh('.ci/scripts/remove_env.sh docker-info')
       archiveArtifacts(
           allowEmptyArchive: true,
           artifacts: 'tests/results/data-*.json,tests/results/packetbeat-*.json',
