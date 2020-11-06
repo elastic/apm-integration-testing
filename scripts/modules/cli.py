@@ -13,7 +13,7 @@ import re
 from .beats import BeatMixin
 from .helpers import load_images
 from .opbeans import OpbeansService, OpbeansRum
-from .service import Service, DEFAULT_APM_SERVER_URL, DEFAULT_APM_LOG_LEVEL
+from .service import Service, DEFAULT_APM_SERVER_URL
 
 # these imports are used by discover_services function to discover services from modules loaded
 
