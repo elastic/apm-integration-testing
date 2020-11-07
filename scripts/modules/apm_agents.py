@@ -322,8 +322,10 @@ class AgentPythonFlask(AgentPython):
         default_environment = {
             "FLASK_SERVICE_NAME": "flaskapp",
             "GUNICORN_CMD_ARGS": "-w 4 -b 0.0.0.0:{}".format(self.SERVICE_PORT),
-            "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level", DEFAULT_APM_LOG_LEVEL),
         }
+        if self.options.get("apm_log_level"):
+            default_environment["ELASTIC_APM_LOG_LEVEL"] = self.options.get("apm_log_level")
+
         environment = default_environment
         if self.apm_api_key:
             environment.update(self.apm_api_key)

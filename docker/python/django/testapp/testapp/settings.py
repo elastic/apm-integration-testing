@@ -50,7 +50,8 @@ ELASTIC_APM = {
     'MAX_EVENT_QUEUE_LENGTH': 1,  # 1.x
     'MAX_QUEUE_SIZE': 1,  # 2.x
     'API_REQUEST_TIME': '50ms',  # 4.x
-    'TRANSACTIONS_IGNORE_PATTERNS': ['.*healthcheck']
+    'TRANSACTIONS_IGNORE_PATTERNS': ['.*healthcheck'],
+    'LOG_LEVEL': 'warning',
 }
 
 MIDDLEWARE = [

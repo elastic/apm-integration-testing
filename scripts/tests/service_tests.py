@@ -187,7 +187,6 @@ class AgentServiceTest(ServiceTest):
                         apm-server:
                             condition: 'service_healthy'
                     environment:
-                        ELASTIC_APM_LOG_LEVEL: 'info'
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
                         FLASK_SERVICE_NAME: flaskapp
                         GUNICORN_CMD_ARGS: "-w 4 -b 0.0.0.0:8001"
