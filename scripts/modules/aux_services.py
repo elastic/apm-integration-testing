@@ -120,7 +120,6 @@ class Zookeeper(Service):
         )
 
 
-
 class WaitService(Service):
     """Create a service that depends on all services ."""
 
