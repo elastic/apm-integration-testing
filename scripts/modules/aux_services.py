@@ -136,9 +136,6 @@ class WaitService(Service):
             container_name="wait",
             image="busybox",
             depends_on=self.depends_on,
-            healthcheck={
-                "interval": "10s",
-                "retries": "100",
-                "test": ["CMD", "exit 0"],
-            }
+            labels=None,
+            logging=None,
         )

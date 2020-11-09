@@ -672,7 +672,7 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml.seek(0)
         got = yaml.load(docker_compose_yml)
         want = yaml.load("""
-        version: '2.1'
+        version: '2.4'
         services:
             apm-server:
                 cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
@@ -734,6 +734,16 @@ class LocalTest(unittest.TestCase):
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
                 ports: ['127.0.0.1:5601:5601']
+            wait-service:
+                container_name: wait
+                depends_on:
+                    apm-server:
+                        condition: service_healthy
+                    elasticsearch:
+                        condition: service_healthy
+                    kibana:
+                        condition: service_healthy
+                image: busybox
         networks:
             default: {name: apm-integration-testing}
         volumes:
@@ -753,7 +763,7 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml.seek(0)
         got = yaml.load(docker_compose_yml)
         want = yaml.load("""
-        version: '2.1'
+        version: '2.4'
         services:
             apm-server:
                 cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
@@ -819,7 +829,16 @@ class LocalTest(unittest.TestCase):
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
                 ports: ['127.0.0.1:5601:5601']
-
+            wait-service:
+                container_name: wait
+                depends_on:
+                    apm-server:
+                        condition: service_healthy
+                    elasticsearch:
+                        condition: service_healthy
+                    kibana:
+                        condition: service_healthy
+                image: busybox
         networks:
             default: {name: apm-integration-testing}
         volumes:
@@ -849,7 +868,7 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml.seek(0)
         got = yaml.load(docker_compose_yml)
         want = yaml.load("""
-        version: '2.1'
+        version: '2.4'
         services:
             apm-server:
                 cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
@@ -959,6 +978,16 @@ class LocalTest(unittest.TestCase):
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
                 ports: ['127.0.0.1:5601:5601']
+            wait-service:
+                container_name: wait
+                depends_on:
+                    apm-server:
+                        condition: service_healthy
+                    elasticsearch:
+                        condition: service_healthy
+                    kibana:
+                        condition: service_healthy
+                image: busybox
         networks:
             default: {name: apm-integration-testing}
         volumes:
@@ -1062,7 +1091,9 @@ class LocalTest(unittest.TestCase):
             "opbeans-python",
             "opbeans-ruby",
             "opbeans-rum",
-            "postgres", "redis",
+            "postgres",
+            "redis",
+            "wait-service",
         })
 
     @mock.patch(cli.__name__ + ".load_images")
