@@ -122,7 +122,7 @@ class Zookeeper(Service):
 
 
 class WaitService(Service):
-    """Creeate a service that depends on all services ."""
+    """Create a service that depends on all services ."""
 
     def __init__(self, services, **options):
         super(WaitService, self).__init__(**options)
