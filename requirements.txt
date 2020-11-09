@@ -5,7 +5,6 @@ cached-property==1.5.1
 certifi==2017.11.5
 chardet==3.0.4
 coverage==4.5.1
-docker-compose-wait==1.0.0
 docker-compose==1.27.4
 docker==4.3.1
 dockerpty==0.4.1
