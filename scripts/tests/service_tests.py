@@ -23,7 +23,7 @@ class AgentServiceTest(ServiceTest):
     def test_agent_go_net_http(self):
         agent = AgentGoNetHttp().render()
         self.assertDictEqual(
-            agent, yaml.load("""
+            agent, yaml.safe_load("""
                 agent-go-net-http:
                     build:
                         args:
@@ -81,7 +81,7 @@ class AgentServiceTest(ServiceTest):
     def test_agent_nodejs_express(self):
         agent = AgentNodejsExpress().render()
         self.assertDictEqual(
-            agent, yaml.load("""
+            agent, yaml.safe_load("""
                 agent-nodejs-express:
                     build:
                         dockerfile: Dockerfile
@@ -131,7 +131,7 @@ class AgentServiceTest(ServiceTest):
     def test_agent_python_django(self):
         agent = AgentPythonDjango().render()
         self.assertDictEqual(
-            agent, yaml.load("""
+            agent, yaml.safe_load("""
                 agent-python-django:
                     build:
                         dockerfile: Dockerfile
@@ -176,7 +176,7 @@ class AgentServiceTest(ServiceTest):
     def test_agent_python_flask(self):
         agent = AgentPythonFlask(version="6.2.4").render()
         self.assertDictEqual(
-            agent, yaml.load("""
+            agent, yaml.safe_load("""
                 agent-python-flask:
                     build:
                         dockerfile: Dockerfile
@@ -221,7 +221,7 @@ class AgentServiceTest(ServiceTest):
     def test_agent_ruby_rails(self):
         agent = AgentRubyRails().render()
         self.assertDictEqual(
-            agent, yaml.load("""
+            agent, yaml.safe_load("""
                 agent-ruby-rails:
                     build:
                         args:
@@ -289,7 +289,7 @@ class AgentServiceTest(ServiceTest):
     def test_agent_java_spring(self):
         agent = AgentJavaSpring().render()
         self.assertDictEqual(
-            agent, yaml.load("""
+            agent, yaml.safe_load("""
                 agent-java-spring:
                     build:
                         args:
@@ -351,7 +351,7 @@ class AgentServiceTest(ServiceTest):
     def test_agent_dotnet(self):
         agent = AgentDotnet().render()
         self.assertDictEqual(
-            agent, yaml.load("""
+            agent, yaml.safe_load("""
                 agent-dotnet:
                     build:
                         args:
@@ -416,7 +416,7 @@ class AgentServiceTest(ServiceTest):
     def test_agent_php(self):
         agent = AgentPhpApache().render()
         self.assertDictEqual(
-            agent, yaml.load("""
+            agent, yaml.safe_load("""
                 agent-php-apache:
                     build:
                         args:
@@ -668,7 +668,7 @@ class ApmServerServiceTest(ServiceTest):
             self.assertEqual(1, len(got))
             directive, setting = got[0]
             self.assertEqual("output.elasticsearch.pipelines", directive)
-            return yaml.load(setting)
+            return yaml.safe_load(setting)
 
         apm_server = ApmServer(version="6.5.10").render()["apm-server"]
         self.assertEqual(get_pipelines(apm_server["command"]), [{'pipeline': 'apm_user_agent'}],
@@ -967,7 +967,7 @@ class FilebeatServiceTest(ServiceTest):
     def test_filebeat_pre_6_1(self):
         filebeat = Filebeat(version="6.0.4", release=True).render()
         self.assertEqual(
-            filebeat, yaml.load("""
+            filebeat, yaml.safe_load("""
                 filebeat:
                     image: docker.elastic.co/beats/filebeat:6.0.4
                     container_name: localtesting_6.0.4_filebeat
@@ -994,7 +994,7 @@ class FilebeatServiceTest(ServiceTest):
     def test_filebeat_post_6_1(self):
         filebeat = Filebeat(version="6.1.1", release=True).render()
         self.assertEqual(
-            filebeat, yaml.load("""
+            filebeat, yaml.safe_load("""
                 filebeat:
                     image: docker.elastic.co/beats/filebeat:6.1.1
                     container_name: localtesting_6.1.1_filebeat
@@ -1063,7 +1063,7 @@ class KafkaServiceTest(ServiceTest):
     def test_kafka(self):
         kafka = Kafka(version="6.2.4").render()
         self.assertEqual(
-            kafka, yaml.load("""
+            kafka, yaml.safe_load("""
                 kafka:
                     image: confluentinc/cp-kafka:4.1.3
                     container_name: localtesting_6.2.4_kafka
@@ -1084,7 +1084,7 @@ class KibanaServiceTest(ServiceTest):
     def test_6_2_release(self):
         kibana = Kibana(version="6.2.4", release=True).render()
         self.assertEqual(
-            kibana, yaml.load("""
+            kibana, yaml.safe_load("""
                 kibana:
                     image: docker.elastic.co/kibana/kibana-x-pack:6.2.4
                     container_name: localtesting_6.2.4_kibana
@@ -1113,7 +1113,7 @@ class KibanaServiceTest(ServiceTest):
     def test_6_3_release(self):
         kibana = Kibana(version="6.3.5", release=True).render()
         self.assertDictEqual(
-            kibana, yaml.load("""
+            kibana, yaml.safe_load("""
                 kibana:
                     image: docker.elastic.co/kibana/kibana:6.3.5
                     container_name: localtesting_6.3.5_kibana
@@ -1215,7 +1215,7 @@ class LogstashServiceTest(ServiceTest):
     def test_logstash(self):
         logstash = Logstash(version="6.3.0", release=True).render()
         self.assertEqual(
-            logstash, yaml.load("""
+            logstash, yaml.safe_load("""
         logstash:
             container_name: localtesting_6.3.0_logstash
             depends_on:
@@ -1272,7 +1272,7 @@ class MetricbeatServiceTest(ServiceTest):
     def test_metricbeat(self):
         metricbeat = Metricbeat(version="7.2.0", release=True, apm_server_pprof_url='apm-server:6060').render()
         self.assertEqual(
-            metricbeat, yaml.load("""
+            metricbeat, yaml.safe_load("""
                 metricbeat:
                     image: docker.elastic.co/beats/metricbeat:7.2.0
                     container_name: localtesting_7.2.0_metricbeat
@@ -1351,7 +1351,7 @@ class PacketbeatServiceTest(ServiceTest):
     def test_packetbeat(self):
         packetbeat = Packetbeat(version="7.3.0", release=True).render()
         self.assertEqual(
-            packetbeat, yaml.load("""
+            packetbeat, yaml.safe_load("""
                 packetbeat:
                     image: docker.elastic.co/beats/packetbeat:7.3.0
                     container_name: localtesting_7.3.0_packetbeat
@@ -1439,7 +1439,7 @@ class ZookeeperServiceTest(ServiceTest):
     def test_zookeeper(self):
         zookeeper = Zookeeper(version="6.2.4").render()
         self.assertEqual(
-            zookeeper, yaml.load("""
+            zookeeper, yaml.safe_load("""
                 zookeeper:
                     image: confluentinc/cp-zookeeper:latest
                     container_name: localtesting_6.2.4_zookeeper

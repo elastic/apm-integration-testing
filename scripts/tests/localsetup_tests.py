@@ -48,7 +48,7 @@ class OpbeansServiceTest(ServiceTest):
     def test_opbeans_dotnet(self):
         opbeans_go = OpbeansDotnet(version="6.3.10").render()
         self.assertEqual(
-            opbeans_go, yaml.load("""
+            opbeans_go, yaml.safe_load("""
                 opbeans-dotnet:
                     build:
                       dockerfile: Dockerfile
@@ -108,7 +108,7 @@ class OpbeansServiceTest(ServiceTest):
     def test_opbeans_go(self):
         opbeans_go = OpbeansGo(version="6.3.10").render()
         self.assertEqual(
-            opbeans_go, yaml.load("""
+            opbeans_go, yaml.safe_load("""
                 opbeans-go:
                     build:
                       dockerfile: Dockerfile
@@ -169,7 +169,7 @@ class OpbeansServiceTest(ServiceTest):
     def test_opbeans_java(self):
         opbeans_java = OpbeansJava(version="6.3.10").render()
         self.assertEqual(
-            opbeans_java, yaml.load("""
+            opbeans_java, yaml.safe_load("""
                 opbeans-java:
                     build:
                       dockerfile: Dockerfile
@@ -237,7 +237,7 @@ class OpbeansServiceTest(ServiceTest):
     def test_opbeans_node(self):
         opbeans_node = OpbeansNode(version="6.2.4").render()
         self.assertEqual(
-            opbeans_node, yaml.load("""
+            opbeans_node, yaml.safe_load("""
                 opbeans-node:
                     build:
                       dockerfile: Dockerfile
@@ -310,7 +310,7 @@ class OpbeansServiceTest(ServiceTest):
     def test_opbeans_python(self):
         opbeans_python = OpbeansPython(version="6.2.4").render()
         self.assertEqual(
-            opbeans_python, yaml.load("""
+            opbeans_python, yaml.safe_load("""
                 opbeans-python:
                     build:
                       dockerfile: Dockerfile
@@ -403,7 +403,7 @@ class OpbeansServiceTest(ServiceTest):
     def test_opbeans_ruby(self):
         opbeans_ruby = OpbeansRuby(version="6.3.10").render()
         self.assertEqual(
-            opbeans_ruby, yaml.load("""
+            opbeans_ruby, yaml.safe_load("""
                 opbeans-ruby:
                     build:
                       dockerfile: Dockerfile
@@ -464,7 +464,7 @@ class OpbeansServiceTest(ServiceTest):
     def test_opbeans_rum(self):
         opbeans_rum = OpbeansRum(version="6.3.10").render()
         self.assertEqual(
-            opbeans_rum, yaml.load("""
+            opbeans_rum, yaml.safe_load("""
                 opbeans-rum:
                      build:
                          dockerfile: Dockerfile
@@ -586,7 +586,7 @@ class OpbeansServiceTest(ServiceTest):
             opbeans_python_loadgen_rpm=50,
             opbeans_ruby_loadgen_rpm=10,
         ).render()
-        assert opbeans_load_gen == yaml.load("""
+        assert opbeans_load_gen == yaml.safe_load("""
             opbeans-load-generator:
                 image: opbeans/opbeans-loadgen:latest
                 container_name: localtesting_6.3.1_opbeans-load-generator
@@ -605,7 +605,7 @@ class PostgresServiceTest(ServiceTest):
     def test_postgres(self):
         postgres = Postgres(version="6.2.4").render()
         self.assertEqual(
-            postgres, yaml.load("""
+            postgres, yaml.safe_load("""
                 postgres:
                     image: postgres:10
                     container_name: localtesting_6.2.4_postgres
@@ -632,7 +632,7 @@ class RedisServiceTest(ServiceTest):
     def test_redis(self):
         redis = Redis(version="6.2.4").render()
         self.assertEqual(
-            redis, yaml.load("""
+            redis, yaml.safe_load("""
                 redis:
                     image: redis:4
                     container_name: localtesting_6.2.4_redis
@@ -670,8 +670,8 @@ class LocalTest(unittest.TestCase):
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
-        want = yaml.load("""
+        got = yaml.safe_load(docker_compose_yml)
+        want = yaml.safe_load("""
         version: '2.4'
         services:
             apm-server:
@@ -761,8 +761,8 @@ class LocalTest(unittest.TestCase):
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
-        want = yaml.load("""
+        got = yaml.safe_load(docker_compose_yml)
+        want = yaml.safe_load("""
         version: '2.4'
         services:
             apm-server:
@@ -855,7 +855,7 @@ class LocalTest(unittest.TestCase):
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         self.assertIn('ELASTIC_APM_SERVICE_VERSION=1.2.3', got['services']['opbeans-java']['environment'])
 
     def test_start_master_default(self):
@@ -866,8 +866,8 @@ class LocalTest(unittest.TestCase):
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
-        want = yaml.load("""
+        got = yaml.safe_load(docker_compose_yml)
+        want = yaml.safe_load("""
         version: '2.4'
         services:
             apm-server:
@@ -1004,7 +1004,7 @@ class LocalTest(unittest.TestCase):
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         # apm-server should use user/pass -> es
         apm_server_cmd = got["services"]["apm-server"]["command"]
         self.assertTrue(any(cmd.startswith("output.elasticsearch.password=") for cmd in apm_server_cmd), apm_server_cmd)
@@ -1035,7 +1035,7 @@ class LocalTest(unittest.TestCase):
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         # apm-server should use user/pass -> es
         apm_server_cmd = got["services"]["apm-server"]["command"]
         self.assertTrue(any(cmd.startswith("output.elasticsearch.password=") for cmd in apm_server_cmd), apm_server_cmd)
@@ -1065,7 +1065,7 @@ class LocalTest(unittest.TestCase):
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         services = got["services"]
         self.assertNotIn("elasticsearch", services)
         self.assertNotIn("elasticsearch", services["apm-server"]["depends_on"])
@@ -1078,7 +1078,7 @@ class LocalTest(unittest.TestCase):
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         services = set(got["services"])
         self.assertSetEqual(services, {
             "apm-server", "elasticsearch", "kibana",
@@ -1104,7 +1104,7 @@ class LocalTest(unittest.TestCase):
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         services = got["services"]
         self.assertIn("redis", services)
         self.assertIn("postgres", services)
@@ -1119,7 +1119,7 @@ class LocalTest(unittest.TestCase):
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         services = got["services"]
         self.assertIn("redis", services)
         self.assertIn("postgres", services)
@@ -1134,7 +1134,7 @@ class LocalTest(unittest.TestCase):
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         services = got["services"]
         self.assertIn("redis", services)
         self.assertIn("postgres", services)
@@ -1150,7 +1150,7 @@ class LocalTest(unittest.TestCase):
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         services = got["services"]
         self.assertIn("opbeans-dotnet01", services)
         self.assertIn("opbeans-node01", services)
@@ -1167,7 +1167,7 @@ class LocalTest(unittest.TestCase):
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         depends_on = set(got["services"]["opbeans-node"]["depends_on"].keys())
         self.assertSetEqual({"postgres", "redis"}, depends_on)
         depends_on = set(got["services"]["opbeans-python"]["depends_on"].keys())
@@ -1186,7 +1186,7 @@ class LocalTest(unittest.TestCase):
         setup.set_docker_compose_path(docker_compose_yml)
         setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         services = got["services"]
         self.assertEqual(
             "docker.elastic.co/elasticsearch/elasticsearch-platinum:{}".format(version),
@@ -1203,7 +1203,7 @@ class LocalTest(unittest.TestCase):
         setup.set_docker_compose_path(docker_compose_yml)
         setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         services = got["services"]
         self.assertEqual(
             "docker.elastic.co/elasticsearch/elasticsearch:{}-SNAPSHOT".format(version),
@@ -1268,7 +1268,7 @@ class LocalTest(unittest.TestCase):
         setup.set_docker_compose_path(docker_compose_yml)
         setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         services = got["services"]
         self.assertEqual(
             "docker.elastic.co/elasticsearch/elasticsearch:{}".format(version),
@@ -1326,7 +1326,7 @@ class LocalTest(unittest.TestCase):
         setup.set_docker_compose_path(docker_compose_yml)
         setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         services = got["services"]
         self.assertEqual(
             "docker.elastic.co/elasticsearch/elasticsearch-oss:{}".format(version),
@@ -1384,7 +1384,7 @@ class LocalTest(unittest.TestCase):
         setup.set_docker_compose_path(docker_compose_yml)
         setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         services = got["services"]
         self.assertEqual(
             "docker.elastic.co/apm/apm-server:{}".format(apm_server_version),
@@ -1438,7 +1438,7 @@ class LocalTest(unittest.TestCase):
         setup.set_docker_compose_path(docker_compose_yml)
         setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         services = got["services"]
         self.assertEqual(
             "docker.elastic.co/elasticsearch/elasticsearch-ubi8:{}".format(version),
@@ -1501,7 +1501,7 @@ class LocalTest(unittest.TestCase):
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         services = set(got["services"])
         self.assertIn("apm-server", services)
         self.assertIn("opbeans-python", services)
@@ -1544,7 +1544,7 @@ class LocalTest(unittest.TestCase):
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         services = set(got["services"])
         self.assertIn("elasticsearch", services)
 
@@ -1572,7 +1572,7 @@ class LocalTest(unittest.TestCase):
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
-        got = yaml.load(docker_compose_yml)
+        got = yaml.safe_load(docker_compose_yml)
         services = set(got["services"])
         self.assertIn("kibana", services)
 
