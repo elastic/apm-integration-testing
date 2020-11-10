@@ -25,7 +25,7 @@ from .elastic_stack import (  # noqa: F401
     ApmServer, Elasticsearch, Kibana
 )
 from .aux_services import (  # noqa: F401
-    Kafka, Logstash, Postgres, Redis, Zookeeper
+    Kafka, Logstash, Postgres, Redis, Zookeeper, WaitService
 )
 from .opbeans import (  # noqa: F401
     OpbeansNode, OpbeansRuby, OpbeansPython, OpbeansDotnet,
@@ -570,6 +570,7 @@ class LocalSetup(object):
                     (run_all and is_obs and not is_opbeans_2nd)):
                 selections.add(service(**args))
 
+        selections.add(WaitService(selections, **args))
         # `docker load` images if necessary, usually only for build candidates
         services_to_load = {}
         for service in selections:
@@ -606,7 +607,7 @@ class LocalSetup(object):
                 del services["opbeans-load-generator"]
 
         compose = dict(
-            version="2.1",
+            version="2.4",
             services=services,
             networks=dict(
                 default={"name": "apm-integration-testing"},

@@ -118,3 +118,23 @@ class Zookeeper(Service):
             logging=None,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
+
+
+class WaitService(Service):
+    """Create a service that depends on all services ."""
+
+    def __init__(self, services, **options):
+        super(WaitService, self).__init__(**options)
+        self.services = services
+
+    def _content(self):
+        for s in self.services:
+            if s.name() != self.name():
+                self.depends_on[s.name()] = {"condition": "service_healthy"}
+        return dict(
+            container_name="wait",
+            image="busybox",
+            depends_on=self.depends_on,
+            labels=None,
+            logging=None,
+        )

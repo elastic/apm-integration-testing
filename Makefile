@@ -110,16 +110,10 @@ test-helps:
 test-all: venv test-compose lint test-helps ## Run all the tests
 	pytest -v -s $(JUNIT_OPT)/all-junit.xml
 
-docker-compose-wait: venv ## Wait for docker services to shutdown and exit
-	docker-compose-wait || (docker ps -a && exit 1)
-
 docker-test-%: ## Run a specific dockerized test. Ex: make docker-test-java
 	TARGET=test-$* $(MAKE) dockerized-test
 
 dockerized-test: ## Run all the dockerized tests
-	@echo waiting for services to be healthy
-	$(MAKE) docker-compose-wait || (./scripts/docker-summary.sh; echo "[ERROR] Failed waiting for all containers are healthy"; exit 1)
-
 	./scripts/docker-summary.sh
 
 	@echo running make $(TARGET) inside a container
