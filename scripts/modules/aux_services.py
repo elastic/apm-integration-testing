@@ -129,7 +129,7 @@ class WaitService(Service):
 
     def _content(self):
         for s in self.services:
-            if s.name() != self.name():
+            if s.name() != self.name() and s.name() != "opbeans-load-generator":
                 self.depends_on[s.name()] = {"condition": "service_healthy"}
         return dict(
             container_name="wait",
