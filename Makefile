@@ -49,7 +49,7 @@ test-agent-%: venv
 	pytest tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/agent-$*-junit.xml
 
 test-compose: venv
-	pytest scripts/tests/*_tests.py -v -s $(JUNIT_OPT)/compose-junit.xml
+	pytest scripts/tests/*_tests.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/compose-junit.xml
 
 test-compose-2:
 	virtualenv --python=python2.7 venv2
