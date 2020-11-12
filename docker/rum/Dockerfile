@@ -24,17 +24,6 @@ RUN apt update -qq \
       chromium \
       --no-install-recommends
 
-# we need to install chrome unstable to grab all package dependencies need to run the puppeteer chorme version.
-# RUN curl -sSfkL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-#     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-#     && apt update -qq \
-#     && apt install -qq -y \
-#       google-chrome-unstable \
-#       chromium \
-#       --no-install-recommends \
-#     && rm -rf /var/lib/apt/lists/* \
-#     && rm -rf /src/*.deb
-
 # It's a good idea to use dumb-init to help prevent zombie chrome processes.
 ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
 RUN chmod +x /usr/local/bin/dumb-init
@@ -45,13 +34,6 @@ RUN (cd /rumjs-integration-test \
   && git checkout ${RUM_AGENT_BRANCH})
 
 WORKDIR /rumjs-integration-test
-
-#COPY chrome-linux /rumjs-integration-test/chrome-linux
-# LATEST=$(curl -s https://commondatastorage.googleapis.com/chromium-browser-snapshots/Linux_x64/LAST_CHANGE)
-#
-# ENV URL=https://commondatastorage.googleapis.com/chromium-browser-snapshots/Linux_x64/826416/chrome-linux.zip
-# RUN curl -sSL $URL -o chrome-linux.zip \
-#   && unzip -q chrome-linux.zip
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=//usr/bin/chromium
