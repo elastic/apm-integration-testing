@@ -18,7 +18,7 @@ else
   if [ "${PHP_AGENT_VERSION}" == "latest" ]  ; then
     wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
     chmod 755 jq
-    TAG_NAME=$(curl -s https://api.github.com/repos/elastic/apm-agent-php/releases/latest | jq -r .tag_name)
+    TAG_NAME=$(curl -s https://api.github.com/repos/elastic/apm-agent-php/releases/latest | ./jq -r .tag_name)
     VERSION="${TAG_NAME/v/}"
   else
     TAG_NAME="v${PHP_AGENT_VERSION}"
