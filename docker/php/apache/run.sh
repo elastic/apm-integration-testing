@@ -15,8 +15,16 @@ if [ -z "${PHP_AGENT_VERSION}" ] ; then
   make clean install
   cp /src/ext-elastic-apm.ini /usr/local/etc/php/conf.d/ext-elastic-apm.ini
 else
-  ## Install the given release
-  wget -q "https://github.com/elastic/apm-agent-php/releases/download/v${PHP_AGENT_VERSION}/apm-agent-php_${PHP_AGENT_VERSION}_all.deb" \
+  if [ "${PHP_AGENT_VERSION}" == "latest" ]  ; then
+    wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+    chmod 755 jq
+    TAG_NAME=$(curl -s https://api.github.com/repos/elastic/apm-agent-php/releases/latest | ./jq -r .tag_name)
+    VERSION="${TAG_NAME/v/}"
+  else
+    TAG_NAME="v${PHP_AGENT_VERSION}"
+    VERSION=${PHP_AGENT_VERSION}
+  fi
+  wget -q "https://github.com/elastic/apm-agent-php/releases/download/${TAG_NAME}/apm-agent-php_${VERSION}_all.deb" \
        -O "/tmp/apm-agent-php.deb"
   dpkg -i "/tmp/apm-agent-php.deb"
 fi
