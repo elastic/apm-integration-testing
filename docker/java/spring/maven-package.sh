@@ -4,9 +4,14 @@ JAVA_AGENT_BUILT_VERSION=${1}
 
 ARTIFACT_ID=elastic-apm-agent
 
+## This is for the CI
+if [ -d "/.m2" ] ; then
+  export MAVEN_CONFIG='-Dmaven.repo.local=/.m2'
+fi
+
 if [ -z "${JAVA_AGENT_BUILT_VERSION}" ] ; then
   cd /agent/apm-agent-java
-  git log -1
+  git --no-pager log -1
   mvn -q --batch-mode clean install \
     -DskipTests=true \
     -Dhttps.protocols=TLSv1.2 \

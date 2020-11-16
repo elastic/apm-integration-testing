@@ -475,12 +475,18 @@ class AgentJavaSpring(Service):
             default=cls.DEFAULT_AGENT_REPO,
             help="GitHub repo to be used. Default: {}".format(cls.DEFAULT_AGENT_REPO),
         )
+        parser.add_argument(
+            "--java-m2-cache",
+            default="",
+            help="Location with the java m2 cache (for speeding up the builds)",
+        )
 
     def __init__(self, **options):
         super(AgentJavaSpring, self).__init__(**options)
         self.agent_version = options.get("java_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_release = options.get("java_agent_release", self.DEFAULT_AGENT_RELEASE)
         self.agent_repo = options.get("java_agent_repo", self.DEFAULT_AGENT_REPO)
+        self.java_m2_cache = options.get("java_m2_cache", "")
         if options.get("enable_apm_server", True):
             self.depends_on = {
                 "apm-server": {"condition": "service_healthy"},
@@ -501,15 +507,18 @@ class AgentJavaSpring(Service):
         if self.apm_api_key:
             environment.update(self.apm_api_key)
 
+        default_args = {
+            "JAVA_AGENT_BRANCH": self.agent_version,
+            "JAVA_AGENT_BUILT_VERSION": self.agent_release,
+            "JAVA_AGENT_REPO": self.agent_repo,
+            "JAVA_M2_CACHE": self.java_m2_cache
+        }
+
         return dict(
             build={
                 "context": "docker/java/spring",
                 "dockerfile": "Dockerfile",
-                "args": {
-                    "JAVA_AGENT_BRANCH": self.agent_version,
-                    "JAVA_AGENT_BUILT_VERSION": self.agent_release,
-                    "JAVA_AGENT_REPO": self.agent_repo,
-                }
+                "args": default_args
             },
             container_name="javaspring",
             image=None,
