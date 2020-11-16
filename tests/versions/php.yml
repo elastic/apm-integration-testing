@@ -1,3 +1,2 @@
 PHP_AGENT:
   - 'github;master'
-  - 'release;0.2'
