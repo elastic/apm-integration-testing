@@ -1,3 +1,7 @@
 PHP_AGENT:
+<<<<<<< HEAD
   - 'github;main'
+=======
+  - 'github;master'
+>>>>>>> 3e03e49 ([php] use latest release (#978))
   - 'release;latest'
