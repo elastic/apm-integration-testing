@@ -1,4 +1,7 @@
 APM_SERVER:
+  - master
+  - master --oss
+  - master --ubi8
   - '7.x'
   - '7.10'
   - '7.9;--release'
