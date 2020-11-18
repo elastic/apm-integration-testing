@@ -129,6 +129,12 @@ class LocalSetup(object):
         ).set_defaults(func=self.start_handler)
 
         subparsers.add_parser(
+            'reset-enterprise-search-password',
+            help="Resets enterprise search password.",
+            description="Resets enterprise search password."
+        ).set_defaults(func=self.reset_enterprise_search_password_handler)
+
+        subparsers.add_parser(
             'status',
             help="Prints status of all services.",
             description="Prints the container status for each running service."
@@ -669,6 +675,14 @@ class LocalSetup(object):
             if not sys.stdin.isatty():
                 up_params.extend(["--quiet-pull"])
             self.run_docker_compose_process(docker_compose_cmd + up_params)
+
+            if args.get("enable_enterprise_search"):
+                print("run 'compose.py reset-enterprise-search-password' to reset the enterprise search password")
+
+    @staticmethod
+    def reset_enterprise_search_password_handler():
+        subprocess.call(["docker-compose", "exec", "enterprise-search", "/usr/local/bin/docker-entrypoint.sh",
+                         "--reset-auth"])
 
     @staticmethod
     def status_handler():
