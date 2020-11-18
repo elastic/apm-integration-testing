@@ -22,7 +22,7 @@ from .beats import (  # noqa: F401
     Packetbeat, Metricbeat, Heartbeat, Filebeat
 )
 from .elastic_stack import (  # noqa: F401
-    ApmServer, Elasticsearch, Kibana
+    ApmServer, Elasticsearch, EnterpriseSearch, Kibana
 )
 from .aux_services import (  # noqa: F401
     Kafka, Logstash, Postgres, Redis, Zookeeper, WaitService
