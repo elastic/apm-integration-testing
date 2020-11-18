@@ -763,6 +763,7 @@ class Elasticsearch(StackService, Service):
 
 class EnterpriseSearch(StackService, Service):
     SERVICE_PORT = 3002
+    EXTERNAL_PORT = 3005
 
     @classmethod
     def add_arguments(cls, parser):
@@ -780,6 +781,11 @@ class EnterpriseSearch(StackService, Service):
             "--{}-elasticsearch-password".format(cls.name()),
             help="{} elasticsearch output password.".format(cls.name()),
         )
+        parser.add_argument(
+            "--{}-port".format(cls.name()),
+            default=cls.EXTERNAL_PORT,
+            help="Enterprise search exposed port.",
+        )
 
     def __init__(self, **options):
         super(EnterpriseSearch, self).__init__(**options)
@@ -788,6 +794,7 @@ class EnterpriseSearch(StackService, Service):
 
         self.environment = {
             "allow_es_settings_modification": "true",
+            "ent_search.external_url": "http://localhost:{}".format(self.port),
             "secret_management.encryption_keys": '[4a2cd3f81d39bf28738c10db0ca782095ffac07279561809eecc722e0c20eb09]',
             "ELASTIC_APM_ENABLE": "active",
             "ELASTIC_APM_SERVER_URL": options.get("apm_server_url", DEFAULT_APM_SERVER_URL)
