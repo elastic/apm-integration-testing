@@ -129,7 +129,7 @@ class WaitService(Service):
 
     def _content(self):
         for s in self.services:
-            if s.name() != self.name() and s.name() != "opbeans-load-generator":
+            if s.name() != self.name() and not self.isHealthCheckServiceDisabled(s.name()):
                 self.depends_on[s.name()] = {"condition": "service_healthy"}
         return dict(
             container_name="wait",
@@ -138,3 +138,6 @@ class WaitService(Service):
             labels=None,
             logging=None,
         )
+
+    def isHealthCheckServiceDisabled(self, name):
+        return name == "opbeans-load-generator" or name == "filebeat" or name == "heartbeat" or name == "metricbeat" or name == "packetbeat"

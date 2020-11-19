@@ -1095,6 +1095,8 @@ class LocalTest(unittest.TestCase):
             "redis",
             "wait-service",
         })
+        self.assertIn("apm-server", got["services"]["wait-service"]["depends_on"])
+        self.assertNotIn("filebeat", got["services"]["wait-service"]["depends_on"])
 
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_one_opbeans(self, _ignore_load_images):
