@@ -140,4 +140,10 @@ class WaitService(Service):
         )
 
     def isHealthCheckServiceDisabled(self, name):
-        return name == "opbeans-load-generator" or name == "filebeat" or name == "heartbeat" or name == "metricbeat" or name == "packetbeat"
+        return (
+            name == "opbeans-load-generator" or
+            name == "filebeat" or
+            name == "heartbeat" or
+            name == "metricbeat" or
+            name == "packetbeat"
+        )
