@@ -23,7 +23,7 @@ app.config['ELASTIC_APM'] = {
     'TRANSACTIONS_IGNORE_PATTERNS': ['.*healthcheck'],
     'LOG_LEVEL': 'warning',
 }
-apm = ElasticAPM(app, logging=True)
+apm = ElasticAPM(app, logging=False)
 
 
 @app.route('/')
