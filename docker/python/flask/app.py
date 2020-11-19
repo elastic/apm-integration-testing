@@ -3,7 +3,6 @@
 import elasticapm
 from flask import Flask
 from elasticapm.contrib.flask import ElasticAPM
-from elasticapm.handlers.logging import LoggingHandler
 import logging
 import os
 
@@ -24,7 +23,7 @@ app.config['ELASTIC_APM'] = {
     'TRANSACTIONS_IGNORE_PATTERNS': ['.*healthcheck'],
     'LOG_LEVEL': 'warning',
 }
-apm = ElasticAPM(app, logging=True)
+apm = ElasticAPM(app, logging=False)
 
 
 @app.route('/')
@@ -72,6 +71,6 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ['FLASK_PORT']))
 
     # Create a logging handler and attach it.
-    handler = LoggingHandler(client=apm.client)
+    handler = logging.StreamHandler()
     handler.setLevel(logging.INFO)
     app.logger.addHandler(handler)
