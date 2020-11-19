@@ -22,7 +22,7 @@ from .beats import (  # noqa: F401
     Packetbeat, Metricbeat, Heartbeat, Filebeat
 )
 from .elastic_stack import (  # noqa: F401
-    ApmServer, Elasticsearch, Kibana
+    ApmServer, Elasticsearch, EnterpriseSearch, Kibana
 )
 from .aux_services import (  # noqa: F401
     Kafka, Logstash, Postgres, Redis, Zookeeper, WaitService
@@ -127,6 +127,12 @@ class LocalSetup(object):
             services,
             argv=argv,
         ).set_defaults(func=self.start_handler)
+
+        subparsers.add_parser(
+            'reset-enterprise-search-password',
+            help="Resets enterprise search password.",
+            description="Resets enterprise search password."
+        ).set_defaults(func=self.reset_enterprise_search_password_handler)
 
         subparsers.add_parser(
             'status',
@@ -669,6 +675,11 @@ class LocalSetup(object):
             if not sys.stdin.isatty():
                 up_params.extend(["--quiet-pull"])
             self.run_docker_compose_process(docker_compose_cmd + up_params)
+
+    @staticmethod
+    def reset_enterprise_search_password_handler():
+        subprocess.call(["docker-compose", "exec", "enterprise-search", "/usr/local/bin/docker-entrypoint.sh",
+                         "--reset-auth"])
 
     @staticmethod
     def status_handler():

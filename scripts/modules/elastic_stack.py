@@ -7,7 +7,7 @@ import json
 import os
 
 from .helpers import curl_healthcheck, try_to_set_slowlog
-from .service import StackService, Service
+from .service import StackService, Service, DEFAULT_APM_SERVER_URL
 
 
 class ApmServer(StackService, Service):
@@ -759,6 +759,76 @@ class Elasticsearch(StackService, Service):
     @staticmethod
     def enabled():
         return True
+
+
+class EnterpriseSearch(StackService, Service):
+    SERVICE_PORT = 3002
+    EXTERNAL_PORT = 3005
+
+    @classmethod
+    def add_arguments(cls, parser):
+        parser.add_argument(
+            "--{}-elasticsearch-url".format(cls.name()),
+            action="append",
+            dest="{}_elasticsearch_urls".format(cls.name()),
+            help="{} elasticsearch output url(s).".format(cls.name())
+        )
+        parser.add_argument(
+            "--{}-elasticsearch-username".format(cls.name()),
+            help="{} elasticsearch output username.".format(cls.name()),
+        )
+        parser.add_argument(
+            "--{}-elasticsearch-password".format(cls.name()),
+            help="{} elasticsearch output password.".format(cls.name()),
+        )
+        parser.add_argument(
+            "--{}-password".format(cls.name()),
+            default="changeme",
+            help="{} user password.".format(cls.name()),
+        )
+        parser.add_argument(
+            "--{}-port".format(cls.name()),
+            default=cls.EXTERNAL_PORT,
+            help="Enterprise search exposed port.",
+        )
+
+    def __init__(self, **options):
+        super(EnterpriseSearch, self).__init__(**options)
+        self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if options.get(
+            "enable_elasticsearch", True) else {}
+
+        self.environment = {
+            "allow_es_settings_modification": "true",
+            "ent_search.external_url": "http://localhost:{}".format(self.port),
+            "secret_management.encryption_keys": '[4a2cd3f81d39bf28738c10db0ca782095ffac07279561809eecc722e0c20eb09]',
+            "ELASTIC_APM_ACTIVE": "true",
+            "ELASTIC_APM_SERVER_URL": options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
+            "ENT_SEARCH_DEFAULT_PASSWORD": options.get("enterprise_search_password", "changeme")
+        }
+
+        self.es_tls = options.get("elasticsearch_enable_tls", False)
+        self.kibana_tls = options.get("kibana_enable_tls", False)
+        es_urls = self.options.get("enterprise_search_elasticsearch_urls") or \
+            [self.default_elasticsearch_hosts(self.es_tls)]
+        self.environment["elasticsearch.host"] = es_urls[0]
+
+        default_creds = {"username": "admin", "password": "changeme"}
+        for cfg in ("username", "password"):
+            es_opt = "{}_elasticsearch_{}".format(self.name(), cfg)
+            if options.get(es_opt):
+                self.environment.update({"elasticsearch.{}".format(cfg): options[es_opt]})
+            elif options.get("xpack_secure"):
+                self.environment.update({"elasticsearch.{}".format(cfg): default_creds.get(cfg)})
+
+    def _content(self):
+        return dict(
+            depends_on=self.depends_on,
+            environment=self.environment,
+            healthcheck=curl_healthcheck(
+                self.SERVICE_PORT, "enterprise-search", path="/", retries=20),
+            labels=None,
+            ports=[self.publish_port(self.port, self.SERVICE_PORT)],
+        )
 
 
 class Kibana(StackService, Service):
