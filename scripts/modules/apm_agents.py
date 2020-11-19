@@ -169,7 +169,7 @@ class AgentNodejsExpress(Service):
 
         return dict(
             build={"context": "docker/nodejs/express", "dockerfile": "Dockerfile"},
-            command="bash -c \"npm install {} && node app.js\"",
+            command="bash -c \"npm install {} && node app.js\"".format(self.agent_package),
             container_name="expressapp",
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "expressapp"),
             depends_on=self.depends_on,
