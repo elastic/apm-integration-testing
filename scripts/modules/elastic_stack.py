@@ -782,6 +782,11 @@ class EnterpriseSearch(StackService, Service):
             help="{} elasticsearch output password.".format(cls.name()),
         )
         parser.add_argument(
+            "--{}-password".format(cls.name()),
+            default="changeme",
+            help="{} user password.".format(cls.name()),
+        )
+        parser.add_argument(
             "--{}-port".format(cls.name()),
             default=cls.EXTERNAL_PORT,
             help="Enterprise search exposed port.",
@@ -797,7 +802,8 @@ class EnterpriseSearch(StackService, Service):
             "ent_search.external_url": "http://localhost:{}".format(self.port),
             "secret_management.encryption_keys": '[4a2cd3f81d39bf28738c10db0ca782095ffac07279561809eecc722e0c20eb09]',
             "ELASTIC_APM_ENABLE": "active",
-            "ELASTIC_APM_SERVER_URL": options.get("apm_server_url", DEFAULT_APM_SERVER_URL)
+            "ELASTIC_APM_SERVER_URL": options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
+            "ENT_SEARCH_DEFAULT_PASSWORD": options.get("enterprise_search_password", "changeme")
         }
 
         self.es_tls = options.get("elasticsearch_enable_tls", False)

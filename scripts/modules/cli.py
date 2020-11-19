@@ -676,9 +676,6 @@ class LocalSetup(object):
                 up_params.extend(["--quiet-pull"])
             self.run_docker_compose_process(docker_compose_cmd + up_params)
 
-            if args.get("enable_enterprise_search"):
-                print("run 'compose.py reset-enterprise-search-password' to reset the enterprise search password")
-
     @staticmethod
     def reset_enterprise_search_password_handler():
         subprocess.call(["docker-compose", "exec", "enterprise-search", "/usr/local/bin/docker-entrypoint.sh",
