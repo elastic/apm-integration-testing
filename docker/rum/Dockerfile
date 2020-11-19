@@ -5,14 +5,24 @@ ARG RUM_AGENT_REPO=elastic/apm-agent-rum-js
 ARG APM_SERVER_URL
 
 RUN apt update -qq \
-    && apt install -qq -y curl git gnupg libgconf-2-4 libxss1 libxtst6 python g++ build-essential --no-install-recommends \
-    && curl -sSfkL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && apt update -qq \
-    && apt install -qq -y google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst ttf-freefont \
-      --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /src/*.deb
+    && apt install -qq -y \
+      curl \
+      git \
+      gnupg \
+      libgconf-2-4 \
+      libxss1 \
+      libxtst6 \
+      python \
+      g++ \
+      build-essential \
+      fonts-ipafont-gothic \
+      fonts-wqy-zenhei \
+      fonts-thai-tlwg \
+      fonts-kacst \
+      ttf-freefont \
+      ca-certificates \
+      chromium \
+      --no-install-recommends
 
 # It's a good idea to use dumb-init to help prevent zombie chrome processes.
 ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
@@ -25,6 +35,9 @@ RUN (cd /rumjs-integration-test \
 
 WORKDIR /rumjs-integration-test
 
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=//usr/bin/chromium
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 # the install is retry threee times with a pause of 10 seconds
 RUN for i in 1 2 3; \
     do \

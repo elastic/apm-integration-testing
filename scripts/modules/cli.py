@@ -13,7 +13,7 @@ import re
 from .beats import BeatMixin
 from .helpers import load_images
 from .opbeans import OpbeansService, OpbeansRum
-from .service import Service, DEFAULT_APM_SERVER_URL, DEFAULT_APM_LOG_LEVEL
+from .service import Service, DEFAULT_APM_SERVER_URL
 
 # these imports are used by discover_services function to discover services from modules loaded
 
@@ -22,10 +22,10 @@ from .beats import (  # noqa: F401
     Packetbeat, Metricbeat, Heartbeat, Filebeat
 )
 from .elastic_stack import (  # noqa: F401
-    ApmServer, Elasticsearch, Kibana
+    ApmServer, Elasticsearch, EnterpriseSearch, Kibana
 )
 from .aux_services import (  # noqa: F401
-    Kafka, Logstash, Postgres, Redis, Zookeeper
+    Kafka, Logstash, Postgres, Redis, Zookeeper, WaitService
 )
 from .opbeans import (  # noqa: F401
     OpbeansNode, OpbeansRuby, OpbeansPython, OpbeansDotnet,
@@ -65,17 +65,17 @@ class LocalSetup(object):
         '6.5': '6.5.4',
         '6.6': '6.6.2',
         '6.7': '6.7.2',
-        '6.8': '6.8.12',
+        '6.8': '6.8.13',
         '7.0': '7.0.1',
         '7.1': '7.1.1',
         '7.2': '7.2.1',
         '7.3': '7.3.2',
-        '7.4': '7.4.3',
+        '7.4': '7.4.2',
         '7.5': '7.5.2',
         '7.6': '7.6.2',
         '7.7': '7.7.1',
         '7.8': '7.8.1',
-        '7.9': '7.9.2',
+        '7.9': '7.9.3',
         '7.10': '7.10.0',
         '7.11': '7.11.0',
         'master': '8.0.0',
@@ -127,6 +127,12 @@ class LocalSetup(object):
             services,
             argv=argv,
         ).set_defaults(func=self.start_handler)
+
+        subparsers.add_parser(
+            'reset-enterprise-search-password',
+            help="Resets enterprise search password.",
+            description="Resets enterprise search password."
+        ).set_defaults(func=self.reset_enterprise_search_password_handler)
 
         subparsers.add_parser(
             'status',
@@ -363,7 +369,6 @@ class LocalSetup(object):
             action="store",
             help="APM log level to use",
             choices=["off", "error", "warn", "info", "debug", "trace"],
-            default=DEFAULT_APM_LOG_LEVEL
         )
 
         parser.add_argument(
@@ -571,6 +576,7 @@ class LocalSetup(object):
                     (run_all and is_obs and not is_opbeans_2nd)):
                 selections.add(service(**args))
 
+        selections.add(WaitService(selections, **args))
         # `docker load` images if necessary, usually only for build candidates
         services_to_load = {}
         for service in selections:
@@ -607,7 +613,7 @@ class LocalSetup(object):
                 del services["opbeans-load-generator"]
 
         compose = dict(
-            version="2.1",
+            version="2.4",
             services=services,
             networks=dict(
                 default={"name": "apm-integration-testing"},
@@ -669,6 +675,11 @@ class LocalSetup(object):
             if not sys.stdin.isatty():
                 up_params.extend(["--quiet-pull"])
             self.run_docker_compose_process(docker_compose_cmd + up_params)
+
+    @staticmethod
+    def reset_enterprise_search_password_handler():
+        subprocess.call(["docker-compose", "exec", "enterprise-search", "/usr/local/bin/docker-entrypoint.sh",
+                         "--reset-auth"])
 
     @staticmethod
     def status_handler():

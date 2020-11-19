@@ -26,7 +26,7 @@ pipeline {
     rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
   }
   parameters {
-    choice(name: 'INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All', 'Opbeans'], description: 'Name of the Tests or APM Agent you want to run the integration tests.')
+    choice(name: 'INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'PHP', 'Python', 'Ruby', 'RUM', 'UI', 'All', 'Opbeans'], description: 'Name of the Tests or APM Agent you want to run the integration tests.')
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "8.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     string(name: 'GITHUB_CHECK_NAME', defaultValue: '', description: 'Name of the GitHub check to be updated. Only if this build is triggered from another parent stream.')
@@ -90,7 +90,8 @@ pipeline {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           when {
-            expression { return (params.INTEGRATION_TEST != 'RUM') }
+            expression { return (params.INTEGRATION_TEST != 'RUM' &&
+                                 params.INTEGRATION_TEST != 'PHP') }  // TODO: When Opbeans PHP app is available then enable it
             beforeAgent true
           }
           steps {
@@ -217,7 +218,9 @@ pipeline {
 def wrappingup(Map params = [:]){
   def isJunit = params.containsKey('isJunit') ? params.get('isJunit') : true
   dir("${BASE_DIR}"){
-    dockerLogs(step: "${env.NAME}", failNever: true)
+    if(currentBuild.result == 'FAILURE' || currentBuild.result == 'UNSTABLE'){
+      dockerLogs(step: "${env.NAME}", failNever: true)
+    }
     sh('make stop-env || echo 0')
     def testResultsPattern = 'tests/results/*-junit*.xml'
     archiveArtifacts(
@@ -228,7 +231,7 @@ def wrappingup(Map params = [:]){
       junit(allowEmptyResults: true, keepLongStdio: true, testResults: testResultsPattern)
     }
     // Let's generate the debug report ...
-    sh(label: 'Generate debug docs', script: ".ci/scripts/generate-debug-docs.sh | tee ${env.DETAILS_ARTIFACT}")
+    sh(label: 'Generate debug docs', script: ".ci/scripts/generate-debug-docs.sh 'selector' | tee ${env.DETAILS_ARTIFACT}")
     archiveArtifacts(artifacts: "${env.DETAILS_ARTIFACT}")
   }
 }

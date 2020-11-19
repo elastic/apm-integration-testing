@@ -21,6 +21,10 @@ pipeline {
     PIPELINE_LOG_LEVEL = 'INFO'
     DISABLE_BUILD_PARALLEL = "${params.DISABLE_BUILD_PARALLEL}"
     ENABLE_ES_DUMP = "true"
+    NAME = agentMapping.id(params.INTEGRATION_TEST)
+    INTEGRATION_TEST = "${params.INTEGRATION_TEST}"
+    ELASTIC_STACK_VERSION = "${params.ELASTIC_STACK_VERSION}"
+    BUILD_OPTS = "${params.BUILD_OPTS}"
   }
   options {
     timeout(time: 1, unit: 'HOURS')
@@ -30,7 +34,7 @@ pipeline {
     durabilityHint('PERFORMANCE_OPTIMIZED')
   }
   parameters {
-    choice(name: 'INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All'], description: 'Name of the Tests or APM Agent you want to run the integration tests.')
+    choice(name: 'INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'PHP', 'Python', 'Ruby', 'RUM', 'UI', 'All'], description: 'Name of the Tests or APM Agent you want to run the integration tests.')
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "8.0.0", description: "Elastic Stack Git branch/tag to use")
     string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "master", description: "Integration testing Git branch/tag to use")
     string(name: 'MERGE_TARGET', defaultValue: "master", description: "Integration testing Git branch/tag where to merge this code")
@@ -82,14 +86,13 @@ pipeline {
         unstash "source"
         dir("${BASE_DIR}"){
           script {
-            def agentTests = agentMapping.id(params.INTEGRATION_TEST)
             integrationTestsGen = new IntegrationTestingParallelTaskGenerator(
-              xKey: agentMapping.agentVar(agentTests),
+              xKey: agentMapping.agentVar(env.NAME),
               yKey: agentMapping.agentVar('server'),
-              xFile: agentMapping.yamlVersionFile(agentTests),
+              xFile: agentMapping.yamlVersionFile(env.NAME),
               yFile: agentMapping.yamlVersionFile('server'),
-              exclusionFile: agentMapping.yamlVersionFile(agentTests),
-              tag: agentTests,
+              exclusionFile: agentMapping.yamlVersionFile(env.NAME),
+              tag: env.NAME,
               name: params.INTEGRATION_TEST,
               steps: this
               )
@@ -217,16 +220,26 @@ def runScript(Map params = [:]){
 
 def wrappingup(label){
   dir("${BASE_DIR}"){
-    dockerLogs(step: label, failNever: true)
+    def testResultsFolder = 'tests/results'
+    def testResultsPattern = "${testResultsFolder}/*-junit*.xml"
+    def labelFolder = normalise(label)
+    if(currentBuild.result == 'FAILURE' || currentBuild.result == 'UNSTABLE'){
+      dockerLogs(step: label, failNever: true)
+    }
     sh('make stop-env || echo 0')
-    def testResultsPattern = 'tests/results/*-junit*.xml'
+    sh(label: 'Folder to aggregate test results from stages',
+       script: "mkdir -p ${labelFolder}/${testResultsFolder} && cp -rf ${testResultsPattern} ${labelFolder}/${testResultsFolder}")
     archiveArtifacts(
         allowEmptyArchive: true,
-        artifacts: "tests/results/data-*.json,tests/results/packetbeat-*.json,${testResultsPattern}",
+        artifacts: "${testResultsFolder}/data-*.json,${testResultsFolder}/packetbeat-*.json,${labelFolder}/${testResultsPattern}",
         defaultExcludes: false)
     junit(testResults: testResultsPattern, allowEmptyResults: true, keepLongStdio: true)
     // Let's generate the debug report ...
-    sh(label: 'Generate debug docs', script: '.ci/scripts/generate-debug-docs.sh | tee docs.txt')
+    sh(label: 'Generate debug docs', script: '.ci/scripts/generate-debug-docs.sh "downstream" | tee docs.txt')
     archiveArtifacts(artifacts: 'docs.txt')
   }
+}
+
+def normalise(label) {
+  return label?.replace(';','/').replace('--','_').replace('.','_').replace(' ','_')
 }

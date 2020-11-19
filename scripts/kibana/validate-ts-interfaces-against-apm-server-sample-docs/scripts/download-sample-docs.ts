@@ -29,6 +29,11 @@ const docTypes: DocType[] = [
     interfaceName: 'ErrorRaw',
     interfacePath: '../apm-ui-interfaces/raw/error_raw',
     url: `https://raw.githubusercontent.com/elastic/apm-server/${branch}/beater/test_approved_es_documents/TestPublishIntegrationErrors.approved.json`
+  },
+  {
+    interfaceName: 'MetricRaw',
+    interfacePath: '../apm-ui-interfaces/raw/metric_raw',
+    url: `https://raw.githubusercontent.com/elastic/apm-server/${branch}/beater/test_approved_es_documents/TestPublishIntegrationMetricsets.approved.json`
   }
 ];
 

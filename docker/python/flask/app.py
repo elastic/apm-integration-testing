@@ -3,7 +3,6 @@
 import elasticapm
 from flask import Flask
 from elasticapm.contrib.flask import ElasticAPM
-from elasticapm.handlers.logging import LoggingHandler
 import logging
 import os
 
@@ -12,7 +11,7 @@ app.debug = False
 
 
 app.config['ELASTIC_APM'] = {
-    'DEBUG': os.environ.get('ELASTIC_APM_LOG_LEVEL').lower() == 'debug',
+    'DEBUG': True, # this is not a log level, but rather how agent interacts with Flask's debug mode
     'SERVER_URL': os.environ['APM_SERVER_URL'],
     'SERVICE_NAME': os.environ['FLASK_SERVICE_NAME'],
     'TRANSACTION_SEND_FREQ': 1,  # 1.x
@@ -21,9 +20,10 @@ app.config['ELASTIC_APM'] = {
     'MAX_QUEUE_SIZE': 1,  # 2.x
     'API_REQUEST_TIME': '50ms',  # 4.x
     'SECRET_TOKEN': os.getenv('APM_SERVER_SECRET_TOKEN', '1234'),
-    'TRANSACTIONS_IGNORE_PATTERNS': ['.*healthcheck']
+    'TRANSACTIONS_IGNORE_PATTERNS': ['.*healthcheck'],
+    'LOG_LEVEL': 'warning',
 }
-apm = ElasticAPM(app, logging=True)
+apm = ElasticAPM(app, logging=False)
 
 
 @app.route('/')
@@ -71,6 +71,6 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ['FLASK_PORT']))
 
     # Create a logging handler and attach it.
-    handler = LoggingHandler(client=apm.client)
+    handler = logging.StreamHandler()
     handler.setLevel(logging.INFO)
     app.logger.addHandler(handler)

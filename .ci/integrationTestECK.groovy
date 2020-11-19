@@ -58,7 +58,7 @@ pipeline {
         axes {
           axis {
               name 'ELASTIC_STACK_VERSION'
-              values '7.10.0-SNAPSHOT', '7.9.3-SNAPSHOT', '7.9.2'
+              values '7.11.0-SNAPSHOT', '7.10.0', '7.9.3'
           }
         }
         stages {
@@ -139,6 +139,16 @@ pipeline {
                 post {
                   cleanup {
                     grabResultsAndLogs("${ELASTIC_STACK_VERSION}-nodejs")
+                  }
+                }
+              }
+              stage("Test PHP") {
+                steps {
+                  runTest('php')
+                }
+                post {
+                  cleanup {
+                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-php")
                   }
                 }
               }
@@ -268,9 +278,11 @@ def withConfigEnv(Closure body) {
 def grabResultsAndLogs(label){
   withConfigEnv(){
     dir("${BASE_DIR}"){
-      dockerLogs(step: label, failNever: true)
+      if(currentBuild.result == 'FAILURE' || currentBuild.result == 'UNSTABLE'){
+        dockerLogs(step: label, failNever: true)
+        sh('.ci/scripts/remove_env.sh docker-info')
+      }
       sh('make stop-env || echo 0')
-      sh('.ci/scripts/remove_env.sh docker-info')
       archiveArtifacts(
           allowEmptyArchive: true,
           artifacts: 'tests/results/data-*.json,tests/results/packetbeat-*.json',

@@ -7,11 +7,12 @@ RUN apt-get -qq update \
     curl \
     git \
     libcurl4-openssl-dev \
+    wget \
  && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /src && git clone https://github.com/elastic/apm-agent-php.git /src/apm-agent-php && \
-    cd /src/apm-agent-php/src/ext && \
-    phpize && ./configure --enable-elastic_apm && make clean install
-
-COPY ext-elastic-apm.ini /usr/local/etc/php/conf.d/ext-elastic-apm.ini
-COPY app /var/www/html/
+ARG PHP_AGENT_REPO=elastic/apm-agent-php
+ARG PHP_AGENT_BRANCH=master
+ARG PHP_AGENT_VERSION=
+WORKDIR /src
+COPY . /src
+RUN ./run.sh

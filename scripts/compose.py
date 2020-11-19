@@ -5,13 +5,7 @@ from __future__ import print_function
 import logging
 import sys
 
-
-if __package__ is None:
-    # for use as Python script
-    from modules.cli import LocalSetup
-else:
-    # for use as module from tests
-    from .modules.cli import LocalSetup
+from modules.cli import LocalSetup
 
 
 def main():
