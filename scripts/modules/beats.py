@@ -78,7 +78,7 @@ class BeatMixin(object):
                 command_args.extend([
                     ("output.kafka.enabled", "true"),
                     ("output.kafka.hosts", "[\"kafka:9092\"]"),
-                    ("output.kafka.topics", "[{default: '{}', topic: '{}'}]".format(self.name(), self.name())),
+                    ("output.kafka.topics", "[{default: '%s', topic: '%s'}]" % (self.name(), self.name())),
                 ])
 
         if self.kibana_tls:

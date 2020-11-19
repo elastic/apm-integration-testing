@@ -99,9 +99,6 @@ test-kibana: venv ## Run the Kibana integration tests
 test-server: venv  ## Run server tests
 	pytest tests/server/ --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/server-junit.xml
 
-test-upgrade: venv ## Run the upgrade tests
-	pytest tests/server/test_upgrade.py -v -s $(JUNIT_OPT)/server-junit.xml
-
 SUBCOMMANDS = list-options load-dashboards start status stop upload-sourcemap versions
 
 test-helps:
