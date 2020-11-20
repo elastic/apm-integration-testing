@@ -224,7 +224,25 @@ class Packetbeat(BeatMixin, StackService, Service):
     DEFAULT_COMMAND = ["packetbeat", "-e", "--strict.perms=false", "-E", "packetbeat.interfaces.device=eth0"]
     docker_path = "beats"
 
+    @classmethod
+    def add_arguments(cls, parser):
+        super(Packetbeat, cls).add_arguments(parser)
+        parser.add_argument(
+            "--packetbeat-kibana-username",
+            help="packetbeat kibana username (default admin).",
+            dest="packetbeat_kibana_username"
+        )
+        parser.add_argument(
+            "--packetbeat-kibana-password",
+            help="packetbeat kibana password (default changeme).",
+            dest="packetbeat_kibana_password"
+        )
+
     def _content(self):
+        if self.options.get("packetbeat_kibana_username"):
+            self.environment['KIBANA_USERNAME'] = self.options.get("packetbeat_kibana_username")
+        if self.options.get("packetbeat_kibana_password"):
+            self.environment['KIBANA_PASSWORD'] = self.options.get("packetbeat_kibana_password")
         return dict(
             command=self.command,
             depends_on=self.depends_on,

@@ -36,8 +36,8 @@ monitoring.enabled: true
 queue.mem:
   events: 20000
 setup.kibana.host: '${KIBANA_HOST:kibana}:${KIBANA_PORT:5601}'
-setup.kibana.username: '${KIBANA_USERNAME:}'
-setup.kibana.password: '${KIBANA_PASSWORD:}'
+setup.kibana.username: '${KIBANA_USERNAME:admin}'
+setup.kibana.password: '${KIBANA_PASSWORD:changeme}'
 
 http.enabled: true
 http.host: localhost

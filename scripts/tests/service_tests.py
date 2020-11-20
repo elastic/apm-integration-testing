@@ -1439,6 +1439,11 @@ class PacketbeatServiceTest(ServiceTest):
         self.assertTrue(
             "output.elasticsearch.hosts=[\"elasticsearch01:9200\", \"elasticsearch02:9200\"]" in beat['command'])
 
+    def test_packetbeat_with_kibana_username_password(self):
+        packetbeat = Packetbeat(packetbeat_kibana_username='foo', packetbeat_kibana_password='bar').render()["packetbeat"]
+        self.assertEqual("foo", packetbeat["environment"]["KIBANA_USERNAME"])
+        self.assertEqual("bar", packetbeat["environment"]["KIBANA_PASSWORD"])
+
 
 class HeartbeatServiceTest(ServiceTest):
     def test_heartbeat_elasticsearch_output_tls(self):
