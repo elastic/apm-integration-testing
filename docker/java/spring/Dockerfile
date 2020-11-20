@@ -3,7 +3,7 @@ FROM maven:3.6.3-adoptopenjdk-11
 ARG JAVA_AGENT_REPO=elastic/apm-agent-java
 ARG JAVA_AGENT_BRANCH=master
 ARG JAVA_AGENT_BUILT_VERSION=
-ARG JAVA_M2_CACHE=
+ARG JAVA_M2_CACHE=false
 
 RUN mkdir /agent \
     && mkdir /app

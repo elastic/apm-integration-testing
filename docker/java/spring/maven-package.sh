@@ -4,8 +4,7 @@ JAVA_AGENT_BUILT_VERSION=${1}
 
 ARTIFACT_ID=elastic-apm-agent
 
-## This is for the CI
-if [ -d "/.m2" ] ; then
+if [ "${JAVA_M2_CACHE}" == "true" ] ; then
   export MAVEN_CONFIG='-Dmaven.repo.local=/.m2'
 fi
 

@@ -296,7 +296,7 @@ class AgentServiceTest(ServiceTest):
                             JAVA_AGENT_BRANCH: master
                             JAVA_AGENT_BUILT_VERSION: ""
                             JAVA_AGENT_REPO: elastic/apm-agent-java
-                            JAVA_M2_CACHE: ""
+                            JAVA_M2_CACHE: "false"
                         dockerfile: Dockerfile
                         context: docker/java/spring
                     container_name: javaspring
@@ -350,8 +350,8 @@ class AgentServiceTest(ServiceTest):
         self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
 
     def test_agent_java_m2_cache(self):
-        agent = AgentJavaSpring(java_m2_cache=".m2").render()["agent-java-spring"]
-        self.assertEqual(".m2", agent["build"]["args"]["JAVA_M2_CACHE"])
+        agent = AgentJavaSpring(java_m2_cache=True).render()["agent-java-spring"]
+        self.assertEqual("true", agent["build"]["args"]["JAVA_M2_CACHE"])
 
     def test_agent_dotnet(self):
         agent = AgentDotnet().render()

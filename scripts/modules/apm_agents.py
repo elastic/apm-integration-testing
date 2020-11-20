@@ -475,9 +475,11 @@ class AgentJavaSpring(Service):
             help="GitHub repo to be used. Default: {}".format(cls.DEFAULT_AGENT_REPO),
         )
         parser.add_argument(
-            "--java-m2-cache",
-            default="",
-            help="Location with the java m2 cache (for speeding up the builds)",
+            '--java-m2-cache',
+            action='store_true',
+            dest='java_m2_cache',
+            help='Use the local m2 cache (for speeding up the builds)',
+            default=False
         )
 
     def __init__(self, **options):
@@ -485,7 +487,7 @@ class AgentJavaSpring(Service):
         self.agent_version = options.get("java_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_release = options.get("java_agent_release", self.DEFAULT_AGENT_RELEASE)
         self.agent_repo = options.get("java_agent_repo", self.DEFAULT_AGENT_REPO)
-        self.java_m2_cache = options.get("java_m2_cache", "")
+        self.java_m2_cache = str(options.get("java_m2_cache", False)).lower()
         if options.get("enable_apm_server", True):
             self.depends_on = {
                 "apm-server": {"condition": "service_healthy"},

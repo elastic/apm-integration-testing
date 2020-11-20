@@ -13,7 +13,7 @@ export PYTHONHTTPSVERIFY=0
 
 ## This is for the CI
 if [ -d /var/lib/jenkins/.m2/repository ] ; then
-  cp -rf /var/lib/jenkins/.m2/repositor docker/java/spring/.m2
+  cp -rf /var/lib/jenkins/.m2/repository docker/java/spring/.m2
   BUILD_OPTS="${BUILD_OPTS} --java-m2-cache docker/java/spring/.m2"
 fi
 
