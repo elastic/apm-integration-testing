@@ -38,3 +38,7 @@ queue.mem:
 setup.kibana.host: '${KIBANA_HOST:kibana}:${KIBANA_PORT:5601}'
 setup.kibana.username: '${KIBANA_USERNAME:}'
 setup.kibana.password: '${KIBANA_PASSWORD:}'
+
+http.enabled: true
+http.host: localhost
+http.port: 5066
