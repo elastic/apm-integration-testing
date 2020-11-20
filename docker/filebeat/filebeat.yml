@@ -183,3 +183,7 @@ filebeat.autodiscover:
               paths:
                 - "/var/lib/docker/containers/*/${data.docker.container.id}-json.log"
               tail_files: true
+
+http.enabled: true
+http.host: localhost
+http.port: 5066

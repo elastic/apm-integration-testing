@@ -1,6 +1,7 @@
 import json
 import os
 
+from .helpers import curl_healthcheck
 from .service import StackService, Service
 
 
@@ -147,6 +148,7 @@ class Filebeat(BeatMixin, StackService, Service):
             environment=self.environment,
             labels=None,
             user="root",
+            healthcheck=curl_healthcheck("5066", "localhost", path="/?pretty"),
             volumes=[
                 self.filebeat_config_path + ":/usr/share/filebeat/filebeat.yml",
                 "/var/lib/docker/containers:/var/lib/docker/containers",
@@ -173,6 +175,7 @@ class Heartbeat(BeatMixin, StackService, Service):
             environment=self.environment,
             labels=None,
             user="root",
+            healthcheck=curl_healthcheck("5066", "localhost", path="/?pretty"),
             volumes=[
                 self.heartbeat_config_path + ":/usr/share/heartbeat/heartbeat.yml",
                 "/var/lib/docker/containers:/var/lib/docker/containers",
@@ -204,6 +207,7 @@ class Metricbeat(BeatMixin, StackService, Service):
             environment=self.environment,
             labels=None,
             user="root",
+            healthcheck=curl_healthcheck("5066", "localhost", path="/?pretty"),
             volumes=[
                 ("./docker/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml"
                  if self.at_least_version("7.2")
@@ -248,6 +252,7 @@ class Packetbeat(BeatMixin, StackService, Service):
             privileged="true",
             cap_add=["NET_ADMIN", "NET_RAW"],
             network_mode="service:apm-server",
+            healthcheck=curl_healthcheck("5066", "localhost", path="/?pretty"),
             volumes=[
                 ("./docker/packetbeat/packetbeat.yml:/usr/share/packetbeat/packetbeat.yml"
                  if self.at_least_version("7.2")

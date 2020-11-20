@@ -993,6 +993,10 @@ class FilebeatServiceTest(ServiceTest):
                             condition: service_healthy
                         kibana:
                             condition: service_healthy
+                    healthcheck:
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:5066/?pretty"]
+                        interval: 10s
+                        retries: 12
                     volumes:
                         - ./docker/filebeat/filebeat.simple.yml:/usr/share/filebeat/filebeat.yml
                         - /var/lib/docker/containers:/var/lib/docker/containers
@@ -1020,6 +1024,10 @@ class FilebeatServiceTest(ServiceTest):
                             condition: service_healthy
                         kibana:
                             condition: service_healthy
+                    healthcheck:
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:5066/?pretty"]
+                        interval: 10s
+                        retries: 12
                     volumes:
                         - ./docker/filebeat/filebeat.6.x-compat.yml:/usr/share/filebeat/filebeat.yml
                         - /var/lib/docker/containers:/var/lib/docker/containers
@@ -1300,6 +1308,10 @@ class MetricbeatServiceTest(ServiceTest):
                             condition: service_healthy
                         kibana:
                             condition: service_healthy
+                    healthcheck:
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:5066/?pretty"]
+                        interval: 10s
+                        retries: 12
                     volumes:
                         - ./docker/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
                         - /var/run/docker.sock:/var/run/docker.sock
@@ -1379,6 +1391,10 @@ class PacketbeatServiceTest(ServiceTest):
                             condition: service_healthy
                         kibana:
                             condition: service_healthy
+                    healthcheck:
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:5066/?pretty"]
+                        interval: 10s
+                        retries: 12
                     volumes:
                         - ./docker/packetbeat/packetbeat.yml:/usr/share/packetbeat/packetbeat.yml
                         - /var/run/docker.sock:/var/run/docker.sock
