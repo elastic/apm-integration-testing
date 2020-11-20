@@ -247,7 +247,7 @@ Prefix any of the `test-` targets with `docker-` to run them in a container eg: 
 
 ### Network issues diagnose
 
-It is possible to diagnos network issues related with lost documents
+It is possible to diagnose network issues related with lost documents
 between APM Agent, APM server, or Elasticsearch.
 
 In order to do so, you have to add the `--with-packetbeat` argument
