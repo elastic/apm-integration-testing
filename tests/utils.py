@@ -52,6 +52,10 @@ def check_elasticsearch_count(elasticsearch,
     while actual != expected and retries < max_retries:
         try:
             actual = elasticsearch.count(query)
+            if actual >= expected:
+                # if there are already more docs, we can stop counting.
+                # The total count may be larger, but that's not important enough to wait
+                break
             retries += 1
             time.sleep(10)
         except TimeoutError:

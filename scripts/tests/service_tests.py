@@ -12,7 +12,7 @@ from ..modules.apm_agents import (
 )
 from ..modules.aux_services import Logstash, Kafka, Zookeeper
 from ..modules.beats import Filebeat, Heartbeat, Metricbeat, Packetbeat
-from ..modules.elastic_stack import ApmServer, Elasticsearch, Kibana
+from ..modules.elastic_stack import ApmServer, Elasticsearch, EnterpriseSearch, Kibana
 
 
 class ServiceTest(unittest.TestCase):
@@ -469,6 +469,7 @@ class AgentServiceTest(ServiceTest):
 
         agent = AgentPhpApache(enable_apm_server=False).render()["agent-php-apache"]
         self.assertFalse("apm-server" in agent["depends_on"])
+
 
 class ApmServerServiceTest(ServiceTest):
     def test_default_snapshot(self):
@@ -968,6 +969,14 @@ class ElasticsearchServiceTest(ServiceTest):
                               ], elasticsearch["labels"])
 
 
+class EnterpriseSearchServiceTest(ServiceTest):
+    def test_release(self):
+        entsearch = EnterpriseSearch(version="7.12.20", release=True).render()["enterprise-search"]
+        self.assertEqual(
+            entsearch["image"], "docker.elastic.co/enterprise-search/enterprise-search:7.12.20"
+        )
+
+
 class FilebeatServiceTest(ServiceTest):
     def test_filebeat_pre_6_1(self):
         filebeat = Filebeat(version="6.0.4", release=True).render()
@@ -1207,6 +1216,7 @@ class KibanaServiceTest(ServiceTest):
         kibana = Kibana(kibana_yml="/path/to.yml").render()["kibana"]
         self.assertIn("/path/to.yml:/usr/share/kibana/config/kibana.yml", kibana['volumes'])
 
+
 class LogstashServiceTest(ServiceTest):
     def test_snapshot(self):
         logstash = Logstash(version="6.2.4", snapshot=True).render()["logstash"]
@@ -1272,6 +1282,7 @@ class LogstashServiceTest(ServiceTest):
     def test_logstash_ubi8(self):
         logstash = Logstash(version="7.10.0", release=True, ubi8=True).render()["logstash"]
         self.assertEqual("docker.elastic.co/logstash/logstash-ubi8:7.10.0", logstash['image'])
+
 
 class MetricbeatServiceTest(ServiceTest):
     def test_metricbeat(self):

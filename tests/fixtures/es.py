@@ -36,9 +36,10 @@ def es():
         def count(self, q):
             ct = 0
             while ct == 0:
-                time.sleep(3)
                 s = self.es.count(index=self.index, body=q)
                 ct = s['count']
-            return ct
+                if ct:
+                    return ct
+                time.sleep(3)
 
     return Elasticsearch(getElasticsearchURL())

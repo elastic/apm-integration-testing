@@ -16,7 +16,7 @@ if [ -z "${JAVA_AGENT_BUILT_VERSION}" ] ; then
     -DskipTests=true \
     -Dhttps.protocols=TLSv1.2 \
     -Dmaven.javadoc.skip=true \
-    -Dmaven.wagon.http.retryHandler.count=3 \
+    -Dmaven.wagon.http.retryHandler.count=10 \
     -Dhttp.keepAlive=false \
     -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
   # shellcheck disable=SC2016
@@ -27,7 +27,7 @@ else
       -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
       -Dhttps.protocols=TLSv1.2 \
       -DrepoUrl=https://repo1.maven.apache.org/maven2 \
-      -Dmaven.wagon.http.retryHandler.count=3 \
+      -Dmaven.wagon.http.retryHandler.count=10 \
       -Dhttp.keepAlive=false \
       -Dartifact="co.elastic.apm:${ARTIFACT_ID}:${JAVA_AGENT_BUILT_VERSION}"
 fi
@@ -38,7 +38,7 @@ mvn -q --batch-mode -DAGENT_API_VERSION="${JAVA_AGENT_BUILT_VERSION}" \
   -DskipTests=true \
   -Dhttps.protocols=TLSv1.2 \
   -Dmaven.javadoc.skip=true \
-  -Dmaven.wagon.http.retryHandler.count=3 \
+  -Dmaven.wagon.http.retryHandler.count=10 \
   -Dhttp.keepAlive=false \
   package
 
