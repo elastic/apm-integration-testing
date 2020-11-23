@@ -56,7 +56,7 @@ pipeline {
         axes {
           axis {
               name 'ELASTIC_STACK_VERSION'
-              values '8.0.0-SNAPSHOT', '7.11.0-SNAPSHOT', '7.10.0', '7.9.3'
+              values '8.0.0-SNAPSHOT', '7.11.0-SNAPSHOT', '7.10.1-SNAPSHOT', '7.10.0'
           }
         }
         stages {
