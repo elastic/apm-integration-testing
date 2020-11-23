@@ -587,7 +587,15 @@ class LocalSetup(object):
 
         selections.add(WaitService(selections, **args))
         if args.get('dyno'):
-            selections.add(Toxi())
+            toxi = Toxi()
+            selections.add(toxi)
+            # 1. Create configuration that +1s all the service ports and writes config
+            # 1.1 Mount the config somewhere that the container can see it.
+            # 2. TODO: Flip the logic in step 1 to preserve the original ports as proxied and to shift the true service ports
+            c = toxi.gen_config(selections)
+            with open('../docker/toxi/toxi.cfg', 'w') as fh_:
+                fh_.write(c)
+            
         # `docker load` images if necessary, usually only for build candidates
         services_to_load = {}
         for service in selections:
