@@ -5,7 +5,7 @@ JAVA_AGENT_BUILT_VERSION=${1}
 ARTIFACT_ID=elastic-apm-agent
 
 if [ "${JAVA_M2_CACHE}" == "true" ] ; then
-  export MAVEN_CONFIG='-Dmaven.repo.local=/.m2'
+  export MAVEN_CONFIG='-Dmaven.repo.local=/root/.m2'
 fi
 
 if [ -z "${JAVA_AGENT_BUILT_VERSION}" ] ; then

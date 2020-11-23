@@ -18,7 +18,7 @@ RUN cd /agent/apm-agent-java \
   && git checkout ${JAVA_AGENT_BRANCH}
 
 COPY maven-package.sh /agent
-COPY .m2 /.m2
+COPY .m2 /root/.m2
 RUN ./maven-package.sh "${JAVA_AGENT_BUILT_VERSION}"
 
 FROM adoptopenjdk:11-jre-hotspot
