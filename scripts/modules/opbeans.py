@@ -334,6 +334,12 @@ class OpbeansJava(OpbeansService):
             ]
         if self.infer_spans:
             content["environment"].append("ELASTIC_APM_PROFILING_INFERRED_SPANS_ENABLED=true")
+        if self.options.get('dyno'):
+            toxi_env = {
+                "DATABASE_URL=jdbc:postgresql://postgres/opbeans?user=postgres&password=verysecure": "DATABASE_URL=jdbc:toxi://postgres/opbeans?user=postgres&password=verysecure",
+                "REDIS_URL=redis://redis:6379": "REDIS_URL=redis://toxi:6379",
+            }
+            content["environment"] = [toxi_env.get(x, x) for x in content["environment"]]
         return content
 
 
@@ -531,6 +537,12 @@ class OpbeansPython(OpbeansService):
             content["volumes"] = [
                 "{}:/local-install".format(self.agent_local_repo),
             ]
+        if self.options.get('dyno'):
+            toxi_env = {
+                "DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans": "DATABASE_URL=postgres://postgres:verysecure@toxi/opbeans",
+                "REDIS_URL=redis://redis:6379": "REDIS_URL=redis://toxi:6379",
+            }
+            content["environment"] = [toxi_env.get(x, x) for x in content["environment"]]
         return content
 
 

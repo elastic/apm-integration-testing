@@ -1,6 +1,7 @@
 import json
 from .service import Service
-from .helpers import curl_healthcheck
+from .helpers import wget_healthcheck
+from .opbeans import OpbeansService, OpbeansRum
 
 
 class Toxi(Service):
@@ -13,24 +14,29 @@ class Toxi(Service):
 
     def _content(self):
         return dict(
-            # environment=["POSTGRES_DB=opbeans", "POSTGRES_PASSWORD=verysecure"],
-            healthcheck=curl_healthcheck(8474, "localhost", path="/proxies"),
+            healthcheck=wget_healthcheck(8474, path="/proxies"),
             image="shopify/toxiproxy",
             labels=None,
             ports=[self.publish_port(self.port, self.SERVICE_PORT, expose=True)],
             volumes=["./docker/toxi/toxi.cfg:/toxi/toxi.cfg"],
-            # TODO We need to override command: to add the config flag here
             command=["-host=0.0.0.0", "-config=/toxi/toxi.cfg"]
         )
 
     def gen_config(self, services):
         config = []
+        opbeans_sidecars = ['postgres', 'redis', 'opbeans-load-generator']
+        opbeans_2nds = ('opbeans-go01', 'opbeans-java01', 'opbeans-python01', 'opbeans-ruby01', 'opbeans-dotnet01',
+                        'opbeans-node01')
         for s in services:
-            if hasattr(s, "SERVICE_PORT"):
+            # TODO refactor this for DRY
+            is_opbeans_service = isinstance(s, OpbeansService) or s is OpbeansRum
+            is_opbeans_sidecar = s.name() in opbeans_sidecars
+            is_opbeans_2nd = s.name() in opbeans_2nds
+            if hasattr(s, "SERVICE_PORT") and not s.name().startswith('toxi') and (is_opbeans_service or is_opbeans_sidecar or is_opbeans_2nd):
                 sp = int(s.SERVICE_PORT)
                 service_def = {
                     "name": s.name(),
-                    "listen": "[::]:{}".format(self.service_offset + sp),
+                    "listen": "[::]:{}".format(sp),
                     "upstream": "{}:{}".format(s.name(), sp),
                     "enabled": True
                 }
