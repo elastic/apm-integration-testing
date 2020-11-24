@@ -589,17 +589,10 @@ class LocalSetup(object):
         if args.get('dyno'):
             toxi = Toxi()
             selections.add(toxi)
+            toxi.gen_ports(selections)
             c = toxi.gen_config(selections)
             with open('../docker/toxi/toxi.cfg', 'w') as fh_:
                 fh_.write(c)
-            for s in selections:
-                # TODO refactor because slightly modified copy/paste from L576
-                is_opbeans_service = isinstance(s, OpbeansService) or s is OpbeansRum
-                is_opbeans_sidecar = s.name() in opbeans_sidecars
-                is_opbeans_2nd = s.name() in opbeans_2nds
-                if hasattr(s, "SERVICE_PORT") and (is_opbeans_service or is_opbeans_sidecar or is_opbeans_2nd):
-                    s.SERVICE_PORT = int(s.SERVICE_PORT) + 10000
-            
         # `docker load` images if necessary, usually only for build candidates
         services_to_load = {}
         for service in selections:

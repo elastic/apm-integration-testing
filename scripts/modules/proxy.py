@@ -11,16 +11,26 @@ class Toxi(Service):
     def __init__(self):
         self.service_offset = 10000
         super().__init__()
+        self.generated_ports = [self.publish_port(self.port, self.SERVICE_PORT, expose=True)]
 
     def _content(self):
         return dict(
             healthcheck=wget_healthcheck(8474, path="/proxies"),
             image="shopify/toxiproxy",
             labels=None,
-            ports=[self.publish_port(self.port, self.SERVICE_PORT, expose=True)],
+            ports=self.generated_ports,
             volumes=["./docker/toxi/toxi.cfg:/toxi/toxi.cfg"],
             command=["-host=0.0.0.0", "-config=/toxi/toxi.cfg"]
         )
+
+    def gen_ports(self, services):
+        """
+        Take the services we know about and look for user-facing
+        instances and be sure to expose them from our container
+        """
+        for s in services:
+            if isinstance(s, OpbeansService) or s is OpbeansRum:  # is opbeans service
+                self.generated_ports.append("{}:{}".format(s.SERVICE_PORT, s.SERVICE_PORT))
 
     def gen_config(self, services):
         config = []
@@ -32,13 +42,21 @@ class Toxi(Service):
             is_opbeans_service = isinstance(s, OpbeansService) or s is OpbeansRum
             is_opbeans_sidecar = s.name() in opbeans_sidecars
             is_opbeans_2nd = s.name() in opbeans_2nds
+
             if hasattr(s, "SERVICE_PORT") and not s.name().startswith('toxi') and \
-                (is_opbeans_service or is_opbeans_sidecar or is_opbeans_2nd):
+                    (is_opbeans_service or is_opbeans_sidecar or is_opbeans_2nd):
+
                 sp = int(s.SERVICE_PORT)
+                if is_opbeans_service:
+                    # We use APPLICATION_PORT because we want the container port and not the exposed port
+                    upstream_port = s.APPLICATION_PORT
+                else:
+                    upstream_port = sp
+
                 service_def = {
                     "name": s.name(),
                     "listen": "[::]:{}".format(sp),
-                    "upstream": "{}:{}".format(s.name(), sp),
+                    "upstream": "{}:{}".format(s.name(), upstream_port),
                     "enabled": True
                 }
                 config.append(service_def)

@@ -450,6 +450,7 @@ class OpbeansNode01(OpbeansNode):
 
 class OpbeansPython(OpbeansService):
     SERVICE_PORT = 8000
+    APPLICATION_PORT = 3000
     DEFAULT_AGENT_REPO = "elastic/apm-agent-python"
     DEFAULT_AGENT_BRANCH = "2.x"
     DEFAULT_LOCAL_REPO = "."
@@ -533,8 +534,8 @@ class OpbeansPython(OpbeansService):
             depends_on=depends_on,
             image=None,
             labels=None,
-            healthcheck=curl_healthcheck(3000, "opbeans-python", path="/"),
-            ports=[self.publish_port(self.port, 3000)],
+            healthcheck=curl_healthcheck(self.APPLICATION_PORT, "opbeans-python", path="/"),
+            ports=[self.publish_port(self.port, self.APPLICATION_PORT)],
         )
         if self.agent_local_repo:
             content["volumes"] = [

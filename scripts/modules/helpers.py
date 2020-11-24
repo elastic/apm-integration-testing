@@ -253,6 +253,7 @@ def add_agent_environment(mappings):
 def dyno(dyno_env):
     def fn(func):
         def munge_env(self):
+            self.port += 10000
             content = func(self)
             for count, env_enum in enumerate(content["environment"]):
                 if "=" in env_enum:
