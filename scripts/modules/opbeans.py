@@ -4,7 +4,7 @@
 
 from collections import OrderedDict
 
-from .helpers import add_agent_environment, curl_healthcheck, wget_healthcheck
+from .helpers import add_agent_environment, curl_healthcheck, wget_healthcheck, dyno
 from .service import Service, DEFAULT_APM_SERVER_URL, DEFAULT_APM_JS_SERVER_URL, DEFAULT_SERVICE_VERSION
 
 
@@ -484,6 +484,9 @@ class OpbeansPython(OpbeansService):
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
     ])
+    @dyno({"DATABASE_URL": "postgres://postgres:verysecure@toxi/opbeans",
+           "REDIS_URL": "redis://toxi:6379"
+           })
     def _content(self):
         depends_on = {
             "postgres": {"condition": "service_healthy"},
@@ -537,12 +540,6 @@ class OpbeansPython(OpbeansService):
             content["volumes"] = [
                 "{}:/local-install".format(self.agent_local_repo),
             ]
-        if self.options.get('dyno'):
-            toxi_env = {
-                "DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans": "DATABASE_URL=postgres://postgres:verysecure@toxi/opbeans",
-                "REDIS_URL=redis://redis:6379": "REDIS_URL=redis://toxi:6379",
-            }
-            content["environment"] = [toxi_env.get(x, x) for x in content["environment"]]
         return content
 
 

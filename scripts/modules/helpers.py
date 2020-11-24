@@ -248,3 +248,17 @@ def add_agent_environment(mappings):
             return content
         return add_content
     return fn
+
+
+def dyno(dyno_env):
+    def fn(func):
+        def munge_env(self):
+            content = func(self)
+            for count, env_enum in enumerate(content["environment"]):
+                if "=" in env_enum:
+                    env_key, _ = env_enum.split("=")
+                    if env_key in dyno_env:
+                        content["environment"][count] = "=".join([env_key, dyno_env[env_key]])
+            return content
+        return munge_env
+    return fn

@@ -32,7 +32,8 @@ class Toxi(Service):
             is_opbeans_service = isinstance(s, OpbeansService) or s is OpbeansRum
             is_opbeans_sidecar = s.name() in opbeans_sidecars
             is_opbeans_2nd = s.name() in opbeans_2nds
-            if hasattr(s, "SERVICE_PORT") and not s.name().startswith('toxi') and (is_opbeans_service or is_opbeans_sidecar or is_opbeans_2nd):
+            if hasattr(s, "SERVICE_PORT") and not s.name().startswith('toxi') and \
+                (is_opbeans_service or is_opbeans_sidecar or is_opbeans_2nd):
                 sp = int(s.SERVICE_PORT)
                 service_def = {
                     "name": s.name(),
