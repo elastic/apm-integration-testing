@@ -1,0 +1,5 @@
+gunicorn
+flask
+flask-cors
+Flask-Limiter
+Flask-Caching
