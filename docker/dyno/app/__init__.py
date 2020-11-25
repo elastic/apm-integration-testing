@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, render_template
+import os
+from flask import Flask, render_template, send_from_directory
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -27,6 +28,18 @@ limiter = Limiter(
 from app.api import bp as api_bp  # noqa E402
 app.register_blueprint(api_bp, url_prefix='/api')
 
+
 @app.route('/')
 def index():
     return render_template("index.html")
+
+
+@app.route('/scratch')
+def scratch():
+    return render_template("scratch.html")
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')

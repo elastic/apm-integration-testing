@@ -12,59 +12,177 @@
   <script src="../../ui/slider.js"></script>
   <link rel="stylesheet" href="/resources/demos/style.css"> -->
   <style>
-  #eq > span {
+  .eq > table > tbody > tr > td > span {
     height:120px; float:left; margin:15px
   }
+  .ui-slider-latency { background: #242a82 ; }
+  .ui-slider-bandwidth { background: #4c2482 ; }
+  .ui-slider-slow-close { background: #245982 ; }
+  .ui-slider-timeout { background: #248253 ; }
+  .ui-slider-slicer { background: #248282  ; }
+
   </style>
   <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <script>
   $( function() {
-    // setup master volume
-    $( "#master" ).slider({
-      value: 60,
-      orientation: "horizontal",
-      range: "min",
-      animate: true
-    });
-    // setup graphic EQ
-    $( "#eq > span" ).each(function() {
+    // Get list of proxies to render
+    $.get({
+        url: window.location.origin + "/api/apps",
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result){
+          drawProxies(result);
+        }
+    })
+
+    function drawProxies(r) {
+      console.log('Drawing proxies');
+      r["proxies"].forEach(drawProxy);
+    }
+
+    function drawProxy(service_name) {  
+      $("#proxy-container").append(
+        '<div style="float:left;" id="' + service_name + '-container"><p id="'
+        + service_name +
+        '-header" class="ui-state-default ui-corner-all ui-helper-clearfix" style="padding:4px;"><span style="float:left; margin:-2px 5px 0 0;">' +
+        service_name +
+        '</span></p></div>'
+        );
+      // FIXME: This ordering is a bit backward
+      drawSliders(service_name);
+      drawServiceEnable(service_name);
+    }
+
+    function drawSliders(service_name){
+      $ ("#"+service_name+"-container").append(
+        '<div style="margin: 15px" id="eq-'+service_name+'" class="eq">\
+          <table>\
+            <tr>\
+            <td><span id="L">0</span></td>\
+            <td><span id="J">0</span></td>\
+            <td><span id="B">0</span></td>\
+            <td><span id="SC">0</span></td>\
+            <td><span id="T">0</span></td>\
+            <td><span id="Sas">0</span></td>\
+            <td><span id="Ssv">0</span></td>\
+            </tr>\
+            <tr>\
+            <td align="center">L</td>\
+            <td align="center">J</td>\
+            <td align="center">B</td>\
+            <td align="center">SC</td>\
+            <td align="center">T</td>\
+            <td align="center">Sas</td>\
+            <td alignt="center">Ssv</td>\
+            </tr>\
+          </table>\
+      </div>'
+      );
+      // TODO: Add rest of attrs
+
+    // setup EQ
+    $( "#eq-"+ service_name+" > table > tbody > tr > td > span" ).each(function() {
       // read initial values from markup and remove that
       var value = parseInt( $( this ).text(), 10 );
-      $( this ).empty().slider({
+      s = $( this ).empty().slider({
         value: value,
         range: "min",
         animate: true,
-        orientation: "vertical"
+        orientation: "vertical",
+        change: handleSlideChange,
       });
     });
+    }
+
+    function handleSlideChange(event, ui){
+      // This is not the best but will be OK for now
+      console.log(ui.handle.parentElement.id)
+      console.log(ui.value)
+      console.log(ui)
+      // FIXME FAKE DATA
+      d = JSON.stringify({'proxy': 'postgres', 'tox_code': ui.handle.parentElement.id, 'val': ui.value});
+      console.log(d)
+      $.ajax({
+        type: "POST",
+        url: window.location.origin + "/api/slide",
+        data: d,
+        // success: function s(s) {console.log('success')},
+        dataType: 'json',
+        contentType: 'application/json'
+      });
+
+    }
+
+    function drawServiceEnable(service_name) {
+      // TODO: initialize state of checkboxes correctly
+      console.log('Drawing service');
+      console.log(service_name);
+      $( "#"+service_name+"-header").after(
+        '<fieldset><label for="checkbox-' +
+        service_name +
+        '">Enabled?<input type="checkbox" name="checkbox-' +
+        service_name+
+        '" id="checkbox-' +
+        service_name +
+        '"></label></fieldset>'
+        )
+      $( "input[type='checkbox']" ).checkboxradio();
+      // FIXME currently not dynamic. Need to check correctly
+      $("input[type='checkbox']").prop('checked',true).checkboxradio('refresh')
+      $('#checkbox-'+service_name).click(function() {
+        if (this.checked) {
+          console.log('checked: ' + service_name);
+
+          $.get({
+          url: window.location.origin + "/api/enable?proxy="+service_name,
+          contentType: "application/json",
+          dataType: 'json',
+          success: function(result){
+            console.log('Sent request to enable. result: ' + result)
+          }
+        });
+
+        } else {
+          console.log('un-checked: ' + service_name);
+          $.get({
+          url: window.location.origin + "/api/disable?proxy="+service_name,
+          contentType: "application/json",
+          dataType: 'json',
+          success: function(result){
+            console.log('Sent request to disable. result: ' + result)
+          }
+        });
+        }
+      });
+    }
   } );
   </script>
 </head>
 <body>
- 
-<p class="ui-state-default ui-corner-all ui-helper-clearfix" style="padding:4px;">
-  <span class="ui-icon ui-icon-volume-on" style="float:left; margin:-2px 5px 0 0;"></span>
-  Master volume
-</p>
- 
-<div id="master" style="width:260px; margin:15px;"></div>
- 
-<p class="ui-state-default ui-corner-all" style="padding:4px;margin-top:4em;">
-  <span class="ui-icon ui-icon-signal" style="float:left; margin:-2px 5px 0 0;"></span>
-  Graphic EQ
-</p>
- 
-<div id="eq">
-  <span>88</span>
-  <span>77</span>
-  <span>55</span>
-  <span>33</span>
-  <span>40</span>
-  <span>45</span>
-  <span>70</span>
+<div id="fancy-header">
+  <table>
+    <tr>
+      <td>L: Latency</td>
+      <td>J: Jitter</td>
+    </tr>
+    <tr>
+      <td>B: Bandwidth</td>
+      <td>SC: Slow close</td>
+    </tr>
+    <tr>
+      <td>T: Timeout</td>
+      <td>Sas: Slicer [Avg Size]</td>
+    </tr>
+    <tr>
+      <td>Ssv: Slicer [Size Variation]</td>
+    </tr>
+  </table>
+
+
+
 </div>
- 
- 
+<div id="proxy-container" style="padding:4px;">
+</div>
 </body>
 </html>
