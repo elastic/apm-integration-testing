@@ -3,3 +3,4 @@ flask
 flask-cors
 Flask-Limiter
 Flask-Caching
+git+https://github.com/douglas/toxiproxy-python.git
