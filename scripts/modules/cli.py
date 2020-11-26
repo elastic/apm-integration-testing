@@ -14,7 +14,7 @@ from .beats import BeatMixin
 from .helpers import load_images
 from .opbeans import OpbeansService, OpbeansRum
 from .service import Service, DEFAULT_APM_SERVER_URL
-from .proxy import Toxi
+from .proxy import Toxi, Dyno
 
 # these imports are used by discover_services function to discover services from modules loaded
 
@@ -593,6 +593,8 @@ class LocalSetup(object):
             c = toxi.gen_config(selections)
             with open('../docker/toxi/toxi.cfg', 'w') as fh_:
                 fh_.write(c)
+            dyno = Dyno()
+            selections.add(dyno)
         # `docker load` images if necessary, usually only for build candidates
         services_to_load = {}
         for service in selections:

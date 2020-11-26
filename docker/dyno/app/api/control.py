@@ -1,7 +1,15 @@
 # -*- coding: utf-8 -*-
+import os
 from flask import request
 from app.api import bp
 from toxiproxy.server import Toxiproxy
+
+
+def _fetch_proxy():
+    t = Toxiproxy()
+    if 'TOXI_HOST' in os.environ and 'TOXI_PORT' in os.environ:
+        t.update_api_consumer(os.environ['TOXI_HOST'], os.environ['TOXI_PORT'])
+    return t
 
 
 @bp.route('/apps', methods=['GET'])
@@ -10,8 +18,8 @@ def fetch_all_apps():
     Generate a list of the apps we have configured
     and return it
     """
-    t = Toxiproxy()
-    p = t.proxies()    
+    t = _fetch_proxy()
+    p = t.proxies()
     # TODO We may need to update the server addr here
     return {'proxies': list(p.keys())}
 
@@ -21,7 +29,7 @@ def enable_proxy():
     proxy = request.args.get('proxy')
     print(proxy)
     # FIXME testing
-    t = Toxiproxy()
+    t = _fetch_proxy()
     p = t.get_proxy(proxy)
     p.enable()
     return {}
@@ -31,7 +39,7 @@ def disable_proxy():
     proxy = request.args.get('proxy')
     print(proxy)
     # FIXME testing
-    t = Toxiproxy()
+    t = _fetch_proxy()
     p = t.get_proxy(proxy)
     p.disable()
     return {}
@@ -54,7 +62,7 @@ def slide():
     slide = request.get_json() or {}
     toxic_key = _decode_toxic(slide['tox_code'])
     # FIXME testing
-    t = Toxiproxy()
+    t = _fetch_proxy()
     p = t.get_proxy(slide.get('proxy'))
     # TODO right now there isn't any edit functionality in the upstream lib
     # so we need to add that and send in a PR. For now, we check and see if

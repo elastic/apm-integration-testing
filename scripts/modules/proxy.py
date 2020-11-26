@@ -4,6 +4,34 @@ from .helpers import wget_healthcheck
 from .opbeans import OpbeansService, OpbeansRum
 
 
+class Dyno(Service):
+    """
+    Dyno is the management interface for the
+    proxy services
+    """
+    SERVICE_PORT = 9999
+    opbeans_side_car = False
+
+    def __init__(self):
+        super().__init__()
+
+    def _content(self):
+        return dict(
+            build=dict(
+                context="docker/dyno",
+                dockerfile="Dockerfile",
+                args=[]
+            ),
+            environment={"TOXI_HOST": "toxi", "TOXI_PORT": "8474"},
+            container_name="dyno",
+            image=None,
+            labels=None,
+            logging=None,
+            healthcheck=wget_healthcheck(8000, path="/"),
+            ports=["9000:8000"],
+        )
+
+
 class Toxi(Service):
     SERVICE_PORT = 8474
     opbeans_side_car = False
