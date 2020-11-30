@@ -4,13 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Toxi</title>
-  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-  <!-- <script src="../../external/jquery/jquery.js"></script>
-  <script src="../../ui/core.js"></script>
-  <script src="../../ui/widget.js"></script>
-  <script src="../../ui/mouse.js"></script>
-  <script src="../../ui/slider.js"></script>
-  <link rel="stylesheet" href="/resources/demos/style.css"> -->
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <style>
   .eq > table > tbody > tr > td > span {
     height:120px; float:left; margin:15px
@@ -20,12 +14,25 @@
   .ui-slider-slow-close { background: #245982 ; }
   .ui-slider-timeout { background: #248253 ; }
   .ui-slider-slicer { background: #248282  ; }
-
   </style>
   <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
   <script>
   $( function() {
+    var socket = io.connect('http://localhost:8999');
+    // Get list of load generators to render
+    socket.on('connect', function() {
+      $.get({
+        url: 'http://localhost:8999/api/list',
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result){
+          drawLg(result);
+        }
+      });
+    });
+
     // Get list of proxies to render
     $.get({
         url: window.location.origin + "/api/apps",
@@ -34,7 +41,48 @@
         success: function(result){
           drawProxies(result);
         }
-    })
+    });
+
+    function drawLg(r) {
+      console.log('Drawing load generator list');
+      $.each(r, function(service_name, v) {
+        console.log(service_name);
+        $("#load-container").append(
+          `<div id="${service_name}-container">` +
+          `<p id="${ service_name }-header" class="ui-state-default ui-corner-all ui-helper-clearfix" style="padding:4px;">` +
+          `<span style="margin:-2px 5px 0 0;">${service_name}</span>` +
+          `</p><fieldset><label for="checkbox-${ service_name }">Load test<input type="checkbox" name="checkbox-${ service_name }" id="checkbox-${ service_name }"></label></fieldset>` +
+          `</div>`
+        );
+        // $( "input[type='checkbox']" ).checkboxradio();
+        // FIXME this seems to affect all the boxes!
+        // $("input[type='checkbox']").prop('checked',true).checkboxradio('refresh')
+        $('#checkbox-'+service_name).click(function() {
+          if (this.checked) {
+            // FIXME wrong endpoint
+            $.get({
+              url: "http://localhost:8999/api/start?job="+service_name,
+              contentType: "application/json",
+              dataType: 'json',
+              success: function(result){
+                console.log('Sent request to enable LG. result: ' + result)
+              }
+            });
+          } else {
+            $.get({
+              // FIXME wrong endpoint
+              url: "http://localhost:8999/api/stop?job="+service_name,
+              contentType: "application/json",
+              dataType: 'json',
+              success: function(result){
+                console.log('Sent request to disable LG. result: ' + result)
+              }
+            });
+          }
+        });
+      })
+
+    }
 
     function drawProxies(r) {
       console.log('Drawing proxies');
@@ -43,11 +91,9 @@
 
     function drawProxy(service_name) {  
       $("#proxy-container").append(
-        '<div style="float:left;" id="' + service_name + '-container"><p id="'
-        + service_name +
-        '-header" class="ui-state-default ui-corner-all ui-helper-clearfix" style="padding:4px;"><span style="float:left; margin:-2px 5px 0 0;">' +
-        service_name +
-        '</span></p></div>'
+        `<div style="float:left;" id="${ service_name }-container">` + 
+        `<p id="${ service_name }-header" class="ui-state-default ui-corner-all ui-helper-clearfix" style="padding:4px;">` +
+        `<span style="float:left; margin:-2px 5px 0 0;">${service_name}</span></p></div>`
         );
       // FIXME: This ordering is a bit backward
       drawSliders(service_name);
@@ -96,13 +142,8 @@
     }
 
     function handleSlideChange(event, ui){
-      // This is not the best but will be OK for now
-      console.log(ui.handle.parentElement.id)
-      console.log(ui.value)
-      console.log(ui)
       // FIXME FAKE DATA
       d = JSON.stringify({'proxy': 'postgres', 'tox_code': ui.handle.parentElement.id, 'val': ui.value});
-      console.log(d)
       $.ajax({
         type: "POST",
         url: window.location.origin + "/api/slide",
@@ -116,43 +157,31 @@
 
     function drawServiceEnable(service_name) {
       // TODO: initialize state of checkboxes correctly
-      console.log('Drawing service');
-      console.log(service_name);
-      $( "#"+service_name+"-header").after(
-        '<fieldset><label for="checkbox-' +
-        service_name +
-        '">Enabled?<input type="checkbox" name="checkbox-' +
-        service_name+
-        '" id="checkbox-' +
-        service_name +
-        '"></label></fieldset>'
-        )
+      $( `#${ service_name }-header`).after(
+        `<fieldset><label for="checkbox-${ service_name }">Enabled?<input type="checkbox" name="checkbox-${ service_name } id="checkbox-${ service_name }"></label></fieldset>`
+      );
       $( "input[type='checkbox']" ).checkboxradio();
       // FIXME currently not dynamic. Need to check correctly
       $("input[type='checkbox']").prop('checked',true).checkboxradio('refresh')
       $('#checkbox-'+service_name).click(function() {
         if (this.checked) {
-          console.log('checked: ' + service_name);
-
           $.get({
-          url: window.location.origin + "/api/enable?proxy="+service_name,
-          contentType: "application/json",
-          dataType: 'json',
-          success: function(result){
-            console.log('Sent request to enable. result: ' + result)
-          }
-        });
-
+            url: window.location.origin + "/api/enable?proxy="+service_name,
+            contentType: "application/json",
+            dataType: 'json',
+            success: function(result){
+              console.log('Sent request to enable. result: ' + result)
+            }
+          });
         } else {
-          console.log('un-checked: ' + service_name);
           $.get({
-          url: window.location.origin + "/api/disable?proxy="+service_name,
-          contentType: "application/json",
-          dataType: 'json',
-          success: function(result){
-            console.log('Sent request to disable. result: ' + result)
-          }
-        });
+            url: window.location.origin + "/api/disable?proxy="+service_name,
+            contentType: "application/json",
+            dataType: 'json',
+            success: function(result){
+              console.log('Sent request to disable. result: ' + result)
+            }
+          });
         }
       });
     }
@@ -182,7 +211,7 @@
 
 
 </div>
-<div id="proxy-container" style="padding:4px;">
-</div>
+<div id="proxy-container" style="padding:4px;float: left;"></div>
+<div id="load-container" style="padding: 4px; float: right; width:150px"></div>
 </body>
 </html>

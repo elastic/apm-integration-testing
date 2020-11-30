@@ -257,7 +257,7 @@ def dyno(dyno_env):
             content = func(self)
             for count, env_enum in enumerate(content["environment"]):
                 if "=" in env_enum:
-                    env_key, _ = env_enum.split("=")
+                    env_key, _ = env_enum.split("=", maxsplit=1)
                     if env_key in dyno_env:
                         content["environment"][count] = "=".join([env_key, dyno_env[env_key]])
             return content

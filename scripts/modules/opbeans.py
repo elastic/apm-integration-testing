@@ -283,6 +283,9 @@ class OpbeansJava(OpbeansService):
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
     ])
+    @dyno({"DATABASE_URL": "postgres://postgres:verysecure@toxi/opbeans",
+           "REDIS_URL": "redis://toxi:6379"
+           })
     def _content(self):
         depends_on = {
             "postgres": {"condition": "service_healthy"},
@@ -319,7 +322,7 @@ class OpbeansJava(OpbeansService):
                 "DATABASE_DRIVER=org.postgresql.Driver",
                 "REDIS_URL=redis://redis:6379",
                 "ELASTICSEARCH_URL={}".format(self.es_urls),
-                "OPBEANS_SERVER_PORT={}}".format(self.APPLICATION_PORT),
+                "OPBEANS_SERVER_PORT={}".format(self.APPLICATION_PORT),
                 "JAVA_AGENT_VERSION",
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
                 "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
@@ -716,9 +719,19 @@ class OpbeansLoadGenerator(Service):
 
     def _content(self):
         content = dict(
-            image="opbeans/opbeans-loadgen:latest",
+            # FIXME testing
+            # image="opbeans/opbeans-loadgen:latest",
+            build=dict(
+                context="docker/opbeans-loadgen",
+                dockerfile="Dockerfile",
+                args=[]
+            ),
+            image="lg",
+            # END FIXME
+            ports=["8999:8000"],
             depends_on={service: {'condition': 'service_healthy'} for service in self.loadgen_services},
             environment=[
+                "WS=1",
                 "OPBEANS_URLS={}".format(','.join('{0}:http://{0}:{1}'.format(s, OpbeansService.APPLICATION_PORT) for s in sorted(self.loadgen_services))),  # noqa: E501
                 "OPBEANS_RPMS={}".format(','.join('{}:{}'.format(k, v) for k, v in sorted(self.loadgen_rpms.items())))
             ],
