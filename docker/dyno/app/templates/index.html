@@ -59,7 +59,6 @@
         // $("input[type='checkbox']").prop('checked',true).checkboxradio('refresh')
         $('#checkbox-'+service_name).click(function() {
           if (this.checked) {
-            // FIXME wrong endpoint
             $.get({
               url: "http://localhost:8999/api/start?job="+service_name,
               contentType: "application/json",
@@ -70,7 +69,6 @@
             });
           } else {
             $.get({
-              // FIXME wrong endpoint
               url: "http://localhost:8999/api/stop?job="+service_name,
               contentType: "application/json",
               dataType: 'json',
@@ -104,6 +102,15 @@
       $ ("#"+service_name+"-container").append(
         '<div style="margin: 15px" id="eq-'+service_name+'" class="eq">\
           <table>\
+            <tr>\
+            <td align="center" id="L-val">0</td>\
+            <td align="center" id="J-val">0</td>\
+            <td align="center" id="B-val">0</td>\
+            <td align="center" id="SC-val">0</td>\
+            <td align="center" id="T-val">0</td>\
+            <td align="center" id="Sas-val">0</td>\
+            <td align="center" id="Ssv-val">0</td>\
+            </tr>\
             <tr>\
             <td><span id="L">0</span></td>\
             <td><span id="J">0</span></td>\
@@ -143,6 +150,7 @@
 
     function handleSlideChange(event, ui){
       // FIXME FAKE DATA
+      // console.log(event.target.id);
       d = JSON.stringify({'proxy': 'postgres', 'tox_code': ui.handle.parentElement.id, 'val': ui.value});
       $.ajax({
         type: "POST",
@@ -152,7 +160,7 @@
         dataType: 'json',
         contentType: 'application/json'
       });
-
+      $( `#${event.target.id}-val`).text(ui.value);
     }
 
     function drawServiceEnable(service_name) {
