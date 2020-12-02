@@ -120,6 +120,23 @@ class Zookeeper(Service):
         )
 
 
+class StatsD(Service):
+    SERVICE_PORT = 8125
+
+    def _content(self):
+        return dict(
+            build=dict(
+                context="docker/statsd",
+                dockerfile="Dockerfile",
+                args=[]
+            ),
+            healthcheck={"interval": "10s", "test": ["CMD", "pidof", "node"]},
+            image=None,
+            labels=None,
+            ports=["8125:8125/udp", "8126:8126", "8127:8127"],
+        )
+
+
 class WaitService(Service):
     """Create a service that depends on all services ."""
 

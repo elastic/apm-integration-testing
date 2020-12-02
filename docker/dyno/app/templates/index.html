@@ -17,9 +17,120 @@
   </style>
   <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.1/socket.io.js"></script>
+  <script src="static/jquery.sparkline.js"></script>
   <script>
   $( function() {
+
+    var myvalues = [10,8,5,7,4,4,1];
+    // $('.dynamicsparkline').sparkline(myvalues);
+    var sparkMap = {};
+    sparkMap.getMap = {};
+    sparkMap.postMap = {}
+
+    function processMolotov(data){
+      var m = data.counters.molotov;
+      // console.log(m);
+      var get_stats = {};
+      var post_stats = {};
+      // FIXME probably just pull the first one instead since we are ovewriting the above stats anyhow
+      for(let [k,v] of Object.entries(m)){
+        var g = v['GET'];
+        var p = v['POST'];
+        // This is probably deeply offensive to JS developers.
+        if (g) {
+          // FIXME this only gets the run of the opbean with the lowest IP (java rn)
+          g1 = Object.values(g)[0];
+          g2 = Object.values(g1)[0];
+          g3 = Object.values(g2)[0];
+          gres = Object.values(g3)[0];
+          for (let req of Object.values(gres)){
+            for (let [http_code, num] of Object.entries(req)){
+              if (Object.keys(get_stats).includes(http_code)){
+                get_stats[http_code] += num;
+              } else {
+                get_stats[http_code] = num;
+              }
+            }
+          }
+        }
+        if (p) {
+          p1 = Object.values(p)[0];
+          p2 = Object.values(p1)[0];
+          p3 = Object.values(p2)[0];
+          pres = Object.values(p3)[0];
+
+
+          // FIXME refactor for horrific DRY violation
+          for (let req of Object.values(pres)){
+            for (let [http_code, num] of Object.entries(req)){
+              if (Object.keys(get_stats).includes(http_code)){
+                post_stats[http_code] += num;
+              } else {
+                post_stats[http_code] = num;
+              }
+            }
+          } 
+        }
+      }
+
+
+
+      // console.log(get_stats);
+      // console.log(post_stats);
+      $('#get_stats').empty();
+      $('#post_stats').empty();
+      $('#get_stats').text('GET req/min');
+      $('#post_stats').text('POST req/min');
+      for (let [h, v] of Object.entries(get_stats)){
+
+        if (Object.keys(sparkMap.getMap).includes(h)){
+                // append
+
+                sparkMap['getMap'][h].push(v);
+                if (sparkMap['getMap'][h].length >= 30) {
+                  console.log('shifting');
+                  sparkMap['getMap'][h].shift();
+                }
+              } else {
+                // insert
+                sparkMap['getMap'][h] = [v];
+              }
+              console.log(sparkMap);
+
+
+        $('#get_stats').append(`<tr><td>${h}</td><td><span id="get-spark-${h}"></span></td><td>${v * 20}</td></tr>`);
+        $(`#get-spark-${h}`).sparkline(sparkMap['getMap'][h])
+
+      }
+      for (let [h, v] of Object.entries(post_stats)){
+        $('#post_stats').append(`<tr><td>${h}</td><span id="post-spark-${h}"></span></td><td>${v * 20}</td></tr>`);
+      }
+    }
+  
+    var stats_socket = io.connect('http://localhost:8127');
+    stats_socket.on('connect', function (data) {
+      // console.log('conn connected');
+      stats_socket.emit('subscribe', 'all');
+      // stats_socket.emit('subscribe', 'timers');
+      // stats_socket.emit('subscribe', 'molotov.*');
+    });
+    stats_socket.on('all', function(data) {
+      // console.log('all received');
+      // console.log(data);
+      if (data){
+        processMolotov(data);
+      }
+    });
+
+    // stats_socket.on('molotov.*', function (data) {
+    //   console.log(data);
+    //   // for (var server in data.gauges) {
+    //   //   console.log(server + ' LG:' + data.gauges[server]);
+    //   // }
+    // });
+
+
     var socket = io.connect('http://localhost:8999');
     // Get list of load generators to render
     socket.on('connect', function() {
@@ -46,8 +157,8 @@
     function drawLg(r) {
       console.log('Drawing load generator list');
       $.each(r, function(service_name, v) {
-        console.log(service_name);
-        $("#load-container").append(
+        // console.log(service_name);
+        $("#load-controls").append(
           `<div id="${service_name}-container">` +
           `<p id="${ service_name }-header" class="ui-state-default ui-corner-all ui-helper-clearfix" style="padding:4px;">` +
           `<span style="margin:-2px 5px 0 0;">${service_name}</span>` +
@@ -220,6 +331,12 @@
 
 </div>
 <div id="proxy-container" style="padding:4px;float: left;"></div>
-<div id="load-container" style="padding: 4px; float: right; width:150px"></div>
+<div id="load-container" style="padding: 4px; float: right;">
+  <div id="load-stats">
+    <table id="get_stats"></table>
+    <table id="post_stats"></table>
+  </div>
+  <div id="load-controls"></div>
+</div>
 </body>
 </html>

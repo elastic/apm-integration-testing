@@ -26,7 +26,7 @@ from .elastic_stack import (  # noqa: F401
     ApmServer, ElasticAgent, Elasticsearch, EnterpriseSearch, Kibana, PackageRegistry
 )
 from .aux_services import (  # noqa: F401
-    Kafka, Logstash, Postgres, Redis, Zookeeper, WaitService
+    Kafka, Logstash, Postgres, Redis, StatsD, Zookeeper, WaitService
 )
 from .opbeans import (  # noqa: F401
     OpbeansNode, OpbeansRuby, OpbeansPython, OpbeansDotnet,
@@ -595,6 +595,8 @@ class LocalSetup(object):
                 fh_.write(c)
             dyno = Dyno()
             selections.add(dyno)
+            stasd = StatsD()
+            selections.add(stasd)
         # `docker load` images if necessary, usually only for build candidates
         services_to_load = {}
         for service in selections:
