@@ -283,7 +283,7 @@ class OpbeansJava(OpbeansService):
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
     ])
-    @dyno({"DATABASE_URL": "postgres://postgres:verysecure@toxi/opbeans",
+    @dyno({"DATABASE_URL": "jdbc:postgresql://toxi/opbeans?user=postgres&password=verysecure",
            "REDIS_URL": "redis://toxi:6379"
            })
     def _content(self):
