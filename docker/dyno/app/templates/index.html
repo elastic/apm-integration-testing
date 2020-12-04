@@ -79,7 +79,6 @@
         if (Object.keys(sparkMap.getMap).includes(h)){
                 sparkMap['getMap'][h].push(v);
                 if (sparkMap['getMap'][h].length >= 30) {
-                  console.log('shifting');
                   sparkMap['getMap'][h].shift();
                 }
               } else {
@@ -127,7 +126,24 @@
         }
     });
 
+    function drawScenarios(r) {
+      console.log(r);
+      $.each(r['scenarios'], function(_, s){
+        $('#scenarios_selector').append(`<option>${s}</option>`)
+      }
+      )
+    }
+
     function drawLg(r) {
+      $.get({
+        url: "http://localhost:8999/api/scenarios",
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result){
+          drawScenarios(result);
+        }
+      });
+
       $.each(r, function(service_name, v) {
         $("#load-controls").append(
           `<div id="${service_name}-container">` +
@@ -311,11 +327,19 @@
 
 <div id="proxy-container" style="padding:4px;margin-left: 160px;width:1050px;"></div>
 <div id="load-container" style="padding: 4px; width: 160px; position: fixed;">
+  <div id="load-controls">
+    <form action="#">
+      <fieldset>
+        <label for="scenarios">Select a load generation scenario to run</label>
+        <p></p>
+        <select name="scenarios" id="scenarios_selector">
+          <option selected="selected">Default</option>
+        </select>
+  </div>
   <div id="load-stats">
     <table id="get_stats"></table>
     <table id="post_stats"></table>
   </div>
-  <div id="load-controls"></div>
 </div>
 <div id="fancy-header", style="float: right;">
   <table>
