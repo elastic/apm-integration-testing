@@ -194,7 +194,6 @@
     }
 
     function drawProxies(r) {
-      console.log('Drawing proxies');
       r["proxies"].forEach(drawProxy);
     }
 
@@ -286,12 +285,10 @@
     function handleDockerSlideChange(event, ui){
       c = 'postgres'; // FIXME hard-coded
       component = ui.handle.parentElement.id;
-      val = ui.value;
+      v = ui.value;
       $.ajax({
         type: "GET",
-        url: window.location.origin + `/api/docker/update?c=${c}&component=${component}&val=${val}`,
-        data: d,
-        // success: function s(s) {console.log('success')},
+        url: window.location.origin + `/api/docker/update?c=${c}&component=${component}&val=${v}`,
         dataType: 'json',
         contentType: 'application/json'
       });
@@ -302,7 +299,6 @@
 
     function handleToxiSlideChange(event, ui){
       // FIXME FAKE DATA
-      // console.log(event.target.id);
       d = JSON.stringify({'proxy': 'postgres', 'tox_code': ui.handle.parentElement.id, 'val': ui.value});
       $.ajax({
         type: "POST",
@@ -318,12 +314,12 @@
     function drawServiceEnable(service_name) {
       // TODO: initialize state of checkboxes correctly
       $( `#${ service_name }-header`).after(
-        `<fieldset><label for="checkbox-${ service_name }">Enabled?<input type="checkbox" name="checkbox-${ service_name } id="checkbox-${ service_name }"></label></fieldset>`
+        `<fieldset><label for="checkbox-${ service_name }">Enabled?<input type="checkbox" name="checkbox-${ service_name }" id="checkbox-${ service_name }"></label></fieldset>`
       );
       $( "input[type='checkbox']" ).checkboxradio();
       // FIXME currently not dynamic. Need to check correctly
       $("input[type='checkbox']").prop('checked',true).checkboxradio('refresh')
-      $('#checkbox-'+service_name).click(function() {
+      $(`#checkbox-${service_name}`).click(function() {
         if (this.checked) {
           $.get({
             url: window.location.origin + "/api/enable?proxy="+service_name,
@@ -365,6 +361,15 @@
     </tr>
     <tr>
       <td>Ssv: Slicer [Size Variation]</td>
+    </tr>
+    <tr>
+      <td>CPU: CPU quota</td>
+    </tr>
+    <tr>
+      <td>Mem: Container memory</td>
+    </tr>
+    <tr>
+      <td>IO: Block IO</td>
     </tr>
   </table>
 
