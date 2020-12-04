@@ -27,6 +27,10 @@ else
   wget -q "https://github.com/elastic/apm-agent-php/releases/download/${TAG_NAME}/apm-agent-php_${VERSION}_all.deb" \
        -O "/tmp/apm-agent-php.deb"
   dpkg -i "/tmp/apm-agent-php.deb"
+
+  ## Echo the installation of the agent requires the configuration for the apache2.
+  a2enconf elastic
+  a2enconf elastic-custom
 fi
 
 ## Copy the app to the /var/www/html folder
