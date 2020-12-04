@@ -308,7 +308,16 @@
   </script>
 </head>
 <body>
-<div id="fancy-header">
+
+<div id="proxy-container" style="padding:4px;margin-left: 160px;width:1050px;"></div>
+<div id="load-container" style="padding: 4px; width: 160px; position: fixed;">
+  <div id="load-stats">
+    <table id="get_stats"></table>
+    <table id="post_stats"></table>
+  </div>
+  <div id="load-controls"></div>
+</div>
+<div id="fancy-header", style="float: right;">
   <table>
     <tr>
       <td>L: Latency</td>
@@ -335,17 +344,6 @@
       <td>IO: Block IO</td>
     </tr>
   </table>
-
-
-
-</div>
-<div id="proxy-container" style="padding:4px;float: left;"></div>
-<div id="load-container" style="padding: 4px; float: right;">
-  <div id="load-stats">
-    <table id="get_stats"></table>
-    <table id="post_stats"></table>
-  </div>
-  <div id="load-controls"></div>
 </div>
 </body>
 </html>
