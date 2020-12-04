@@ -188,9 +188,9 @@
             <td align="center" id="T-val">0</td>\
             <td align="center" id="Sas-val">0</td>\
             <td align="center" id="Ssv-val">0</td>\
-            <td align="center" id="CPU">0</td>\
-            <td align="center" id="Mem">0</td>\
-            <td align="center" id="IO">0</td>\
+            <td align="center" id="CPU-val">0</td>\
+            <td align="center" id="Mem-val">0</td>\
+            <td align="center" id="IO-val">0</td>\
             </tr>\
             <tr>\
             <td><span id="L" class="toxi_slide">0</span></td>\
@@ -258,7 +258,7 @@
         dataType: 'json',
         contentType: 'application/json'
       });
-      $( `#${event.target.id}-val`).text(ui.value);
+      $(ui.handle).closest('div').find(`#${event.target.id}-val`).text(ui.value);
     }
 
     function handleToxiSlideChange(event, ui){
@@ -271,7 +271,7 @@
         dataType: 'json',
         contentType: 'application/json'
       });
-      $( `#${event.target.id}-val`).text(ui.value);
+      $(ui.handle).closest('div').find(`#${event.target.id}-val`).text(ui.value);
     }
 
     function drawServiceEnable(service_name) {
