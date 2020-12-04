@@ -16,18 +16,6 @@ class Dyno(Service):
     def __init__(self):
         super().__init__()
 
-    def _resolve_docker_sock(self):
-        """
-        On some operating systems, like OS X, the docker socket is actually symlinked
-        from /var/run and so we need to give the real source to our volume or we won't
-        be able to resolve it from inside the container runtime
-        """
-        known_sock = '/var/run/docker.sock'
-        if os.path.islink(known_sock):
-            return os.readlink(known_sock)
-        else:
-            return known_sock
-
     def _content(self):
         return dict(
             build=dict(
@@ -42,7 +30,7 @@ class Dyno(Service):
             logging=None,
             healthcheck=wget_healthcheck(8000, path="/"),
             ports=["9000:8000"],
-            volumes=["{}:/var/run/docker.sock".format(self._resolve_docker_sock())],
+            volumes=["/var/run/docker.sock:/var/run/docker.sock"],
         )
 
 class Toxi(Service):

@@ -29,6 +29,10 @@ from app.api import bp as api_bp  # noqa E402
 app.register_blueprint(api_bp, url_prefix='/api')
 
 
+from app.api.docker import bp as api_docker  # noqa E402
+app.register_blueprint(api_docker, url_prefix='/api/docker')
+
+
 @app.route('/')
 def index():
     return render_template("index.html")

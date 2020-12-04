@@ -49,7 +49,7 @@ class Service(object):
         else:
             self._bc = ""
 
-        self.depends_on = {}
+        self.depends_on = []
 
         self.apm_api_key = {}
         if self.options.get("elastic_apm_api_key"):

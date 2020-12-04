@@ -36,11 +36,11 @@ class BeatMixin(object):
     def __init__(self, **options):
         super(BeatMixin, self).__init__(**options)
         self.command = list(self.DEFAULT_COMMAND)
-        self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if options.get(
-            "enable_elasticsearch", True) else {}
+        self.depends_on = ["elasticsearch"] if options.get(
+            "enable_elasticsearch", True) else []
         if options.get("enable_kibana", True):
             self.command.extend(["-E", "setup.dashboards.enabled=true"])
-            self.depends_on["kibana"] = {"condition": "service_healthy"}
+            self.depends_on.append("kibana")
         self.environment = {}
 
         self.es_tls = options.get("elasticsearch_enable_tls", False)

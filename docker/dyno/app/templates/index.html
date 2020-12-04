@@ -221,15 +221,21 @@
             <td align="center" id="T-val">0</td>\
             <td align="center" id="Sas-val">0</td>\
             <td align="center" id="Ssv-val">0</td>\
+            <td align="center" id="CPU">0</td>\
+            <td align="center" id="Mem">0</td>\
+            <td align="center" id="IO">0</td>\
             </tr>\
             <tr>\
-            <td><span id="L">0</span></td>\
-            <td><span id="J">0</span></td>\
-            <td><span id="B">0</span></td>\
-            <td><span id="SC">0</span></td>\
-            <td><span id="T">0</span></td>\
-            <td><span id="Sas">0</span></td>\
-            <td><span id="Ssv">0</span></td>\
+            <td><span id="L" class="toxi_slide">0</span></td>\
+            <td><span id="J" class="toxi_slide">0</span></td>\
+            <td><span id="B" class="toxi_slide">0</span></td>\
+            <td><span id="SC" class="toxi_slide">0</span></td>\
+            <td><span id="T" class="toxi_slide">0</span></td>\
+            <td><span id="Sas" class="toxi_slide">0</span></td>\
+            <td><span id="Ssv" class="toxi_slide">0</span></td>\
+            <td><span id="CPU" class="docker_slide">0</span></td>\
+            <td><span id="Mem" class="docker_slide">0</span></td>\
+            <td><span id="IO" class="docker_slide">0</span></td>\
             </tr>\
             <tr>\
             <td align="center">L</td>\
@@ -239,14 +245,17 @@
             <td align="center">T</td>\
             <td align="center">Sas</td>\
             <td alignt="center">Ssv</td>\
+            <td alignt="center">CPU</td>\
+            <td alignt="center">Mem</td>\
+            <td alignt="center">IO</td>\
             </tr>\
           </table>\
       </div>'
       );
       // TODO: Add rest of attrs
 
-    // setup EQ
-    $( "#eq-"+ service_name+" > table > tbody > tr > td > span" ).each(function() {
+    // setup for Toxi
+    $( "#eq-"+ service_name+" > table > tbody > tr > td > .toxi_slide" ).each(function() {
       // read initial values from markup and remove that
       var value = parseInt( $( this ).text(), 10 );
       s = $( this ).empty().slider({
@@ -254,12 +263,44 @@
         range: "min",
         animate: true,
         orientation: "vertical",
-        change: handleSlideChange,
+        change: handleToxiSlideChange,
       });
     });
+
+    // setup EQ for Docker
+    $( "#eq-"+ service_name+" > table > tbody > tr > td > .docker_slide" ).each(function() {
+      // read initial values from markup and remove that
+      var value = parseInt( $( this ).text(), 10 );
+      s = $( this ).empty().slider({
+        value: value,
+        range: "min",
+        animate: true,
+        orientation: "vertical",
+        change: handleDockerSlideChange,
+      });
+    });
+
+
     }
 
-    function handleSlideChange(event, ui){
+    function handleDockerSlideChange(event, ui){
+      c = 'postgres'; // FIXME hard-coded
+      component = ui.handle.parentElement.id;
+      val = ui.value;
+      $.ajax({
+        type: "GET",
+        url: window.location.origin + `/api/docker/update?c=${c}&component=${component}&val=${val}`,
+        data: d,
+        // success: function s(s) {console.log('success')},
+        dataType: 'json',
+        contentType: 'application/json'
+      });
+      $( `#${event.target.id}-val`).text(ui.value);
+    }
+
+
+
+    function handleToxiSlideChange(event, ui){
       // FIXME FAKE DATA
       // console.log(event.target.id);
       d = JSON.stringify({'proxy': 'postgres', 'tox_code': ui.handle.parentElement.id, 'val': ui.value});

@@ -35,8 +35,8 @@ class Logstash(StackService, Service):
             volumes = ["./docker/logstash/pipeline-6.x-compat/:/usr/share/logstash/pipeline/"]
 
         return dict(
-            depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
-                "enable_elasticsearch", True) else {},
+            depends_on=["elasticsearch"]if self.options.get(
+                "enable_elasticsearch", True) else [],
             environment={
                 "ELASTICSEARCH_URL": self.es_urls,
             },
@@ -147,7 +147,7 @@ class WaitService(Service):
     def _content(self):
         for s in self.services:
             if s.name() != self.name() and s.name() != "opbeans-load-generator":
-                self.depends_on[s.name()] = {"condition": "service_healthy"}
+                self.depends_on.append(s.name())
         return dict(
             container_name="wait",
             image="busybox",

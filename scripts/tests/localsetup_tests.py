@@ -80,10 +80,8 @@ class OpbeansServiceTest(ServiceTest):
                           max-size: '2m'
                           max-file: '5'
                     depends_on:
-                      elasticsearch:
-                        condition: service_healthy
-                      apm-server:
-                        condition: service_healthy
+                      - elasticsearch
+                      - apm-server
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-dotnet:3000/"]
                         interval: 10s
@@ -146,14 +144,11 @@ class OpbeansServiceTest(ServiceTest):
                           max-size: '2m'
                           max-file: '5'
                     depends_on:
-                      elasticsearch:
-                        condition: service_healthy
-                      postgres:
-                        condition: service_healthy
-                      redis:
-                        condition: service_healthy
-                      apm-server:
-                        condition: service_healthy""")  # noqa: 501
+                      - elasticsearch
+                      - postgres
+                      - redis
+                      - apm-server
+ """)  # noqa: 501
         )
 
     def test_opbeans_go_branch(self):
@@ -207,12 +202,9 @@ class OpbeansServiceTest(ServiceTest):
                           max-size: '2m'
                           max-file: '5'
                     depends_on:
-                      elasticsearch:
-                        condition: service_healthy
-                      postgres:
-                        condition: service_healthy
-                      apm-server:
-                        condition: service_healthy
+                      - elasticsearch
+                      - postgres
+                      - apm-server
                     healthcheck:
                       test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-java:3000/"]
                       interval: 10s
@@ -278,12 +270,9 @@ class OpbeansServiceTest(ServiceTest):
                         - OPBEANS_DT_PROBABILITY=0.50
                         - ELASTIC_APM_ENVIRONMENT=production
                     depends_on:
-                        redis:
-                            condition: service_healthy
-                        postgres:
-                            condition: service_healthy
-                        apm-server:
-                            condition: service_healthy
+                        - redis
+                        - postgres
+                        - apm-server
                     healthcheck:
                         test: ["CMD", "wget", "-q", "--server-response", "-O", "/dev/null", "http://opbeans-node:3000/"]
                         interval: 10s
@@ -349,14 +338,10 @@ class OpbeansServiceTest(ServiceTest):
                         - OPBEANS_DT_PROBABILITY=0.50
                         - ELASTIC_APM_ENVIRONMENT=production
                     depends_on:
-                        apm-server:
-                            condition: service_healthy
-                        elasticsearch:
-                            condition: service_healthy
-                        postgres:
-                            condition: service_healthy
-                        redis:
-                            condition: service_healthy
+                        - apm-server
+                        - elasticsearch
+                        - postgres
+                        - redis
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-python:3000/"]
                         interval: 10s
@@ -437,14 +422,10 @@ class OpbeansServiceTest(ServiceTest):
                           max-size: '2m'
                           max-file: '5'
                     depends_on:
-                      redis:
-                        condition: service_healthy
-                      elasticsearch:
-                        condition: service_healthy
-                      postgres:
-                        condition: service_healthy
-                      apm-server:
-                        condition: service_healthy
+                      - redis
+                      - elasticsearch
+                      - postgres
+                      - apm-server
                     healthcheck:
                       test: ["CMD", "wget", "-q", "--server-response", "-O", "/dev/null", "http://opbeans-ruby:3000/"]
                       interval: 10s
@@ -483,8 +464,7 @@ class OpbeansServiceTest(ServiceTest):
                               max-size: '2m'
                               max-file: '5'
                      depends_on:
-                         opbeans-node:
-                             condition: service_healthy
+                        - opbeans-node
                      healthcheck:
                          test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:9222/"]
                          interval: 10s
@@ -591,8 +571,8 @@ class OpbeansServiceTest(ServiceTest):
                 image: opbeans/opbeans-loadgen:latest
                 container_name: localtesting_6.3.1_opbeans-load-generator
                 depends_on:
-                    opbeans-python: {condition: service_healthy}
-                    opbeans-ruby: {condition: service_healthy}
+                    - opbeans-python:
+                    - opbeans-ruby
                 environment:
                  - 'OPBEANS_URLS=opbeans-python:http://opbeans-python:3000,opbeans-ruby:http://opbeans-ruby:3000'
                  - 'OPBEANS_RPMS=opbeans-python:50,opbeans-ruby:10'
@@ -686,8 +666,8 @@ class LocalTest(unittest.TestCase):
                     -E, 'output.elasticsearch.hosts=["http://elasticsearch:9200"]', -E, output.elasticsearch.enabled=true]
                 container_name: localtesting_6.2.10_apm-server
                 depends_on:
-                    elasticsearch: {condition: service_healthy}
-                    kibana: {condition: service_healthy}
+                    - elasticsearch
+                    - kibana
                 environment: [
                     BEAT_STRICT_PERMS=false
                 ]
@@ -737,12 +717,9 @@ class LocalTest(unittest.TestCase):
             wait-service:
                 container_name: wait
                 depends_on:
-                    apm-server:
-                        condition: service_healthy
-                    elasticsearch:
-                        condition: service_healthy
-                    kibana:
-                        condition: service_healthy
+                    - apm-server
+                    - elasticsearch
+                    - kibana
                 image: busybox
         networks:
             default: {name: apm-integration-testing}
@@ -777,8 +754,8 @@ class LocalTest(unittest.TestCase):
                     -E, 'output.elasticsearch.hosts=["http://elasticsearch:9200"]', -E, output.elasticsearch.enabled=true ]
                 container_name: localtesting_6.3.10_apm-server
                 depends_on:
-                    elasticsearch: {condition: service_healthy}
-                    kibana: {condition: service_healthy}
+                    - elasticsearch
+                    - kibana
                 environment: [
                     BEAT_STRICT_PERMS=false
                 ]
@@ -832,12 +809,9 @@ class LocalTest(unittest.TestCase):
             wait-service:
                 container_name: wait
                 depends_on:
-                    apm-server:
-                        condition: service_healthy
-                    elasticsearch:
-                        condition: service_healthy
-                    kibana:
-                        condition: service_healthy
+                    - apm-server
+                    - elasticsearch
+                    - kibana
                 image: busybox
         networks:
             default: {name: apm-integration-testing}
@@ -890,8 +864,8 @@ class LocalTest(unittest.TestCase):
                     ]
                 container_name: localtesting_8.0.0_apm-server
                 depends_on:
-                    elasticsearch: {condition: service_healthy}
-                    kibana: {condition: service_healthy}
+                    - elasticsearch
+                    - kibana
                 environment: [
                     BEAT_STRICT_PERMS=false
                 ]
@@ -952,7 +926,7 @@ class LocalTest(unittest.TestCase):
             kibana:
                 container_name: localtesting_8.0.0_kibana
                 depends_on:
-                    elasticsearch: {condition: service_healthy}
+                    - elasticsearch
                 environment: {
                     ELASTICSEARCH_PASSWORD: changeme,
                     ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200',
@@ -984,12 +958,9 @@ class LocalTest(unittest.TestCase):
             wait-service:
                 container_name: wait
                 depends_on:
-                    apm-server:
-                        condition: service_healthy
-                    elasticsearch:
-                        condition: service_healthy
-                    kibana:
-                        condition: service_healthy
+                    - apm-server
+                    - elasticsearch
+                    - kibana
                 image: busybox
         networks:
             default: {name: apm-integration-testing}
@@ -1171,14 +1142,14 @@ class LocalTest(unittest.TestCase):
             setup()
         docker_compose_yml.seek(0)
         got = yaml.safe_load(docker_compose_yml)
-        depends_on = set(got["services"]["opbeans-node"]["depends_on"].keys())
-        self.assertSetEqual({"postgres", "redis"}, depends_on)
-        depends_on = set(got["services"]["opbeans-python"]["depends_on"].keys())
-        self.assertSetEqual({"elasticsearch", "postgres", "redis"}, depends_on)
-        depends_on = set(got["services"]["opbeans-ruby"]["depends_on"].keys())
-        self.assertSetEqual({"elasticsearch", "postgres", "redis"}, depends_on)
+        depends_on = set(got["services"]["opbeans-node"]["depends_on"])
+        self.assertSetEqual(["postgres", "redis"], depends_on)
+        depends_on = set(got["services"]["opbeans-python"]["depends_on"])
+        self.assertSetEqual(["elasticsearch", "postgres", "redis"], depends_on)
+        depends_on = set(got["services"]["opbeans-ruby"]["depends_on"])
+        self.assertSetEqual(["elasticsearch", "postgres", "redis"], depends_on)
         for name, service in got["services"].items():
-            self.assertNotIn("apm-server", service.get("depends_on", {}), "{} depends on apm-server".format(name))
+            self.assertNotIn("apm-server", service.get("depends_on", []), "{} depends on apm-server".format(name))
 
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_unsupported_version_pre_6_3(self, _ignore_load_images):

@@ -16,9 +16,7 @@ class AgentRUMJS(Service):
         self.agent_branch = options.get("rum_agent_branch", self.DEFAULT_AGENT_BRANCH)
         self.agent_repo = options.get("rum_agent_repo", self.DEFAULT_AGENT_REPO)
         if options.get("enable_apm_server", True):
-            self.depends_on = {
-                "apm-server": {"condition": "service_healthy"},
-            }
+            self.depends_on = ["apm-server"]
 
     @classmethod
     def add_arguments(cls, parser):
@@ -89,9 +87,7 @@ class AgentGoNetHttp(Service):
         self.agent_version = options.get("go_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_repo = options.get("go_agent_repo", self.DEFAULT_AGENT_REPO)
         if options.get("enable_apm_server", True):
-            self.depends_on = {
-                "apm-server": {"condition": "service_healthy"},
-            }
+            self.depends_on = ["apm-server"]
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
@@ -139,9 +135,7 @@ class AgentNodejsExpress(Service):
         super(AgentNodejsExpress, self).__init__(**options)
         self.agent_package = options.get("nodejs_agent_package", self.DEFAULT_AGENT_PACKAGE)
         if options.get("enable_apm_server", True):
-            self.depends_on = {
-                "apm-server": {"condition": "service_healthy"},
-            }
+            self.depends_on = ["apm-server"]
 
     @classmethod
     def add_arguments(cls, parser):
@@ -212,9 +206,7 @@ class AgentPhpApache(Service):
         self.agent_release = options.get("php_agent_release", self.DEFAULT_AGENT_RELEASE)
         self.agent_repo = options.get("php_agent_repo", self.DEFAULT_AGENT_REPO)
         if options.get("enable_apm_server", True):
-            self.depends_on = {
-                "apm-server": {"condition": "service_healthy"},
-            }
+            self.depends_on = ["apm-server"]
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
@@ -253,9 +245,7 @@ class AgentPython(Service):
         super(AgentPython, self).__init__(**options)
         self.agent_package = options.get("python_agent_package", self.DEFAULT_AGENT_PACKAGE)
         if options.get("enable_apm_server", True):
-            self.depends_on = {
-                "apm-server": {"condition": "service_healthy"},
-            }
+            self.depends_on = ["apm-server"]
 
     @classmethod
     def add_arguments(cls, parser):
@@ -385,9 +375,7 @@ class AgentRubyRails(Service):
         self.agent_repo = options.get("ruby_agent_repo", self.DEFAULT_AGENT_REPO)
         self.ruby_version = options.get("ruby_version", self.DEFAULT_RUBY_VERSION)
         if options.get("enable_apm_server", True):
-            self.depends_on = {
-                "apm-server": {"condition": "service_healthy"},
-            }
+            self.depends_on = ["apm-server"]
 
     def _map_log_level(self, lvl):
         """
@@ -497,9 +485,7 @@ class AgentJavaSpring(Service):
         self.agent_repo = options.get("java_agent_repo", self.DEFAULT_AGENT_REPO)
         self.java_m2_cache = str(options.get("java_m2_cache", False)).lower()
         if options.get("enable_apm_server", True):
-            self.depends_on = {
-                "apm-server": {"condition": "service_healthy"},
-            }
+            self.depends_on = ["apm-server"]
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
@@ -571,9 +557,7 @@ class AgentDotnet(Service):
         self.agent_release = options.get("dotnet_agent_release", self.DEFAULT_AGENT_RELEASE)
         self.agent_repo = options.get("dotnet_agent_repo", self.DEFAULT_AGENT_REPO)
         if options.get("enable_apm_server", True):
-            self.depends_on = {
-                "apm-server": {"condition": "service_healthy"},
-            }
+            self.depends_on = ["apm-server"]
 
     def _map_log_level(self, lvl):
         """

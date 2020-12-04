@@ -110,11 +110,11 @@ class OpbeansDotnet(OpbeansService):
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
     ])
     def _content(self):
-        depends_on = {}
+        depends_on = []
         if self.options.get("enable_apm_server", True):
-            depends_on["apm-server"] = {"condition": "service_healthy"}
+            depends_on.append("apm-server")
         if self.options.get("enable_elasticsearch", True):
-            depends_on["elasticsearch"] = {"condition": "service_healthy"}
+            depends_on.append("elasticsearch")
 
         content = dict(
             build=dict(
@@ -187,15 +187,12 @@ class OpbeansGo(OpbeansService):
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
     ])
     def _content(self):
-        depends_on = {
-            "postgres": {"condition": "service_healthy"},
-            "redis": {"condition": "service_healthy"},
-        }
+        depends_on = ["postgres", "redis"]
 
         if self.options.get("enable_apm_server", True):
-            depends_on["apm-server"] = {"condition": "service_healthy"}
+            depends_on.append("apm-server")
         if self.options.get("enable_elasticsearch", True):
-            depends_on["elasticsearch"] = {"condition": "service_healthy"}
+            depends_on.append("elasticsearch")
 
         content = dict(
             build=dict(
@@ -287,14 +284,11 @@ class OpbeansJava(OpbeansService):
            "REDIS_URL": "redis://toxi:6379"
            })
     def _content(self):
-        depends_on = {
-            "postgres": {"condition": "service_healthy"},
-        }
-
+        depends_on = ["postgres"]
         if self.options.get("enable_apm_server", True):
-            depends_on["apm-server"] = {"condition": "service_healthy"}
+            depends_on.append("apm-server")
         if self.options.get("enable_elasticsearch", True):
-            depends_on["elasticsearch"] = {"condition": "service_healthy"}
+            depends_on.append("elasticsearch")
 
         content = dict(
             build=dict(
@@ -381,13 +375,10 @@ class OpbeansNode(OpbeansService):
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
     ])
     def _content(self):
-        depends_on = {
-            "postgres": {"condition": "service_healthy"},
-            "redis": {"condition": "service_healthy"},
-        }
+        depends_on = ["postgres", "redis"]
 
         if self.options.get("enable_apm_server", True):
-            depends_on["apm-server"] = {"condition": "service_healthy"}
+            depends_on.append("apm-server")
 
         content = dict(
             build=dict(
@@ -487,15 +478,12 @@ class OpbeansPython(OpbeansService):
            "REDIS_URL": "redis://toxi:6379"
            })
     def _content(self):
-        depends_on = {
-            "postgres": {"condition": "service_healthy"},
-            "redis": {"condition": "service_healthy"},
-        }
+        depends_on = ["postgres", "redis"]
 
         if self.options.get("enable_apm_server", True):
-            depends_on["apm-server"] = {"condition": "service_healthy"}
+            depends_on.append("apm-server")
         if self.options.get("enable_elasticsearch", True):
-            depends_on["elasticsearch"] = {"condition": "service_healthy"}
+            depends_on.append("elasticsearch")
 
         content = dict(
             build=dict(
@@ -583,15 +571,12 @@ class OpbeansRuby(OpbeansService):
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
     ])
     def _content(self):
-        depends_on = {
-            "postgres": {"condition": "service_healthy"},
-            "redis": {"condition": "service_healthy"},
-        }
+        depends_on = ["postgres", "redis"]
 
         if self.options.get("enable_apm_server", True):
-            depends_on["apm-server"] = {"condition": "service_healthy"}
+            depends_on.append("apm-server")
         if self.options.get("enable_elasticsearch", True):
-            depends_on["elasticsearch"] = {"condition": "service_healthy"}
+            depends_on.append("elasticsearch")
 
         content = dict(
             build=dict(
@@ -667,7 +652,7 @@ class OpbeansRum(Service):
         content = dict(
             build={"context": "docker/opbeans/rum", "dockerfile": "Dockerfile"},
             cap_add=["SYS_ADMIN"],
-            depends_on={self.backend_service: {'condition': 'service_healthy'}},
+            depends_on=[self.backend_service],
             environment=[
                 "OPBEANS_BASE_URL=http://{}:{}".format(self.backend_service, self.backend_port),
                 "ELASTIC_APM_VERIFY_SERVER_CERT={}".format(str(not self.options.get("no_verify_server_cert")).lower()),
@@ -729,7 +714,7 @@ class OpbeansLoadGenerator(Service):
             image="lg",
             # END FIXME
             ports=["8999:8000"],
-            depends_on={service: {'condition': 'service_healthy'} for service in self.loadgen_services},
+            depends_on=[service for service in self.loadgen_services],
             environment=[
                 "WS=1",
                 "OPBEANS_URLS={}".format(','.join('{0}:http://{0}:{1}'.format(s, OpbeansService.APPLICATION_PORT) for s in sorted(self.loadgen_services))),  # noqa: E501
