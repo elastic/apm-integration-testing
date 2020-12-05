@@ -249,10 +249,12 @@ def add_agent_environment(mappings):
         return add_content
     return fn
 
-# FIXME probably should do nothing if we aren't in dyno-mode
+
 def dyno(dyno_env):
     def fn(func):
         def munge_env(self):
+            if not self.options.get('dyno'):
+                return func(self)
             self.port += 10000
             content = func(self)
             for count, env_enum in enumerate(content["environment"]):
