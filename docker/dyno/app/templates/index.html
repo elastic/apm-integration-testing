@@ -23,33 +23,90 @@
   $( function() {
     var sparkMap = {};
     sparkMap.getMap = {};
-    sparkMap.postMap = {};
+    sparkMap.postMap = {}
 
-    $.get({
-        url: window.location.origin + "/api/apps",
-        contentType: "application/json",
-        dataType: 'json',
-        success: function(result){
-          drawProxies(result);
+    function processMolotov(data){
+      var m = data.counters.molotov;
+      // console.log(m);
+      var get_stats = {};
+      var post_stats = {};
+      // FIXME probably just pull the first one instead since we are ovewriting the above stats anyhow
+      for(let [k,v] of Object.entries(m)){
+        var g = v['GET'];
+        var p = v['POST'];
+        // This is probably deeply offensive to JS developers.
+        if (g) {
+          // FIXME this only gets the run of the opbean with the lowest IP (java rn)
+          g1 = Object.values(g)[0];
+          g2 = Object.values(g1)[0];
+          g3 = Object.values(g2)[0];
+          gres = Object.values(g3)[0];
+          for (let req of Object.values(gres)){
+            for (let [http_code, num] of Object.entries(req)){
+              if (Object.keys(get_stats).includes(http_code)){
+                get_stats[http_code] += num;
+              } else {
+                get_stats[http_code] = num;
+              }
+            }
+          }
         }
-    });
+        if (p) {
+          p1 = Object.values(p)[0];
+          p2 = Object.values(p1)[0];
+          p3 = Object.values(p2)[0];
+          pres = Object.values(p3)[0];
 
+
+          // FIXME refactor for horrific DRY violation
+          for (let req of Object.values(pres)){
+            for (let [http_code, num] of Object.entries(req)){
+              if (Object.keys(get_stats).includes(http_code)){
+                post_stats[http_code] += num;
+              } else {
+                post_stats[http_code] = num;
+              }
+            }
+          } 
+        }
+      }
+      $('#get_stats').empty();
+      $('#post_stats').empty();
+      $('#get_stats').text('GET req/min');
+      $('#post_stats').text('POST req/min');
+      for (let [h, v] of Object.entries(get_stats)){
+
+        if (Object.keys(sparkMap.getMap).includes(h)){
+                sparkMap['getMap'][h].push(v);
+                if (sparkMap['getMap'][h].length >= 30) {
+                  sparkMap['getMap'][h].shift();
+                }
+              } else {
+                sparkMap['getMap'][h] = [v];
+              }
+        $('#get_stats').append(`<tr><td>${h}</td><td><span id="get-spark-${h}"></span></td><td>${v * 20}</td></tr>`);
+        $(`#get-spark-${h}`).sparkline(sparkMap['getMap'][h])
+
+      }
+      for (let [h, v] of Object.entries(post_stats)){
+        $('#post_stats').append(`<tr><td>${h}</td><span id="post-spark-${h}"></span></td><td>${v * 20}</td></tr>`);
+      }
+    }
+  
     var stats_socket = io.connect('http://localhost:8127');
-    var dyno_socket = io.connect('http://localhost:8999');
-
     stats_socket.on('connect', function (data) {
       stats_socket.emit('subscribe', 'all');
       // TODO We can add timers and get additional performance information
       // stats_socket.emit('subscribe', 'timers');
     });
     stats_socket.on('all', function(data) {
-
       if (data){
         processMolotov(data);
       }
     });
 
-    dyno_socket.on('connect', function() {
+    var socket = io.connect('http://localhost:8999');
+    socket.on('connect', function() {
       $.get({
         url: 'http://localhost:8999/api/list',
         contentType: "application/json",
@@ -60,6 +117,14 @@
       });
     });
 
+    $.get({
+        url: window.location.origin + "/api/apps",
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result){
+          drawProxies(result);
+        }
+    });
 
     function drawScenarios(r) {
       console.log(r);
@@ -198,8 +263,6 @@
         });
       });
     }
-    
-    function drawServiceEnable(service_name) {
 
     function handleDockerSlideChange(event, ui){
       c = 'postgres'; // FIXME hard-coded
@@ -226,75 +289,8 @@
       });
       $(ui.handle).closest('div').find(`#${event.target.id}-val`).text(ui.value);
     }
-  
-    function processMolotov(data){
-      var m = data.counters.molotov;
-      // console.log(m);
-      var get_stats = {};
-      var post_stats = {};
-      // FIXME probably just pull the first one instead since we are ovewriting the above stats anyhow
-      for(let [k,v] of Object.entries(m)){
-        var g = v['GET'];
-        var p = v['POST'];
-        // This is probably deeply offensive to JS developers.
-        if (g) {
-          // FIXME this only gets the run of the opbean with the lowest IP (java rn)
-          g1 = Object.values(g)[0];
-          g2 = Object.values(g1)[0];
-          g3 = Object.values(g2)[0];
-          gres = Object.values(g3)[0];
-          for (let req of Object.values(gres)){
-            for (let [http_code, num] of Object.entries(req)){
-              if (Object.keys(get_stats).includes(http_code)){
-                get_stats[http_code] += num;
-              } else {
-                get_stats[http_code] = num;
-              }
-            }
-          }
-        }
-        if (p) {
-          p1 = Object.values(p)[0];
-          p2 = Object.values(p1)[0];
-          p3 = Object.values(p2)[0];
-          pres = Object.values(p3)[0];
 
-
-          // FIXME refactor for horrific DRY violation
-          for (let req of Object.values(pres)){
-            for (let [http_code, num] of Object.entries(req)){
-              if (Object.keys(get_stats).includes(http_code)){
-                post_stats[http_code] += num;
-              } else {
-                post_stats[http_code] = num;
-              }
-            }
-          } 
-        }
-      }
-      $('#get_stats').empty();
-      $('#post_stats').empty();
-      $('#get_stats').text('GET req/min');
-      $('#post_stats').text('POST req/min');
-      for (let [h, v] of Object.entries(get_stats)){
-
-        if (Object.keys(sparkMap.getMap).includes(h)){
-                sparkMap['getMap'][h].push(v);
-                if (sparkMap['getMap'][h].length >= 30) {
-                  sparkMap['getMap'][h].shift();
-                }
-              } else {
-                sparkMap['getMap'][h] = [v];
-              }
-        $('#get_stats').append(`<tr><td>${h}</td><td><span id="get-spark-${h}"></span></td><td>${v * 20}</td></tr>`);
-        $(`#get-spark-${h}`).sparkline(sparkMap['getMap'][h])
-
-      }
-      for (let [h, v] of Object.entries(post_stats)){
-        $('#post_stats').append(`<tr><td>${h}</td><span id="post-spark-${h}"></span></td><td>${v * 20}</td></tr>`);
-      }
-    }
-  
+    function drawServiceEnable(service_name) {
       // TODO: initialize state of checkboxes correctly
       $( `#${ service_name }-header`).after(
         `<fieldset><label for="checkbox-${ service_name }">Enabled?<input type="checkbox" name="checkbox-${ service_name }" id="checkbox-${ service_name }"></label></fieldset>`
