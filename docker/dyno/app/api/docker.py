@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+import os
+import app
 import docker
+import yaml
 from flask import request
 
 from flask import Blueprint
@@ -75,18 +78,43 @@ def update():
     """
     c = _normalize_name(request.args.get('c'))
     component = request.args.get('component')
-    val = request.args.get('val')
+    val = int(request.args.get('val'))
     config = {
         'container': c,
         'settings': {}
     }
-    if component.lower() == 'cpu':
-        config['settings']['cpu_quota'] = int(val)
-    if component.lower() == 'io':
-        config['settings']['blkio_weight'] = int(val)
-    if component.lower() == 'mem':
-        config['settings']['mem_limit'] = str(val)
+    c = component.lower()
+    if c == 'cpu':
+        config['settings']['cpu_quota'] = _normalize_value(c, val)
+    if c == 'io':
+        config['settings']['blkio_weight'] = _normalize_value(c, val)
+    if c == 'mem':
+        config['settings']['memswap_limit'] = _normalize_value(c, val)
 
     c = client.containers.get(config['container'])
     c.update(**config['settings'])
     return {}
+
+
+def _normalize_value(code, val):
+    """
+    This uses the range.yml configuration file which populates
+    a set of values to determine the upper and lower range.
+    We take our input value from the web interface to this function
+    which is in the range of 0-100 and we turn that into an actual
+    value to pass to the toxic
+    """
+    range_path = os.path.join(app.app.root_path, 'range.yml')
+    with open(range_path, 'r') as fh_:
+        slider_range = yaml.load(fh_)
+
+    lval, uval = slider_range[code]
+    val_range = abs(uval - lval)
+    if lval < uval:
+        ret = abs(uval - int(val_range * (val / 100)))
+    else:
+        ret = int(val_range * (val / 100))
+
+    # if code == 'mem':
+    #     ret = str(ret) + "B"
+    return ret

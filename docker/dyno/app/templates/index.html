@@ -27,7 +27,6 @@
 
     function processMolotov(data){
       var m = data.counters.molotov;
-      // console.log(m);
       var get_stats = {};
       var post_stats = {};
       // FIXME probably just pull the first one instead since we are ovewriting the above stats anyhow
@@ -106,16 +105,6 @@
     });
 
     var socket = io.connect('http://localhost:8999');
-    socket.on('connect', function() {
-      $.get({
-        url: 'http://localhost:8999/api/list',
-        contentType: "application/json",
-        dataType: 'json',
-        success: function(result){
-          drawLg(result);
-        }
-      });
-    });
 
     $.get({
         url: window.location.origin + "/api/apps?full=1",
@@ -123,6 +112,7 @@
         dataType: 'json',
         success: function(result){
           drawProxies(result);
+          drawLg(result);
         }
     });
 
@@ -142,15 +132,19 @@
           drawScenarios(result);
         }
       });
-      $.each(r, function(service_name, v) {
-        $("#load-controls").append(
-          `<div id="${service_name}-container">` +
-          `<p id="${ service_name }-header" class="ui-state-default ui-corner-all ui-helper-clearfix" style="padding:4px;">` +
-          `<span style="margin:-2px 5px 0 0;">${service_name}</span>` +
-          `</p><fieldset><label for="checkbox-${ service_name }">Load test<input type="checkbox" name="checkbox-${ service_name }" id="checkbox-${ service_name }"></label></fieldset>` +
-          `</div>`
-        );
-        $('#checkbox-'+service_name).click(function() {
+      $.each(r.proxies, function(idx, s) {
+        var service_name = s.name;
+        var port = s.listen.split(":").pop();
+        if (service_name.startsWith("opbeans")){
+          $("#load-controls").append(
+            `<div id="${service_name}-container">` +
+            `<p id="${service_name}-header" class="ui-state-default ui-corner-all ui-helper-clearfix" style="padding:4px;">` +
+            `<span style="margin:-2px 5px 0 0;">${service_name}</span>` +
+            `</p><fieldset><label for="lg-checkbox-${ service_name }">Load test<input type="checkbox" name="lg-checkbox-${service_name}" id="lg-checkbox-${service_name}"></label></fieldset>` +
+            `</div>`
+          );
+          var sel = '#lg-checkbox-'+service_name;
+          $(sel).click(function() {
           if (this.checked) {
             // Get list of proxies
             $.get({
@@ -158,11 +152,10 @@
               contentType: "application/json",
               dataType: 'json',
               success: function(result){
-                console.log(result);
                 // For now the best we can probably do is to try
                 // and find the right opbean
                 $.get({
-                  url: "http://localhost:8999/api/start?job="+service_name,
+                  url: `http://localhost:8999/api/start?job=${service_name}&port=${port}`,
                   contentType: "application/json",
                   dataType: 'json',
                   success: function(result){
@@ -182,6 +175,7 @@
             });
           }
         });
+        }
       })
 
     }
@@ -194,7 +188,7 @@
       $("#proxy-container").append(
         `<div style="float:left;" id="${ proxy.name }-container">` + 
         `<p id="${ proxy.name }-header" class="ui-state-default ui-corner-all ui-helper-clearfix" style="padding:4px;">` +
-        `<span style="float:left; margin:-2px 5px 0 0;">${proxy.name}</span></p></div>`
+        `<span style="float:left; margin:-2px 5px 0 0;" class="proxy-name">${proxy.name}</span></p></div>`
         );
       // FIXME: This ordering is a bit backward
       drawSliders(proxy.name);
@@ -203,7 +197,7 @@
 
     function drawSliders(service_name){
       $ ("#"+service_name+"-container").append(
-        '<div style="margin: 15px" id="eq-'+service_name+'" class="eq">\
+        '<div style="margin: 15px" id="eq-'+service_name+`" class="eq">\
           <table>\
             <tr>\
             <td align="center" id="L-val">100</td>\
@@ -242,7 +236,7 @@
             <td alignt="center">IO</td>\
             </tr>\
           </table>\
-      </div>'
+      </div>`
       );
       // TODO: Add rest of attrs
 
@@ -257,6 +251,7 @@
           orientation: "vertical",
           change: handleToxiSlideChange,
         });
+        s.attr('service_name', service_name);
       });
 
       // setup EQ for Docker
@@ -270,11 +265,12 @@
           orientation: "vertical",
           change: handleDockerSlideChange,
         });
+        s.attr('service_name', service_name);
       });
     }
 
     function handleDockerSlideChange(event, ui){
-      c = 'postgres'; // FIXME hard-coded
+      c = ui.handle.parentElement.attributes.service_name.value;
       component = ui.handle.parentElement.id;
       v = ui.value;
       $.ajax({
@@ -287,8 +283,8 @@
     }
 
     function handleToxiSlideChange(event, ui){
-      // FIXME FAKE DATA
-      d = JSON.stringify({'proxy': 'postgres', 'tox_code': ui.handle.parentElement.id, 'val': ui.value});
+      proxy = ui.handle.parentElement.attributes.service_name.value;
+      d = JSON.stringify({'proxy': proxy, 'tox_code': ui.handle.parentElement.id, 'val': ui.value});
       $.ajax({
         type: "POST",
         url: window.location.origin + "/api/slide",
