@@ -1,0 +1,85 @@
+# This file describes normalization for the sliders
+#
+# Each slider can slide from values between 1-100,
+# where 100 is the highest position which represents
+# "maximum" pressure on a service and 0 is the lowest
+# slider position which represents no pressure being
+# applied to the service.
+#
+# However, the various toxics which can be applied to
+# a service need to have raw values supplied to them
+# and the associated units vary by service. For example,
+# with network toxics the raw value might be applied in
+# milliseconds while for container memory, the value might
+# be applied in megabytes.
+#
+# Therefore, we have this file which lists the lower and upper
+# bounds for each in raw units. When a slider is moved, we
+# do basic division to determine the value to pass into the
+# toxic itself. For example, if the range of the memory slider
+# in this file is between 100 MB and 1000MB, and the slider
+# is set to its midpoint (50), we subtract the lower bound
+# from the upper bound (900) and then multiply by 1/100 of
+# the slider value to reach the answer of 450. See the
+# implementation code for more details on this in action.
+#
+# Values are represented as a two-element list. The first element
+# is the low-bound, which should provide the *best* performance
+# (other than being disabled) and the latter value represents the
+# high-bound which should represent the *worst* performance outside
+# of simply disabling the service.
+
+## Start the Toxi settings
+---
+B:
+  # Bandwidth: Limit a connection to a maximum number of kilobytes per second.
+  # 1KB/sec -> 100KB/s
+  - 500
+  - 1
+L:
+  # Latency: Add a delay to all data going through the proxy. The delay is equal to latency +/- jitter.
+  # 0ms -> 1000ms
+  - 1
+  - 1000
+J:
+  # Jitter: Add a delay to all data going through the proxy. The delay is equal to latency +/- jitter.
+  # 0ms -> 1000ms
+  - 1
+  - 1000
+SC:
+  # Slow close: Delay the TCP socket from closing until delay has elapsed.
+  - 1
+  - 1000
+T:
+  # Timeout: Stops all data from getting through, and closes the connection after timeout.
+  # If timeout is 0, the connection won't close, and data will be delayed until the toxic is removed.
+  # 1ms -> 1000ms
+  - 1000
+  - 1
+
+# The following are slicer settings.
+# A slicer slices TCP data up into small bits, optionally adding a delay between each sliced "packet".
+
+Sas: # average_size: size in bytes of an average packet
+     # 1 byte -> 1000 bytes
+  - 1
+  - 1000
+# Currently disabled because we need to bound it against Sas
+# Ssv: # size_variation: variation in bytes of an average packet (should be smaller than average_size)
+#   - 1
+#   - 1000
+Ssd: # time in microseconds to delay each packet by
+  - 1
+  - 50000 # All the way up to 50ms which will cause some massive destruction!
+## End the Toxi settings
+
+## Start the Docker settings
+## For more information see: https://docs.docker.com/config/containers/resource_constraints/
+CPU: # Impose a CPU CFS quota on the container.
+     # The number of microseconds per --cpu-period that the container is limited to before throttled.
+  - 100000 # Not totally sure this is also the default for quota. FIXME: Possible bug!
+  - 500    # We're going to assume that anything below 500 is catastrophic to the point of being unuseable
+Mem: # The maximum amount of memory the container can use.
+     # Note: We're going to always assume MB
+  - 2000 # FIXME What's the default out-of-the-box?
+  - 5    # That outta do it. 4MB is the Docker-imposed limit.
