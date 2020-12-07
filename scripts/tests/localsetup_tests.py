@@ -80,8 +80,8 @@ class OpbeansServiceTest(ServiceTest):
                           max-size: '2m'
                           max-file: '5'
                     depends_on:
-                      - elasticsearch
                       - apm-server
+                      - elasticsearch
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-dotnet:3000/"]
                         interval: 10s
@@ -144,10 +144,10 @@ class OpbeansServiceTest(ServiceTest):
                           max-size: '2m'
                           max-file: '5'
                     depends_on:
-                      - elasticsearch
                       - postgres
                       - redis
                       - apm-server
+                      - elasticsearch
  """)  # noqa: 501
         )
 
@@ -202,9 +202,9 @@ class OpbeansServiceTest(ServiceTest):
                           max-size: '2m'
                           max-file: '5'
                     depends_on:
-                      - elasticsearch
                       - postgres
                       - apm-server
+                      - elasticsearch
                     healthcheck:
                       test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-java:3000/"]
                       interval: 10s
@@ -270,8 +270,8 @@ class OpbeansServiceTest(ServiceTest):
                         - OPBEANS_DT_PROBABILITY=0.50
                         - ELASTIC_APM_ENVIRONMENT=production
                     depends_on:
-                        - redis
                         - postgres
+                        - redis
                         - apm-server
                     healthcheck:
                         test: ["CMD", "wget", "-q", "--server-response", "-O", "/dev/null", "http://opbeans-node:3000/"]
@@ -338,10 +338,10 @@ class OpbeansServiceTest(ServiceTest):
                         - OPBEANS_DT_PROBABILITY=0.50
                         - ELASTIC_APM_ENVIRONMENT=production
                     depends_on:
-                        - apm-server
-                        - elasticsearch
                         - postgres
                         - redis
+                        - apm-server
+                        - elasticsearch
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-python:3000/"]
                         interval: 10s
@@ -422,10 +422,10 @@ class OpbeansServiceTest(ServiceTest):
                           max-size: '2m'
                           max-file: '5'
                     depends_on:
-                      - redis
-                      - elasticsearch
                       - postgres
+                      - redis
                       - apm-server
+                      - elasticsearch
                     healthcheck:
                       test: ["CMD", "wget", "-q", "--server-response", "-O", "/dev/null", "http://opbeans-ruby:3000/"]
                       interval: 10s
@@ -566,12 +566,14 @@ class OpbeansServiceTest(ServiceTest):
             opbeans_python_loadgen_rpm=50,
             opbeans_ruby_loadgen_rpm=10,
         ).render()
+        import pdb
+        pdb.set_trace()
         assert opbeans_load_gen == yaml.safe_load("""
             opbeans-load-generator:
                 image: opbeans/opbeans-loadgen:latest
                 container_name: localtesting_6.3.1_opbeans-load-generator
                 depends_on:
-                    - opbeans-python:
+                    - opbeans-python
                     - opbeans-ruby
                 environment:
                  - 'OPBEANS_URLS=opbeans-python:http://opbeans-python:3000,opbeans-ruby:http://opbeans-ruby:3000'

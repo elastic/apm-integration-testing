@@ -216,7 +216,7 @@ class OpbeansGo(OpbeansService):
                 "ELASTIC_APM_TRANSACTION_SAMPLE_RATE=1",
                 "ELASTICSEARCH_URL={}".format(self.es_urls),
                 "OPBEANS_CACHE=redis://redis:6379",
-                "OPBEANS_PORT={}}".format(self.APPLICATION_PORT),
+                "OPBEANS_PORT={}".format(self.APPLICATION_PORT),
                 "PGHOST=postgres",
                 "PGPORT=5432",
                 "PGUSER=postgres",
@@ -595,10 +595,10 @@ class OpbeansRuby(OpbeansService):
                 "DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans-ruby",
                 "REDIS_URL=redis://redis:6379",
                 "ELASTICSEARCH_URL={}".format(self.es_urls),
-                "OPBEANS_SERVER_URL=http://opbeans-ruby:{}}".format(self.APPLICATION_PORT),
+                "OPBEANS_SERVER_URL=http://opbeans-ruby:{}".format(self.APPLICATION_PORT),
                 "RAILS_ENV=production",
                 "RAILS_LOG_TO_STDOUT=1",
-                "PORT={}}".format(self.APPLICATION_PORT),
+                "PORT={}".format(self.APPLICATION_PORT),
                 "RUBY_AGENT_BRANCH=" + self.agent_branch,
                 "RUBY_AGENT_REPO=" + self.agent_repo,
                 "RUBY_AGENT_VERSION",
@@ -628,6 +628,7 @@ class OpbeansRuby01(OpbeansRuby):
 
 
 class OpbeansRum(Service):
+    # FIXME this might not work with dyno because we are inherting from Service
     # OpbeansRum is not really an Opbeans service, so we inherit from Service
     SERVICE_PORT = 9222
 
@@ -646,7 +647,7 @@ class OpbeansRum(Service):
     def __init__(self, **options):
         super(OpbeansRum, self).__init__(**options)
         self.backend_service = options.get('opbeans_rum_backend_service', 'opbeans-node')
-        self.backend_port = options.get('opbeans_rum_backend_port', self.APPLICATION_PORT)
+        self.backend_port = options.get('opbeans_rum_backend_port', '3000')
 
     def _content(self):
         content = dict(

@@ -17,11 +17,21 @@ def fetch_all_apps():
     """
     Generate a list of the apps we have configured
     and return it
+
+    Can also pass full=1 for a more complete listing
     """
     t = _fetch_proxy()
     p = t.proxies()
-    # TODO We may need to update the server addr here
-    return {'proxies': list(p.keys())}
+    if request.args.get('full'):
+        ret = {'proxies': []}
+        for proxy in p.values():
+            name = proxy.name
+            listen = proxy.listen
+            ret['proxies'].append({'name': name, 'listen': listen})
+        return ret
+    else:
+        # TODO We may need to update the server addr here
+        return {'proxies': list(p.keys())}
 
 
 @bp.route('/enable', methods=['GET'])
