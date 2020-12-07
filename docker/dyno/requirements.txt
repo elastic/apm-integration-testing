@@ -1,5 +1,6 @@
 gunicorn
 docker
+pyyaml
 flask
 flask-cors
 Flask-Limiter

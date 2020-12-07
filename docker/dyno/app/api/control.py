@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
+import app
+import yaml
 from flask import request
 from app.api import bp
 from toxiproxy.server import Toxiproxy
@@ -79,12 +81,13 @@ def slide():
     # a toxic matching what we are looking for exists and if so, we remove it.
     # Then we just carry on with our business. This obviously needs to be fixed
     # at some point.
+    normalized_val = _normalize_value(slide['tox_code'], slide['val'])
 
     # FIXME testing. Let's just add for now for PoC
     try:
         p.add_toxic(
             type=toxic_key['type'],
-            attributes={toxic_key['attr']: slide['val']}
+            attributes={toxic_key['attr']: normalized_val}
             )
     except Exception:
         t = p.toxics()
@@ -92,9 +95,29 @@ def slide():
             p.destroy_toxic(i)
         p.add_toxic(
             type=toxic_key['type'],
-            attributes={toxic_key['attr']: slide['val']}
+            attributes={toxic_key['attr']: normalized_val}
             )
     return {}
+
+
+def _normalize_value(tox_code, val):
+    """
+    This uses the range.yml configuration file which populates
+    a set of values to determine the upper and lower range.
+    We take our input value from the web interface to this function
+    which is in the range of 0-100 and we turn that into an actual
+    value to pass to the toxic
+    """
+    range_path = os.path.join(app.app.root_path, 'range.yml')
+    with open(range_path, 'r') as fh_:
+        slider_range = yaml.load(fh_)
+
+    lval, uval = slider_range[tox_code]
+    val_range = abs(uval - lval)
+    if lval < uval:
+        return abs(uval - int(val_range * (val / 100)))
+    else:
+        return int(val_range * (val / 100))
 
 
 def _decode_toxic(toxic):
