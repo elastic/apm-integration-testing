@@ -75,11 +75,13 @@ Ssd: # time in microseconds to delay each packet by
 
 ## Start the Docker settings
 ## For more information see: https://docs.docker.com/config/containers/resource_constraints/
-CPU: # Impose a CPU CFS quota on the container.
-     # The number of microseconds per --cpu-period that the container is limited to before throttled.
+CPU:
+  # Impose a CPU CFS quota on the container.
+  # The number of microseconds per --cpu-period that the container is limited to before throttled.
   - 100000 # Not totally sure this is also the default for quota. FIXME: Possible bug!
   - 500    # We're going to assume that anything below 500 is catastrophic to the point of being unuseable
-Mem: # The maximum amount of memory the container can use.
-     # Note: We're going to always assume MB
+Mem:
+  # The maximum amount of memory the container can use.
+  # Note: We're going to always assume MB
   - 2000 # FIXME What's the default out-of-the-box?
   - 5    # That outta do it. 4MB is the Docker-imposed limit.
