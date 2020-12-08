@@ -15,8 +15,8 @@ if [ -z "${JAVA_AGENT_BUILT_VERSION}" ] ; then
   mvn dependency:go-offline --fail-never -q -B
   mvn -q --batch-mode clean install \
     -DskipTests=true \
-    -Dhttps.protocols=TLSv1.2 \
     -Dmaven.javadoc.skip=true \
+    -Dhttps.protocols=TLSv1.2 \
     -Dmaven.wagon.http.retryHandler.count=10 \
     -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 \
     -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
@@ -39,10 +39,10 @@ cd /app
 mvn -q --batch-mode -DAGENT_API_VERSION="${JAVA_AGENT_BUILT_VERSION}" \
   -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
   -DskipTests=true \
-  -Dhttps.protocols=TLSv1.2 \
   -Dmaven.javadoc.skip=true \
+  -Dhttps.protocols=TLSv1.2 \
   -Dmaven.wagon.http.retryHandler.count=10 \
-  -Dhttp.keepAlive=false \
+  -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 \
   -Dmaven.repo.local=${M2_REPOSITORY_FOLDER} \
   package
 
