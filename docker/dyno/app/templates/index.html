@@ -309,13 +309,20 @@
     }
 
     function drawServiceEnable(service_name) {
-      // TODO: initialize state of checkboxes correctly
       $( `#${ service_name }-header`).after(
         `<fieldset><label for="checkbox-${ service_name }">Enabled?<input type="checkbox" name="checkbox-${ service_name }" id="checkbox-${ service_name }"></label></fieldset>`
       );
       $( "input[type='checkbox']" ).checkboxradio();
-      // FIXME currently not dynamic. Need to check correctly
-      $("input[type='checkbox']").prop('checked',true).checkboxradio('refresh')
+      $.get({
+            url: `http://localhost:9000/api/app?name=${service_name}`,
+            contentType: "application/json",
+            dataType: 'json',
+            success: function(result){
+                if (result.enabled == true){
+                  $(`#checkbox-${ service_name }`).prop('checked',true).checkboxradio('refresh');
+                }
+            }
+          });
       $(`#checkbox-${service_name}`).click(function() {
         if (this.checked) {
           $.get({

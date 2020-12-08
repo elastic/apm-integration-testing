@@ -14,6 +14,27 @@ def _fetch_proxy():
     return t
 
 
+@bp.route('/app', methods=['GET'])
+def fetch_app():
+    """
+    Fetch a single app
+    """
+    name = request.args.get('name')
+    t = _fetch_proxy()
+    p = t.proxies()
+    ret = {}
+    if not p.get(name):
+        return {}
+    ret['name'] = p[name].name
+    ret['listen'] = p[name].listen
+    ret['upstream'] = p[name].upstream
+    ret['enabled'] = p[name].enabled
+    ret['toxics'] = []
+    for toxic in p[name].toxics():
+        ret['toxics'].append(toxic)
+    return ret
+
+
 @bp.route('/apps', methods=['GET'])
 def fetch_all_apps():
     """
