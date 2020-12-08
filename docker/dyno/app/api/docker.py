@@ -60,12 +60,14 @@ def query():
     are supported: b, k, m, g
         -> HostConfig.Memory
     """
-    return {
-        'cpu': config['CpuShares'],
-        'io': config['BlkioWeight'],
-        'mem_limit': config['Memory']
-        }
-
+    ret = {
+        'CPU': _denormalize_value('cpu', config['CpuQuota']),
+        'Mem': _denormalize_value('mem', config['Memory']),
+        # 'IO': _denormalize_value('io', config['BlkioWeight']),
+    }
+    import pprint
+    pprint.pprint(config)
+    return ret
 
 @bp.route('/update', methods=['GET'])
 def update():
@@ -95,6 +97,20 @@ def update():
     c.update(**config['settings'])
     return {}
 
+
+def _denormalize_value(code, val):
+    """
+    Take a current value and return the percentage val
+    """
+    range_path = os.path.join(app.app.root_path, 'range.yml')
+    with open(range_path, 'r') as fh_:
+        slider_range = yaml.load(fh_)
+    lval, uval = slider_range[code]
+    val_range = abs(uval - lval)
+    if lval < uval:
+        return int(100 - ((val / val_range) * 100))
+    else:
+        return int((val / val_range) * 100)
 
 def _normalize_value(code, val):
     """

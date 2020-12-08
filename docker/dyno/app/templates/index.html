@@ -221,7 +221,6 @@
             <td align="center" id="Ssd-${service_name}-val"></td>\
             <td align="center" id="CPU-${service_name}-val"></td>\
             <td align="center" id="Mem-${service_name}-val"></td>\
-            <td align="center" id="IO-${service_name}-val"></td>\
             </tr>\
             <tr>\
             <td><span id="L" class="toxi_slide">100</span></td>\
@@ -233,7 +232,6 @@
             <td><span id="Ssd" class="toxi_slide">100</span></td>\
             <td><span id="CPU" class="docker_slide">100</span></td>\
             <td><span id="Mem" class="docker_slide">100</span></td>\
-            <td><span id="IO" class="docker_slide">100</span></td>\
             </tr>\
             <tr>\
             <td align="center">L</td>\
@@ -245,7 +243,6 @@
             <td alignt="center">Ssd</td>\
             <td alignt="center">CPU</td>\
             <td alignt="center">Mem</td>\
-            <td alignt="center">IO</td>\
             </tr>\
           </table>\
       </div>`
@@ -278,19 +275,36 @@
           });
 
 
-      // setup EQ for Docker
-      $( "#eq-"+ service_name+" > table > tbody > tr > td > .docker_slide" ).each(function() {
-        // read initial values from markup and remove that
-        var value = parseInt( $( this ).text(), 10 );
-        s = $( this ).empty().slider({
-          value: value,
-          range: "min",
-          animate: true,
-          orientation: "vertical",
-          change: handleDockerSlideChange,
-        });
-        s.attr('service_name', service_name);
+      $.get({
+        url: `http://localhost:9000/api/docker/query?c=${service_name}`,
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result){
+          console.log(result);
+
+          // setup EQ for Docker
+          $( "#eq-"+ service_name+" > table > tbody > tr > td > .docker_slide" ).each(function() {
+            var previouslySetSlider = result[this.id];
+            var sliderVal = 100;
+            if (previouslySetSlider != 0 && typeof previouslySetSlider !== 'undefined') {
+                  sliderVal = previouslySetSlider
+            }
+            s = $( this ).empty().slider({
+              value: sliderVal,
+              range: "min",
+              animate: true,
+              orientation: "vertical",
+              change: handleDockerSlideChange,
+            });
+            s.attr('service_name', service_name);
+            $(`#${this.id}-${service_name}-val`).text(sliderVal);
+          });
+
+
+        }
       });
+
+
 
 
     }

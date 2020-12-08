@@ -146,12 +146,9 @@ def _denormalize_value(tox_code, val):
         slider_range = yaml.load(fh_)
     lval, uval = slider_range[tox_code]
     val_range = abs(uval - lval)
-    # return int((val / val_range) * 100)
     if lval < uval:
-        # return int((val_range / val) * 100)
         return int(100 - ((val / val_range) * 100))
     else:
-        # return int((val / val_range) * 100)
         return int((val / val_range) * 100)
 
 
