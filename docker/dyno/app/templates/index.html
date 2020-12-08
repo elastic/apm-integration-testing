@@ -203,7 +203,6 @@
         `<p id="${ proxy.name }-header" class="ui-state-default ui-corner-all ui-helper-clearfix" style="padding:4px;">` +
         `<span style="float:left; margin:-2px 5px 0 0;" class="proxy-name">${proxy.name}</span></p></div>`
         );
-      // FIXME: This ordering is a bit backward
       drawSliders(proxy.name);
       drawServiceEnable(proxy.name);
     }
@@ -213,16 +212,16 @@
         '<div style="margin: 15px" id="eq-'+service_name+`" class="eq">\
           <table>\
             <tr>\
-            <td align="center" id="L-val">100</td>\
-            <td align="center" id="J-val">100</td>\
-            <td align="center" id="B-val">100</td>\
-            <td align="center" id="SC-val">100</td>\
-            <td align="center" id="T-val">100</td>\
-            <td align="center" id="Sas-val">100</td>\
-            <td align="center" id="Ssd-val">100</td>\
-            <td align="center" id="CPU-val">100</td>\
-            <td align="center" id="Mem-val">100</td>\
-            <td align="center" id="IO-val">100</td>\
+            <td align="center" id="L-${service_name}-val"></td>\
+            <td align="center" id="J-${service_name}-val"></td>\
+            <td align="center" id="B-${service_name}-val"></td>\
+            <td align="center" id="SC-${service_name}-val"></td>\
+            <td align="center" id="T-${service_name}-val"></td>\
+            <td align="center" id="Sas-${service_name}-val"></td>\
+            <td align="center" id="Ssd-${service_name}-val"></td>\
+            <td align="center" id="CPU-${service_name}-val"></td>\
+            <td align="center" id="Mem-${service_name}-val"></td>\
+            <td align="center" id="IO-${service_name}-val"></td>\
             </tr>\
             <tr>\
             <td><span id="L" class="toxi_slide">100</span></td>\
@@ -251,21 +250,33 @@
           </table>\
       </div>`
       );
-      // TODO: Add rest of attrs
 
-      // setup for Toxi
-      $( "#eq-"+ service_name+" > table > tbody > tr > td > .toxi_slide" ).each(function() {
-        // read initial values from markup and remove that
-        var value = parseInt( $( this ).text(), 10 );
-        s = $( this ).empty().slider({
-          value: value,
-          range: "min",
-          animate: true,
-          orientation: "vertical",
-          change: handleToxiSlideChange,
-        });
-        s.attr('service_name', service_name);
-      });
+      // Set initial values from current values in proxy
+      $.get({
+            url: `http://localhost:9000/api/app?name=${service_name}&denorm=1`,
+            contentType: "application/json",
+            dataType: 'json',
+            success: function(result){
+
+              $( "#eq-"+ service_name+" > table > tbody > tr > td > .toxi_slide" ).each(function() {
+                var previouslySetSlider = result.toxics[this.id];
+                var sliderVal = 100;
+                if (previouslySetSlider != 0 && typeof previouslySetSlider !== 'undefined') {
+                  sliderVal = previouslySetSlider
+                }
+                s = $( this ).empty().slider({
+                  value: sliderVal,
+                  range: "min",
+                  animate: true,
+                  orientation: "vertical",
+                  change: handleToxiSlideChange,
+                });
+                s.attr('service_name', service_name);
+                $(`#${this.id}-${service_name}-val`).text(sliderVal);
+              });
+            }
+          });
+
 
       // setup EQ for Docker
       $( "#eq-"+ service_name+" > table > tbody > tr > td > .docker_slide" ).each(function() {
@@ -280,6 +291,8 @@
         });
         s.attr('service_name', service_name);
       });
+
+
     }
 
     function handleDockerSlideChange(event, ui){

@@ -6,6 +6,18 @@ from flask import request
 from app.api import bp
 from toxiproxy.server import Toxiproxy
 
+toxic_map = {
+    'L': {'type': 'latency', 'attr': 'latency'},
+    'J': {'type': 'latency', 'attr': 'jitter'},
+    'B': {'type': 'bandwidth', 'attr': 'rate'},
+    'SC': {'type': 'slow_close', 'attr': 'delay'},
+    'T': {'type': 'timeout', 'attr': 'timeout'},
+    'Sas': {'type': 'slicer', 'attr': 'average_size'},
+    'Ssv': {'type': 'slicer', 'attr': 'size_variation'},
+    'Sd': {'type': 'slicer', 'attr': 'delay'},
+    'Ld': {'type': 'limit_data', 'attr': 'bytes'}
+}
+
 
 def _fetch_proxy():
     t = Toxiproxy()
@@ -20,6 +32,7 @@ def fetch_app():
     Fetch a single app
     """
     name = request.args.get('name')
+    denorm = request.args.get('denorm')
     t = _fetch_proxy()
     p = t.proxies()
     ret = {}
@@ -29,9 +42,15 @@ def fetch_app():
     ret['listen'] = p[name].listen
     ret['upstream'] = p[name].upstream
     ret['enabled'] = p[name].enabled
-    ret['toxics'] = []
-    for toxic in p[name].toxics():
-        ret['toxics'].append(toxic)
+    ret['toxics'] = {}
+
+    for toxic in p[name].toxics().values():
+        for a, v in toxic.attributes.items():
+            if denorm:
+                denorm_val = _encode_toxic(toxic.type, a)
+                ret['toxics'][denorm_val] = _denormalize_value(denorm_val, v)
+            else:
+                ret['toxics'][a] = v
     return ret
 
 
@@ -121,6 +140,21 @@ def slide():
     return {}
 
 
+def _denormalize_value(tox_code, val):
+    range_path = os.path.join(app.app.root_path, 'range.yml')
+    with open(range_path, 'r') as fh_:
+        slider_range = yaml.load(fh_)
+    lval, uval = slider_range[tox_code]
+    val_range = abs(uval - lval)
+    # return int((val / val_range) * 100)
+    if lval < uval:
+        # return int((val_range / val) * 100)
+        return int(100 - ((val / val_range) * 100))
+    else:
+        # return int((val / val_range) * 100)
+        return int((val / val_range) * 100)
+
+
 def _normalize_value(tox_code, val):
     """
     This uses the range.yml configuration file which populates
@@ -136,23 +170,28 @@ def _normalize_value(tox_code, val):
     lval, uval = slider_range[tox_code]
     val_range = abs(uval - lval)
     if lval < uval:
-        return abs(uval - int(val_range * (val / 100)))
+        ret = abs(uval - int(val_range * (val / 100)))
+        if ret < 1:
+            ret = 1
+        return ret
     else:
-        return int(val_range * (val / 100))
+        ret = int(val_range * (val / 100))
+        if ret < 1:
+            ret = 1
+        return ret
+
+
+def _encode_toxic(t, a):
+    """
+    Given a type and an attr, give us the tox code
+    """
+    for k, v in toxic_map.items():
+        if v['type'] == t and v['attr'] == a:
+            return k
 
 
 def _decode_toxic(toxic):
-    toxic_map = {
-        'L': {'type': 'latency', 'attr': 'latency'},
-        'J': {'type': 'latency', 'attr': 'jitter'},
-        'B': {'type': 'bandwidth', 'attr': 'rate'},
-        'SC': {'type': 'slow_close', 'attr': 'delay'},
-        'T': {'type': 'timeout', 'attr': 'timeout'},
-        'Sas': {'type': 'slicer', 'attr': 'average_size'},
-        'Ssv': {'type': 'slicer', 'attr': 'size_variation'},
-        'Sd': {'type': 'slicer', 'attr': 'delay'},
-        'Ld': {'type': 'limit_data', 'attr': 'bytes'}
-    }
+
     try:
         return toxic_map[toxic]
     except KeyError:
