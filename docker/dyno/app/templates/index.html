@@ -143,6 +143,19 @@
             `</p><fieldset><label for="lg-checkbox-${ service_name }">Load test<input type="checkbox" name="lg-checkbox-${service_name}" id="lg-checkbox-${service_name}"></label></fieldset>` +
             `</div>`
           );
+          // Check the box if a job is already running
+          $.get({
+            url: "http://localhost:8999/api/list",
+            contentType: "application/json",
+            dataType: 'json',
+            success: function(result){
+              $.each(result, function(idx, lg){
+                if (lg.running) {
+                  $(`#lg-checkbox-${lg.name}`).attr('checked', 'checked')
+                }
+              });
+             }
+          });
           var sel = '#lg-checkbox-'+service_name;
           $(sel).click(function() {
           if (this.checked) {
