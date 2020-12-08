@@ -1,4 +1,3 @@
-import os
 import json
 from .service import Service
 from .helpers import wget_healthcheck
@@ -33,6 +32,7 @@ class Dyno(Service):
             volumes=["/var/run/docker.sock:/var/run/docker.sock"],
         )
 
+
 class Toxi(Service):
     SERVICE_PORT = 8474
     opbeans_side_car = False
@@ -49,7 +49,8 @@ class Toxi(Service):
             labels=None,
             ports=self.generated_ports,
             volumes=["./docker/toxi/toxi.cfg:/toxi/toxi.cfg"],
-            command=["-host=0.0.0.0", "-config=/toxi/toxi.cfg"]
+            command=["-host=0.0.0.0", "-config=/toxi/toxi.cfg"],
+            restart='on-failure',
         )
 
     def gen_ports(self, services):
