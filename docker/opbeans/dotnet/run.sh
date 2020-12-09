@@ -52,7 +52,7 @@ if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
     dotnet sln remove test/Elastic.Apm.AspNetFullFramework.Tests/Elastic.Apm.AspNetFullFramework.Tests.csproj
   fi
   dotnet restore
-  dotnet pack -c Release -o /src/local-packages
+  dotnet pack ElasticApmAgent.sln -c Release -o /src/local-packages
 
   cd /src/opbeans-dotnet/opbeans-dotnet || exit
   mv /src/NuGet.Config .
