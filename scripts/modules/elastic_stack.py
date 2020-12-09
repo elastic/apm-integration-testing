@@ -6,7 +6,7 @@ import argparse
 import json
 import os
 
-from .helpers import curl_healthcheck, try_to_set_slowlog
+from .helpers import curl_healthcheck, try_to_set_slowlog, urlparse
 from .service import StackService, Service, DEFAULT_APM_SERVER_URL
 
 
@@ -590,12 +590,58 @@ class ApmServer(StackService, Service):
 class ElasticAgent(StackService, Service):
     docker_path = "beats"
 
+    def __init__(self, **options):
+        super(ElasticAgent, self).__init__(**options)
+
+        # build deps
+        self.depends_on = {"kibana": {"condition": "service_healthy"}} if options.get("enable_kibana", True) else {}
+
+        # build environment
+        # Environment variables used
+        # FLEET_ENROLLMENT_TOKEN - existing enrollment token to be used for enroll
+        # FLEET_ENROLL - if set to 1 enroll will be performed
+        # FLEET_ENROLL_INSECURE - if set to 1, agent will enroll with fleet using --insecure flag
+        # FLEET_SETUP - if  set to 1 fleet setup will be performed
+        # FLEET_TOKEN_NAME - token name for a token to be created
+        # KIBANA_HOST - actual kibana host [http://localhost:5601]
+        # KIBANA_PASSWORD - password for accessing kibana API [changeme]
+        # KIBANA_USERNAME - username for accessing kibana API [elastic]
+        kibana_url = options.get("elastic_agent_kibana_host")
+        if not kibana_url:
+            kibana_scheme = "https" if self.options.get("kibana_enable_tls", False) else "http"
+            # TODO(gr): add default elastic-agent user
+            kibana_url = kibana_scheme + "://admin:changeme@" + self.DEFAULT_KIBANA_HOST
+
+        kibana_parsed_url = urlparse(kibana_url)
+        self.environment = {
+            "FLEET_ENROLL": "1",
+            "FLEET_SETUP": "1",
+            "KIBANA_HOST": kibana_url,
+        }
+        if kibana_parsed_url.password:
+            self.environment["KIBANA_PASSWORD"] = kibana_parsed_url.password
+        if kibana_parsed_url.username:
+            self.environment["KIBANA_USERNAME"] = kibana_parsed_url.username
+        if not kibana_url.startswith("https://"):
+            self.environment["FLEET_ENROLL_INSECURE"] = 1
+
     def _content(self):
-        return {
-            "healthcheck": {
+        return dict(
+            depends_on=self.depends_on,
+            environment=self.environment,
+            healthcheck={
                 "test": ["CMD", "/bin/true"],
             }
-        }
+        )
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(ElasticAgent, cls).add_arguments(parser)
+        parser.add_argument(
+            "--elastic-agent-kibana-url",
+            default="http://admin:changeme@" + cls.DEFAULT_KIBANA_HOST,
+            help="Elastic Agent's kibana URL"
+        )
 
 
 class Elasticsearch(StackService, Service):
