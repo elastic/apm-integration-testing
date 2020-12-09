@@ -12,7 +12,7 @@ ARG DOTNET_AGENT_VERSION=
 ARG OPBEANS_DOTNET_REPO=elastic/opbeans-dotnet
 ARG OPBEANS_DOTNET_BRANCH=master
 # Workaround for https://github.com/dotnet/sdk/issues/14497
-ARG DOTNET_HOST_PATH=dotnet
+ARG DOTNET_HOST_PATH=/usr/share/dotnet/dotnet
 WORKDIR /src
 COPY . /src
 RUN ./run.sh

@@ -9,7 +9,7 @@ ARG DOTNET_AGENT_REPO=elastic/apm-agent-dotnet
 ARG DOTNET_AGENT_BRANCH=master
 ARG DOTNET_AGENT_VERSION=
 # Workaround for https://github.com/dotnet/sdk/issues/14497
-ARG DOTNET_HOST_PATH=dotnet
+ARG DOTNET_HOST_PATH=/usr/share/dotnet/dotnet
 WORKDIR /src
 COPY . /src
 RUN ./run.sh
