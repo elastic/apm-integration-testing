@@ -165,7 +165,7 @@ def _normalize_value(tox_code, val):
         slider_range = yaml.load(fh_)
 
     lval, uval = slider_range[tox_code]
-    val_range = abs(uval - lval)
+    val_range = abs(uval - lval) + 1
     if lval < uval:
         ret = abs(uval - int(val_range * (val / 100)))
         if ret < 1:

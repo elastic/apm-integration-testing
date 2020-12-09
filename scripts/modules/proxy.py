@@ -91,4 +91,5 @@ class Toxi(Service):
                 }
                 config.append(service_def)
         ret = json.dumps(config, sort_keys=True, indent=4)
+        print(ret)
         return ret

@@ -91,8 +91,9 @@ def update():
     if c == 'io':
         config['settings']['blkio_weight'] = _normalize_value(c, val)
     if c == 'mem':
-        config['settings']['memswap_limit'] = _normalize_value(c, val)
-
+        config['settings']['mem_limit'] = str(_normalize_value(c, val)) + "m"
+        config['settings']['memswap_limit'] = -1
+    print(config['settings'])
     c = client.containers.get(config['container'])
     c.update(**config['settings'])
     return {}
@@ -106,11 +107,14 @@ def _denormalize_value(code, val):
     with open(range_path, 'r') as fh_:
         slider_range = yaml.load(fh_)
     lval, uval = slider_range[code]
-    val_range = abs(uval - lval)
-    if lval < uval:
-        return int(100 - ((val / val_range) * 100))
-    else:
-        return int((val / val_range) * 100)
+    ret = ((val - min([uval, lval])) / (max([lval, uval]) - min([lval-uval]))) + 1
+    return int(ret)
+    # val_range = abs(uval - lval)
+    # if lval < uval:
+    #     return int(100 - ((val / val_range) * 100))
+    # else:
+    #     return int((val / val_range) * 100)
+
 
 def _normalize_value(code, val):
     """
@@ -125,12 +129,18 @@ def _normalize_value(code, val):
         slider_range = yaml.load(fh_)
 
     lval, uval = slider_range[code]
-    val_range = abs(uval - lval)
-    if lval < uval:
-        ret = abs(uval - int(val_range * (val / 100)))
-    else:
-        ret = int(val_range * (val / 100))
 
-    # if code == 'mem':
-    #     ret = str(ret) + "B"
-    return ret
+    # val_range = abs(uval - lval) + 1
+    # # if lval < uval:
+    # #     ret = abs(uval - int(val_range * (val / 100)))
+    # # else:
+    # #     # ret = int(val_range * (val / 100))
+    # #     adder = range / val 
+    # #     ret = uval + adder
+    print('received: ', val)
+    print('range vals', lval, uval)
+    ret = (((val) * max([lval, uval]) - min([lval, uval])) / 100) + min([lval, uval])
+    # range = abs(max[lval, uval] - min([lval, uval]))
+    
+    print('attempt to set to: ', ret)
+    return int(ret)

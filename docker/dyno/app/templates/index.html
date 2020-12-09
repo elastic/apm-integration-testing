@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <style>
   .eq > table > tbody > tr > td > span {
-    height:120px; float:left; margin:15px
+    height:120px; float:left; margin:10px
   }
   .ui-slider-latency { background: #242a82 ; }
   .ui-slider-bandwidth { background: #4c2482 ; }
@@ -74,6 +74,10 @@
       $('#get_stats').text('GET req/min');
       $('#post_stats').text('POST req/min');
       for (let [h, v] of Object.entries(get_stats)){
+        console.log('----')
+        console.log('h: ', h);
+        console.log('v: ', v);
+        console.log('----');
 
         if (Object.keys(sparkMap.getMap).includes(h)){
                 sparkMap['getMap'][h].push(v);
@@ -83,7 +87,7 @@
               } else {
                 sparkMap['getMap'][h] = [v];
               }
-        $('#get_stats').append(`<tr><td>${h}</td><td><span id="get-spark-${h}"></span></td><td>${v * 20}</td></tr>`);
+        $('#get_stats').append(`<tr><td>${h}</td><td><span id="get-spark-${h}"></span></td><td>${v * 12}</td></tr>`);
         $(`#get-spark-${h}`).sparkline(sparkMap['getMap'][h])
 
       }
@@ -149,6 +153,7 @@
             contentType: "application/json",
             dataType: 'json',
             success: function(result){
+              console.log('check res', result);
               $.each(result, function(idx, lg){
                 if (lg.running) {
                   $(`#lg-checkbox-${lg.name}`).attr('checked', 'checked')
@@ -160,23 +165,22 @@
           $(sel).click(function() {
           if (this.checked) {
             // Get list of proxies
-            $.get({
-              url: window.location.origin + "/api/apps?full=1",
-              contentType: "application/json",
-              dataType: 'json',
-              success: function(result){
-                // For now the best we can probably do is to try
-                // and find the right opbean
-                $.get({
-                  url: `http://localhost:8999/api/start?job=${service_name}&port=${port}`,
+            var scenario = $('#scenarios_selector').val();
+            var job_data = {"job": service_name, "port": port}
+            console.log(scenario)
+            if (scenario !== 'Default'){
+              job_data['scenario'] = scenario;
+            }
+            console.log(job_data);
+            $.post({
+                  url: "http://localhost:8999/api/start",
                   contentType: "application/json",
+                  data: JSON.stringify(job_data),
                   dataType: 'json',
                   success: function(result){
                     console.log('Sent request to enable LG. result: ' + result)
                   }
                 })
-              }
-            });
           } else {
             $.get({
               url: "http://localhost:8999/api/stop?job="+service_name,
@@ -211,6 +215,8 @@
         '<div style="margin: 15px" id="eq-'+service_name+`" class="eq">\
           <table>\
             <tr>\
+            <td align="center" id="W-${service_name}-val"></td>\
+            <td align="center" id="Er-${service_name}-val"></td>\
             <td align="center" id="L-${service_name}-val"></td>\
             <td align="center" id="J-${service_name}-val"></td>\
             <td align="center" id="B-${service_name}-val"></td>\
@@ -222,6 +228,8 @@
             <td align="center" id="Mem-${service_name}-val"></td>\
             </tr>\
             <tr>\
+            <td><span id="W" class="molotov_slide">100</span></td>\
+            <td><span id="Er" class="molotov_slide">100</span></td>\
             <td><span id="L" class="toxi_slide">100</span></td>\
             <td><span id="J" class="toxi_slide">100</span></td>\
             <td><span id="B" class="toxi_slide">100</span></td>\
@@ -233,6 +241,8 @@
             <td><span id="Mem" class="docker_slide">100</span></td>\
             </tr>\
             <tr>\
+            <td align="center">W</td>\
+            <td align="center">Er</td>\
             <td align="center">L</td>\
             <td align="center">J</td>\
             <td align="center">B</td>\
@@ -246,6 +256,52 @@
           </table>\
       </div>`
       );
+
+      // TODO set cur val for molotov vals
+      $.get({
+            url: `http://localhost:8999/api/list`,
+            contentType: "application/json",
+            dataType: 'json',
+            success: function(result){
+
+              // if (! service_name.startsWith("opbeans-")) {
+              //   return
+              // }
+
+              $( "#eq-"+ service_name+" > table > tbody > tr > td > .molotov_slide" ).each(function() {
+                var lg_name = service_name.replace("opbeans-", "")
+                if (result[lg_name]){
+                  console.log('found it', result[lg_name])
+                  // FIXME temp scaffolding code
+                  if (this.id == 'W') {
+                    var previouslySetSlider = result[lg_name]['workers']
+                  } else if (this.id == 'Er') {
+                    var previouslySetSlider = result[lg_name]['error_rate']
+                  }
+                }
+                // FIXME not representative of actual value on initial load
+                if (this.id == 'W'){
+                  var sliderVal = 33;
+                } else{
+                  var sliderVal = 100;
+                }
+
+                if (previouslySetSlider != 0 && typeof previouslySetSlider !== 'undefined') {
+                  sliderVal = previouslySetSlider;
+                }
+                s = $( this ).empty().slider({
+                  value: sliderVal,
+                  min: 1,
+                  range: "min",
+                  animate: true,
+                  orientation: "vertical",
+                  change: handleMolotovSlideChange,
+                });
+                s.attr('service_name', service_name);
+                $(`#${this.id}-${service_name}-val`).text(sliderVal);
+              });
+            }
+          });
 
       // Set initial values from current values in proxy
       $.get({
@@ -262,6 +318,7 @@
                 }
                 s = $( this ).empty().slider({
                   value: sliderVal,
+                  min: 1,
                   range: "min",
                   animate: true,
                   orientation: "vertical",
@@ -290,6 +347,7 @@
             }
             s = $( this ).empty().slider({
               value: sliderVal,
+              min: 1,
               range: "min",
               animate: true,
               orientation: "vertical",
@@ -300,6 +358,32 @@
           });
         }
       });
+    }
+
+    function handleMolotovSlideChange(event, ui){
+      // console.log('Unimplemented: Molotov slide change');
+      proxy = ui.handle.parentElement.attributes.service_name.value;
+      service = proxy.replace("opbeans-", "");
+
+      console.log(service);
+      console.log(ui.value);
+      console.log(ui.handle.parentElement.id);
+      if (ui.handle.parentElement.id == 'W'){
+        d = JSON.stringify({'job': service, 'workers': (ui.value/10)});
+      } else if (ui.handle.parentElement.id == 'Er'){
+        d = JSON.stringify({'job': service, 'error_weight': ui.value});
+      }
+      // d = JSON.stringify({'job': proxy, 'tox_code': ui.handle.parentElement.id, 'val': ui.value});
+      
+      console.log(d);
+      $.ajax({
+        type: "POST",
+        url: 'http://localhost:8999/api/update',
+        data: d,
+        dataType: 'json',
+        contentType: 'application/json'
+      });
+      $(ui.handle).closest('div').find(`#${event.target.id}-val`).text(ui.value);
     }
 
     function handleDockerSlideChange(event, ui){
@@ -388,6 +472,10 @@
 </div>
 <div id="fancy-header", style="float: right;">
   <table>
+    <tr>
+      <td>W: Workers</td>
+      <td>Er: Error rate</td>
+    </tr>
     <tr>
       <td>L: Latency</td>
       <td>J: Jitter</td>

@@ -175,7 +175,7 @@ def wget_healthcheck(port, host="localhost", path="/healthcheck",
     return {
         "interval": interval,
         "retries": retries,
-        "test": ["CMD", "wget", "-q", "--server-response", "-O", "/dev/null",
+        "test": ["CMD", "wget", "-T", "3", "-q", "--server-response", "-O", "/dev/null",
                  "http://{}:{}{}".format(host, port, path)]
     }
 

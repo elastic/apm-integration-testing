@@ -78,7 +78,7 @@ Ssd: # time in microseconds to delay each packet by
 cpu:
   # Impose a CPU CFS quota on the container.
   # The number of microseconds per --cpu-period that the container is limited to before throttled.
-  - 100000 # Not totally sure this is also the default for quota. FIXME: Possible bug!
+  - 25000 # Not totally sure this is also the default for quota. FIXME: Possible bug!
   - 1000    # 1,000 is the lower limit offered by the Docker API
 mem:
   # The maximum amount of memory the container can use.
