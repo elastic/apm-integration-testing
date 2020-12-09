@@ -24,9 +24,11 @@ if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
     INSTALLED_VERSIONS=()
     while IFS= read -r result
     do
+        # shellcheck disable=SC2001
         INSTALLED_VERSIONS+=( "$(echo "$result" | sed -e 's/^\(.*\)\s.*/\1/')" )
     done < <(dotnet --list-sdks)
 
+    # shellcheck disable=SC2199,SC2076
     if [[ ! " ${INSTALLED_VERSIONS[@]} " =~ " ${GLOBAL_JSON_VERSION} " ]]; then
       ### No compatible version installed so download and install
       curl -s -O -L https://dotnet.microsoft.com/download/dotnet-core/scripts/v1/dotnet-install.sh
