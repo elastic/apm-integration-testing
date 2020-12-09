@@ -4,6 +4,7 @@
 # DOTNET_AGENT_REPO and DOTNET_AGENT_BRANCH parameterise the DOTNET agent
 # repo and branch (or commit) to use.
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+ENV DOTNET_ROOT=/usr/share/dotnet
 ARG DOTNET_AGENT_REPO=elastic/apm-agent-dotnet
 ARG DOTNET_AGENT_BRANCH=master
 ARG DOTNET_AGENT_VERSION=

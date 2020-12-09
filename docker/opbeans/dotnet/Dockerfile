@@ -4,12 +4,15 @@
 #   if unset then it uses the build generated above. (TODO: to be done)
 # DOTNET_AGENT_REPO and DOTNET_AGENT_BRANCH parameterise the DOTNET agent
 # repo and branch (or commit) to use.
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1.100 AS opbeans-dotnet
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS opbeans-dotnet
+ENV DOTNET_ROOT=/usr/share/dotnet
 ARG DOTNET_AGENT_REPO=elastic/apm-agent-dotnet
 ARG DOTNET_AGENT_BRANCH=master
 ARG DOTNET_AGENT_VERSION=
 ARG OPBEANS_DOTNET_REPO=elastic/opbeans-dotnet
 ARG OPBEANS_DOTNET_BRANCH=master
+# Workaround for https://github.com/dotnet/sdk/issues/14497
+ARG DOTNET_HOST_PATH=dotnet
 WORKDIR /src
 COPY . /src
 RUN ./run.sh
