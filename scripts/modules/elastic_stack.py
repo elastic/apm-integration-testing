@@ -592,6 +592,8 @@ class ElasticAgent(StackService, Service):
 
     def __init__(self, **options):
         super(ElasticAgent, self).__init__(**options)
+        if not self.at_least_version("7.8"):
+            raise Exception("Elastic Agent is only available in 7.8+")
 
         # build deps
         self.depends_on = {"kibana": {"condition": "service_healthy"}} if options.get("enable_kibana", True) else {}
