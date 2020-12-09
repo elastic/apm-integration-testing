@@ -591,7 +591,11 @@ class ElasticAgent(StackService, Service):
     docker_path = "beats"
 
     def _content(self):
-        return {}
+        return {
+            "healthcheck": {
+                "test": ["CMD", "/bin/true"],
+            }
+        }
 
 
 class Elasticsearch(StackService, Service):
