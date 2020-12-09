@@ -587,6 +587,13 @@ class ApmServer(StackService, Service):
         return {self.name(): content}
 
 
+class ElasticAgent(StackService, Service):
+    docker_path = "beats"
+
+    def _content(self):
+        return {}
+
+
 class Elasticsearch(StackService, Service):
     default_environment = [
         "bootstrap.memory_lock=true",

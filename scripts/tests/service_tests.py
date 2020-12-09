@@ -12,7 +12,7 @@ from ..modules.apm_agents import (
 )
 from ..modules.aux_services import Logstash, Kafka, Zookeeper
 from ..modules.beats import Filebeat, Heartbeat, Metricbeat, Packetbeat
-from ..modules.elastic_stack import ApmServer, Elasticsearch, EnterpriseSearch, Kibana
+from ..modules.elastic_stack import ApmServer, ElasticAgent, Elasticsearch, EnterpriseSearch, Kibana
 
 
 class ServiceTest(unittest.TestCase):
@@ -885,6 +885,14 @@ class ApmServerServiceTest(ServiceTest):
         apm_server = ApmServer(version="6.8.0", apm_server_enable_debug=True).render()["apm-server"]
         self.assertTrue("-d" in apm_server["command"])
         self.assertTrue("*" in apm_server["command"])
+
+
+class ElasticAgentServiceTest(ServiceTest):
+    def test_default_snapshot(self):
+        ea = ElasticAgent(version="7.12.345", snapshot=True).render()["elastic-agent"]
+        self.assertEqual(
+            ea["image"], "docker.elastic.co/beats/elastic-agent:7.12.345-SNAPSHOT"
+        )
 
 
 class ElasticsearchServiceTest(ServiceTest):
