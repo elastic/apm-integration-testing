@@ -627,18 +627,34 @@ class ElasticAgent(StackService, Service):
         if not kibana_url.startswith("https://"):
             self.environment["FLEET_ENROLL_INSECURE"] = 1
 
+        # resolve path to configuration
+        agent_config_path = options.get("elastic_agent_config")
+        if agent_config_path:
+            self.agent_config_path = os.path.abspath(agent_config_path)
+
     def _content(self):
-        return dict(
+        content = dict(
             depends_on=self.depends_on,
             environment=self.environment,
             healthcheck={
                 "test": ["CMD", "/bin/true"],
-            }
+            },
+            volumes=[
+                "/var/run/docker.sock:/var/run/docker.sock",
+            ]
         )
+        if self.agent_config_path:
+            content["volumes"].append("/usr/share/elastic-agent/elastic-agent.yml:" + self.agent_config_path)
+        return content
 
     @classmethod
     def add_arguments(cls, parser):
         super(ElasticAgent, cls).add_arguments(parser)
+        parser.add_argument(
+            "--elastic-agent-config",
+            default="./docker/elastic-agent/elastic-agent.yml",
+            help="Elastic Agent config path"
+        )
         parser.add_argument(
             "--elastic-agent-kibana-url",
             default="http://admin:changeme@" + cls.DEFAULT_KIBANA_HOST,
