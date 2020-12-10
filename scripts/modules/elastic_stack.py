@@ -608,7 +608,7 @@ class ElasticAgent(StackService, Service):
         # KIBANA_HOST - actual kibana host [http://localhost:5601]
         # KIBANA_PASSWORD - password for accessing kibana API [changeme]
         # KIBANA_USERNAME - username for accessing kibana API [elastic]
-        kibana_url = options.get("elastic_agent_kibana_host")
+        kibana_url = options.get("elastic_agent_kibana_url")
         if not kibana_url:
             kibana_scheme = "https" if self.options.get("kibana_enable_tls", False) else "http"
             # TODO(gr): add default elastic-agent user
@@ -658,7 +658,7 @@ class ElasticAgent(StackService, Service):
         parser.add_argument(
             "--elastic-agent-kibana-url",
             default="http://admin:changeme@" + cls.DEFAULT_KIBANA_HOST,
-            help="Elastic Agent's kibana URL"
+            help="Elastic Agent's Kibana URL"
         )
 
 
