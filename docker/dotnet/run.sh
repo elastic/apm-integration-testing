@@ -48,7 +48,7 @@ if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
     dotnet sln remove src/Elastic.Apm.AspNetFullFramework/Elastic.Apm.AspNetFullFramework.csproj
     dotnet sln remove test/Elastic.Apm.AspNetFullFramework.Tests/Elastic.Apm.AspNetFullFramework.Tests.csproj
   fi
-  dotnet restore
+
   dotnet pack -c Release -o /src/local-packages
 
   cd /src/aspnetcore
