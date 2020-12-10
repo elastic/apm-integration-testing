@@ -18,24 +18,6 @@ if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
   git fetch -q origin '+refs/pull/*:refs/remotes/origin/pr/*'
   git checkout "${DOTNET_AGENT_BRANCH}"
 
-  ### Check the SDK version in global.json and ensure that we have a compatible version installed
-  if [[ -f global.json ]]; then
-    GLOBAL_JSON_VERSION=$(sed -n -e 's/\s*"version":\s*"\(.*\)",/\1/p' global.json)
-    INSTALLED_VERSIONS=()
-    while IFS= read -r result
-    do
-        # shellcheck disable=SC2001
-        INSTALLED_VERSIONS+=( "$(echo "$result" | sed -e 's/^\(.*\)\s.*/\1/')" )
-    done < <(dotnet --list-sdks)
-
-    # shellcheck disable=SC2199,SC2076
-    if [[ ! " ${INSTALLED_VERSIONS[@]} " =~ " ${GLOBAL_JSON_VERSION} " ]]; then
-      ### No compatible version installed so download and install
-      curl -s -O -L https://dotnet.microsoft.com/download/dotnet-core/scripts/v1/dotnet-install.sh
-      bash ./dotnet-install.sh --install-dir "${DOTNET_ROOT}" -version "${GLOBAL_JSON_VERSION}"
-    fi
-  fi
-
   ### Otherwise: /usr/share/dotnet/sdk/2.2.203/NuGet.targets(119,5): error : The local source '/src/local-packages' doesn't exist. [/src/dotnet-agent/ElasticApmAgent.sln]
   mkdir /src/local-packages
 
@@ -52,7 +34,7 @@ if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
     dotnet sln remove test/Elastic.Apm.AspNetFullFramework.Tests/Elastic.Apm.AspNetFullFramework.Tests.csproj
   fi
 
-  dotnet restore -bl:restore.binlog 
+  dotnet restore
   dotnet pack -c Release -o /src/local-packages
 
   cd /src/opbeans-dotnet/opbeans-dotnet || exit
