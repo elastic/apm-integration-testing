@@ -12,6 +12,8 @@ ARG DOTNET_AGENT_VERSION=
 ARG DOTNET_HOST_PATH=/usr/share/dotnet/dotnet
 WORKDIR /src
 COPY . /src
+RUN curl -s -O -L https://dotnet.microsoft.com/download/dotnet-core/scripts/v1/dotnet-install.sh \
+    && bash ./dotnet-install.sh --install-dir "${DOTNET_ROOT}" -version 3.1.100
 RUN ./run.sh
 
 # Stage 2: Run the opbeans-dotnet app
