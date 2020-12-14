@@ -599,7 +599,8 @@ class ElasticAgent(StackService, Service):
         self.depends_on = {"kibana": {"condition": "service_healthy"}} if options.get("enable_kibana", True) else {}
 
         # build environment
-        # Environment variables used
+        # Environment variables consumed by the Elastic Agent entrypoint
+        # https://github.com/elastic/beats/blob/4f4a5536b72f4a25962d56262f31e3b8533b252e/dev-tools/packaging/templates/docker/docker-entrypoint.elastic-agent.tmpl
         # FLEET_ENROLLMENT_TOKEN - existing enrollment token to be used for enroll
         # FLEET_ENROLL - if set to 1 enroll will be performed
         # FLEET_ENROLL_INSECURE - if set to 1, agent will enroll with fleet using --insecure flag
@@ -645,7 +646,7 @@ class ElasticAgent(StackService, Service):
         parser.add_argument(
             "--elastic-agent-kibana-url",
             default="http://admin:changeme@" + cls.DEFAULT_KIBANA_HOST,
-            help="Elastic Agent's Kibana URL"
+            help="Elastic Agent's Kibana URL, including username:password"
         )
 
 
