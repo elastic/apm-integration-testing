@@ -12,7 +12,7 @@ from ..modules.apm_agents import (
 )
 from ..modules.aux_services import Logstash, Kafka, Zookeeper
 from ..modules.beats import Filebeat, Heartbeat, Metricbeat, Packetbeat
-from ..modules.elastic_stack import ApmServer, Elasticsearch, EnterpriseSearch, Kibana
+from ..modules.elastic_stack import ApmServer, ElasticAgent, Elasticsearch, EnterpriseSearch, Kibana
 
 
 class ServiceTest(unittest.TestCase):
@@ -885,6 +885,50 @@ class ApmServerServiceTest(ServiceTest):
         apm_server = ApmServer(version="6.8.0", apm_server_enable_debug=True).render()["apm-server"]
         self.assertTrue("-d" in apm_server["command"])
         self.assertTrue("*" in apm_server["command"])
+
+
+class ElasticAgentServiceTest(ServiceTest):
+    def test_default(self):
+        ea = ElasticAgent(version="7.12.345").render()["elastic-agent"]
+        self.assertEqual(
+            ea, {"container_name": "localtesting_7.12.345_elastic-agent",
+                 "depends_on": {"kibana": {"condition": "service_healthy"}},
+                 "environment": {"FLEET_ENROLL": "1",
+                                 "FLEET_ENROLL_INSECURE": 1,
+                                 "FLEET_SETUP": "1",
+                                 "KIBANA_HOST": "http://admin:changeme@kibana:5601",
+                                 "KIBANA_PASSWORD": "changeme",
+                                 "KIBANA_USERNAME": "admin"},
+                 "healthcheck": {"test": ["CMD", "/bin/true"]},
+                 "image": "docker.elastic.co/beats/elastic-agent:7.12.345-SNAPSHOT",
+                 "labels": ["co.elastic.apm.stack-version=7.12.345"],
+                 "logging": {"driver": "json-file",
+                             "options": {"max-file": "5", "max-size": "2m"}},
+                 "volumes": ["/var/run/docker.sock:/var/run/docker.sock"]}
+        )
+
+    def test_default_snapshot(self):
+        ea = ElasticAgent(version="7.12.345", snapshot=True).render()["elastic-agent"]
+        self.assertEqual(
+            "docker.elastic.co/beats/elastic-agent:7.12.345-SNAPSHOT", ea["image"]
+        )
+
+    def test_kibana_tls(self):
+        ea = ElasticAgent(version="7.12.345", kibana_enable_tls=True).render()["elastic-agent"]
+        self.assertEqual(
+            "https://admin:changeme@kibana:5601", ea["environment"]["KIBANA_HOST"]
+        )
+
+    def test_kibana_url(self):
+        ea = ElasticAgent(version="7.12.345", elastic_agent_kibana_url="http://foo").render()["elastic-agent"]
+        self.assertEqual("http://foo", ea["environment"]["KIBANA_HOST"])
+        self.assertNotIn("KIBANA_PASSWORD", ea["environment"])
+        self.assertNotIn("KIBANA_USERNAME", ea["environment"])
+
+        ea = ElasticAgent(version="7.12.345", elastic_agent_kibana_url="http://u:p@h:123").render()["elastic-agent"]
+        self.assertEqual("http://u:p@h:123", ea["environment"]["KIBANA_HOST"])
+        self.assertEqual("p", ea["environment"]["KIBANA_PASSWORD"])
+        self.assertEqual("u", ea["environment"]["KIBANA_USERNAME"])
 
 
 class ElasticsearchServiceTest(ServiceTest):
