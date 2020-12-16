@@ -1,4 +1,4 @@
-FROM golang:1.10
+FROM golang:1.14
 WORKDIR /go/src/testapp
 COPY main.go /go/src/testapp
 ARG GO_AGENT_REPO=elastic/apm-agent-go

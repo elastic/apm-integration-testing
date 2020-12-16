@@ -1,8 +1,8 @@
-# APM Integration Testing 
+# APM Integration Testing
 
 This repo contains tools for end to end (eg agent -> apm server -> elasticsearch <- kibana) development and testing of Elastic APM.
 
-[![Build Status](https://apm-ci.elastic.co/job/apm-integration-tests-mbp/job/6.x/badge/icon)](https://apm-ci.elastic.co/blue/organizations/jenkins/apm-integration-tests-mbp/branches)
+[![Build Status](https://apm-ci.elastic.co/buildStatus/icon?job=apm-integration-tests%2F6.x)](https://apm-ci.elastic.co/job/apm-integration-tests/job/6.x/)
 
 ## Prerequisites
 
