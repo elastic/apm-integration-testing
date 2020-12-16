@@ -1,6 +1,5 @@
 APM_SERVER:
   - '7.x'
-  - '7.10'
   - '7.10;--release'
   - '7.9;--release'
   - '7.8;--release'
