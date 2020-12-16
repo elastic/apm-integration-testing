@@ -13,7 +13,7 @@ function mavenRun() {
     -Dmaven.wagon.http.retryHandler.count=10 \
     -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 \
     -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-    -Dmaven.repo.local="${M2_REPOSITORY_FOLDER}"
+    -Dmaven.repo.local="${M2_REPOSITORY_FOLDER}" \
     "$@"
 }
 
