@@ -4,11 +4,6 @@ JAVA_AGENT_BUILT_VERSION=${1}
 ARTIFACT_ID=elastic-apm-agent
 
 function mavenRun() {
-  export M2_REPOSITORY_FOLDER=/root/.m2/repository
-  if [ "${JAVA_M2_CACHE}" == "true" ] ; then
-    export MAVEN_CONFIG="-Dmaven.repo.local=${M2_REPOSITORY_FOLDER}"
-  fi
-
   ## If settings.xml file exists and there is `ci` profile
   SETTINGS=.ci/settings.xml
   if [ -e ${SETTINGS} ] ; then
@@ -26,6 +21,11 @@ function mavenRun() {
     -Dmaven.repo.local="${M2_REPOSITORY_FOLDER}" \
     "$@"
 }
+
+export M2_REPOSITORY_FOLDER=/root/.m2/repository
+if [ "${JAVA_M2_CACHE}" == "true" ] ; then
+  export MAVEN_CONFIG="-Dmaven.repo.local=${M2_REPOSITORY_FOLDER}"
+fi
 
 if [ -z "${JAVA_AGENT_BUILT_VERSION}" ] ; then
   cd /agent/apm-agent-java
