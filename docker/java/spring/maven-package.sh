@@ -4,6 +4,18 @@ JAVA_AGENT_BUILT_VERSION=${1}
 ARTIFACT_ID=elastic-apm-agent
 
 function mavenRun() {
+  export M2_REPOSITORY_FOLDER=/root/.m2/repository
+  if [ "${JAVA_M2_CACHE}" == "true" ] ; then
+    export MAVEN_CONFIG="-Dmaven.repo.local=${M2_REPOSITORY_FOLDER}"
+  fi
+
+  ## If settings.xml file exists and there is `ci` profile
+  SETTINGS=.ci/settings.xml
+  if [ -e ${SETTINGS} ] ; then
+    if grep -q '<id>ci</id>' ${SETTINGS} ; then
+      export MAVEN_CONFIG="-s ${SETTINGS} -Pci ${MAVEN_CONFIG}"
+    fi
+  fi
   mvn -q --batch-mode \
     -DskipTests=true \
     -Dmaven.javadoc.skip=true \
@@ -14,11 +26,6 @@ function mavenRun() {
     -Dmaven.repo.local="${M2_REPOSITORY_FOLDER}" \
     "$@"
 }
-
-export M2_REPOSITORY_FOLDER=/root/.m2/repository
-if [ "${JAVA_M2_CACHE}" == "true" ] ; then
-  export MAVEN_CONFIG="-Dmaven.repo.local=${M2_REPOSITORY_FOLDER}"
-fi
 
 if [ -z "${JAVA_AGENT_BUILT_VERSION}" ] ; then
   cd /agent/apm-agent-java
@@ -33,7 +40,7 @@ if [ -z "${JAVA_AGENT_BUILT_VERSION}" ] ; then
   JAVA_AGENT_BUILT_VERSION=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:1.3.1:exec)
   export JAVA_AGENT_BUILT_VERSION="${JAVA_AGENT_BUILT_VERSION}"
 else
- mavenRun org.apache.maven.plugins:maven-dependency-plugin:2.1:get \
+  mavenRun org.apache.maven.plugins:maven-dependency-plugin:2.1:get \
       -DrepoUrl=https://repo1.maven.apache.org/maven2 \
       -Dartifact="co.elastic.apm:${ARTIFACT_ID}:${JAVA_AGENT_BUILT_VERSION}"
 fi
