@@ -13,7 +13,7 @@ ARG DOTNET_HOST_PATH=/usr/share/dotnet/dotnet
 WORKDIR /src
 COPY . /src
 # install SDK version in global.json of elastic/apm-agent-dotnet
-# TODO: remove once global.json is on 5.0 *and* PRs are updated to 5.0 in global.json
+# Needed when building branches that specify 3.1.100 SDK in global.json
 RUN curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --install-dir ${DOTNET_ROOT} -version 3.1.100
 RUN ./run.sh
 
