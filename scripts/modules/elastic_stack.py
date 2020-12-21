@@ -649,6 +649,25 @@ class ElasticAgent(StackService, Service):
             help="Elastic Agent's Kibana URL, including username:password"
         )
 
+    def build_candidate_manifest(self):
+        version = self.version
+        image = self.docker_name
+        if self.oss:
+            image += "-oss"
+        if self.ubi8:
+            image += "-ubi8"
+
+        key = "{image}-{version}-docker-image-linux-amd64.tar.gz".format(
+            image=image,
+            version=version,
+        )
+        try:
+            return self.bc["projects"]["beats"]["packages"][key]
+        except KeyError:
+            # help debug manifest issues
+            print(json.dumps(self.bc))
+            raise
+
 
 class Elasticsearch(StackService, Service):
     default_environment = [
