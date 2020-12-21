@@ -723,7 +723,7 @@ class LocalTest(unittest.TestCase):
                 container_name: localtesting_6.2.10_kibana
                 depends_on:
                     elasticsearch: {condition: service_healthy}
-                environment: {ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true'}
+                environment: {ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200', SERVER_HOST: 0.0.0.0, SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true'}
                 healthcheck:
                     interval: 10s
                     retries: 20
@@ -818,7 +818,7 @@ class LocalTest(unittest.TestCase):
                 container_name: localtesting_6.3.10_kibana
                 depends_on:
                     elasticsearch: {condition: service_healthy}
-                environment: {ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200', SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
+                environment: {ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200', SERVER_HOST: 0.0.0.0, SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
                 healthcheck:
                     interval: 10s
                     retries: 20
@@ -957,6 +957,7 @@ class LocalTest(unittest.TestCase):
                     ELASTICSEARCH_PASSWORD: changeme,
                     ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200',
                     ELASTICSEARCH_USERNAME: kibana_system_user,
+                    SERVER_HOST: 0.0.0.0,
                     SERVER_NAME: kibana.example.org,
                     STATUS_ALLOWANONYMOUS: 'true',
                     TELEMETRY_ENABLED: 'false',
