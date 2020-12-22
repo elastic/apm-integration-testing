@@ -15,7 +15,7 @@ namespace TestAspNetCoreApp
 		private readonly IConfiguration _configuration;
 		public Startup(IConfiguration configuration) => _configuration = configuration;
 
-		public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 		{
 			// /healthcheck is mapped before app.UseAllElasticApm -> as specified in the spec, it won't be traced.
 			app.Map("/healthcheck", HealthCheck);

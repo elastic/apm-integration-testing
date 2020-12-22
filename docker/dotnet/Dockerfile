@@ -17,8 +17,8 @@ COPY . /src
 RUN curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --install-dir ${DOTNET_ROOT} -version 3.1.100
 RUN ./run.sh
 
-# Stage 2: Run the opbeans-dotnet app
-FROM mcr.microsoft.com/dotnet/core/aspnet:2.2-alpine AS runtime
+# Stage 2: Run the TestAspNetCoreApp app
+FROM mcr.microsoft.com/dotnet/aspnet:3.1-alpine AS runtime
 WORKDIR /app
 COPY --from=build /src/aspnetcore/build ./
 RUN apk update \
