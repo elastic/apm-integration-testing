@@ -1155,6 +1155,7 @@ class KibanaServiceTest(ServiceTest):
                     image: docker.elastic.co/kibana/kibana-x-pack:6.2.4
                     container_name: localtesting_6.2.4_kibana
                     environment:
+                        SERVER_HOST: 0.0.0.0
                         SERVER_NAME: kibana.example.org
                         ELASTICSEARCH_HOSTS: http://elasticsearch:9200
                         XPACK_MONITORING_ENABLED: 'true'
@@ -1184,6 +1185,7 @@ class KibanaServiceTest(ServiceTest):
                     image: docker.elastic.co/kibana/kibana:6.3.5
                     container_name: localtesting_6.3.5_kibana
                     environment:
+                        SERVER_HOST: 0.0.0.0
                         SERVER_NAME: kibana.example.org
                         ELASTICSEARCH_HOSTS: http://elasticsearch:9200
                         XPACK_MONITORING_ENABLED: 'true'

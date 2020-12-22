@@ -895,7 +895,10 @@ class EnterpriseSearch(StackService, Service):
 
 
 class Kibana(StackService, Service):
-    default_environment = {"SERVER_NAME": "kibana.example.org"}
+    default_environment = {
+        "SERVER_HOST": "0.0.0.0",
+        "SERVER_NAME": "kibana.example.org",
+    }
 
     SERVICE_PORT = 5601
 
