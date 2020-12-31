@@ -10,10 +10,15 @@ from .helpers import curl_healthcheck, try_to_set_slowlog, urlparse
 from .service import StackService, Service, DEFAULT_APM_SERVER_URL
 
 
-class ApmServer(StackService, Service):
+class ElasticAgentService():
+    """Mix in for services runnable under Elastic Agent or standalone"""
+    DEFAULT_APM_SERVER_PORT = "8200"
+
+
+class ApmServer(StackService, Service, ElasticAgentService):
     docker_path = "apm"
 
-    SERVICE_PORT = "8200"
+    SERVICE_PORT = ElasticAgentService.DEFAULT_APM_SERVER_PORT
     DEFAULT_MONITOR_PORT = "6060"
     DEFAULT_JAEGER_HTTP_PORT = "14268"
     DEFAULT_JAEGER_GRPC_PORT = "14250"
@@ -24,8 +29,32 @@ class ApmServer(StackService, Service):
 
     def __init__(self, **options):
         super(ApmServer, self).__init__(**options)
-        default_apm_server_creds = {"username": "apm_server_user", "password": "changeme"}
 
+        default_apm_server_creds = {"username": "apm_server_user", "password": "changeme"}
+        self.managed = False
+
+        # run apm-server managed by elastic-agent
+        if self.options.get("apm_server_managed"):
+            self.managed = True
+            if not self.at_least_version("7.11"):
+                # TODO(simitt): throw a not-supported error
+                return
+
+            self.apm_server_command_args = []
+
+            kibana_url = options.get("elastic_agent_kibana_url")
+            if not kibana_url:
+                kibana_scheme = "https" if self.options.get("kibana_enable_tls", False) else "http"
+                kibana_url = kibana_scheme + "://admin:changeme@" + self.DEFAULT_KIBANA_HOST
+            self.managed_environment = {"KIBANA_HOST": kibana_url}
+
+            # Not yet supported when run under elastic-agent:
+            # - apm-server config options
+            # - teeproxy and haproxy not yet supported
+            self.apm_server_count = 1
+            return
+
+        # run apm-server standalone
         v1_rate_limit = ("apm-server.frontend.rate_limit", "100000")
         if self.at_least_version("6.5"):
             rum_config = [
@@ -419,6 +448,13 @@ class ApmServer(StackService, Service):
             default=False,
             help="apm-server enable all the debugging output.",
         )
+        parser.add_argument(
+            '--apm-server-managed',
+            action="store_true",
+            dest="apm_server_managed",
+            default=False,
+            help="run apm-server managed by elastic-agent",
+        )
 
     def build_candidate_manifest(self):
         version = self.version
@@ -445,6 +481,9 @@ class ApmServer(StackService, Service):
             raise
 
     def _content(self):
+        if self.managed:
+            return dict()
+
         command_args = []
         for param, value in self.apm_server_command_args:
             command_args.extend(["-E", param + "=" + value])
@@ -527,10 +566,16 @@ class ApmServer(StackService, Service):
         return True
 
     def render(self):
-        """hack up render to support multiple apm servers behind a load balancer"""
+        """hack up render to support multiple apm servers behind a load balancer and apm-server under elastic agent"""
         ren = super(ApmServer, self).render()
         if self.apm_server_count == 1:
-            return ren
+            if self.managed:
+                # run a managed server
+                ren = self.render_managed()
+                return ren
+            else:
+                # return starndard apm-server
+                return ren
 
         # save a single server for use as backend template
         single = ren[self.name()]
@@ -553,6 +598,16 @@ class ApmServer(StackService, Service):
             ren.update({"-".join([self.name(), str(i)]): backend})
 
         return ren
+
+    def render_managed(self):
+        content = dict(
+            build={"context": "docker/apm-server/managed"},
+            container_name=self.default_container_name() + "-managed",
+            depends_on={"kibana": {"condition": "service_healthy"}} if self.options.get("enable_kibana", True) else {},
+            environment=self.managed_environment,
+            healthcheck=curl_healthcheck(self.SERVICE_PORT),
+        )
+        return {self.name(): content}
 
     def render_proxy(self):
         condition = {"condition": "service_healthy"}
@@ -587,7 +642,7 @@ class ApmServer(StackService, Service):
         return {self.name(): content}
 
 
-class ElasticAgent(StackService, Service):
+class ElasticAgent(StackService, Service, ElasticAgentService):
     docker_path = "beats"
 
     def __init__(self, **options):
@@ -628,6 +683,12 @@ class ElasticAgent(StackService, Service):
         if not kibana_url.startswith("https://"):
             self.environment["FLEET_ENROLL_INSECURE"] = 1
 
+        # set ports for defined integrations
+        self.ports = []
+        if self.options.get("enable_apm_server") and self.options.get("apm_server_managed"):
+            default_port = ElasticAgentService.DEFAULT_APM_SERVER_PORT
+            self.ports.append(self.publish_port(self.options.get("apm_server_port", default_port), default_port))
+
     def _content(self):
         return dict(
             depends_on=self.depends_on,
@@ -635,6 +696,7 @@ class ElasticAgent(StackService, Service):
             healthcheck={
                 "test": ["CMD", "/bin/true"],
             },
+            ports=self.ports,
             volumes=[
                 "/var/run/docker.sock:/var/run/docker.sock",
             ]
