@@ -592,11 +592,11 @@ class PackageRegistry(StackService, Service):
     SERVICE_PORT = "8080"
 
     docker_path = "package-registry"
-    docker_name = "distribution" #:snapshot" 
+    docker_name = "distribution"
 
     def __init__(self, **options):
         super(PackageRegistry, self).__init__(**options)
-        self.distribution = options.get("package_registry_distribution")
+        self.distribution = options.get("package_registry_distribution", "snapshot")
         self.apm_package = options.get("apm_package")
         if not self.at_least_version("7.10"):
             raise Exception("Package registry only supported for 7.70+")
@@ -625,7 +625,6 @@ class PackageRegistry(StackService, Service):
             "--apm-package",
             help="Folder of a local APM package to add to the registry"
         )
-
 
 
 class ElasticAgent(StackService, Service):
@@ -1017,7 +1016,7 @@ class Kibana(StackService, Service):
                 elif self.at_least_version("7.9"):
                     self.environment["XPACK_INGESTMANAGER_FLEET_TLSCHECKDISABLED"] = "true"
             if use_local_package_registry:
-                self.environment["XPACK_FLEET_REGISTRYURL"] = "http://package-registry:" + PackageRegistry.SERVICE_PORT
+                self.environment["XPACK_INGESTMANAGER_REGISTRYURL"] = "http://package-registry:" + PackageRegistry.SERVICE_PORT
 
     @classmethod
     def add_arguments(cls, parser):
