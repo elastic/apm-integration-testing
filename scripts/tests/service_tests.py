@@ -301,7 +301,7 @@ class AgentServiceTest(ServiceTest):
                         context: docker/java/spring
                     container_name: javaspring
                     depends_on:
-                        - apm-server:
+                        - apm-server
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_LOG_LEVEL: 'info'

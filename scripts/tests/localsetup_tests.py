@@ -274,7 +274,7 @@ class OpbeansServiceTest(ServiceTest):
                         - redis
                         - apm-server
                     healthcheck:
-                        test: ["CMD", "wget", "-q", "--server-response", "-O", "/dev/null", "http://opbeans-node:3000/"]
+                        test: ["CMD", "wget", "-T", "3", "-q", "--server-response", "-O", "/dev/null", "http://opbeans-node:3000/"]
                         interval: 10s
                         retries: 12
                     volumes:
@@ -427,7 +427,7 @@ class OpbeansServiceTest(ServiceTest):
                       - apm-server
                       - elasticsearch
                     healthcheck:
-                      test: ["CMD", "wget", "-q", "--server-response", "-O", "/dev/null", "http://opbeans-ruby:3000/"]
+                      test: ["CMD", "wget", "-T", "3", "-q", "--server-response", "-O", "/dev/null", "http://opbeans-ruby:3000/"]
                       interval: 10s
                       retries: 50""")  # noqa: 501
         )
@@ -566,8 +566,6 @@ class OpbeansServiceTest(ServiceTest):
             opbeans_python_loadgen_rpm=50,
             opbeans_ruby_loadgen_rpm=10,
         ).render()
-        import pdb
-        pdb.set_trace()
         assert opbeans_load_gen == yaml.safe_load("""
             opbeans-load-generator:
                 image: opbeans/opbeans-loadgen:latest
@@ -654,7 +652,7 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml.seek(0)
         got = yaml.safe_load(docker_compose_yml)
         want = yaml.safe_load("""
-        version: '2.4'
+        version: '3.5'
         services:
             apm-server:
                 cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
@@ -742,7 +740,7 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml.seek(0)
         got = yaml.safe_load(docker_compose_yml)
         want = yaml.safe_load("""
-        version: '2.4'
+        version: '3.5'
         services:
             apm-server:
                 cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
@@ -844,7 +842,7 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml.seek(0)
         got = yaml.safe_load(docker_compose_yml)
         want = yaml.safe_load("""
-        version: '2.4'
+        version: '3.5'
         services:
             apm-server:
                 cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
@@ -1145,11 +1143,11 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml.seek(0)
         got = yaml.safe_load(docker_compose_yml)
         depends_on = set(got["services"]["opbeans-node"]["depends_on"])
-        self.assertSetEqual(["postgres", "redis"], depends_on)
+        self.assertSetEqual({"postgres", "redis"}, depends_on)
         depends_on = set(got["services"]["opbeans-python"]["depends_on"])
-        self.assertSetEqual(["elasticsearch", "postgres", "redis"], depends_on)
+        self.assertSetEqual({"elasticsearch", "postgres", "redis"}, depends_on)
         depends_on = set(got["services"]["opbeans-ruby"]["depends_on"])
-        self.assertSetEqual(["elasticsearch", "postgres", "redis"], depends_on)
+        self.assertSetEqual({"elasticsearch", "postgres", "redis"}, depends_on)
         for name, service in got["services"].items():
             self.assertNotIn("apm-server", service.get("depends_on", []), "{} depends on apm-server".format(name))
 

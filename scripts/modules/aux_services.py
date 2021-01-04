@@ -145,7 +145,9 @@ class WaitService(Service):
         self.services = services
 
     def _content(self):
-        for s in self.services:
+        # Sorting is not relavant to docker-compose but is included here
+        # to allow the tests to check for a consisently-ordered list
+        for s in sorted(self.services, key=lambda x: x.name()):
             if s.name() != self.name() and s.name() != "opbeans-load-generator":
                 self.depends_on.append(s.name())
         return dict(

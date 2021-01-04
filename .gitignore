@@ -23,6 +23,7 @@ node_modules
 **/bin
 docker-info/
 .vscode/
+*.swp
 
 # For the BATS testing
 bats-core/

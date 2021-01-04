@@ -29,6 +29,8 @@ ELASTIC_APM_SECRET_TOKEN ?= SuPeRsEcReT
 
 PYTHONHTTPSVERIFY ?= 1
 
+PYTEST_ARGS ?=
+
 # Make sure we run local versions of everything, particularly commands
 # installed into our virtualenv with pip eg. `docker-compose`.
 export PATH := ./bin:$(VENV)/bin:$(PATH)
@@ -105,7 +107,7 @@ test-helps:
 	$(foreach subcommand,$(SUBCOMMANDS), $(PYTHON) scripts/compose.py $(subcommand) --help >/dev/null || exit 1;)
 
 test-all: venv test-compose lint test-helps ## Run all the tests
-	pytest -v -s $(JUNIT_OPT)/all-junit.xml
+	pytest -v -s $(PYTEST_ARGS) $(JUNIT_OPT)/all-junit.xml
 
 docker-test-%: ## Run a specific dockerized test. Ex: make docker-test-java
 	TARGET=test-$* $(MAKE) dockerized-test
