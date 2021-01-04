@@ -19,8 +19,11 @@
 """
 Tests for Dyno control plane
 """
+import toxiproxy
 import pytest
-from dyno import app
+import dyno
+
+from unittest import mock
 
 @pytest.fixture(scope="session")
 def app():
@@ -31,7 +34,7 @@ def app():
 
     https://pytest-flask.readthedocs.io
     """
-    dyno_app = app.create_app(app_env='test')
+    dyno_app = dyno.app.create_app()
     return dyno_app
 
 @pytest.fixture
@@ -42,3 +45,18 @@ def toxi_default_environment(monkeypatch):
     """
     monkeypatch.setenv("TOXI_HOST", "dummy_toxi_host")
     monkeypatch.setenv("TOXI_PORT", "1648")
+
+@pytest.fixture
+def toxi_mock():
+    """
+    Represent a typical return from toxiproxy
+    """
+    toxi_mock = mock.patch('toxiproxy.server.Toxiproxy', autospec=True)
+
+    p = toxiproxy.Proxy(name='opbeans-proxy', enabled= True, listen=8080, upstream='fake_upstream') 
+    toxic = toxiproxy.toxic.Toxic(type='fake_toxic_type', name='fake_toxic')
+    toxic_mock = mock.MagicMock(return_value={'fake_toxic_ob': toxic})
+    p.toxics = toxic_mock
+    toxi_mock.proxies = lambda: {'fake_proxy': p}
+    fetch_proxy_mock = mock.MagicMock(return_value=toxi_mock)
+    return fetch_proxy_mock

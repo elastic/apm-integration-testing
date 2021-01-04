@@ -24,7 +24,6 @@ from unittest import mock
 from flask import url_for
 import dyno.app.api.control as ctl
 
-
 @mock.patch('toxiproxy.server.Toxiproxy.update_api_consumer')
 def test_fetch_proxy_update_consumer(consumer_patch, toxi_default_environment):
     """
@@ -48,4 +47,30 @@ def test_fetch_proxy_no_update_consumer(consumer_patch, toxi_default_environment
     ctl._fetch_proxy()
     consumer_patch.assert_not_called()
 
+@mark.parametrize('toxi_code', ctl.toxic_map.keys())
+def test_decode_toxi(toxi_code):
+    """
+    GIVEN an shortned toxic code
+    WHEN the code is given to the _decode_toxic() function
+    THEN it receives back dictionary with the code
+    """
+    assert ctl._decode_toxic(toxi_code)
 
+@mark.parametrize('toxi_cfg', ctl.toxic_map.values())
+def test_encode_toxi(toxi_cfg):
+    """
+    GIVEN a toxi configuration
+    WHEN that configuration is passed to the _encode_toxic() function
+    THEN the code for that configuration is returned
+    """
+    assert ctl._encode_toxic(toxi_cfg['type'], toxi_cfg['attr'])
+
+def test_get_app(toxi_mock, client):
+    with mock.patch('dyno.app.api.control._fetch_proxy', toxi_mock):
+        res = client.get(url_for('api.fetch_app'), query_string={'name': 'fake_proxy'})
+        assert res.json == {'enabled': True, 'listen': 8080, 'name': 'opbeans-proxy', 'toxics': {}, 'upstream': 'fake_upstream'}
+
+def test_get_apps(toxi_mock, client):
+    with mock.patch('dyno.app.api.control._fetch_proxy', toxi_mock):
+        res = client.get(url_for('api.fetch_all_apps'), query_string={'name': 'fake_proxy'})
+        assert res.json == {'proxies': ['fake_proxy']}

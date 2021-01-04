@@ -51,17 +51,17 @@ def fetch_app():
     name = request.args.get('name')
     denorm = request.args.get('denorm')
     t = _fetch_proxy()
-    p = t.proxies()
+    p_ = t.proxies()
     ret = {}
-    if not p.get(name):
+    if not p_.get(name):
         return {}
-    ret['name'] = p[name].name
-    ret['listen'] = p[name].listen
-    ret['upstream'] = p[name].upstream
-    ret['enabled'] = p[name].enabled
+    ret['name'] = p_[name].name
+    ret['listen'] = p_[name].listen
+    ret['upstream'] = p_[name].upstream
+    ret['enabled'] = p_[name].enabled
     ret['toxics'] = {}
 
-    for toxic in p[name].toxics().values():
+    for toxic in p_[name].toxics().values():
         for a, v in toxic.attributes.items():
             if denorm:
                 denorm_val = _encode_toxic(toxic.type, a)
@@ -96,7 +96,6 @@ def fetch_all_apps():
 @bp.route('/enable', methods=['GET'])
 def enable_proxy():
     proxy = request.args.get('proxy')
-    print(proxy)
     # FIXME testing
     t = _fetch_proxy()
     p = t.get_proxy(proxy)
@@ -106,7 +105,6 @@ def enable_proxy():
 @bp.route('/disable', methods=['GET'])
 def disable_proxy():
     proxy = request.args.get('proxy')
-    print(proxy)
     # FIXME testing
     t = _fetch_proxy()
     p = t.get_proxy(proxy)

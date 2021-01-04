@@ -10,17 +10,15 @@ def create_app(config_class=Cfg):
     app = Flask(__name__)
     app.config.from_object(config_class)
     CORS(app)
+    from dyno.app.api import bp as api_bp  # noqa E402
+    from dyno.app.api.docker import bp as api_docker  # noqa E402
+    app.register_blueprint(api_bp, url_prefix='/api')
+    app.register_blueprint(api_docker, url_prefix='/api/docker')
     return app
 
 
 app = create_app()
 
-from dyno.app.api import bp as api_bp  # noqa E402
-app.register_blueprint(api_bp, url_prefix='/api')
-
-
-from dyno.app.api.docker import bp as api_docker  # noqa E402
-app.register_blueprint(api_docker, url_prefix='/api/docker')
 
 
 @app.route('/')
