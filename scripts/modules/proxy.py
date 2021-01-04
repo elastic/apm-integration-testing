@@ -67,7 +67,7 @@ class Toxi(Service):
         opbeans_sidecars = ['postgres', 'redis', 'opbeans-load-generator']
         opbeans_2nds = ('opbeans-go01', 'opbeans-java01', 'opbeans-python01', 'opbeans-ruby01', 'opbeans-dotnet01',
                         'opbeans-node01')
-        for s in services:
+        for s in sorted(services, key=lambda x: x.name()):
             # TODO refactor this for DRY
             is_opbeans_service = isinstance(s, OpbeansService) or s is OpbeansRum
             is_opbeans_sidecar = s.name() in opbeans_sidecars
@@ -91,5 +91,4 @@ class Toxi(Service):
                 }
                 config.append(service_def)
         ret = json.dumps(config, sort_keys=True, indent=4)
-        print(ret)
         return ret

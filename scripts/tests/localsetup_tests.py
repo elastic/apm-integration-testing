@@ -1246,6 +1246,25 @@ class LocalTest(unittest.TestCase):
                 'volumes': ['/var/run/docker.sock:/var/run/docker.sock']}
         self.assertDictEqual(got, want)
 
+    @mock.patch(cli.__name__ + ".load_images")
+    def test_start_with_dyno_cfg(self, _ignore_load_images):
+        """
+        GIVEN a mocked CLI which does not actually write a config
+        WHEN the CLI is called with the --dyno flag
+        THEN the generated toxi.cfg would contain the correct defaults
+        """
+        docker_compose_yml = stringIO()
+        toxi_open = mock.mock_open()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            with mock.patch('scripts.modules.cli.open', toxi_open):
+                setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+                setup.set_docker_compose_path(docker_compose_yml)
+                setup()
+        want = '[\n    {\n        "enabled": true,\n        "listen": "[::]:3004",\n        "name": "opbeans-dotnet",\n        "upstream": "opbeans-dotnet:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3003",\n        "name": "opbeans-go",\n        "upstream": "opbeans-go:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3002",\n        "name": "opbeans-java",\n        "upstream": "opbeans-java:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3000",\n        "name": "opbeans-node",\n        "upstream": "opbeans-node:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:8000",\n        "name": "opbeans-python",\n        "upstream": "opbeans-python:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3001",\n        "name": "opbeans-ruby",\n        "upstream": "opbeans-ruby:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:5432",\n        "name": "postgres",\n        "upstream": "postgres:5432"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:6379",\n        "name": "redis",\n        "upstream": "redis:6379"\n    }\n]'
+        toxi_open().write.assert_called_once_with(want)
+        #print(toxi_open().write.call_args)
+
+
 
     @mock.patch(service.__name__ + ".resolve_bc")
     @mock.patch(cli.__name__ + ".load_images")
