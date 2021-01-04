@@ -1185,6 +1185,68 @@ class LocalTest(unittest.TestCase):
         )
         self.assertEqual("docker.elastic.co/kibana/kibana:{}-SNAPSHOT".format(version), services["kibana"]["image"])
 
+    @mock.patch(cli.__name__ + ".load_images")
+    @mock.patch(cli.__name__ + ".open")
+    def test_start_with_dyno(self, _ignore_load_images, _ignore_open):
+        """
+        GIVEN a mocked CLI which does not actually load images
+        WHEN the CLI is called with the --dyno flag
+        THEN the generated Docker Compose file contains a configuration block for the Dyno container
+        """
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.safe_load(docker_compose_yml)
+        self.assertIn('dyno', got['services'])
+
+    @mock.patch(cli.__name__ + ".load_images")
+    @mock.patch(cli.__name__ + ".open")
+    def test_start_with_dyno_defaults(self, _ignore_load_images, _ignore_open):
+        """
+        GIVEN a mocked CLI which does not actually load images
+        WHEN the CLI is called with the --dyno flag
+        THEN the generated Docker Compose file contains the defaults for Dyno
+        """
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        received = yaml.safe_load(docker_compose_yml)
+        got = received['services']['dyno']
+        want = {
+                'build':
+                {
+                    'args': [],
+                    'context': 'docker/dyno',
+                    'dockerfile': 'Dockerfile'
+                },
+                'container_name': 'dyno',
+                'environment': {'TOXI_HOST': 'toxi', 'TOXI_PORT': '8474'},
+                'healthcheck': {
+                    'interval': '10s',
+                    'retries': 12,
+                    'test': [
+                        'CMD',
+                        'wget',
+                        '-T',
+                        '3',
+                        '-q',
+                        '--server-response',
+                        '-O',
+                        '/dev/null',
+                        'http://localhost:8000/'
+                        ]
+                    },
+                'ports': ['9000:8000'],
+                'volumes': ['/var/run/docker.sock:/var/run/docker.sock']}
+        self.assertDictEqual(got, want)
+
+
     @mock.patch(service.__name__ + ".resolve_bc")
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_bc(self, mock_load_images, mock_resolve_bc):
