@@ -17,10 +17,10 @@
 # specific language governing permissions and limitations
 
 import os
-import app
 import yaml
+from dyno import app
 from flask import request
-from app.api import bp
+from dyno.app.api import bp
 from toxiproxy.server import Toxiproxy
 
 toxic_map = {

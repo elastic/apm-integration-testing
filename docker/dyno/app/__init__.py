@@ -3,7 +3,7 @@ import os
 from flask import Flask, render_template, send_from_directory
 from flask_cors import CORS
 
-from app.cfg import Config as Cfg
+from dyno.app.cfg import Config as Cfg
 
 
 def create_app(config_class=Cfg):
@@ -15,11 +15,11 @@ def create_app(config_class=Cfg):
 
 app = create_app()
 
-from app.api import bp as api_bp  # noqa E402
+from dyno.app.api import bp as api_bp  # noqa E402
 app.register_blueprint(api_bp, url_prefix='/api')
 
 
-from app.api.docker import bp as api_docker  # noqa E402
+from dyno.app.api.docker import bp as api_docker  # noqa E402
 app.register_blueprint(api_docker, url_prefix='/api/docker')
 
 
