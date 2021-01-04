@@ -33,3 +33,12 @@ def app():
     """
     dyno_app = app.create_app(app_env='test')
     return dyno_app
+
+@pytest.fixture
+def toxi_default_environment(monkeypatch):
+    """
+    Set up default variables to produce a functional
+    toxi environment
+    """
+    monkeypatch.setenv("TOXI_HOST", "dummy_toxi_host")
+    monkeypatch.setenv("TOXI_PORT", "1648")
