@@ -1325,6 +1325,60 @@ class LocalTest(unittest.TestCase):
         self.assertDictEqual(got, want)
 
     @mock.patch(cli.__name__ + ".load_images")
+    @mock.patch(cli.__name__ + ".open")
+    def test_start_dyno_implies_statsd(self, _ignore_load_images, _ignore_open):
+        """
+        GIVEN a mocked CLI which does not actually load images
+        WHEN the CLI is called with the --dyno flag
+        THEN the generated Docker Compose file contains a configuration block for the StatsD container
+        """
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.safe_load(docker_compose_yml)
+        self.assertIn('stats-d', got['services'])
+
+    @mock.patch(cli.__name__ + ".load_images")
+    @mock.patch(cli.__name__ + ".open")
+    def test_start_dyno_generates_statsd_config(self, _ignore_load_images, _ignore_open):
+        """
+        GIVEN a mocked CLI which does not actually load images
+        WHEN the CLI is called with the --dyno flag
+        THEN the generated Docker Compose file contains the correct configuration for StatsD
+        """
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.safe_load(docker_compose_yml)
+        want = {
+                'build': {
+                    'args': [],
+                    'context': 'docker/statsd',
+                    'dockerfile': 'Dockerfile'
+                    },
+                'container_name': 'localtesting_8.0_stats-d',
+                'healthcheck': {
+                    'interval': '10s',
+                    'test': ['CMD', 'pidof', 'node']
+                    },
+                'logging': {
+                    'driver': 'json-file',
+                    'options': {'max-file': '5', 'max-size': '2m'}
+                    },
+                'ports': [
+                    '8125:8125/udp',
+                    '8126:8126',
+                    '8127:8127'
+                    ]
+                }
+
+    @mock.patch(cli.__name__ + ".load_images")
     def test_start_with_toxi_cfg(self, _ignore_load_images):
         """
         GIVEN a mocked CLI which does not actually write a config
