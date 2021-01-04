@@ -58,7 +58,7 @@ class Toxi(Service):
         Take the services we know about and look for user-facing
         instances and be sure to expose them from our container
         """
-        for s in services:
+        for s in sorted(services, key=lambda x: x.name()):
             if isinstance(s, OpbeansService) or s is OpbeansRum:  # is opbeans service
                 self.generated_ports.append("{}:{}".format(s.SERVICE_PORT, s.SERVICE_PORT))
 

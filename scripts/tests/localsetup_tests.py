@@ -1247,7 +1247,85 @@ class LocalTest(unittest.TestCase):
         self.assertDictEqual(got, want)
 
     @mock.patch(cli.__name__ + ".load_images")
-    def test_start_with_dyno_cfg(self, _ignore_load_images):
+    @mock.patch(cli.__name__ + ".open")
+    def test_start_with_toxi(self, _ignore_load_images, _ignore_open):
+        """
+        GIVEN a mocked CLI which does not actually load images
+        WHEN the CLI is called with the --dyno flag
+        THEN the generated Docker Compose file contains a configuration block for the Toxi container
+        """
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.safe_load(docker_compose_yml)
+        self.assertIn('dyno', got['services'])
+
+    @mock.patch(cli.__name__ + ".load_images")
+    @mock.patch(cli.__name__ + ".open")
+    def test_start_toxi_docker_defaults(self, _ignore_load_images, _ignore_open):
+        """
+        GIVEN a mocked CLI which does not actually load images
+        WHEN the CLI is called with the --dyno flag
+        THEN the generated Docker Compose file contains a configuration block for the Toxi container
+        """
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        received = yaml.safe_load(docker_compose_yml)
+        got = received['services']['toxi']
+        want = {
+                'command': [
+                    '-host=0.0.0.0',
+                    '-config=/toxi/toxi.cfg'
+                    ],
+                'container_name': 'localtesting_8.0_toxi',
+                'healthcheck': {
+                    'interval': '10s',
+                    'retries': 12,
+                    'test': [
+                        'CMD',
+                        'wget',
+                        '-T',
+                        '3',
+                        '-q',
+                        '--server-response',
+                        '-O',
+                        '/dev/null',
+                        'http://localhost:8474/proxies'
+                        ]
+                    },
+                'image': 'shopify/toxiproxy',
+                'logging': {
+                    'driver': 'json-file',
+                    'options': {
+                        'max-file': '5',
+                        'max-size': '2m'
+                        }
+                    },
+                'ports': [
+                    '8474:8474',
+                    '3004:3004',
+                    '3003:3003',
+                    '3002:3002',
+                    '3000:3000',
+                    '8000:8000',
+                    '3001:3001'
+                    ],
+                'restart': 'on-failure',
+                'volumes': [
+                    './docker/toxi/toxi.cfg:/toxi/toxi.cfg'
+                    ]
+                }
+        self.assertDictEqual(got, want)
+
+    @mock.patch(cli.__name__ + ".load_images")
+    def test_start_with_toxi_cfg(self, _ignore_load_images):
         """
         GIVEN a mocked CLI which does not actually write a config
         WHEN the CLI is called with the --dyno flag
@@ -1262,9 +1340,6 @@ class LocalTest(unittest.TestCase):
                 setup()
         want = '[\n    {\n        "enabled": true,\n        "listen": "[::]:3004",\n        "name": "opbeans-dotnet",\n        "upstream": "opbeans-dotnet:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3003",\n        "name": "opbeans-go",\n        "upstream": "opbeans-go:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3002",\n        "name": "opbeans-java",\n        "upstream": "opbeans-java:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3000",\n        "name": "opbeans-node",\n        "upstream": "opbeans-node:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:8000",\n        "name": "opbeans-python",\n        "upstream": "opbeans-python:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3001",\n        "name": "opbeans-ruby",\n        "upstream": "opbeans-ruby:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:5432",\n        "name": "postgres",\n        "upstream": "postgres:5432"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:6379",\n        "name": "redis",\n        "upstream": "redis:6379"\n    }\n]'
         toxi_open().write.assert_called_once_with(want)
-        #print(toxi_open().write.call_args)
-
-
 
     @mock.patch(service.__name__ + ".resolve_bc")
     @mock.patch(cli.__name__ + ".load_images")
