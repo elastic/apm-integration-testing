@@ -39,9 +39,16 @@ def _normalize_name(name):
     localtesting_7.9.0_elasticsearch
     """
     containers = container_list()
-    for c in containers['containers']:
-        if c.split('_').pop().strip() == name:
-            return c
+    found = []
+    for c_ in containers['containers']:
+        if c_.split('_').pop().strip() == name:
+            found.append(name) 
+    if len(found) > 1:
+        raise Exception('Found more than one instance matching [{}]'.format(name))
+    elif not found:
+        raise Exception('Could not normalize [{}] because it was not found in the container list') 
+    else:
+        return found[0]
 
 
 @bp.route('/list', methods=['GET'])
@@ -51,8 +58,8 @@ def container_list():
     """
     ret = {'containers': []}
     containers = client.containers.list()
-    for c in containers:
-        ret['containers'].append(c.name)
+    for container in containers:
+        ret['containers'].append(container.name)
     return ret
 
 
@@ -82,8 +89,6 @@ def query():
         'Mem': _denormalize_value('mem', config['Memory']),
         # 'IO': _denormalize_value('io', config['BlkioWeight']),
     }
-    import pprint
-    pprint.pprint(config)
     return ret
 
 @bp.route('/update', methods=['GET'])
