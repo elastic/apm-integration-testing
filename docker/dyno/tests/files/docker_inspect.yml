@@ -1,0 +1,211 @@
+AppArmorProfile: ''
+Args:
+- honcho
+- start
+Config:
+  AttachStderr: false
+  AttachStdin: false
+  AttachStdout: false
+  Cmd:
+  - honcho
+  - start
+  Domainname: ''
+  Entrypoint:
+  - /app/entrypoint.sh
+  Env:
+  - WS=1
+  - OPBEANS_URLS=opbeans-python:http://opbeans-python:3000
+  - OPBEANS_RPMS=opbeans-python:100
+  - PATH=/app/venv/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  - LANG=C.UTF-8
+  - GPG_KEY=0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
+  - PYTHON_VERSION=3.7.9
+  - PYTHON_PIP_VERSION=20.3.3
+  - PYTHON_GET_PIP_URL=https://github.com/pypa/get-pip/raw/5f38681f7f5872e4032860b54e9cc11cf0374932/get-pip.py
+  - PYTHON_GET_PIP_SHA256=6a0b13826862f33c13b614a921d36253bfa1ae779c5fbf569876f3585057e9d2
+  - PYTHONUNBUFFERED=1
+  ExposedPorts:
+    8000/tcp: {}
+  Hostname: 7d917f922c4f
+  Image: lg
+  Labels:
+    com.docker.compose.config-hash: 86111e599c962ffda85de1fd7770d4f949e5555652282a165da4347224e24b66
+    com.docker.compose.container-number: '1'
+    com.docker.compose.oneoff: 'False'
+    com.docker.compose.project: apm-integration-testing
+    com.docker.compose.project.config_files: /Users/mp/devel/apm-integration-testing/docker-compose.yml
+    com.docker.compose.project.working_dir: /Users/mp/devel/apm-integration-testing
+    com.docker.compose.service: opbeans-load-generator
+    com.docker.compose.version: 1.27.4
+  OnBuild: null
+  OpenStdin: false
+  StdinOnce: false
+  Tty: false
+  User: ''
+  Volumes: null
+  WorkingDir: /app
+Created: '2021-01-04T16:24:11.1589578Z'
+Driver: overlay2
+ExecIDs: null
+GraphDriver:
+  Data:
+    LowerDir: /var/lib/docker/overlay2/d4e3394374447deb1a05dff37475e1d886b2b6d6c6a2b7757888fe960400270b-init/diff:/var/lib/docker/overlay2/ffb7b150eec8b766215e811bfd0431c848afd562ff252698a8706a481a57396f/diff:/var/lib/docker/overlay2/5347dfe3099b25192613d749ed745faa062ab8ff5e8381e0a3641629726e370b/diff:/var/lib/docker/overlay2/948f4e1a6ad7d5609ae1844d4e8b15a84c599778158813a86cde801af757bc27/diff:/var/lib/docker/overlay2/6ed8629940031876cf37fa8490ce68c20657a53fbbecce591c7a3a39c67019fc/diff:/var/lib/docker/overlay2/fa93947244a7b76e5fcb9040b03d6aeca29367eda3fce4dc1b46221bb61c0825/diff:/var/lib/docker/overlay2/96b581b541eab5ad027d76411082d4190ac1645bfed4b6e7f55300f7d4ff5c63/diff:/var/lib/docker/overlay2/7c79b01d96ca23555d847ace9d8c8e80d5c49644003d885ec697bae1df0964b6/diff
+    MergedDir: /var/lib/docker/overlay2/d4e3394374447deb1a05dff37475e1d886b2b6d6c6a2b7757888fe960400270b/merged
+    UpperDir: /var/lib/docker/overlay2/d4e3394374447deb1a05dff37475e1d886b2b6d6c6a2b7757888fe960400270b/diff
+    WorkDir: /var/lib/docker/overlay2/d4e3394374447deb1a05dff37475e1d886b2b6d6c6a2b7757888fe960400270b/work
+  Name: overlay2
+HostConfig:
+  AutoRemove: false
+  Binds: []
+  BlkioDeviceReadBps: null
+  BlkioDeviceReadIOps: null
+  BlkioDeviceWriteBps: null
+  BlkioDeviceWriteIOps: null
+  BlkioWeight: 0
+  BlkioWeightDevice: null
+  CapAdd: null
+  CapDrop: null
+  Capabilities: null
+  Cgroup: ''
+  CgroupParent: ''
+  ConsoleSize:
+  - 0
+  - 0
+  ContainerIDFile: ''
+  CpuCount: 0
+  CpuPercent: 0
+  CpuPeriod: 0
+  CpuQuota: 0
+  CpuRealtimePeriod: 0
+  CpuRealtimeRuntime: 0
+  CpuShares: 0
+  CpusetCpus: ''
+  CpusetMems: ''
+  DeviceCgroupRules: null
+  DeviceRequests: null
+  Devices: null
+  Dns: null
+  DnsOptions: null
+  DnsSearch: null
+  ExtraHosts: null
+  GroupAdd: null
+  IOMaximumBandwidth: 0
+  IOMaximumIOps: 0
+  IpcMode: private
+  Isolation: ''
+  KernelMemory: 0
+  KernelMemoryTCP: 0
+  Links: null
+  LogConfig:
+    Config:
+      max-file: '5'
+      max-size: 2m
+    Type: json-file
+  MaskedPaths:
+  - /proc/asound
+  - /proc/acpi
+  - /proc/kcore
+  - /proc/keys
+  - /proc/latency_stats
+  - /proc/timer_list
+  - /proc/timer_stats
+  - /proc/sched_debug
+  - /proc/scsi
+  - /sys/firmware
+  Memory: 0
+  MemoryReservation: 0
+  MemorySwap: 0
+  MemorySwappiness: null
+  NanoCpus: 0
+  NetworkMode: apm-integration-testing
+  OomKillDisable: false
+  OomScoreAdj: 0
+  PidMode: ''
+  PidsLimit: null
+  PortBindings:
+    8000/tcp:
+    - HostIp: ''
+      HostPort: '8999'
+  Privileged: false
+  PublishAllPorts: false
+  ReadonlyPaths:
+  - /proc/bus
+  - /proc/fs
+  - /proc/irq
+  - /proc/sys
+  - /proc/sysrq-trigger
+  ReadonlyRootfs: false
+  RestartPolicy:
+    MaximumRetryCount: 0
+    Name: ''
+  Runtime: runc
+  SecurityOpt: null
+  ShmSize: 67108864
+  UTSMode: ''
+  Ulimits: null
+  UsernsMode: ''
+  VolumeDriver: ''
+  VolumesFrom: []
+HostnamePath: /var/lib/docker/containers/7d917f922c4f5a4d041fa49d579c153b63786cd85e489c18c15540c413141289/hostname
+HostsPath: /var/lib/docker/containers/7d917f922c4f5a4d041fa49d579c153b63786cd85e489c18c15540c413141289/hosts
+Id: 7d917f922c4f5a4d041fa49d579c153b63786cd85e489c18c15540c413141289
+Image: sha256:e5989de1c5f32fadcc3acfd47683cec920d3df896802c0d1c0aaee1db67d008e
+LogPath: /var/lib/docker/containers/7d917f922c4f5a4d041fa49d579c153b63786cd85e489c18c15540c413141289/7d917f922c4f5a4d041fa49d579c153b63786cd85e489c18c15540c413141289-json.log
+MountLabel: ''
+Mounts: []
+Name: /localtesting_7.9.0_opbeans-load-generator
+NetworkSettings:
+  Bridge: ''
+  EndpointID: ''
+  Gateway: ''
+  GlobalIPv6Address: ''
+  GlobalIPv6PrefixLen: 0
+  HairpinMode: false
+  IPAddress: ''
+  IPPrefixLen: 0
+  IPv6Gateway: ''
+  LinkLocalIPv6Address: ''
+  LinkLocalIPv6PrefixLen: 0
+  MacAddress: ''
+  Networks:
+    apm-integration-testing:
+      Aliases:
+      - opbeans-load-generator
+      - 7d917f922c4f
+      DriverOpts: null
+      EndpointID: 67b74979d669210db55719d8bc2ba84b71aa6c2f1a9b112110af62341c68113a
+      Gateway: 172.18.0.1
+      GlobalIPv6Address: ''
+      GlobalIPv6PrefixLen: 0
+      IPAMConfig: null
+      IPAddress: 172.18.0.11
+      IPPrefixLen: 16
+      IPv6Gateway: ''
+      Links: null
+      MacAddress: 02:42:ac:12:00:0b
+      NetworkID: 30df752494af36cbda221354d195f8ccb505974d248fa291da932cac143316e9
+  Ports:
+    8000/tcp:
+    - HostIp: 0.0.0.0
+      HostPort: '8999'
+  SandboxID: e3f238b94d0b00fb7c2c2bd58c5a9dde85b6bf18235b4b78b3cf9efee1d745d7
+  SandboxKey: /var/run/docker/netns/e3f238b94d0b
+  SecondaryIPAddresses: null
+  SecondaryIPv6Addresses: null
+Path: /app/entrypoint.sh
+Platform: linux
+ProcessLabel: ''
+ResolvConfPath: /var/lib/docker/containers/7d917f922c4f5a4d041fa49d579c153b63786cd85e489c18c15540c413141289/resolv.conf
+RestartCount: 0
+State:
+  Dead: false
+  Error: ''
+  ExitCode: 0
+  FinishedAt: '0001-01-01T00:00:00Z'
+  OOMKilled: false
+  Paused: false
+  Pid: 10361
+  Restarting: false
+  Running: true
+  StartedAt: '2021-01-04T16:24:11.7255039Z'
+  Status: running

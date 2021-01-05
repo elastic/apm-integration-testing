@@ -74,6 +74,8 @@ def query():
     """
     c = request.args.get('c')
     config = low_client.inspect_container(_normalize_name(c))['HostConfig']
+    import pdb
+    pdb.set_trace()
     # We take the following:
     """
     cpu_quota (int) - Limit CPU CFS (Completely Fair Scheduler) quota
