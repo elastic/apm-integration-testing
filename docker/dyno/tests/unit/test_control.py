@@ -19,6 +19,7 @@
 """
 Tests for the Openbeans Dyno
 """
+import toxiproxy
 from pytest import mark
 from unittest import mock
 from flask import url_for
@@ -65,12 +66,69 @@ def test_encode_toxi(toxi_cfg):
     """
     assert ctl._encode_toxic(toxi_cfg['type'], toxi_cfg['attr'])
 
-def test_get_app(toxi_mock, client):
-    with mock.patch('dyno.app.api.control._fetch_proxy', toxi_mock):
+def test_get_app(fetch_proxy_mock, client):
+    """
+    GIVEN an HTTP client
+    WHEN that client requests the /app endpoint
+    THEN the client receives a dictionary containing the app proxy config
+    """
+    with mock.patch('dyno.app.api.control._fetch_proxy', fetch_proxy_mock):
         res = client.get(url_for('api.fetch_app'), query_string={'name': 'fake_proxy'})
-        assert res.json == {'enabled': True, 'listen': 8080, 'name': 'opbeans-proxy', 'toxics': {}, 'upstream': 'fake_upstream'}
+        assert res.json == {
+                'enabled': True,
+                'listen': 8080,
+                'name': 'opbeans-proxy',
+                'toxics': {},
+                'upstream': 'fake_upstream'
+                }
 
-def test_get_apps(toxi_mock, client):
-    with mock.patch('dyno.app.api.control._fetch_proxy', toxi_mock):
+def test_get_apps(fetch_proxy_mock, client):
+    """
+    GIVEN an HTTP client
+    WHEN that client requests the /apps endpoint
+    THEN the client receives a dictionary containing a list of configured apps
+    """
+    with mock.patch('dyno.app.api.control._fetch_proxy', fetch_proxy_mock):
         res = client.get(url_for('api.fetch_all_apps'), query_string={'name': 'fake_proxy'})
         assert res.json == {'proxies': ['fake_proxy']}
+
+def test_get_apps_full(fetch_proxy_mock, client):
+    """
+    GIVEN an HTTP client
+    WHEN that client requests the /apps endpoint with the `full` argument supplied
+    THEN the client receives a dictionary back with all apps and their configurations
+    """
+    with mock.patch('dyno.app.api.control._fetch_proxy', fetch_proxy_mock):
+        res = client.get(
+                url_for('api.fetch_all_apps'),
+                query_string={'name': 'fake_proxy', 'full': True}
+                )
+        assert res.json == {'proxies': [{'listen': 8080, 'name': 'opbeans-proxy'}]}
+
+def test_enable(client):
+    """
+    GIVEN an HTTP client
+    WHEN that client requests the /enable endpoint to enable a given proxy
+    THEN the toxiproxy API is instructed to enable the proxy
+    """
+    t_ = mock.Mock(spec=toxiproxy.Toxiproxy, name='toxi_mock')
+    enable_mock = mock.Mock(spec=toxiproxy.proxy.Proxy, name='enable_mock')
+    t_.attach_mock(mock.Mock(name='get_proxy_mock', return_value=enable_mock), 'get_proxy')
+    with mock.patch('dyno.app.api.control._fetch_proxy', return_value=t_):
+        with mock.patch('toxiproxy.proxy.Proxy', enable_mock):
+            client.get(url_for('api.enable_proxy'))
+            enable_mock.enable.assert_called()
+
+def test_disable(client):
+    """
+    GIVEN an HTTP client
+    WHEN that client requests the /disable endpoint to enable a given proxy
+    THEN the toxiproxy API is instructed to disable the proxy
+    """
+    t_ = mock.Mock(spec=toxiproxy.Toxiproxy)
+    disable_mock = mock.Mock(spec=toxiproxy.proxy.Proxy)
+    t_.attach_mock(mock.Mock(name='get_proxy_mock', return_value=disable_mock), 'get_proxy')
+    with mock.patch('dyno.app.api.control._fetch_proxy', return_value=t_):
+        with mock.patch('toxiproxy.proxy.Proxy', disable_mock):
+            client.get(url_for('api.disable_proxy'))
+            disable_mock.disable.assert_called()

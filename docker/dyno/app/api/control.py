@@ -96,7 +96,6 @@ def fetch_all_apps():
 @bp.route('/enable', methods=['GET'])
 def enable_proxy():
     proxy = request.args.get('proxy')
-    # FIXME testing
     t = _fetch_proxy()
     p = t.get_proxy(proxy)
     p.enable()
@@ -105,7 +104,6 @@ def enable_proxy():
 @bp.route('/disable', methods=['GET'])
 def disable_proxy():
     proxy = request.args.get('proxy')
-    # FIXME testing
     t = _fetch_proxy()
     p = t.get_proxy(proxy)
     p.disable()

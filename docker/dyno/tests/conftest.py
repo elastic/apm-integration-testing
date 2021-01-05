@@ -47,16 +47,44 @@ def toxi_default_environment(monkeypatch):
     monkeypatch.setenv("TOXI_PORT", "1648")
 
 @pytest.fixture
+def fetch_proxy_mock():
+    # Put the Toxiproxy mock into a container mock for use in 
+    return mock.MagicMock(return_value=toxi_mock())
+
+
+@pytest.fixture
+def toxi():
+    return toxi_mock()
+
+#@pytest.fixture
 def toxi_mock():
     """
-    Represent a typical return from toxiproxy
+    Represent a set of proxied services
     """
+    # Create the mock that we'll ultimately return
     toxi_mock = mock.patch('toxiproxy.server.Toxiproxy', autospec=True)
-
-    p = toxiproxy.Proxy(name='opbeans-proxy', enabled= True, listen=8080, upstream='fake_upstream') 
-    toxic = toxiproxy.toxic.Toxic(type='fake_toxic_type', name='fake_toxic')
+    # Create the mock that we'll use to represent a Proxy
+    #p = toxiproxy.Proxy(name='opbeans-proxy', enabled= True, listen=8080, upstream='fake_upstream') 
+    p = mock.patch('toxiproxy.Proxy', autospec=True)
+    p.name = 'opbeans-proxy'
+    p.enabled = True
+    p.listen = 8080
+    p.upstream = 'fake_upstream'
+    # Create the mock that we'll use to represent containers for a Toxic
+    #toxic = toxiproxy.toxic.Toxic(type='fake_toxic_type', name='fake_toxic')
+    toxic = mock.patch('toxiproxy.toxic.Toxic', autospec=True)
+    toxic.type='fake_toxic_type'
+    toxic.name='fake_toxic'
+    toxic.attributes = {}
+    # Create the mock to represent the toxic itself
     toxic_mock = mock.MagicMock(return_value={'fake_toxic_ob': toxic})
+
+    # Overlay the raw toxic as a return for the .toxics() function
     p.toxics = toxic_mock
+    # Overlay a dictionary as a return for the .proxies() function to Toxiproxy
     toxi_mock.proxies = lambda: {'fake_proxy': p}
-    fetch_proxy_mock = mock.MagicMock(return_value=toxi_mock)
-    return fetch_proxy_mock
+    # Put the Toxiproxy mock into a container mock for use in 
+    #fetch_proxy_mock = mock.MagicMock(return_value=toxi_mock)
+
+    #return fetch_proxy_mock
+    return toxi_mock
