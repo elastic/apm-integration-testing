@@ -588,7 +588,7 @@ class ApmServer(StackService, Service):
 
 
 class PackageRegistry(StackService, Service):
-    
+
     SERVICE_PORT = "8080"
 
     docker_path = "package-registry"
@@ -601,16 +601,16 @@ class PackageRegistry(StackService, Service):
         if not self.at_least_version("7.10"):
             raise Exception("Package registry only supported for 7.70+")
         self.environment = {}
-    
+
     def _content(self):
         content = dict(
-            image= "/".join((self.docker_registry, self.docker_path, self.docker_name)) + ":" + self.distribution,
+            image="/".join((self.docker_registry, self.docker_path, self.docker_name)) + ":" + self.distribution,
             environment=self.environment,
             healthcheck=curl_healthcheck(self.SERVICE_PORT, path="/", interval="5s", retries=10),
-            ports = [self.publish_port(self.SERVICE_PORT)]
+            ports=[self.publish_port(self.SERVICE_PORT)]
         )
         if self.apm_package:
-            content.update(volumes=[self.apm_package+":/packages/"+self.distribution+"/apm"])
+            content.update(volumes=[self.apm_package + ":/packages/" + self.distribution + "/apm"])
         return content
 
     @classmethod
@@ -678,7 +678,7 @@ class ElasticAgent(StackService, Service):
             volumes=[
                 "/var/run/docker.sock:/var/run/docker.sock",
             ],
-            ports = [self.publish_port(ApmServer.SERVICE_PORT)]
+            ports=[self.publish_port(ApmServer.SERVICE_PORT)]
         )
 
     @classmethod
@@ -1017,7 +1017,7 @@ class Kibana(StackService, Service):
                     self.environment["XPACK_INGESTMANAGER_FLEET_TLSCHECKDISABLED"] = "true"
             if use_local_package_registry:
                 self.environment["XPACK_INGESTMANAGER_REGISTRYURL"] = "http://package-registry:" + \
-                     PackageRegistry.SERVICE_PORT
+                    PackageRegistry.SERVICE_PORT
 
     @classmethod
     def add_arguments(cls, parser):
