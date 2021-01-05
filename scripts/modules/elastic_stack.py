@@ -1016,7 +1016,8 @@ class Kibana(StackService, Service):
                 elif self.at_least_version("7.9"):
                     self.environment["XPACK_INGESTMANAGER_FLEET_TLSCHECKDISABLED"] = "true"
             if use_local_package_registry:
-                self.environment["XPACK_INGESTMANAGER_REGISTRYURL"] = "http://package-registry:" + PackageRegistry.SERVICE_PORT
+                self.environment["XPACK_INGESTMANAGER_REGISTRYURL"] = "http://package-registry:" + \
+                     PackageRegistry.SERVICE_PORT
 
     @classmethod
     def add_arguments(cls, parser):
