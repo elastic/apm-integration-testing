@@ -958,6 +958,31 @@ class PackageRegistryServiceTest(ServiceTest):
            'ports': ['127.0.0.1:8080:8080']}
         )
 
+    def test_production(self):
+        epr = PackageRegistry(version="7.11", package_registry_distribution="production").render()["package-registry"]
+        self.assertEqual(
+            epr, {'image': 'docker.elastic.co/package-regis[456 chars]m', 
+            'container_name': 'localtesting_7.11_package-registry',
+            'environment': {},
+            'healthcheck': {'interval': '5s',
+                            'retries': 10,
+                            'test': ['CMD',
+                                    'curl',
+                                    '--write-out',
+                                    "'HTTP %{http_code}'",
+                                    '-k',
+                                    '--fail',
+                                    '--silent',
+                                    '--output',
+                                    '/dev/null',
+                                    'http://localhost:8080/']},
+           'image': 'docker.elastic.co/package-registry/distribution:production',
+           'labels': ['co.elastic.apm.stack-version=7.11'],
+           'logging': {'driver': 'json-file',
+                       'options': {'max-file': '5', 'max-size': '2m'}},
+           'ports': ['127.0.0.1:8080:8080']}
+        )
+
 
 class ElasticsearchServiceTest(ServiceTest):
     def test_6_2_release(self):
