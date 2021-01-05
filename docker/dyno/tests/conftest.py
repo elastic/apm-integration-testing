@@ -38,6 +38,14 @@ def app():
     return dyno_app
 
 @pytest.fixture
+def range_stub(monkeypatch):
+    """
+    This substitutes a testing file for range.yml
+    """
+    stub  = {'Fr': [1, 10]}
+    return stub
+
+@pytest.fixture
 def toxi_default_environment(monkeypatch):
     """
     Set up default variables to produce a functional
@@ -56,7 +64,6 @@ def fetch_proxy_mock():
 def toxi():
     return toxi_mock()
 
-#@pytest.fixture
 def toxi_mock():
     """
     Represent a set of proxied services
@@ -88,3 +95,5 @@ def toxi_mock():
 
     #return fetch_proxy_mock
     return toxi_mock
+
+

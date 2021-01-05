@@ -126,7 +126,7 @@ def slide():
     # TODO fully document tox codes
     slide = request.get_json() or {}
     toxic_key = _decode_toxic(slide['tox_code'])
-    # FIXME testing
+
     t = _fetch_proxy()
     p = t.get_proxy(slide.get('proxy'))
     # TODO right now there isn't any edit functionality in the upstream lib
@@ -136,7 +136,6 @@ def slide():
     # at some point.
     normalized_val = _normalize_value(slide['tox_code'], slide['val'])
 
-    # FIXME testing. Let's just add for now for PoC
     try:
         p.add_toxic(
             type=toxic_key['type'],
@@ -152,13 +151,17 @@ def slide():
             )
     return {}
 
-
-def _denormalize_value(tox_code, val):
+def _range():
     range_path = os.path.join(app.app.root_path, 'range.yml')
     with open(range_path, 'r') as fh_:
-        slider_range = yaml.load(fh_)
+        slider_range = yaml.load(fh_, Loader=yaml.FullLoader)
+    return slider_range
+
+
+def _denormalize_value(tox_code, val):
+    slider_range = _range()
     lval, uval = slider_range[tox_code]
-    val_range = abs(uval - lval)
+    val_range = abs(uval - lval) + 1
     if lval < uval:
         return int(100 - ((val / val_range) * 100))
     else:
@@ -173,10 +176,7 @@ def _normalize_value(tox_code, val):
     which is in the range of 0-100 and we turn that into an actual
     value to pass to the toxic
     """
-    range_path = os.path.join(app.app.root_path, 'range.yml')
-    with open(range_path, 'r') as fh_:
-        slider_range = yaml.load(fh_)
-
+    slider_range = _range()
     lval, uval = slider_range[tox_code]
     val_range = abs(uval - lval) + 1
     if lval < uval:

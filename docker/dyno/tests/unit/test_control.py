@@ -132,3 +132,60 @@ def test_disable(client):
         with mock.patch('toxiproxy.proxy.Proxy', disable_mock):
             client.get(url_for('api.disable_proxy'))
             disable_mock.disable.assert_called()
+
+@mark.parametrize('toxi_code', ctl.toxic_map.keys())
+def test_slide(toxi_code, client):
+    """
+    GIVEN an HTTP client
+    WHEN that client hits the /slider endpoint to adjust values for a proxy
+    THEN the proxy values are adjusted
+    """
+    t_ = mock.Mock(spec=toxiproxy.Toxiproxy)
+    proxy_mock = mock.Mock(spec=toxiproxy.proxy.Proxy)
+    t_.attach_mock(mock.Mock(name='get_proxy_mock', return_value=proxy_mock), 'get_proxy')
+    with mock.patch('dyno.app.api.control._fetch_proxy', return_value=t_):
+        with mock.patch('toxiproxy.proxy.Proxy', proxy_mock):
+            client.post(url_for('api.slide'), json={'tox_code': toxi_code, 'val': 100})
+            proxy_mock.add_toxic.assert_called()
+
+@mark.parametrize('toxi_code', ctl.toxic_map.keys())
+def test_slide_exception_side_effect(toxi_code, client):
+    """
+    GIVEN an HTTP client
+    WHEN that client hits the /slider endpoint to adjust values for a proxy
+    THEN the proxy values are adjusted
+    """
+    t_ = mock.Mock(spec=toxiproxy.Toxiproxy)
+    proxy_mock = mock.Mock(spec=toxiproxy.proxy.Proxy)
+    proxy_mock.toxics = mock.Mock(return_value=['fake_proxy_1', 'fake_proxy_2'])
+    proxy_mock.add_toxic = mock.Mock(side_effect=Exception, name='sider')
+    t_.attach_mock(mock.Mock(name='get_proxy_mock', return_value=proxy_mock), 'get_proxy')
+    with mock.patch('dyno.app.api.control._fetch_proxy', return_value=t_):
+        with mock.patch('toxiproxy.proxy.Proxy', proxy_mock):
+            client.post(url_for('api.slide'), json={'tox_code': toxi_code, 'val': 100})
+            proxy_mock.add_toxic.assert_called()
+            proxy_mock.destroy_toxic.assert_called()
+
+@mark.parametrize('val', range(1,101, 10))
+@mock.patch('dyno.app.api.control._range', mock.Mock(return_value={'Fr': [1,10]}))
+def test_normalize(val):
+    """
+    GIVEN values between 1-100
+    WHEN the value is sent to be normalized
+    THEN the correct normalized value is returned
+    """
+    got = ctl._normalize_value('Fr', val)
+    want = (101 - val) / 10
+    assert got == want
+
+@mark.parametrize('val', range(1,10))
+@mock.patch('dyno.app.api.control._range', mock.Mock(return_value={'Fr': [1,10]}))
+def test_denormalize(val):
+    """
+    GIVEN values between 1-100
+    WHEN the value is sent to be denormalized
+    THEN the correct normalized value is returned
+    """
+    got = ctl._denormalize_value('Fr', val)
+    want = 100 - (val * 10)
+    assert got == want

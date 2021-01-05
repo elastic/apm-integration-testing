@@ -85,12 +85,16 @@ Sas: # average_size: size in bytes of an average packet
   - 1
   - 1000
 # Currently disabled because we need to bound it against Sas
-# Ssv: # size_variation: variation in bytes of an average packet (should be smaller than average_size)
-#   - 1
-#   - 1000
-Ssd: # time in microseconds to delay each packet by
+# FIXME: (should be smaller than average_size)
+Ssv: # size_variation: variation in bytes of an average packet
+  - 1
+  - 1000
+Sd: # time in microseconds to delay each packet by
   - 1
   - 50000 # All the way up to 50ms which will cause some massive destruction!
+Ld: # the size in bytes that should be sent before closing the connection
+  - 1
+  - 5000000
 ## End the Toxi settings
 
 ## Start the Docker settings
