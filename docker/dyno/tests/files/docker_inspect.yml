@@ -75,7 +75,8 @@ HostConfig:
   CpuCount: 0
   CpuPercent: 0
   CpuPeriod: 0
-  CpuQuota: 0
+  # CpuQuota modified specifically for use as test value
+  CpuQuota: 1000000
   CpuRealtimePeriod: 0
   CpuRealtimeRuntime: 0
   CpuShares: 0
@@ -112,7 +113,8 @@ HostConfig:
   - /proc/sched_debug
   - /proc/scsi
   - /sys/firmware
-  Memory: 0
+  # Memory modified specifically for use as test val
+  Memory: 1000
   MemoryReservation: 0
   MemorySwap: 0
   MemorySwappiness: null

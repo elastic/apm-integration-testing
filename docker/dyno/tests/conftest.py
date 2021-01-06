@@ -22,6 +22,8 @@ Tests for Dyno control plane
 import toxiproxy
 import pytest
 import dyno
+import yaml
+import os
 
 from unittest import mock
 
@@ -96,4 +98,16 @@ def toxi_mock():
     #return fetch_proxy_mock
     return toxi_mock
 
+
+@pytest.fixture
+def docker_inspect():
+    """
+    Return a dictionary that respresents a sample output
+    from the `docker inspect` command as invoked by the
+    low-level API client in the `docker` Pythonlibrary.
+    """
+    fn_ = os.path.join(os.path.dirname(os.path.realpath(__file__)), "files/docker_inspect.yml")
+    with open(fn_, "r") as fh_:
+        inspect_data = yaml.load(fh_, Loader=yaml.FullLoader)
+    return inspect_data
 

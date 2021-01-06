@@ -74,8 +74,6 @@ def query():
     """
     c = request.args.get('c')
     config = low_client.inspect_container(_normalize_name(c))['HostConfig']
-    import pdb
-    pdb.set_trace()
     # We take the following:
     """
     cpu_quota (int) - Limit CPU CFS (Completely Fair Scheduler) quota
@@ -129,7 +127,7 @@ def _denormalize_value(code, val):
     """
     range_path = os.path.join(app.app.root_path, 'range.yml')
     with open(range_path, 'r') as fh_:
-        slider_range = yaml.load(fh_)
+        slider_range = yaml.load(fh_, Loader=yaml.FullLoader)
     lval, uval = slider_range[code]
     ret = ((val - min([uval, lval])) / (max([lval, uval]) - min([lval-uval]))) + 1
     return int(ret)
@@ -150,7 +148,7 @@ def _normalize_value(code, val):
     """
     range_path = os.path.join(app.app.root_path, 'range.yml')
     with open(range_path, 'r') as fh_:
-        slider_range = yaml.load(fh_)
+        slider_range = yaml.load(fh_, Loader=yaml.FullLoader)
 
     lval, uval = slider_range[code]
 

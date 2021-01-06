@@ -62,12 +62,14 @@ def test_list(docker_mock, client):
     ret = client.get(url_for('docker.container_list'))
     assert ret.json == {'containers': ['fake_container']}
 
-@mock.patch.object(dkr.low_client, 'inspect_container')
-def test_query(docker_mock, client):
+@mock.patch('dyno.app.api.docker._normalize_name', return_value='fake_container_name')
+def test_query(fake_container_patch, docker_inspect, client):
     """
     GIVEN an HTTP call to /docker/query
     WHEN the results are returned
     THEN the results container info about the CPU and memory
     """
-    ret = client.get(url_for('docker.query'), query_string={'c': 'opbeans-python'})
-    print(ret.json)
+    with mock.patch.object(dkr.low_client, 'inspect_container', return_value=docker_inspect):
+        ret = client.get(url_for('docker.query'), query_string={'c': 'fake_container_name'})
+        assert ret.json['CPU'] == 1000
+        assert ret.json['Mem'] == 200
