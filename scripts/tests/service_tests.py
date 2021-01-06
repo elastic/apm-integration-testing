@@ -227,6 +227,7 @@ class AgentServiceTest(ServiceTest):
                         args:
                             RUBY_AGENT_VERSION: latest
                             RUBY_AGENT_REPO: elastic/apm-agent-ruby
+                            RUBY_VERSION: latest
                         dockerfile: Dockerfile
                         context: docker/ruby/rails
                     container_name: railsapp
@@ -285,6 +286,10 @@ class AgentServiceTest(ServiceTest):
     def test_agent_ruby_apm_api_key_with_apm_server(self):
         agent = AgentRubyRails(version="7.6", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-ruby-rails"]
         self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
+
+    def test_agent_ruby_version(self):
+        agent = AgentRubyRails(ruby_version="2").render()["agent-ruby-rails"]
+        self.assertEqual("2", agent["build"]["args"]["RUBY_VERSION"])
 
     def test_agent_java_spring(self):
         agent = AgentJavaSpring().render()
