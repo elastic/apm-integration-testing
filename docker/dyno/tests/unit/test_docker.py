@@ -73,3 +73,20 @@ def test_query(fake_container_patch, docker_inspect, client):
         ret = client.get(url_for('docker.query'), query_string={'c': 'fake_container_name'})
         assert ret.json['CPU'] == 1000
         assert ret.json['Mem'] == 200
+
+@mock.patch('dyno.app.api.docker.client', name='docker_mock')
+@mock.patch('dyno.app.api.docker._normalize_name', return_value='fake_container_name', name='normalize_mock')
+def test_update(fake_container_patch, docker_mock, client):
+    """
+    GIVEN an HTTP call to /docker/update
+    WHEN the call contains settings to be updated
+    THEN the settings are updated
+    """
+    fake_container = mock.Mock(name='fake_container')
+    fake_container.name = 'fake_container'
+    get_mock = mock.Mock(return_value=fake_container, name='get_mock')
+    docker_mock.containers.get = get_mock
+    client.get(url_for('docker.update'), query_string={'c': 'opbeans-python', 'component': 'CPU', 'val': 100})
+
+    fake_container.update.assert_called_with(cpu_quota=25990)
+

@@ -115,7 +115,7 @@ def update():
     if c == 'mem':
         config['settings']['mem_limit'] = str(_normalize_value(c, val)) + "m"
         config['settings']['memswap_limit'] = -1
-    print(config['settings'])
+    #print(config['settings'])
     c = client.containers.get(config['container'])
     c.update(**config['settings'])
     return {}
@@ -159,10 +159,10 @@ def _normalize_value(code, val):
     # #     # ret = int(val_range * (val / 100))
     # #     adder = range / val 
     # #     ret = uval + adder
-    print('received: ', val)
-    print('range vals', lval, uval)
+    #print('received: ', val)
+    #print('range vals', lval, uval)
     ret = (((val) * max([lval, uval]) - min([lval, uval])) / 100) + min([lval, uval])
     # range = abs(max[lval, uval] - min([lval, uval]))
     
-    print('attempt to set to: ', ret)
+    #print('attempt to set to: ', ret)
     return int(ret)
