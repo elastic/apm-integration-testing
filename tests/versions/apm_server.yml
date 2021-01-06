@@ -1,7 +1,4 @@
-APM_SERVERasdssssssasda,daldjasld;jsaldaafhjas;dlhjasl;dahl;dhasl;dhas;ldhasd;lhasd;hasdhahsdåfdsfsdfdsfdsdfasaaasadakjhashklahdskhdffffklhjgd;lghdf;lghdfl;ghdf;lghd;glhfd;lghdlfghdfghjdf;lhg:
+APM_SERVER:
   - master
   - master --oss
   - master --ubi8
-- Lorem       : ipsum
-  dolor       : sit amet,
-  consectetur : adipiscing elit
