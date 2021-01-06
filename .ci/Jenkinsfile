@@ -15,6 +15,7 @@ pipeline {
     NOTIFY_TO = credentials('notify-to')
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     PIPELINE_LOG_LEVEL='INFO'
+    GIT_REFERENCE_REPO = '/var/lib/jenkins/.git-references/apm-integration-testing.git'
   }
   triggers {
     cron 'H H(3-4) * * 1-5'
@@ -43,7 +44,7 @@ pipeline {
       steps {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}",
-                    reference: '/var/lib/jenkins/.git-references/apm-integration-testing.git')
+                    reference: "${GIT_REFERENCE_REPO}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
@@ -79,8 +80,13 @@ pipeline {
             withGithubNotify(context: 'Sanity checks', tab: 'tests') {
               deleteDir()
               unstash 'source'
-              dir("${BASE_DIR}"){
-                preCommit(commit: "${env.GIT_BASE_COMMIT}", junit: true)
+              script {
+                docker.image('python:3.7-stretch').inside("-v ${GIT_REFERENCE_REPO}:${GIT_REFERENCE_REPO}") {
+                  dir("${BASE_DIR}"){
+                    // registry: '' will help to disable the docker login
+                    preCommit(commit: "${env.GIT_BASE_COMMIT}", junit: true, registry: '')
+                  }
+                }
               }
             }
           }
