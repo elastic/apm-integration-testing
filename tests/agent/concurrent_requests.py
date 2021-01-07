@@ -280,7 +280,7 @@ class Concurrent:
 
                 if 'stacktrace' in span.keys():
                     stacktrace = span['stacktrace']
-                    assert 15 < len(stacktrace) < 70, \
+                    assert 1 < len(stacktrace) < 70, \
                         "number of frames not expected, got {}, but this assertion might be too strict".format(
                             len(stacktrace))
 

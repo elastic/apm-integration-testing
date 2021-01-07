@@ -10,8 +10,6 @@ repos:
         exclude: ^target/
     -   id: check-merge-conflict
         exclude: ^target/
-    -   id: check-yaml
-        exclude: ^target/
     -   id: check-xml
         exclude: ^target/
     -   id: end-of-file-fixer
@@ -27,7 +25,7 @@ repos:
         exclude: (^mvnw$|^target/)
 
 -   repo: https://github.com/adrienverge/yamllint.git
-    rev: master
+    rev: v1.25.0
     hooks:
     -   id: yamllint
         name: "Yaml: lint"
