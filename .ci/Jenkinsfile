@@ -80,13 +80,8 @@ pipeline {
             withGithubNotify(context: 'Sanity checks', tab: 'tests') {
               deleteDir()
               unstash 'source'
-              script {
-                docker.image('python:3.7-stretch').inside("-v ${GIT_REFERENCE_REPO}:${GIT_REFERENCE_REPO}") {
-                  dir("${BASE_DIR}"){
-                    // registry: '' will help to disable the docker login
-                    preCommit(commit: "${env.GIT_BASE_COMMIT}", junit: true, registry: '')
-                  }
-                }
+              dir("${BASE_DIR}"){
+                preCommit(commit: "${env.GIT_BASE_COMMIT}", junit: true)
               }
             }
           }
