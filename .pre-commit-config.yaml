@@ -25,7 +25,7 @@ repos:
         exclude: (^mvnw$|^target/)
 
 -   repo: https://github.com/adrienverge/yamllint.git
-    rev: master
+    rev: v1.25.0
     hooks:
     -   id: yamllint
         name: "Yaml: lint"
