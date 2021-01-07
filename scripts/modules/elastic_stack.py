@@ -596,10 +596,10 @@ class PackageRegistry(StackService, Service):
 
     def __init__(self, **options):
         super(PackageRegistry, self).__init__(**options)
-        self.distribution = options.get("package_registry_distribution", "snapshot")
-        self.apm_package = options.get("apm_package")
         if not self.at_least_version("7.10"):
-            raise Exception("Package registry only supported for 7.70+")
+            raise Exception("Package registry only supported for 7.10+")
+        self.distribution = options.get("package_registry_distribution", "snapshot")
+        self.apm_package = options.get("package_registry_apm_path")
         self.environment = {}
 
     def _content(self):
@@ -610,7 +610,7 @@ class PackageRegistry(StackService, Service):
             ports=[self.publish_port(self.SERVICE_PORT)]
         )
         if self.apm_package:
-            content.update(volumes=[self.apm_package + ":/packages/" + self.distribution + "/apm"])
+            content["volumes"] = [self.apm_package + ":/packages/" + self.distribution + "/apm"]
         return content
 
     @classmethod
@@ -619,10 +619,11 @@ class PackageRegistry(StackService, Service):
         parser.add_argument(
             "--package-registry-distribution",
             default="snapshot",
-            help="Package registry distribution: snapshot | staging | production"
+            choices=['snapshot', 'staging', 'production'],
+            help="Package registry distribution"
         )
         parser.add_argument(
-            "--apm-package",
+            "--package-registry-apm-path",
             help="Folder of a local APM package to add to the registry"
         )
 
@@ -1016,7 +1017,7 @@ class Kibana(StackService, Service):
                 elif self.at_least_version("7.9"):
                     self.environment["XPACK_INGESTMANAGER_FLEET_TLSCHECKDISABLED"] = "true"
             if use_local_package_registry:
-                self.environment["XPACK_INGESTMANAGER_REGISTRYURL"] = "http://package-registry:" + \
+                self.environment["XPACK_FLEET_REGISTRYURL"] = "http://package-registry:" + \
                     PackageRegistry.SERVICE_PORT
 
     @classmethod
