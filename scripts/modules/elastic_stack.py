@@ -6,7 +6,7 @@ import argparse
 import json
 import os
 
-from .helpers import curl_healthcheck, try_to_set_slowlog
+from .helpers import curl_healthcheck, try_to_set_slowlog, urlparse
 from .service import StackService, Service, DEFAULT_APM_SERVER_URL
 
 
@@ -587,6 +587,88 @@ class ApmServer(StackService, Service):
         return {self.name(): content}
 
 
+class ElasticAgent(StackService, Service):
+    docker_path = "beats"
+
+    def __init__(self, **options):
+        super(ElasticAgent, self).__init__(**options)
+        if not self.at_least_version("7.8"):
+            raise Exception("Elastic Agent is only available in 7.8+")
+
+        # build deps
+        self.depends_on = {"kibana": {"condition": "service_healthy"}} if options.get("enable_kibana", True) else {}
+
+        # build environment
+        # Environment variables consumed by the Elastic Agent entrypoint
+        # https://github.com/elastic/beats/blob/4f4a5536b72f4a25962d56262f31e3b8533b252e/dev-tools/packaging/templates/docker/docker-entrypoint.elastic-agent.tmpl
+        # FLEET_ENROLLMENT_TOKEN - existing enrollment token to be used for enroll
+        # FLEET_ENROLL - if set to 1 enroll will be performed
+        # FLEET_ENROLL_INSECURE - if set to 1, agent will enroll with fleet using --insecure flag
+        # FLEET_SETUP - if  set to 1 fleet setup will be performed
+        # FLEET_TOKEN_NAME - token name for a token to be created
+        # KIBANA_HOST - actual kibana host [http://localhost:5601]
+        # KIBANA_PASSWORD - password for accessing kibana API [changeme]
+        # KIBANA_USERNAME - username for accessing kibana API [elastic]
+        kibana_url = options.get("elastic_agent_kibana_url")
+        if not kibana_url:
+            kibana_scheme = "https" if self.options.get("kibana_enable_tls", False) else "http"
+            # TODO(gr): add default elastic-agent user
+            kibana_url = kibana_scheme + "://admin:changeme@" + self.DEFAULT_KIBANA_HOST
+
+        kibana_parsed_url = urlparse(kibana_url)
+        self.environment = {
+            "FLEET_ENROLL": "1",
+            "FLEET_SETUP": "1",
+            "KIBANA_HOST": kibana_url,
+        }
+        if kibana_parsed_url.password:
+            self.environment["KIBANA_PASSWORD"] = kibana_parsed_url.password
+        if kibana_parsed_url.username:
+            self.environment["KIBANA_USERNAME"] = kibana_parsed_url.username
+        if not kibana_url.startswith("https://"):
+            self.environment["FLEET_ENROLL_INSECURE"] = 1
+
+    def _content(self):
+        return dict(
+            depends_on=self.depends_on,
+            environment=self.environment,
+            healthcheck={
+                "test": ["CMD", "/bin/true"],
+            },
+            volumes=[
+                "/var/run/docker.sock:/var/run/docker.sock",
+            ]
+        )
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(ElasticAgent, cls).add_arguments(parser)
+        parser.add_argument(
+            "--elastic-agent-kibana-url",
+            default="http://admin:changeme@" + cls.DEFAULT_KIBANA_HOST,
+            help="Elastic Agent's Kibana URL, including username:password"
+        )
+
+    def build_candidate_manifest(self):
+        version = self.version
+        image = self.docker_name
+        if self.oss:
+            image += "-oss"
+        if self.ubi8:
+            image += "-ubi8"
+
+        key = "{image}-{version}-docker-image-linux-amd64.tar.gz".format(
+            image=image,
+            version=version,
+        )
+        try:
+            return self.bc["projects"]["beats"]["packages"][key]
+        except KeyError:
+            # help debug manifest issues
+            print(json.dumps(self.bc))
+            raise
+
+
 class Elasticsearch(StackService, Service):
     default_environment = [
         "bootstrap.memory_lock=true",
@@ -832,7 +914,10 @@ class EnterpriseSearch(StackService, Service):
 
 
 class Kibana(StackService, Service):
-    default_environment = {"SERVER_NAME": "kibana.example.org"}
+    default_environment = {
+        "SERVER_HOST": "0.0.0.0",
+        "SERVER_NAME": "kibana.example.org",
+    }
 
     SERVICE_PORT = 5601
 
@@ -859,6 +944,10 @@ class Kibana(StackService, Service):
             if self.at_least_version("7.7"):
                 self.environment["XPACK_SECURITY_ENCRYPTIONKEY"] = "fhjskloppd678ehkdfdlliverpoolfcr"
                 self.environment["XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY"] = "fhjskloppd678ehkdfdlliverpoolfcr"
+            if self.at_least_version("7.8"):
+                self.environment["XPACK_FLEET_AGENTS_ELASTICSEARCH_HOST"] = urls[0]
+                self.environment["XPACK_FLEET_AGENTS_KIBANA_HOST"] = "{}://kibana:{}".format(
+                    "https" if self.kibana_tls else "http", self.SERVICE_PORT)
             if options.get("xpack_secure"):
                 self.environment["ELASTICSEARCH_PASSWORD"] = "changeme"
                 self.environment["ELASTICSEARCH_USERNAME"] = "kibana_system_user"

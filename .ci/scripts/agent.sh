@@ -13,6 +13,15 @@ if [ "${AGENT}" != "python" ]; then
   APM_DEBUG="--apm-log-level=debug"
 fi
 
+## This is for the CI
+if [ -d /var/lib/jenkins/.m2/repository ] ; then
+  echo "m2 cache folder has been found in the CI worker"
+  cp -rf /var/lib/jenkins/.m2/repository docker/java/spring/.m2
+  BUILD_OPTS="${BUILD_OPTS} --java-m2-cache"
+else
+  echo "m2 cache folder has NOT been found in the CI worker"
+fi
+
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
   --with-agent-${APP} \
   --no-apm-server-dashboards \

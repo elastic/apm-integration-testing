@@ -12,7 +12,7 @@ from ..modules.apm_agents import (
 )
 from ..modules.aux_services import Logstash, Kafka, Zookeeper
 from ..modules.beats import Filebeat, Heartbeat, Metricbeat, Packetbeat
-from ..modules.elastic_stack import ApmServer, Elasticsearch, EnterpriseSearch, Kibana
+from ..modules.elastic_stack import ApmServer, ElasticAgent, Elasticsearch, EnterpriseSearch, Kibana
 
 
 class ServiceTest(unittest.TestCase):
@@ -227,6 +227,7 @@ class AgentServiceTest(ServiceTest):
                         args:
                             RUBY_AGENT_VERSION: latest
                             RUBY_AGENT_REPO: elastic/apm-agent-ruby
+                            RUBY_VERSION: latest
                         dockerfile: Dockerfile
                         context: docker/ruby/rails
                     container_name: railsapp
@@ -286,6 +287,10 @@ class AgentServiceTest(ServiceTest):
         agent = AgentRubyRails(version="7.6", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-ruby-rails"]
         self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
 
+    def test_agent_ruby_version(self):
+        agent = AgentRubyRails(ruby_version="2").render()["agent-ruby-rails"]
+        self.assertEqual("2", agent["build"]["args"]["RUBY_VERSION"])
+
     def test_agent_java_spring(self):
         agent = AgentJavaSpring().render()
         self.assertDictEqual(
@@ -296,6 +301,7 @@ class AgentServiceTest(ServiceTest):
                             JAVA_AGENT_BRANCH: master
                             JAVA_AGENT_BUILT_VERSION: ""
                             JAVA_AGENT_REPO: elastic/apm-agent-java
+                            JAVA_M2_CACHE: "false"
                         dockerfile: Dockerfile
                         context: docker/java/spring
                     container_name: javaspring
@@ -347,6 +353,10 @@ class AgentServiceTest(ServiceTest):
     def test_agent_java_apm_api_key_with_apm_server(self):
         agent = AgentJavaSpring(version="7.6", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-java-spring"]
         self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
+
+    def test_agent_java_m2_cache(self):
+        agent = AgentJavaSpring(java_m2_cache=True).render()["agent-java-spring"]
+        self.assertEqual("true", agent["build"]["args"]["JAVA_M2_CACHE"])
 
     def test_agent_dotnet(self):
         agent = AgentDotnet().render()
@@ -882,6 +892,50 @@ class ApmServerServiceTest(ServiceTest):
         self.assertTrue("*" in apm_server["command"])
 
 
+class ElasticAgentServiceTest(ServiceTest):
+    def test_default(self):
+        ea = ElasticAgent(version="7.12.345").render()["elastic-agent"]
+        self.assertEqual(
+            ea, {"container_name": "localtesting_7.12.345_elastic-agent",
+                 "depends_on": {"kibana": {"condition": "service_healthy"}},
+                 "environment": {"FLEET_ENROLL": "1",
+                                 "FLEET_ENROLL_INSECURE": 1,
+                                 "FLEET_SETUP": "1",
+                                 "KIBANA_HOST": "http://admin:changeme@kibana:5601",
+                                 "KIBANA_PASSWORD": "changeme",
+                                 "KIBANA_USERNAME": "admin"},
+                 "healthcheck": {"test": ["CMD", "/bin/true"]},
+                 "image": "docker.elastic.co/beats/elastic-agent:7.12.345-SNAPSHOT",
+                 "labels": ["co.elastic.apm.stack-version=7.12.345"],
+                 "logging": {"driver": "json-file",
+                             "options": {"max-file": "5", "max-size": "2m"}},
+                 "volumes": ["/var/run/docker.sock:/var/run/docker.sock"]}
+        )
+
+    def test_default_snapshot(self):
+        ea = ElasticAgent(version="7.12.345", snapshot=True).render()["elastic-agent"]
+        self.assertEqual(
+            "docker.elastic.co/beats/elastic-agent:7.12.345-SNAPSHOT", ea["image"]
+        )
+
+    def test_kibana_tls(self):
+        ea = ElasticAgent(version="7.12.345", kibana_enable_tls=True).render()["elastic-agent"]
+        self.assertEqual(
+            "https://admin:changeme@kibana:5601", ea["environment"]["KIBANA_HOST"]
+        )
+
+    def test_kibana_url(self):
+        ea = ElasticAgent(version="7.12.345", elastic_agent_kibana_url="http://foo").render()["elastic-agent"]
+        self.assertEqual("http://foo", ea["environment"]["KIBANA_HOST"])
+        self.assertNotIn("KIBANA_PASSWORD", ea["environment"])
+        self.assertNotIn("KIBANA_USERNAME", ea["environment"])
+
+        ea = ElasticAgent(version="7.12.345", elastic_agent_kibana_url="http://u:p@h:123").render()["elastic-agent"]
+        self.assertEqual("http://u:p@h:123", ea["environment"]["KIBANA_HOST"])
+        self.assertEqual("p", ea["environment"]["KIBANA_PASSWORD"])
+        self.assertEqual("u", ea["environment"]["KIBANA_USERNAME"])
+
+
 class ElasticsearchServiceTest(ServiceTest):
     def test_6_2_release(self):
         elasticsearch = Elasticsearch(version="6.2.4", release=True).render()["elasticsearch"]
@@ -1106,6 +1160,7 @@ class KibanaServiceTest(ServiceTest):
                     image: docker.elastic.co/kibana/kibana-x-pack:6.2.4
                     container_name: localtesting_6.2.4_kibana
                     environment:
+                        SERVER_HOST: 0.0.0.0
                         SERVER_NAME: kibana.example.org
                         ELASTICSEARCH_HOSTS: http://elasticsearch:9200
                         XPACK_MONITORING_ENABLED: 'true'
@@ -1135,6 +1190,7 @@ class KibanaServiceTest(ServiceTest):
                     image: docker.elastic.co/kibana/kibana:6.3.5
                     container_name: localtesting_6.3.5_kibana
                     environment:
+                        SERVER_HOST: 0.0.0.0
                         SERVER_NAME: kibana.example.org
                         ELASTICSEARCH_HOSTS: http://elasticsearch:9200
                         XPACK_MONITORING_ENABLED: 'true'

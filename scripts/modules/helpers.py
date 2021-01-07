@@ -15,9 +15,12 @@ import time
 
 try:
     from urllib.request import urlopen, urlretrieve, Request
+    from urllib.parse import urlparse
 except ImportError:
     from urllib import urlretrieve
     from urllib2 import urlopen, Request
+    import urllib2
+    urlparse = urllib2.urlparse.urlparse
 
 
 def _camel_hyphen(string):

@@ -22,7 +22,7 @@ from .beats import (  # noqa: F401
     Packetbeat, Metricbeat, Heartbeat, Filebeat
 )
 from .elastic_stack import (  # noqa: F401
-    ApmServer, Elasticsearch, EnterpriseSearch, Kibana
+    ApmServer, ElasticAgent, Elasticsearch, EnterpriseSearch, Kibana
 )
 from .aux_services import (  # noqa: F401
     Kafka, Logstash, Postgres, Redis, Zookeeper, WaitService
@@ -76,7 +76,7 @@ class LocalSetup(object):
         '7.7': '7.7.1',
         '7.8': '7.8.1',
         '7.9': '7.9.3',
-        '7.10': '7.10.2',
+        '7.10': '7.10.1',
         '7.11': '7.11.0',
         '7.12': '7.12.0',
         'master': '8.0.0',
