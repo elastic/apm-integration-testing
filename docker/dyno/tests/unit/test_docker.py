@@ -90,3 +90,30 @@ def test_update(fake_container_patch, docker_mock, client):
 
     fake_container.update.assert_called_with(cpu_quota=25990)
 
+# FIXME This is marked as xfail pending a centralization of the normalization functions
+@mark.xfail
+@mark.parametrize('val', range(1,101, 10))
+@mock.patch('dyno.app.api.control._range', mock.Mock(return_value={'Fr': [1,10]}))
+def test_normalize(val):
+    """
+    GIVEN values between 1-100
+    WHEN the value is sent to be normalized
+    THEN the correct normalized value is returned
+    """
+    got = dkr._normalize_value('cpu', val)
+    want = (101 - val) / 10
+    assert got == want
+
+# FIXME This is marked as xfail pending a centralization of the normalization functions
+@mark.xfail
+@mark.parametrize('val', range(1,10))
+@mock.patch('dyno.app.api.control._range', mock.Mock(return_value={'Fr': [1,10]}))
+def test_denormalize(val):
+    """
+    GIVEN values between 1-100
+    WHEN the value is sent to be denormalized
+    THEN the correct normalized value is returned
+    """
+    got = dkr._denormalize_value('cpu', val)
+    want = 100 - (val * 10)
+    assert got == want

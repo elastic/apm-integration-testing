@@ -120,14 +120,17 @@ def update():
     c.update(**config['settings'])
     return {}
 
+def _range():
+    range_path = os.path.join(app.app.root_path, 'range.yml')
+    with open(range_path, 'r') as fh_:
+        slider_range = yaml.load(fh_, Loader=yaml.FullLoader)
+    return slider_range
 
 def _denormalize_value(code, val):
     """
     Take a current value and return the percentage val
     """
-    range_path = os.path.join(app.app.root_path, 'range.yml')
-    with open(range_path, 'r') as fh_:
-        slider_range = yaml.load(fh_, Loader=yaml.FullLoader)
+    slider_range = _range()
     lval, uval = slider_range[code]
     ret = ((val - min([uval, lval])) / (max([lval, uval]) - min([lval-uval]))) + 1
     return int(ret)
@@ -146,9 +149,7 @@ def _normalize_value(code, val):
     which is in the range of 0-100 and we turn that into an actual
     value to pass to the toxic
     """
-    range_path = os.path.join(app.app.root_path, 'range.yml')
-    with open(range_path, 'r') as fh_:
-        slider_range = yaml.load(fh_, Loader=yaml.FullLoader)
+    slider_range = _range()
 
     lval, uval = slider_range[code]
 
