@@ -10,8 +10,6 @@ repos:
         exclude: ^target/
     -   id: check-merge-conflict
         exclude: ^target/
-    -   id: check-yaml
-        exclude: ^target/
     -   id: check-xml
         exclude: ^target/
     -   id: end-of-file-fixer
