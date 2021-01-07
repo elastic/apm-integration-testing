@@ -351,6 +351,7 @@ class AgentRubyRails(Service):
     DEFAULT_AGENT_REPO = "elastic/apm-agent-ruby"
     DEFAULT_AGENT_VERSION = "latest"
     DEFAULT_AGENT_VERSION_STATE = "release"
+    DEFAULT_RUBY_VERSION = "latest"
     SERVICE_PORT = 8020
 
     @classmethod
@@ -371,12 +372,18 @@ class AgentRubyRails(Service):
             default=cls.DEFAULT_AGENT_REPO,
             help="GitHub repo to be used. Default: {}".format(cls.DEFAULT_AGENT_REPO),
         )
+        parser.add_argument(
+            "--ruby-version",
+            default=cls.DEFAULT_RUBY_VERSION,
+            help='Use Ruby version (latest, 2, 3, ...)',
+        )
 
     def __init__(self, **options):
         super(AgentRubyRails, self).__init__(**options)
         self.agent_version = options.get("ruby_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_version_state = options.get("ruby_agent_version_state", self.DEFAULT_AGENT_VERSION_STATE)
         self.agent_repo = options.get("ruby_agent_repo", self.DEFAULT_AGENT_REPO)
+        self.ruby_version = options.get("ruby_version", self.DEFAULT_RUBY_VERSION)
         if options.get("enable_apm_server", True):
             self.depends_on = {
                 "apm-server": {"condition": "service_healthy"},
@@ -435,6 +442,7 @@ class AgentRubyRails(Service):
                 "args": {
                     "RUBY_AGENT_VERSION": self.agent_version,
                     "RUBY_AGENT_REPO": self.agent_repo,
+                    "RUBY_VERSION": self.ruby_version,
                 }
             },
             command="bash -c \"bundle install && RAILS_ENV=production bundle exec rails s -b 0.0.0.0 -p {}\"".format(
