@@ -1,20 +1,28 @@
-FROM node:8-slim
+FROM node:12-slim
 
 ARG RUM_AGENT_BRANCH
 ARG RUM_AGENT_REPO
 ARG APM_SERVER_URL
 
-RUN apt-get -qq update \
-    && apt-get -qq install -yq libgconf-2-4 \
-    && apt-get -qq install -y curl git --no-install-recommends \
-    && curl -L https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && apt-get -qq update \
-    && apt-get -qq install -y google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst ttf-freefont \
-      --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get -qq purge --auto-remove -y \
-    && rm -rf /src/*.deb
+RUN apt update -qq \
+    && apt install -qq -y \
+      curl \
+      git \
+      gnupg \
+      libgconf-2-4 \
+      libxss1 \
+      libxtst6 \
+      python \
+      g++ \
+      build-essential \
+      fonts-ipafont-gothic \
+      fonts-wqy-zenhei \
+      fonts-thai-tlwg \
+      fonts-kacst \
+      ttf-freefont \
+      ca-certificates \
+      chromium \
+      --no-install-recommends
 
 # It's a good idea to use dumb-init to help prevent zombie chrome processes.
 ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
@@ -24,9 +32,20 @@ RUN git clone -b $RUM_AGENT_BRANCH --single-branch https://github.com/$RUM_AGENT
 
 WORKDIR /rumjs-integration-test
 
-RUN npm install
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=//usr/bin/chromium
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+# the install is retry threee times with a pause of 10 seconds
+RUN for i in 1 2 3; \
+    do \
+      npm install --no-optional --no-audit; \
+      sleep 10; \
+      ([ $i -eq 3 ] && exit 1) || true; \
+    done;
 
-RUN npx lerna run --scope=@elastic/apm-rum build && npx lerna run build:e2e
+# Run the build on all the packages/* to make sure the files referenced in both
+# main and module fields are available when they are required by successive dependencies
+RUN npx lerna run build && npx lerna run build:e2e --scope=@elastic/apm-rum
 
 # Add user so we don't need --no-sandbox.
 RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \

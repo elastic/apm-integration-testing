@@ -43,13 +43,13 @@ env-%: venv
 test: test-all
 
 test-agent-%-version: venv
-	pytest tests/agent/test_$*.py -v -s -m version $(JUNIT_OPT)/agent-$*-version-junit.xml
+	pytest tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s -m version $(JUNIT_OPT)/agent-$*-version-junit.xml
 
 test-agent-%: venv
-	pytest tests/agent/test_$*.py -v -s $(JUNIT_OPT)/agent-$*-junit.xml
+	pytest tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/agent-$*-junit.xml
 
 test-compose: venv
-	pytest scripts/tests/*_tests.py -v -s $(JUNIT_OPT)/compose-junit.xml
+	pytest scripts/tests/*_tests.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/compose-junit.xml
 
 test-compose-2:
 	virtualenv --python=python2.7 venv2
@@ -57,10 +57,10 @@ test-compose-2:
 	./venv2/bin/pytest --noconftest scripts/tests/*_tests.py
 
 test-kibana: venv
-	pytest tests/kibana/test_integration.py -v -s $(JUNIT_OPT)/kibana-junit.xml
+	pytest tests/kibana/test_integration.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/kibana-junit.xml
 
 test-server: venv
-	pytest tests/server/ -v -s $(JUNIT_OPT)/server-junit.xml
+	pytest tests/server/ --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/server-junit.xml
 
 SUBCOMMANDS = list-options load-dashboards start status stop upload-sourcemap versions
 

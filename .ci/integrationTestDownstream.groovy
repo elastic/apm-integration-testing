@@ -10,49 +10,6 @@ import groovy.transform.Field
 */
 @Field def integrationTestsGen
 
-/**
-  YAML files to get agent versions and exclusions.
-*/
-@Field Map ymlFiles = [
-  'dotnet': 'tests/versions/dotnet.yml',
-  'go': 'tests/versions/go.yml',
-  'java': 'tests/versions/java.yml',
-  'nodejs': 'tests/versions/nodejs.yml',
-  'python': 'tests/versions/python.yml',
-  'ruby': 'tests/versions/ruby.yml',
-  'rum': 'tests/versions/rum.yml',
-  'server': 'tests/versions/apm_server.yml'
-]
-
-/**
-  Key which contains the agent versions.
-*/
-@Field Map agentYamlVar = [
-  'dotnet': 'DOTNET_AGENT',
-  'go': 'GO_AGENT',
-  'java': 'JAVA_AGENT',
-  'nodejs': 'NODEJS_AGENT',
-  'python': 'PYTHON_AGENT',
-  'ruby': 'RUBY_AGENT',
-  'rum': 'RUM_AGENT',
-  'server': 'APM_SERVER'
-]
-
-/**
-  translate from human agent name to an ID.
-*/
-@Field Map mapAgentsIDs = [
-  '.NET': 'dotnet',
-  'Go': 'go',
-  'Java': 'java',
-  'Node.js': 'nodejs',
-  'Python': 'python',
-  'Ruby': 'ruby',
-  'RUM': 'rum',
-  'All': 'all',
-  'UI': 'ui'
-]
-
 pipeline {
   agent { label 'linux && immutable && docker' }
   environment {
@@ -66,7 +23,7 @@ pipeline {
   }
   options {
     timeout(time: 1, unit: 'HOURS')
-    buildDiscarder(logRotator(numToKeepStr: '300', artifactNumToKeepStr: '300', daysToKeepStr: '30'))
+    buildDiscarder(logRotator(numToKeepStr: '300', artifactNumToKeepStr: '300'))
     timestamps()
     ansiColor('xterm')
     disableResume()
@@ -74,7 +31,7 @@ pipeline {
   }
   parameters {
     choice(name: 'AGENT_INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All'], description: 'Name of the APM Agent you want to run the integration tests.')
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.6 --release", description: "Elastic Stack Git branch/tag to use")
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "6.8 --release", description: "Elastic Stack Git branch/tag to use")
     string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "6.x", description: "Integration testing Git branch/tag to use")
     string(name: 'MERGE_TARGET', defaultValue: "master", description: "Integration testing Git branch/tag where to merge this code")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
@@ -94,7 +51,8 @@ pipeline {
           repo: "${REPO}",
           credentialsId: "${JOB_GIT_CREDENTIALS}",
           mergeTarget: "${params.MERGE_TARGET}",
-          reference: "/var/lib/jenkins/apm-integration-testing.git"
+          reference: "/var/lib/jenkins/apm-integration-testing.git",
+          shallow: false
         )
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
         script{
@@ -118,13 +76,13 @@ pipeline {
         unstash "source"
         dir("${BASE_DIR}"){
           script {
-            def agentTests = mapAgentsIDs[params.AGENT_INTEGRATION_TEST]
+            def agentTests = agentMapping.id(params.AGENT_INTEGRATION_TEST)
             integrationTestsGen = new IntegrationTestingParallelTaskGenerator(
-              xKey: agentYamlVar[agentTests],
-              yKey: agentYamlVar['server'],
-              xFile: ymlFiles[agentTests],
-              yFile: ymlFiles['server'],
-              exclusionFile: ymlFiles[agentTests],
+              xKey: agentMapping.agentVar(agentTests),
+              yKey: agentMapping.agentVar('server'),
+              xFile: agentMapping.yamlVersionFile(agentTests),
+              yFile: agentMapping.yamlVersionFile('server'),
+              exclusionFile: agentMapping.yamlVersionFile(agentTests),
               tag: agentTests,
               name: params.AGENT_INTEGRATION_TEST,
               steps: this
@@ -147,32 +105,12 @@ pipeline {
         deleteDir()
         unstash "source"
         dir("${BASE_DIR}"){
-          sh "./scripts/ci/all.sh"
+          sh ".ci/scripts/all.sh"
         }
       }
       post {
         always {
           wrappingup('all')
-        }
-      }
-    }
-    stage("UI") {
-      when {
-        expression { return params.AGENT_INTEGRATION_TEST == 'UI' }
-      }
-      environment {
-        TMPDIR = "${WORKSPACE}/${BASE_DIR}"
-        HOME = "${WORKSPACE}/${BASE_DIR}"
-      }
-      steps {
-        deleteDir()
-        unstash "source"
-        dir("${BASE_DIR}"){
-          script {
-            docker.image('node:11').inside() {
-              sh(label: "Check Schema", script: "./scripts/ci/ui.sh")
-            }
-          }
         }
       }
     }
@@ -188,11 +126,11 @@ pipeline {
           archiveArtifacts allowEmptyArchive: true, artifacts: 'results.json,results.html', defaultExcludes: false
           catchError(buildResult: 'SUCCESS') {
             def datafile = readFile(file: "results.json")
-            def json = getVaultSecret(secret: 'secret/apm-team/ci/apm-server-benchmark-cloud')
-            sendDataToElasticsearch(es: json.data.url, data: datafile, restCall: '/jenkins-builds-test-results/_doc/')
+            def json = getVaultSecret(secret: 'secret/apm-team/ci/jenkins-stats-cloud')
+            sendDataToElasticsearch(es: json.data.url, data: datafile, restCall: '/jenkins-builds-it-results/_doc/')
           }
         }
-        notifyBuildResult()
+        notifyBuildResult(prComment: false)
       }
     }
   }
@@ -202,19 +140,6 @@ pipeline {
   Parallel task generator for the integration tests.
 */
 class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerator {
-  /**
-    Enviroment variable to put the agent version before run tests.
-  */
-  public Map agentEnvVar = [
-    'dotnet': 'APM_AGENT_DOTNET_VERSION',
-    'go': 'APM_AGENT_GO_VERSION',
-    'java': 'APM_AGENT_JAVA_VERSION',
-    'nodejs': 'APM_AGENT_NODEJS_VERSION',
-    'python': 'APM_AGENT_PYTHON_VERSION',
-    'ruby': 'APM_AGENT_RUBY_VERSION',
-    'rum': 'APM_AGENT_RUM_VERSION',
-    'server': 'APM_SERVER_BRANCH'
-  ]
 
   public IntegrationTestingParallelTaskGenerator(Map params){
     super(params)
@@ -228,7 +153,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
     return {
       steps.node('linux && immutable'){
         def env = ["APM_SERVER_BRANCH=${y}",
-          "${agentEnvVar[tag]}=${x}",
+          "${steps.agentMapping.envVar(tag)}=${x}",
           "REUSE_CONTAINERS=true"
           ]
         def label = "${tag}-${x}-${y}"
@@ -237,7 +162,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
           saveResult(x, y, 1)
         } catch (e){
           saveResult(x, y, 0)
-          error("${label} tests failed : ${e.toString()}\n")
+          steps.error("${label} tests failed : ${e.toString()}\n")
         } finally {
           steps.wrappingup(label)
         }
@@ -262,7 +187,7 @@ def runScript(Map params = [:]){
     withEnv(env){
       sh """#!/bin/bash
       export TMPDIR="${WORKSPACE}"
-      ./scripts/ci/${agentType}.sh
+      .ci/scripts/${agentType}.sh
       """
     }
   }
@@ -280,7 +205,7 @@ def wrappingup(label){
         artifacts: 'docker-info/**,**/tests/results/data-*.json,,**/tests/results/packetbeat-*.json',
         defaultExcludes: false)
     junit(
-      allowEmptyResults: false,
+      allowEmptyResults: true,
       keepLongStdio: true,
       testResults: "**/tests/results/*-junit*.xml")
   }

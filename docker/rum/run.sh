@@ -1,2 +1,1 @@
-npx lerna run serve --stream
-
+npm run serve -- packages/rum

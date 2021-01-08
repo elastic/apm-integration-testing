@@ -31,7 +31,7 @@ if [ -z "${DISABLE_BUILD_PARALLEL}" ]; then
  BUILD_OPTS="${BUILD_OPTS} --build-parallel"
 fi
 
-ELASTIC_STACK_VERSION=${ELASTIC_STACK_VERSION:-'6.6 --release'}
+ELASTIC_STACK_VERSION=${ELASTIC_STACK_VERSION:-'6.8 --release'}
 
 # assume we're under CI if BUILD_NUMBER is set
 if [ -n "${BUILD_NUMBER}" ]; then

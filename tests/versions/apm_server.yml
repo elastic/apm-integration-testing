@@ -1,4 +1,5 @@
 APM_SERVER:
-  - '6.7'
+  - '6.8;--release'
+  - '6.7;--release'
   - '6.6;--release'
   - '6.5;--release'

@@ -13,12 +13,3 @@ from tests.fixtures.agents import go_nethttp
 from tests.fixtures.agents import java_spring
 from tests.fixtures.agents import rum
 from tests.fixtures import default
-
-
-@pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_teardown(item, nextitem):
-    """Called after pytest_runtest_call."""
-    outcome = yield
-    rs = es().es.search(index="apm-*", size="10000")
-    with open(f'/app/tests/results/data-{item.name}.json', 'w') as outFile:
-        json.dump(rs, outFile, sort_keys=True, indent=4, ensure_ascii=False)
