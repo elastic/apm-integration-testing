@@ -33,28 +33,72 @@ low_client = docker.APIClient()
 
 def _normalize_name(name):
     """
-    Small helper to find the container name. We get
-    passed in something like `elasticsearch` and have to
+    Small helper to find the container name.
+
+    Pass in something like `elasticsearch` and have to
     find it in a list of container names that are like:
     localtesting_7.9.0_elasticsearch
+
+    Parameters
+    ----------
+    str : name
+        The name to normalize
+
+    Returns
+    -------
+    str
+        The normalized name
     """
     containers = container_list()
     found = []
-    for c_ in containers['containers']:
-        if c_.split('_').pop().strip() == name:
-            found.append(name) 
+    for container in containers['containers']:
+        if container.split('_').pop().strip() == name:
+            found.append(container)
     if len(found) > 1:
         raise Exception('Found more than one instance matching [{}]'.format(name))
-    elif not found:
-        raise Exception('Could not normalize [{}] because it was not found in the container list') 
-    else:
-        return found[0]
+    if not found:
+        raise Exception('Could not normalize [{}] because it was not found in the container list')
+    return found[0]
 
 
 @bp.route('/list', methods=['GET'])
 def container_list():
     """
     Return list of containers
+
+    Note
+    ----
+    Exposed via HTTP at /api/docker/list
+
+    Note
+    ----
+    Paramaters are received query arguments in a Flask request object. They
+    may not be passed directly to this function.
+
+    Returns
+    -------
+    dict
+        A dict with a key of 'containers' and the value of which is a list of
+        the running containers
+
+    Examples
+    --------
+	❯ curl -s http://localhost:9000/api/docker/list|jq
+    {
+      "containers": [
+        "localtesting_8.0.0_opbeans-load-generator",
+        "localtesting_latest_opbeans-python",
+        "localtesting_latest_opbeans-python01",
+        "dyno",
+        "localtesting_8.0.0_apm-server",
+        "localtesting_8.0.0_kibana",
+        "localtesting_8.0.0_elasticsearch",
+        "localtesting_8.0.0_postgres",
+        "localtesting_8.0.0_redis",
+        "localtesting_8.0_toxi",
+        "localtesting_8.0_stats-d"
+      ]
+    }
     """
     ret = {'containers': []}
     containers = client.containers.list()
@@ -68,13 +112,28 @@ def query():
     """
     Inspect container and return information
 
-    Args:
+    Note
+    ----
+    Exposed via HTTP at /api/docker/query
 
-    c: (str) Container to get
+    Note
+    ----
+    Paramaters are received query arguments in a Flask request object. They
+    may not be passed directly to this function.
+
+    Parameters
+    ----------
+    c : str
+        Container to get
+
+    Returns
+    -------
+    dict
+        A dictionary showing the configuration for the running container
+
     """
-    c = request.args.get('c')
-    config = low_client.inspect_container(_normalize_name(c))['HostConfig']
-    # We take the following:
+    container = request.args.get('c')
+    config = low_client.inspect_container(_normalize_name(container))['HostConfig']
     """
     cpu_quota (int) - Limit CPU CFS (Completely Fair Scheduler) quota
         -> HostConfig.CpuShares
