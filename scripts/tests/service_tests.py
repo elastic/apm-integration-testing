@@ -137,6 +137,8 @@ class AgentServiceTest(ServiceTest):
                     build:
                         dockerfile: Dockerfile
                         context: docker/ruby/rails
+                        args:
+                            RUBY_VERSION: latest
                     container_name: railsapp
                     command: bash -c "bundle install && RAILS_ENV=production bundle exec rails s -b 0.0.0.0 -p 8020"
                     environment:
@@ -160,6 +162,10 @@ class AgentServiceTest(ServiceTest):
         # test overrides
         agent = AgentRubyRails(apm_server_url="http://foo").render()["agent-ruby-rails"]
         self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"], agent)
+
+    def test_agent_ruby_version(self):
+        agent = AgentRubyRails(ruby_version="2").render()["agent-ruby-rails"]
+        self.assertEqual("2", agent["build"]["args"]["RUBY_VERSION"])
 
     def test_agent_java_spring(self):
         agent = AgentJavaSpring().render()

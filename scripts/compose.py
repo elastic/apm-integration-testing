@@ -1015,6 +1015,7 @@ class AgentPythonFlask(AgentPython):
 class AgentRubyRails(Service):
     DEFAULT_AGENT_VERSION = "latest"
     DEFAULT_AGENT_VERSION_STATE = "release"
+    DEFAULT_RUBY_VERSION = "latest"
     SERVICE_PORT = 8020
 
     @classmethod
@@ -1030,18 +1031,30 @@ class AgentRubyRails(Service):
             default=cls.DEFAULT_AGENT_VERSION_STATE,
             help='Use Ruby agent version state (github or release)',
         )
+        parser.add_argument(
+            "--ruby-version",
+            default=cls.DEFAULT_RUBY_VERSION,
+            help='Use Ruby version (latest, 2, 3, ...)',
+        )
 
     def __init__(self, **options):
         super(AgentRubyRails, self).__init__(**options)
         self.agent_version = options.get("ruby_agent_version", self.DEFAULT_AGENT_VERSION)
         self.agent_version_state = options.get("ruby_agent_version_state", self.DEFAULT_AGENT_VERSION_STATE)
+        self.ruby_version = options.get("ruby_version", self.DEFAULT_RUBY_VERSION)
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN"),
     ])
     def _content(self):
         return dict(
-            build={"context": "docker/ruby/rails", "dockerfile": "Dockerfile"},
+            build={
+                "context": "docker/ruby/rails",
+                "dockerfile": "Dockerfile",
+                "args": {
+                    "RUBY_VERSION": self.ruby_version,
+                }
+            },
             command="bash -c \"bundle install && RAILS_ENV=production bundle exec rails s -b 0.0.0.0 -p {}\"".format(
                 self.SERVICE_PORT),
             container_name="railsapp",
