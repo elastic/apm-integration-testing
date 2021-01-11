@@ -5,6 +5,8 @@
     description: It runs integration Test against an Elastic Cloud environment.
     project-type: multibranch
     script-path: .ci/integrationTestEC.groovy
+    logrotate:
+      daysToKeep: 7
     scm:
     - github:
         branch-discovery: no-pr
