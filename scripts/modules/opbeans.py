@@ -705,15 +705,7 @@ class OpbeansLoadGenerator(Service):
 
     def _content(self):
         content = dict(
-            # FIXME testing
-            # image="opbeans/opbeans-loadgen:latest",
-            build=dict(
-                context="docker/opbeans-loadgen",
-                dockerfile="Dockerfile",
-                args=[]
-            ),
-            image="lg",
-            # END FIXME
+            image="opbeans/opbeans-loadgen:latest",
             ports=["8999:8000"],
             depends_on=[service for service in self.loadgen_services],
             environment=[

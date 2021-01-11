@@ -340,26 +340,24 @@ def slide():
 
     t = _fetch_proxy()
     p = t.get_proxy(slide.get('proxy'))
-    # TODO right now there isn't any edit functionality in the upstream lib
-    # so we need to add that and send in a PR. For now, we check and see if
-    # a toxic matching what we are looking for exists and if so, we remove it.
-    # Then we just carry on with our business. This obviously needs to be fixed
-    # at some point.
     normalized_val = _normalize_value(slide['tox_code'], slide['val'])
 
-    try:
+    # See if toxic exists
+    if not p.get_toxic('{}_downstream'.format(toxic_key['type'])):
         p.add_toxic(
             type=toxic_key['type'],
             attributes={toxic_key['attr']: normalized_val}
             )
-    except Exception:
-        t = p.toxics()
-        for i in t:
-            p.destroy_toxic(i)
-        p.add_toxic(
-            type=toxic_key['type'],
-            attributes={toxic_key['attr']: normalized_val}
-            )
+    else:
+        """
+        Note: This functionality is not in the upstream library and
+        has been added specifically here:
+        https://github.com/cachedout/toxiproxy-python/
+        """
+        p.edit_toxic(
+           type=toxic_key['type'],
+           attributes={toxic_key['attr']: normalized_val}
+        )
     return {}
 
 

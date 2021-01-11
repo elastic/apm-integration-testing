@@ -169,7 +169,6 @@ function drawSliders(service_name){
         <td><span id="J" class="toxi_slide"></span></td>\
         <td><span id="B" class="toxi_slide"></span></td>\
         <td><span id="SC" class="toxi_slide"></span></td>\
-        <td><span id="T" class="toxi_slide"></span></td>\
         <td><span id="Sas" class="toxi_slide"></span></td>\
         <td><span id="Ssd" class="toxi_slide"></span></td>\
         <td><span id="CPU" class="docker_slide"></span></td>\
@@ -182,7 +181,6 @@ function drawSliders(service_name){
         <td align="center">J</td>\
         <td align="center">B</td>\
         <td align="center">SC</td>\
-        <td align="center">T</td>\
         <td align="center">Sas</td>\
         <td align="center">Ssd</td>\
         <td align="center">CPU</td>\
@@ -191,7 +189,6 @@ function drawSliders(service_name){
         <tr>\
         <td align="center"><div style="color:#68B847">&#9632;</div></td>\
         <td align="center"><div style="color:#68B847">&#9632;</div></td>\
-        <td align="center"><div style="color:#B84768">&#9632;</div></td>\
         <td align="center"><div style="color:#B84768">&#9632;</div></td>\
         <td align="center"><div style="color:#B84768">&#9632;</div></td>\
         <td align="center"><div style="color:#B84768">&#9632;</div></td>\
@@ -262,7 +259,7 @@ function drawSliders(service_name){
 
           $( "#eq-"+ service_name+" > table > tbody > tr > td > .toxi_slide" ).each(function() {
             var previouslySetSlider = result.toxics[this.id];
-            var sliderVal = 100;
+            var sliderVal = 0;
             if (previouslySetSlider != 0 && typeof previouslySetSlider !== 'undefined') {
               sliderVal = previouslySetSlider
             }
@@ -346,7 +343,8 @@ function handleDockerSlideChange(event, ui){
 
 function handleToxiSlideChange(event, ui){
   proxy = ui.handle.parentElement.attributes.service_name.value;
-  d = JSON.stringify({'proxy': proxy, 'tox_code': ui.handle.parentElement.id, 'val': ui.value});
+  d = JSON.stringify({'proxy': proxy, 'tox_code': ui.handle.parentElement.id, 'val': Math.abs(100- ui.value)});
+  console.log('toxi change: ' + d);
   $.ajax({
     type: "POST",
     url: window.location.origin + "/api/slide",
