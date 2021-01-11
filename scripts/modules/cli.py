@@ -591,7 +591,9 @@ class LocalSetup(object):
             selections.add(toxi)
             toxi.gen_ports(selections)
             c = toxi.gen_config(selections)
-            with open('../docker/toxi/toxi.cfg', 'w') as fh_:
+            this_dir = os.path.dirname(os.path.realpath(__file__))
+            toxi_cfg_path = os.path.join(this_dir, "../../docker/toxi/toxi.cfg")
+            with open(toxi_cfg_path, 'w') as fh_:
                 fh_.write(c)
             dyno = Dyno()
             selections.add(dyno)
