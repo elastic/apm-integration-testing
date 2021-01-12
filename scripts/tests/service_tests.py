@@ -141,6 +141,9 @@ class AgentServiceTest(ServiceTest):
                             RUBY_VERSION: latest
                     container_name: railsapp
                     command: bash -c "bundle install && RAILS_ENV=production bundle exec rails s -b 0.0.0.0 -p 8020"
+                    depends_on:
+                        apm-server:
+                            condition: 'service_healthy'
                     environment:
                         APM_SERVER_URL: http://apm-server:8200
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
@@ -221,7 +224,7 @@ class AgentServiceTest(ServiceTest):
                         ELASTIC_APM_SERVICE_NAME: dotnetapp
                         ELASTIC_APM_TRANSACTION_IGNORE_NAMES: 'healthcheck'
                     healthcheck:
-                        interval: 10s
+                        interval: 5s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output",
                         "/dev/null", "http://dotnetapp:8100/healthcheck"]
