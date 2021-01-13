@@ -35,8 +35,8 @@ class Logstash(StackService, Service):
             volumes = ["./docker/logstash/pipeline-6.x-compat/:/usr/share/logstash/pipeline/"]
 
         return dict(
-            depends_on=["elasticsearch"]if self.options.get(
-                "enable_elasticsearch", True) else [],
+            depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
+                "enable_elasticsearch", True) else {},
             environment={
                 "ELASTICSEARCH_URL": self.es_urls,
             },
@@ -149,7 +149,7 @@ class WaitService(Service):
         # to allow the tests to check for a consisently-ordered list
         for s in sorted(self.services, key=lambda x: x.name()):
             if s.name() != self.name() and s.name() != "opbeans-load-generator":
-                self.depends_on.append(s.name())
+                self.depends_on[s.name()] = {"condition": "service_healthy"}
         return dict(
             container_name="wait",
             image="busybox",

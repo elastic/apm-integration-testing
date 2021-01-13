@@ -62,8 +62,8 @@ class ApmServer(StackService, Service):
                     ("apm-server.instrumentation.profiling.cpu.enabled", "true"),
                     ("apm-server.instrumentation.profiling.heap.enabled", "true"),
                 ])
-        self.depends_on = ["elasticsearch"] if options.get(
-            "enable_elasticsearch", True) else []
+        self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if options.get(
+                "enable_elasticsearch", True) else {}
         self.build = self.options.get("apm_server_build")
 
         self.es_tls = self.options.get("elasticsearch_enable_tls", False)
@@ -109,7 +109,7 @@ class ApmServer(StackService, Service):
                             ("apm-server.kibana.{}".format(cfg), default_apm_server_creds.get(cfg)))
 
         if self.options.get("enable_kibana", True):
-            self.depends_on.append("kibana")
+            self.depends_on["kibana"] = {"condition": "service_healthy"}
             if options.get("apm_server_dashboards", True) and not self.at_least_version("7.0") \
                     and not self.options.get("xpack_secure"):
                 self.apm_server_command_args.append(
@@ -555,10 +555,11 @@ class ApmServer(StackService, Service):
         return ren
 
     def render_proxy(self):
+        condition = {"condition": "service_healthy"}
         content = dict(
             build={"context": "docker/apm-server/haproxy"},
             container_name=self.default_container_name() + "-load-balancer",
-            depends_on=["apm-server-{}".format(i) for i in range(1, self.apm_server_count + 1)],
+            depends_on={"apm-server-{}".format(i): condition for i in range(1, self.apm_server_count + 1)},
             environment={"APM_SERVER_COUNT": self.apm_server_count},
             healthcheck={"test": ["CMD", "haproxy", "-c", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]},
             ports=[
@@ -568,6 +569,7 @@ class ApmServer(StackService, Service):
         return {self.name(): content}
 
     def render_tee(self):
+        condition = {"condition": "service_healthy"}
         command = ["teeproxy", "-l", "0.0.0.0:8200", "-a", "apm-server-1:8200", "-b", "apm-server-2:8200"]
         # add extra tee backends
         for i in range(3, self.apm_server_count + 1):
@@ -576,7 +578,7 @@ class ApmServer(StackService, Service):
             build={"context": "docker/apm-server/teeproxy"},
             command=command,
             container_name=self.default_container_name() + "-tee",
-            depends_on=["apm-server-{}".format(i) for i in range(1, self.apm_server_count + 1)],
+            depends_on={"apm-server-{}".format(i): condition for i in range(1, self.apm_server_count + 1)},
             healthcheck={"test": ["CMD", "pgrep", "teeproxy"]},
             ports=[
                 self.publish_port(self.port, self.SERVICE_PORT),
@@ -916,8 +918,8 @@ class EnterpriseSearch(StackService, Service):
 
     def __init__(self, **options):
         super(EnterpriseSearch, self).__init__(**options)
-        self.depends_on = ["elasticsearch"] if options.get(
-            "enable_elasticsearch", True) else []
+        self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if options.get(
+            "enable_elasticsearch", True) else {}
 
         self.environment = {
             "allow_es_settings_modification": "true",
@@ -1062,8 +1064,8 @@ class Kibana(StackService, Service):
         content = dict(
             healthcheck=curl_healthcheck(
                 self.SERVICE_PORT, "kibana", path="/api/status", retries=20, https=self.kibana_tls),
-            depends_on=["elasticsearch"] if self.options.get(
-                "enable_elasticsearch", True) else [],
+            depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
+                "enable_elasticsearch", True) else {},
             environment=self.environment,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )

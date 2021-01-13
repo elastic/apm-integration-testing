@@ -33,7 +33,9 @@ class AgentServiceTest(ServiceTest):
                         context: docker/go/nethttp
                     container_name: gonethttpapp
                     depends_on:
-                        - apm-server
+                        apm-server:
+                          condition:
+                            service_healthy
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_FLUSH_INTERVAL: 500ms
@@ -87,7 +89,9 @@ class AgentServiceTest(ServiceTest):
                         context: docker/nodejs/express
                     container_name: expressapp
                     depends_on:
-                        - apm-server
+                        apm-server:
+                          condition:
+                            service_healthy
                     command: bash -c "npm install elastic-apm-node && node app.js"
                     environment:
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
@@ -137,7 +141,9 @@ class AgentServiceTest(ServiceTest):
                     command: bash -c "pip install -q -U elastic-apm && python testapp/manage.py runserver 0.0.0.0:8003"
                     container_name: djangoapp
                     depends_on:
-                        - apm-server
+                        apm-server:
+                          condition:
+                            service_healthy
                     environment:
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
                         DJANGO_SERVICE_NAME: djangoapp
@@ -181,7 +187,9 @@ class AgentServiceTest(ServiceTest):
                     command: bash -c "pip install -q -U elastic-apm && gunicorn app:app"
                     container_name: flaskapp
                     depends_on:
-                        - apm-server
+                        apm-server:
+                          condition:
+                            service_healthy
                     environment:
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
                         FLASK_SERVICE_NAME: flaskapp
@@ -228,7 +236,9 @@ class AgentServiceTest(ServiceTest):
                         context: docker/ruby/rails
                     container_name: railsapp
                     depends_on:
-                        - apm-server
+                        apm-server:
+                          condition:
+                            service_healthy
                     command: bash -c "bundle install && RAILS_ENV=production bundle exec rails s -b 0.0.0.0 -p 8020"
                     environment:
                         APM_SERVER_URL: http://apm-server:8200
@@ -301,7 +311,9 @@ class AgentServiceTest(ServiceTest):
                         context: docker/java/spring
                     container_name: javaspring
                     depends_on:
-                        - apm-server
+                        apm-server:
+                          condition:
+                            service_healthy
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_LOG_LEVEL: 'info'
@@ -366,7 +378,9 @@ class AgentServiceTest(ServiceTest):
                         context: docker/dotnet
                     container_name: dotnetapp
                     depends_on:
-                        - apm-server
+                        apm-server:
+                          condition:
+                            service_healthy
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_FLUSH_INTERVAL: '5'
@@ -430,7 +444,9 @@ class AgentServiceTest(ServiceTest):
                         context: docker/php/apache
                     container_name: phpapacheapp
                     depends_on:
-                        - apm-server
+                        apm-server:
+                          condition:
+                            service_healthy
                     environment:
                         ELASTIC_APM_SERVICE_NAME: 'phpapacheapp'
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
@@ -1088,8 +1104,12 @@ class FilebeatServiceTest(ServiceTest):
                             max-size: '2m'
                             max-file: '5'
                     depends_on:
-                        - elasticsearch
-                        - kibana
+                        elasticsearch:
+                          condition:
+                            service_healthy
+                        kibana:
+                          condition:
+                            service_healthy
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:5066/?pretty"]
                         interval: 10s
@@ -1117,8 +1137,12 @@ class FilebeatServiceTest(ServiceTest):
                             max-size: '2m'
                             max-file: '5'
                     depends_on:
-                        - elasticsearch
-                        - kibana
+                        elasticsearch:
+                          condition:
+                            service_healthy
+                        kibana:
+                          condition:
+                            service_healthy
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:5066/?pretty"]
                         interval: 10s
@@ -1217,7 +1241,9 @@ class KibanaServiceTest(ServiceTest):
                         interval: 10s
                         retries: 20
                     depends_on:
-                        - elasticsearch
+                        elasticsearch:
+                          condition:
+                            service_healthy
                     labels:
                         - co.elastic.apm.stack-version=6.2.4""")  # noqa: 501
         )
@@ -1247,7 +1273,9 @@ class KibanaServiceTest(ServiceTest):
                         interval: 10s
                         retries: 20
                     depends_on:
-                        - elasticsearch
+                        elasticsearch:
+                          condition:
+                            service_healthy
                     labels:
                         - co.elastic.apm.stack-version=6.3.5""")  # noqa: 501
         )
@@ -1332,7 +1360,9 @@ class LogstashServiceTest(ServiceTest):
         logstash:
             container_name: localtesting_6.3.0_logstash
             depends_on:
-                - elasticsearch
+                elasticsearch:
+                  condition:
+                    service_healthy
             environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200'}
             healthcheck:
                 test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://logstash:9600/"]
@@ -1399,8 +1429,12 @@ class MetricbeatServiceTest(ServiceTest):
                             max-size: '2m'
                             max-file: '5'
                     depends_on:
-                        - elasticsearch
-                        - kibana
+                        elasticsearch:
+                          condition:
+                            service_healthy
+                        kibana:
+                          condition:
+                            service_healthy
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:5066/?pretty"]
                         interval: 10s
@@ -1480,8 +1514,12 @@ class PacketbeatServiceTest(ServiceTest):
                             max-size: '2m'
                             max-file: '5'
                     depends_on:
-                        - elasticsearch
-                        - kibana
+                        elasticsearch:
+                          condition:
+                            service_healthy
+                        kibana:
+                          condition:
+                            service_healthy
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:5066/?pretty"]
                         interval: 10s

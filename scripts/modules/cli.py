@@ -635,7 +635,7 @@ class LocalSetup(object):
                 del services["opbeans-load-generator"]
 
         compose = dict(
-            version="3.5",
+            version="2.4",
             services=services,
             networks=dict(
                 default={"name": "apm-integration-testing"},

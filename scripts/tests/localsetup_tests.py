@@ -574,11 +574,14 @@ class OpbeansServiceTest(ServiceTest):
                     - opbeans-python
                     - opbeans-ruby
                 environment:
+                 - 'WS=1'
                  - 'OPBEANS_URLS=opbeans-python:http://opbeans-python:3000,opbeans-ruby:http://opbeans-ruby:3000'
                  - 'OPBEANS_RPMS=opbeans-python:50,opbeans-ruby:10'
                 logging:
                     driver: json-file
-                    options: {max-file: '5', max-size: 2m}""")
+                    options: {max-file: '5', max-size: 2m}
+                ports:
+                - '8999:8000'""")
 
 
 class PostgresServiceTest(ServiceTest):
@@ -652,7 +655,7 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml.seek(0)
         got = yaml.safe_load(docker_compose_yml)
         want = yaml.safe_load("""
-        version: '3.5'
+        version: '2.4'
         services:
             apm-server:
                 cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
@@ -666,8 +669,12 @@ class LocalTest(unittest.TestCase):
                     -E, 'output.elasticsearch.hosts=["http://elasticsearch:9200"]', -E, output.elasticsearch.enabled=true]
                 container_name: localtesting_6.2.10_apm-server
                 depends_on:
-                    - elasticsearch
-                    - kibana
+                    elasticsearch:
+                        condition:
+                            service_healthy
+                    kibana:
+                        condition:
+                            service_healthy
                 environment: [
                     BEAT_STRICT_PERMS=false
                 ]
@@ -717,9 +724,15 @@ class LocalTest(unittest.TestCase):
             wait-service:
                 container_name: wait
                 depends_on:
-                    - apm-server
-                    - elasticsearch
-                    - kibana
+                    apm-server:
+                        condition:
+                            service_healthy
+                    elasticsearch:
+                        condition:
+                            service_healthy
+                    kibana:
+                        condition:
+                            service_healthy
                 image: busybox
         networks:
             default: {name: apm-integration-testing}
@@ -740,7 +753,7 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml.seek(0)
         got = yaml.safe_load(docker_compose_yml)
         want = yaml.safe_load("""
-        version: '3.5'
+        version: '2.4'
         services:
             apm-server:
                 cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
@@ -754,8 +767,12 @@ class LocalTest(unittest.TestCase):
                     -E, 'output.elasticsearch.hosts=["http://elasticsearch:9200"]', -E, output.elasticsearch.enabled=true ]
                 container_name: localtesting_6.3.10_apm-server
                 depends_on:
-                    - elasticsearch
-                    - kibana
+                    elasticsearch:
+                        condition:
+                            service_healthy
+                    kibana:
+                        condition:
+                            service_healthy
                 environment: [
                     BEAT_STRICT_PERMS=false
                 ]
@@ -809,9 +826,15 @@ class LocalTest(unittest.TestCase):
             wait-service:
                 container_name: wait
                 depends_on:
-                    - apm-server
-                    - elasticsearch
-                    - kibana
+                    apm-server:
+                        condition:
+                            service_healthy
+                    elasticsearch:
+                        condition:
+                            service_healthy
+                    kibana:
+                        condition:
+                            service_healthy
                 image: busybox
         networks:
             default: {name: apm-integration-testing}
@@ -842,7 +865,7 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml.seek(0)
         got = yaml.safe_load(docker_compose_yml)
         want = yaml.safe_load("""
-        version: '3.5'
+        version: '2.4'
         services:
             apm-server:
                 cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
@@ -864,8 +887,12 @@ class LocalTest(unittest.TestCase):
                     ]
                 container_name: localtesting_8.0.0_apm-server
                 depends_on:
-                    - elasticsearch
-                    - kibana
+                    elasticsearch:
+                        condition:
+                            service_healthy
+                    kibana:
+                        condition:
+                            service_healthy
                 environment: [
                     BEAT_STRICT_PERMS=false
                 ]
@@ -926,7 +953,9 @@ class LocalTest(unittest.TestCase):
             kibana:
                 container_name: localtesting_8.0.0_kibana
                 depends_on:
-                    - elasticsearch
+                    elasticsearch:
+                        condition:
+                            service_healthy
                 environment: {
                     ELASTICSEARCH_PASSWORD: changeme,
                     ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200',
@@ -958,9 +987,15 @@ class LocalTest(unittest.TestCase):
             wait-service:
                 container_name: wait
                 depends_on:
-                    - apm-server
-                    - elasticsearch
-                    - kibana
+                    apm-server:
+                        condition:
+                            service_healthy
+                    elasticsearch:
+                        condition:
+                            service_healthy
+                    kibana:
+                        condition:
+                            service_healthy
                 image: busybox
         networks:
             default: {name: apm-integration-testing}

@@ -82,24 +82,24 @@ env-%: venv
 test: test-all  ## Run all the tests
 
 test-agent-%-version: venv
-	pytest tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s -m version $(JUNIT_OPT)/agent-$*-version-junit.xml
+	pytest $(PYTEST_ARGS) tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s -m version $(JUNIT_OPT)/agent-$*-version-junit.xml
 
 test-agent-%: venv ## Test a specific agent. ex: make test-agent-java
-	pytest tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/agent-$*-junit.xml
+	pytest $(PYTEST_ARGS) tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/agent-$*-junit.xml
 
 test-compose: venv
-	pytest scripts/tests/*_tests.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/compose-junit.xml
+	pytest $(PYTEST_ARGS) scripts/tests/*_tests.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/compose-junit.xml
 
 test-compose-2:
 	virtualenv --python=python2.7 venv2
 	./venv2/bin/pip2 install mock pytest pyyaml
-	./venv2/bin/pytest --noconftest scripts/tests/*_tests.py
+	./venv2/bin/pytest $(PYTEST_ARGS) --noconftest scripts/tests/*_tests.py
 
 test-kibana: venv ## Run the Kibana integration tests
-	pytest tests/kibana/test_integration.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/kibana-junit.xml
+	pytest $(PYTEST_ARGS) tests/kibana/test_integration.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/kibana-junit.xml
 
 test-server: venv  ## Run server tests
-	pytest tests/server/ --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/server-junit.xml
+	pytest $(PYTEST_ARGS) tests/server/ --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/server-junit.xml
 
 SUBCOMMANDS = list-options load-dashboards start status stop upload-sourcemap versions
 
