@@ -35,18 +35,20 @@ class ApmServer(StackService, Service, ElasticAgentService):
 
         # run apm-server managed by elastic-agent
         if self.options.get("apm_server_managed"):
-            self.managed = True
             if not self.at_least_version("7.11"):
-                # TODO(simitt): throw a not-supported error
-                return
+                raise Exception("APM Server managed by Elastic Agent is only available in 7.11+")
 
+            self.managed = True
             self.apm_server_command_args = []
 
             kibana_url = options.get("elastic_agent_kibana_url")
             if not kibana_url:
                 kibana_scheme = "https" if self.options.get("kibana_enable_tls", False) else "http"
                 kibana_url = kibana_scheme + "://admin:changeme@" + self.DEFAULT_KIBANA_HOST
-            self.managed_environment = {"KIBANA_HOST": kibana_url}
+            self.depends_on = {"kibana": {"condition": "service_healthy"}}
+
+            self.managed_environment = {"KIBANA_HOST": kibana_url,
+                                        "APM_SERVER_SECRET_TOKEN": self.options.get("apm_server_secret_token", "")}
 
             # Not yet supported when run under elastic-agent:
             # - apm-server config options
@@ -603,9 +605,9 @@ class ApmServer(StackService, Service, ElasticAgentService):
         content = dict(
             build={"context": "docker/apm-server/managed"},
             container_name=self.default_container_name() + "-managed",
-            depends_on={"kibana": {"condition": "service_healthy"}} if self.options.get("enable_kibana", True) else {},
+            depends_on=self.depends_on,
             environment=self.managed_environment,
-            healthcheck=curl_healthcheck(self.SERVICE_PORT),
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, host="elastic-agent", path="/", interval="10s", retries=12)
         )
         return {self.name(): content}
 
@@ -740,8 +742,7 @@ class ElasticAgent(StackService, Service, ElasticAgentService):
             ports=self.ports,
             volumes=[
                 "/var/run/docker.sock:/var/run/docker.sock",
-            ],
-            ports=[self.publish_port(ApmServer.SERVICE_PORT)]
+            ]
         )
 
     @classmethod
