@@ -262,6 +262,14 @@ class LocalSetup(object):
             default='',
         )
 
+        parser.add_argument(
+            '--with-elastic-agent-apm-binary',
+            dest='elastic-agent-apm-binary',
+            help='copy the apm-server binary given as argument to the Elastic Agent "downloads" folder.' +
+            ' NOTE: make sure that the file has the correct name (the one that Elastic Agent would run).',
+            default='',
+        )
+
         # Add option to skip image downloads
         parser.add_argument(
             '--no-download',
@@ -676,6 +684,9 @@ class LocalSetup(object):
             if not sys.stdin.isatty():
                 up_params.extend(["--quiet-pull"])
             self.run_docker_compose_process(docker_compose_cmd + up_params)
+
+        if args.get("enable_elastic_agent", False) and args["elastic-agent-apm-binary"]:
+            subprocess.call(["./scripts/override-agent-apm-server.sh", args["elastic-agent-apm-binary"]])
 
     @staticmethod
     def reset_enterprise_search_password_handler():
