@@ -185,8 +185,11 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
           "TMPDIR=${steps.env.WORKSPACE}"
           ]
         def label = "${tag}-${x}-${y}"
+        def dockerLogs = label.replace(":","_").replace(";","_").replace(" ","").replace("--","-")
         try{
-          steps.runScript(label: label, agentType: tag, env: env)
+          fielbeat(output: "${dockerLogs}.log", archiveOnlyOnFail: true){
+            steps.runScript(label: label, agentType: tag, env: env)
+          }
           saveResult(x, y, 1)
         } catch (e){
           saveResult(x, y, 0)

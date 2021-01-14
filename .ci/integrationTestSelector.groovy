@@ -76,8 +76,10 @@ pipeline {
           steps {
             deleteDir()
             unstash "source"
-            dir("${BASE_DIR}"){
-              sh(label: "Testing ${NAME} ${APP}", script: ".ci/scripts/agent.sh ${NAME} ${APP}")
+            fielbeat(output: "${NAME}-${APP}-docker.log", archiveOnlyOnFail: true){
+              dir("${BASE_DIR}"){
+                sh(label: "Testing ${NAME} ${APP}", script: ".ci/scripts/agent.sh ${NAME} ${APP}")
+              }
             }
           }
           post {
@@ -97,8 +99,10 @@ pipeline {
           steps {
             deleteDir()
             unstash "source"
-            dir("${BASE_DIR}"){
-              sh(label: "Testing ${NAME} ${OPBEANS_APP}", script: ".ci/scripts/opbeans-app.sh ${NAME} ${APP} ${OPBEANS_APP}")
+            fielbeat(output: "${OPBEANS_APP}-docker.log", archiveOnlyOnFail: true){
+              dir("${BASE_DIR}"){
+                sh(label: "Testing ${NAME} ${OPBEANS_APP}", script: ".ci/scripts/opbeans-app.sh ${NAME} ${APP} ${OPBEANS_APP}")
+              }
             }
           }
           post {
@@ -122,8 +126,10 @@ pipeline {
               sh script: ".ci/bump-version.sh ${env.BUILD_OPTS.replaceAll('--rum-agent-branch ', '')} false", label: 'Bump version'
               sh script: 'make build', label: 'Build docker image with the new rum agent'
             }
-            dir("${BASE_DIR}"){
-              sh(label: 'Testing RUM', script: '.ci/scripts/opbeans-rum.sh')
+            fielbeat(output: "opbeans-rum-docker.log", archiveOnlyOnFail: true){
+              dir("${BASE_DIR}"){
+                sh(label: 'Testing RUM', script: '.ci/scripts/opbeans-rum.sh')
+              }
             }
           }
           post {
@@ -147,8 +153,10 @@ pipeline {
       steps {
         deleteDir()
         unstash "source"
-        dir("${BASE_DIR}"){
-          sh ".ci/scripts/all.sh"
+        fielbeat(output: "all-docker.log", archiveOnlyOnFail: true){
+          dir("${BASE_DIR}"){
+            sh ".ci/scripts/all.sh"
+          }
         }
       }
       post {
@@ -196,8 +204,10 @@ pipeline {
       steps {
         deleteDir()
         unstash "source"
-        dir("${BASE_DIR}"){
-          sh ".ci/scripts/opbeans.sh"
+        fielbeat(output: "opbeans-docker.log", archiveOnlyOnFail: true){
+          dir("${BASE_DIR}"){
+            sh ".ci/scripts/opbeans.sh"
+          }
         }
       }
       post {
@@ -218,9 +228,6 @@ pipeline {
 def wrappingup(Map params = [:]){
   def isJunit = params.containsKey('isJunit') ? params.get('isJunit') : true
   dir("${BASE_DIR}"){
-    if(currentBuild.result == 'FAILURE' || currentBuild.result == 'UNSTABLE'){
-      dockerLogs(step: "${env.NAME}", failNever: true)
-    }
     sh('make stop-env || echo 0')
     def testResultsPattern = 'tests/results/*-junit*.xml'
     archiveArtifacts(
