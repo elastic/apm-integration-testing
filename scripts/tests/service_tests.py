@@ -12,7 +12,7 @@ from ..modules.apm_agents import (
 )
 from ..modules.aux_services import Logstash, Kafka, Zookeeper
 from ..modules.beats import Filebeat, Heartbeat, Metricbeat, Packetbeat
-from ..modules.elastic_stack import ApmServer, ElasticAgent, Elasticsearch, EnterpriseSearch, Kibana
+from ..modules.elastic_stack import ApmServer, ElasticAgent, Elasticsearch, EnterpriseSearch, Kibana, PackageRegistry
 
 
 class ServiceTest(unittest.TestCase):
@@ -227,6 +227,7 @@ class AgentServiceTest(ServiceTest):
                         args:
                             RUBY_AGENT_VERSION: latest
                             RUBY_AGENT_REPO: elastic/apm-agent-ruby
+                            RUBY_VERSION: latest
                         dockerfile: Dockerfile
                         context: docker/ruby/rails
                     container_name: railsapp
@@ -285,6 +286,10 @@ class AgentServiceTest(ServiceTest):
     def test_agent_ruby_apm_api_key_with_apm_server(self):
         agent = AgentRubyRails(version="7.6", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-ruby-rails"]
         self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
+
+    def test_agent_ruby_version(self):
+        agent = AgentRubyRails(ruby_version="2").render()["agent-ruby-rails"]
+        self.assertEqual("2", agent["build"]["args"]["RUBY_VERSION"])
 
     def test_agent_java_spring(self):
         agent = AgentJavaSpring().render()
@@ -904,6 +909,7 @@ class ElasticAgentServiceTest(ServiceTest):
                  "labels": ["co.elastic.apm.stack-version=7.12.345"],
                  "logging": {"driver": "json-file",
                              "options": {"max-file": "5", "max-size": "2m"}},
+                 'ports': ['127.0.0.1:8200:8200'],
                  "volumes": ["/var/run/docker.sock:/var/run/docker.sock"]}
         )
 
@@ -929,6 +935,58 @@ class ElasticAgentServiceTest(ServiceTest):
         self.assertEqual("http://u:p@h:123", ea["environment"]["KIBANA_HOST"])
         self.assertEqual("p", ea["environment"]["KIBANA_PASSWORD"])
         self.assertEqual("u", ea["environment"]["KIBANA_USERNAME"])
+
+
+class PackageRegistryServiceTest(ServiceTest):
+    def test_default(self):
+        epr = PackageRegistry(version="7.11").render()["package-registry"]
+        self.assertEqual(
+            epr, {'image': 'docker.elastic.co/package-regis[456 chars]m', 
+            'container_name': 'localtesting_7.11_package-registry',
+            'environment': {},
+            'healthcheck': {'interval': '5s',
+                            'retries': 10,
+                            'test': ['CMD',
+                                    'curl',
+                                    '--write-out',
+                                    "'HTTP %{http_code}'",
+                                    '-k',
+                                    '--fail',
+                                    '--silent',
+                                    '--output',
+                                    '/dev/null',
+                                    'http://localhost:8080/']},
+           'image': 'docker.elastic.co/package-registry/distribution:snapshot',
+           'labels': ['co.elastic.apm.stack-version=7.11'],
+           'logging': {'driver': 'json-file',
+                       'options': {'max-file': '5', 'max-size': '2m'}},
+           'ports': ['127.0.0.1:8080:8080']}
+        )
+
+    def test_production(self):
+        epr = PackageRegistry(version="7.11", package_registry_distribution="production").render()["package-registry"]
+        self.assertEqual(
+            epr, {'image': 'docker.elastic.co/package-regis[456 chars]m', 
+            'container_name': 'localtesting_7.11_package-registry',
+            'environment': {},
+            'healthcheck': {'interval': '5s',
+                            'retries': 10,
+                            'test': ['CMD',
+                                    'curl',
+                                    '--write-out',
+                                    "'HTTP %{http_code}'",
+                                    '-k',
+                                    '--fail',
+                                    '--silent',
+                                    '--output',
+                                    '/dev/null',
+                                    'http://localhost:8080/']},
+           'image': 'docker.elastic.co/package-registry/distribution:production',
+           'labels': ['co.elastic.apm.stack-version=7.11'],
+           'logging': {'driver': 'json-file',
+                       'options': {'max-file': '5', 'max-size': '2m'}},
+           'ports': ['127.0.0.1:8080:8080']}
+        )
 
 
 class ElasticsearchServiceTest(ServiceTest):

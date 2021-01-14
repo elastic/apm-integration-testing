@@ -6,6 +6,13 @@ JAVA_AGENT_BRANCH=${2}
 ARTIFACT_ID=elastic-apm-agent
 
 function mavenRun() {
+  ## If settings.xml file exists and there is `ci` profile
+  SETTINGS=.ci/settings.xml
+  if [ -e ${SETTINGS} ] ; then
+    if grep -q '<id>ci</id>' ${SETTINGS} ; then
+      export MAVEN_CONFIG="-s ${SETTINGS} -Pci ${MAVEN_CONFIG}"
+    fi
+  fi
   mvn -q --batch-mode \
     -DskipTests=true \
     -Dmaven.javadoc.skip=true \

@@ -642,6 +642,47 @@ class ApmServer(StackService, Service, ElasticAgentService):
         return {self.name(): content}
 
 
+class PackageRegistry(StackService, Service):
+
+    SERVICE_PORT = "8080"
+
+    docker_path = "package-registry"
+    docker_name = "distribution"
+
+    def __init__(self, **options):
+        super(PackageRegistry, self).__init__(**options)
+        if not self.at_least_version("7.10"):
+            raise Exception("Package registry only supported for 7.10+")
+        self.distribution = options.get("package_registry_distribution", "snapshot")
+        self.apm_package = options.get("package_registry_apm_path")
+        self.environment = {}
+
+    def _content(self):
+        content = dict(
+            image="/".join((self.docker_registry, self.docker_path, self.docker_name)) + ":" + self.distribution,
+            environment=self.environment,
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, path="/", interval="5s", retries=10),
+            ports=[self.publish_port(self.SERVICE_PORT)]
+        )
+        if self.apm_package:
+            content["volumes"] = [self.apm_package + ":/packages/" + self.distribution + "/apm"]
+        return content
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(PackageRegistry, cls).add_arguments(parser)
+        parser.add_argument(
+            "--package-registry-distribution",
+            default="snapshot",
+            choices=['snapshot', 'staging', 'production'],
+            help="Package registry distribution"
+        )
+        parser.add_argument(
+            "--package-registry-apm-path",
+            help="Folder of a local APM package to add to the registry"
+        )
+
+
 class ElasticAgent(StackService, Service, ElasticAgentService):
     docker_path = "beats"
 
@@ -699,7 +740,8 @@ class ElasticAgent(StackService, Service, ElasticAgentService):
             ports=self.ports,
             volumes=[
                 "/var/run/docker.sock:/var/run/docker.sock",
-            ]
+            ],
+            ports=[self.publish_port(ApmServer.SERVICE_PORT)]
         )
 
     @classmethod
@@ -996,6 +1038,7 @@ class Kibana(StackService, Service):
         default_es_hosts = self.default_elasticsearch_hosts(tls=self.es_tls)
         urls = self.options.get("kibana_elasticsearch_urls") or [default_es_hosts]
         self.environment["ELASTICSEARCH_HOSTS"] = ",".join(urls)
+        use_local_package_registry = options.get("enable_package_registry")
 
         if not self.oss:
             self.environment["XPACK_MONITORING_ENABLED"] = "true"
@@ -1035,6 +1078,9 @@ class Kibana(StackService, Service):
                     self.environment["XPACK_FLEET_AGENTS_TLSCHECKDISABLED"] = "true"
                 elif self.at_least_version("7.9"):
                     self.environment["XPACK_INGESTMANAGER_FLEET_TLSCHECKDISABLED"] = "true"
+            if use_local_package_registry:
+                self.environment["XPACK_FLEET_REGISTRYURL"] = "http://package-registry:" + \
+                    PackageRegistry.SERVICE_PORT
 
     @classmethod
     def add_arguments(cls, parser):
