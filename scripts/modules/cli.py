@@ -263,10 +263,9 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
-            '--with-elastic-agent-apm-binary',
-            dest='elastic-agent-apm-binary',
-            help='copy the apm-server binary given as argument to the Elastic Agent "downloads" folder.' +
-            ' NOTE: make sure that the file has the correct name (the one that Elastic Agent would run).',
+            '--with-elastic-agent-apm-binary-path',
+            dest='elastic-agent-apm-binary-path',
+            help='path of a custom apm-server binary to install in the Elastic Agent container',
             default='',
         )
 
@@ -685,8 +684,11 @@ class LocalSetup(object):
                 up_params.extend(["--quiet-pull"])
             self.run_docker_compose_process(docker_compose_cmd + up_params)
 
-        if args.get("enable_elastic_agent", False) and args["elastic-agent-apm-binary"]:
-            subprocess.call(["./scripts/override-agent-apm-server.sh", args["elastic-agent-apm-binary"]])
+        if args.get("enable_elastic_agent", False) and args["elastic-agent-apm-binary-path"]:
+            is_snapshot = args["elastic_agent_snapshot"] or not (any((args["elastic_agent_bc"], args["elastic_agent_release"])))
+            version = args["version"] + "-SNAPSHOT" if is_snapshot else args["version"]
+            filename = "apm-server-" + version + "-linux-x86_64.tar.gz" 
+            subprocess.call(["./scripts/override-agent-apm-server.sh", args["elastic-agent-apm-binary-path"], filename])
 
     @staticmethod
     def reset_enterprise_search_password_handler():
