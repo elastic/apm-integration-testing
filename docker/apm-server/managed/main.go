@@ -33,16 +33,10 @@ func main() {
 
 func setupManagedAPM() error {
 	client := newKibanaClient()
-	// fetch the default policy
-	agentPolicies, err := client.getAgentPolicies("kuery=ingest-agent-policies.is_default:true")
+	policy, err := fetchDefaultPolicy(client)
 	if err != nil {
 		return err
 	}
-	if len(agentPolicies) == 0 {
-		//TODO(simitt): retry
-		return errors.New("no default agent policy found")
-	}
-	policy := agentPolicies[0]
 
 	// fetch the available apm package
 	packages, err := client.getPackages("package=apm&experimental=true")
@@ -77,7 +71,8 @@ func setupManagedAPM() error {
 		} else {
 			// verify that variables are configured as expected
 			for k, expected := range expectedAPMPackagePolicy.Inputs[0].Vars {
-				if configured, ok := existing.Inputs[0].Vars[k]; !ok || configured != expected {
+				configured, ok := existing.Inputs[0].Vars[k]
+				if !ok || configured["type"] != expected["type"] || configured["value"] != expected["value"] {
 					requiresSetup = true
 					break
 				}
@@ -100,6 +95,22 @@ func setupManagedAPM() error {
 	return nil
 }
 
+func fetchDefaultPolicy(client *kibanaClient) (agentPolicy, error) {
+	for ct := 0; ct < 20; ct++ {
+		agentPolicies, err := client.getAgentPolicies("kuery=ingest-agent-policies.is_default:true")
+		if err != nil {
+			return agentPolicy{}, err
+		}
+		if len(agentPolicies) > 0 {
+			// there's supposed to only be one default policy,
+			// in case there are more, there is a bug in the agent integrations logic
+			return agentPolicies[0], nil
+		}
+		time.Sleep(5 * time.Second)
+	}
+	return agentPolicy{}, errors.New("no default agent policy found")
+}
+
 // apmPackagePolicy defines the expected APM package policy
 func apmPackagePolicy(policyID string, pkg eprPackage) packagePolicy {
 	return packagePolicy{
@@ -116,7 +127,7 @@ func apmPackagePolicy(policyID string, pkg eprPackage) packagePolicy {
 			Type:    "apm",
 			Enabled: true,
 			Streams: []interface{}{},
-			Vars: map[string]interface{}{
+			Vars: map[string]map[string]interface{}{
 				"enable_rum": map[string]interface{}{
 					"type":  "bool",
 					"value": true,
@@ -143,9 +154,13 @@ func newKibanaClient() *kibanaClient {
 	if host == "" {
 		host = "http://admin:changeme@localhost:5601"
 	}
+	pkgURL := os.Getenv("XPACK_FLEET_REGISTRYURL")
+	if pkgURL == "" {
+		pkgURL = "https://epr.elastic.co"
+	}
 	return &kibanaClient{
 		fleetURL: fmt.Sprintf("%s/api/fleet", host),
-		pkgURL:   "https://epr-snapshot.elastic.co",
+		pkgURL:   pkgURL,
 	}
 }
 
@@ -236,23 +251,9 @@ func makeRequest(method string, url string, body io.Reader, out interface{}) err
 	return json.NewDecoder(resp.Body).Decode(&out)
 }
 
-//TODO(simitt): only define what is relevant for now
-
 // agentPolicy holds details of a Fleet Agent Policy.
 type agentPolicy struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Namespace   string `json:"namespace"`
-	Description string `json:"description"`
-	Revision    int    `json:"revision"`
-
-	Agents            int       `json:"agents"`
-	IsDefault         bool      `json:"is_default"`
-	MonitoringEnabled []string  `json:"monitoring_enabled"`
-	PackagePolicies   []string  `json:"package_policies"`
-	Status            string    `json:"status"`
-	UpdatedAt         time.Time `json:"updated_at"`
-	UpdatedBy         string    `json:"updated_by"`
+	ID string `json:"id"`
 }
 
 // packagePolicy holds details of a Fleet Package Policy.
@@ -261,7 +262,6 @@ type packagePolicy struct {
 	Name          string               `json:"name"`
 	Namespace     string               `json:"namespace"`
 	Enabled       bool                 `json:"enabled"`
-	Description   string               `json:"description"`
 	AgentPolicyID string               `json:"policy_id"`
 	OutputID      string               `json:"output_id"`
 	Inputs        []packagePolicyInput `json:"inputs"`
@@ -275,21 +275,14 @@ type packagePolicyPackage struct {
 }
 
 type packagePolicyInput struct {
-	Type    string                 `json:"type"`
-	Enabled bool                   `json:"enabled"`
-	Streams []interface{}          `json:"streams"`
-	Config  map[string]interface{} `json:"config,omitempty"`
-	Vars    map[string]interface{} `json:"vars,omitempty"`
+	Type    string                            `json:"type"`
+	Enabled bool                              `json:"enabled"`
+	Streams []interface{}                     `json:"streams"`
+	Vars    map[string]map[string]interface{} `json:"vars,omitempty"`
 }
 
 type eprPackage struct {
-	Name        string `json:"name"`
-	Version     string `json:"version"`
-	Release     string `json:"release"`
-	Type        string `json:"type"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Download    string `json:"download"`
-	Path        string `json:"path"`
-	Status      string `json:"status"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	Title   string `json:"title"`
 }

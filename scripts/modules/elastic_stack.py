@@ -10,15 +10,10 @@ from .helpers import curl_healthcheck, try_to_set_slowlog, urlparse
 from .service import StackService, Service, DEFAULT_APM_SERVER_URL
 
 
-class ElasticAgentService():
-    """Mix in for services runnable under Elastic Agent or standalone"""
-    DEFAULT_APM_SERVER_PORT = "8200"
-
-
-class ApmServer(StackService, Service, ElasticAgentService):
+class ApmServer(StackService, Service):
     docker_path = "apm"
 
-    SERVICE_PORT = ElasticAgentService.DEFAULT_APM_SERVER_PORT
+    SERVICE_PORT = "8200"
     DEFAULT_MONITOR_PORT = "6060"
     DEFAULT_JAEGER_HTTP_PORT = "14268"
     DEFAULT_JAEGER_GRPC_PORT = "14250"
@@ -47,7 +42,14 @@ class ApmServer(StackService, Service, ElasticAgentService):
                 kibana_url = kibana_scheme + "://admin:changeme@" + self.DEFAULT_KIBANA_HOST
             self.depends_on = {"kibana": {"condition": "service_healthy"}}
 
+            xpack_registry_url = "https://epr-snapshot.elastic.co"
+            if options.get("enable_package_registry"):
+                xpack_registry_url = "http://package-registry:{}".format(PackageRegistry.SERVICE_PORT)
+                self.depends_on["package-registry"] = {"condition": "service_healthy"}
+            elif options.get("release") or options.get("apm_server_release"):
+                xpack_registry_url = "https://epr.elastic.co"
             self.managed_environment = {"KIBANA_HOST": kibana_url,
+                                        "XPACK_FLEET_REGISTRYURL": xpack_registry_url,
                                         "APM_SERVER_SECRET_TOKEN": self.options.get("apm_server_secret_token", "")}
 
             # Not yet supported when run under elastic-agent:
@@ -685,7 +687,7 @@ class PackageRegistry(StackService, Service):
         )
 
 
-class ElasticAgent(StackService, Service, ElasticAgentService):
+class ElasticAgent(StackService, Service):
     docker_path = "beats"
 
     def __init__(self, **options):
@@ -729,8 +731,8 @@ class ElasticAgent(StackService, Service, ElasticAgentService):
         # set ports for defined integrations
         self.ports = []
         if self.options.get("enable_apm_server") and self.options.get("apm_server_managed"):
-            default_port = ElasticAgentService.DEFAULT_APM_SERVER_PORT
-            self.ports.append(self.publish_port(self.options.get("apm_server_port", default_port), default_port))
+            self.ports.append(self.publish_port(self.options.get(
+                "apm_server_port", ApmServer.SERVICE_PORT), ApmServer.SERVICE_PORT))
 
     def _content(self):
         return dict(
@@ -1040,6 +1042,8 @@ class Kibana(StackService, Service):
         urls = self.options.get("kibana_elasticsearch_urls") or [default_es_hosts]
         self.environment["ELASTICSEARCH_HOSTS"] = ",".join(urls)
         use_local_package_registry = options.get("enable_package_registry")
+        self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
+            "enable_elasticsearch", True) else {}
 
         if not self.oss:
             self.environment["XPACK_MONITORING_ENABLED"] = "true"
@@ -1080,6 +1084,7 @@ class Kibana(StackService, Service):
                 elif self.at_least_version("7.9"):
                     self.environment["XPACK_INGESTMANAGER_FLEET_TLSCHECKDISABLED"] = "true"
             if use_local_package_registry:
+                self.depends_on["package-registry"] = {"condition": "service_healthy"}
                 self.environment["XPACK_FLEET_REGISTRYURL"] = "http://package-registry:" + \
                     PackageRegistry.SERVICE_PORT
 
@@ -1127,8 +1132,7 @@ class Kibana(StackService, Service):
         content = dict(
             healthcheck=curl_healthcheck(
                 self.SERVICE_PORT, "kibana", path="/api/status", retries=20, https=self.kibana_tls),
-            depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
-                "enable_elasticsearch", True) else {},
+            depends_on=self.depends_on,
             environment=self.environment,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
