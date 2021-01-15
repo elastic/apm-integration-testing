@@ -11,94 +11,106 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/pkg/errors"
 )
 
 func main() {
-	setup()
+	// setup APM package and add it to default policy
+	if err := setupManagedAPM(); err != nil {
+		log.Fatal(err)
+	}
+
 	// create a reverse proxy to the APM Server running via Elastic Agent,
 	// headers are not rewritten, as not considered important right now.
 	target, _ := url.Parse("http://elastic-agent:8200")
 	http.Handle("/", httputil.NewSingleHostReverseProxy(target))
 	if err := http.ListenAndServe(":8200", nil); err != nil {
 		log.Fatal(err)
-		os.Exit(-1)
 	}
 }
 
-func setup() {
+func setupManagedAPM() error {
 	client := newKibanaClient()
-	if err := cleanup(client); err != nil {
-		log.Fatal(err)
-		os.Exit(-1)
-	}
-	if err := addAPMPolicy(client); err != nil {
-		log.Fatal(err)
-		os.Exit(-1)
-	}
-}
-
-type kibanaClient struct {
-	fleetURL string
-	pkgURL   string
-}
-type item struct {
-	ID string `json:"id"`
-}
-type items struct {
-	Items []item `json:"items"`
-}
-
-func newKibanaClient() *kibanaClient {
-	host := os.Getenv("KIBANA_HOST")
-	if host == "" {
-		host = "http://admin:changeme@localhost:5601"
-	}
-	return &kibanaClient{
-		fleetURL: fmt.Sprintf("%s/api/fleet", host),
-		pkgURL:   "https://epr-snapshot.elastic.co",
-	}
-}
-
-func cleanup(client *kibanaClient) error {
-	result, err := client.getPackagePolicies(fmt.Sprintf("kuery=ingest-package-policies.package.name:%s", "apm"))
-	if err != nil {
-		return errors.Wrap(err, "cleanup")
-	}
-	var ids []string
-	for _, item := range result.Items {
-		ids = append(ids, item.ID)
-	}
-	return client.deletePackagePolicies(ids)
-}
-
-func addAPMPolicy(client *kibanaClient) error {
+	// fetch the default policy
 	agentPolicies, err := client.getAgentPolicies("kuery=ingest-agent-policies.is_default:true")
 	if err != nil {
-		return errors.Wrap(err, "addAPMPolicy")
+		return err
 	}
-	if len(agentPolicies.Items) == 0 {
+	if len(agentPolicies) == 0 {
+		//TODO(simitt): retry
 		return errors.New("no default agent policy found")
 	}
+	policy := agentPolicies[0]
+
+	// fetch the available apm package
 	packages, err := client.getPackages("package=apm&experimental=true")
 	if err != nil {
-		return errors.Wrap(err, "addAPMPolicy")
+		return err
 	}
 	if len(packages) == 0 {
-		return errors.New("addAPMPolicy: no apm package found")
+		return errors.New("no apm package found")
 	}
-	secretToken := os.Getenv("APM_SERVER_SECRET_TOKEN")
-	apmPackage := packages[0]
-	apmPackagePolicy := packagePolicy{
+
+	// define expected APM package policy
+	expectedAPMPackagePolicy := apmPackagePolicy(policy.ID, packages[0])
+
+	// fetch apm package installed to default policy and verify if it is aligned with
+	// expected setup
+	apmPackagePolicies, err := client.getPackagePolicies(fmt.Sprintf("kuery=ingest-package-policies.policy_id:%s", policy.ID))
+	if err != nil {
+		log.Fatal(err)
+	}
+	var requiresSetup bool
+	switch len(apmPackagePolicies) {
+	case 0:
+		requiresSetup = true
+	case 1:
+		// apm package is defined to always only have 1 Input
+		existing := apmPackagePolicies[0]
+		// verify that package is enabled, has default namespace and expected package properties
+		if !existing.Enabled ||
+			existing.Namespace != expectedAPMPackagePolicy.Namespace ||
+			existing.Package != expectedAPMPackagePolicy.Package {
+			requiresSetup = true
+		} else {
+			// verify that variables are configured as expected
+			for k, expected := range expectedAPMPackagePolicy.Inputs[0].Vars {
+				if configured, ok := existing.Inputs[0].Vars[k]; !ok || configured != expected {
+					requiresSetup = true
+					break
+				}
+			}
+		}
+	default:
+		// multiple apm package policies lead to issues,
+		// delete them and create a new setup
+		requiresSetup = true
+	}
+	if !requiresSetup {
+		return nil
+	}
+	if err := client.deletePackagePolicies(apmPackagePolicies); err != nil {
+		return err
+	}
+	if err := client.addPackagePolicy(expectedAPMPackagePolicy); err != nil {
+		return err
+	}
+	return nil
+}
+
+// apmPackagePolicy defines the expected APM package policy
+func apmPackagePolicy(policyID string, pkg eprPackage) packagePolicy {
+	return packagePolicy{
 		Name:          "apm-integration-testing",
 		Namespace:     "default",
 		Enabled:       true,
-		AgentPolicyID: agentPolicies.Items[0].ID,
+		AgentPolicyID: policyID,
 		Package: packagePolicyPackage{
-			Name:    apmPackage.Name,
-			Version: apmPackage.Version,
-			Title:   apmPackage.Title,
+			Name:    pkg.Name,
+			Version: pkg.Version,
+			Title:   pkg.Title,
 		},
 		Inputs: []packagePolicyInput{{
 			Type:    "apm",
@@ -115,15 +127,26 @@ func addAPMPolicy(client *kibanaClient) error {
 				},
 				"secret_token": map[string]interface{}{
 					"type":  "string",
-					"value": secretToken,
+					"value": os.Getenv("APM_SERVER_SECRET_TOKEN"),
 				},
 			},
-		}},
+		}}}
+}
+
+type kibanaClient struct {
+	fleetURL string
+	pkgURL   string
+}
+
+func newKibanaClient() *kibanaClient {
+	host := os.Getenv("KIBANA_HOST")
+	if host == "" {
+		host = "http://admin:changeme@localhost:5601"
 	}
-	if err := client.addPackagePolicy(apmPackagePolicy); err != nil {
-		return errors.Wrap(err, "addAPMPolicy")
+	return &kibanaClient{
+		fleetURL: fmt.Sprintf("%s/api/fleet", host),
+		pkgURL:   "https://epr-snapshot.elastic.co",
 	}
-	return nil
 }
 
 func (client *kibanaClient) getPackages(query string) ([]eprPackage, error) {
@@ -135,13 +158,15 @@ func (client *kibanaClient) getPackages(query string) ([]eprPackage, error) {
 	return packages, nil
 }
 
-func (client *kibanaClient) getAgentPolicies(query string) (items, error) {
+func (client *kibanaClient) getAgentPolicies(query string) ([]agentPolicy, error) {
 	url := fmt.Sprintf("%s/agent_policies?%s", client.fleetURL, query)
-	var result items
-	if err := makeRequest(http.MethodGet, url, nil, &result); err != nil {
-		return items{}, errors.Wrap(err, "getAgentPolicies")
+	var result struct {
+		Items []agentPolicy `json:"items"`
 	}
-	return result, nil
+	if err := makeRequest(http.MethodGet, url, nil, &result); err != nil {
+		return result.Items, errors.Wrap(err, "getAgentPolicies")
+	}
+	return result.Items, nil
 }
 
 func (client *kibanaClient) addPackagePolicy(policy packagePolicy) error {
@@ -157,19 +182,25 @@ func (client *kibanaClient) addPackagePolicy(policy packagePolicy) error {
 	return nil
 }
 
-func (client *kibanaClient) getPackagePolicies(query string) (items, error) {
+func (client *kibanaClient) getPackagePolicies(query string) ([]packagePolicy, error) {
 	url := fmt.Sprintf("%s/package_policies?%s", client.fleetURL, query)
-	var result items
-	if err := makeRequest(http.MethodGet, url, nil, &result); err != nil {
-		return result, errors.Wrap(err, "getPackagePolicies")
+	var result struct {
+		Items []packagePolicy `json:"items"`
 	}
-	return result, nil
+	if err := makeRequest(http.MethodGet, url, nil, &result); err != nil {
+		return result.Items, errors.Wrap(err, "getPackagePolicies")
+	}
+	return result.Items, nil
 }
 
 // deletePackagePolicy deletes one or more package policies.
-func (client *kibanaClient) deletePackagePolicies(ids []string) error {
-	if len(ids) == 0 {
+func (client *kibanaClient) deletePackagePolicies(policies []packagePolicy) error {
+	if len(policies) == 0 {
 		return nil
+	}
+	var ids []string
+	for _, p := range policies {
+		ids = append(ids, p.ID)
 	}
 	var params struct {
 		PackagePolicyIDs []string `json:"packagePolicyIds"`
@@ -203,6 +234,25 @@ func makeRequest(method string, url string, body io.Reader, out interface{}) err
 		return fmt.Errorf("request failed (%s): %s", resp.Status, body)
 	}
 	return json.NewDecoder(resp.Body).Decode(&out)
+}
+
+//TODO(simitt): only define what is relevant for now
+
+// agentPolicy holds details of a Fleet Agent Policy.
+type agentPolicy struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Namespace   string `json:"namespace"`
+	Description string `json:"description"`
+	Revision    int    `json:"revision"`
+
+	Agents            int       `json:"agents"`
+	IsDefault         bool      `json:"is_default"`
+	MonitoringEnabled []string  `json:"monitoring_enabled"`
+	PackagePolicies   []string  `json:"package_policies"`
+	Status            string    `json:"status"`
+	UpdatedAt         time.Time `json:"updated_at"`
+	UpdatedBy         string    `json:"updated_by"`
 }
 
 // packagePolicy holds details of a Fleet Package Policy.
