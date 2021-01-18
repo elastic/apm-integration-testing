@@ -10,7 +10,7 @@ set -euo pipefail
 
 elastic_agent_id=$(docker ps -qf "name=elastic-agent")
 sha=$(docker inspect "$elastic_agent_id" | grep org.label-schema.vcs-ref | awk -F ": \"" '{print $2}' | head -c 6)
-dst=/usr/share/elastic-agent/data/elastic-agent-"$sha"/install/${2%".tar.gz"}
+dst="/usr/share/elastic-agent/data/elastic-agent-${sha}/install/${2%'.tar.gz'}"
 
 echo "copying ${1}/${2} to $elastic_agent_id:$dst"
 docker exec "$elastic_agent_id" mkdir "$dst"
@@ -19,6 +19,5 @@ docker cp "${1}/${2}" "$elastic_agent_id":"$dst"
 echo "uncompressing $dst/${2}"
 # we need to set the destination folder explicitly to avoid errors in case the user has manually renamed the binary file 
 # (ie, after mage package)
-docker exec "$elastic_agent_id" tar zxvf "$dst"/${2} -C "$dst" --strip-components 1
-docker exec "$elastic_agent_id" rm "$dst"/${2}
-
+docker exec "$elastic_agent_id" tar zxvf "${dst}/${2}" -C "$dst" --strip-components 1
+docker exec "$elastic_agent_id" rm "${dst}/${2}"
