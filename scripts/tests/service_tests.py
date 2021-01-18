@@ -59,6 +59,23 @@ class AgentServiceTest(ServiceTest):
         agent = AgentGoNetHttp(go_agent_version="bar").render()["agent-go-net-http"]
         self.assertEqual("bar", agent["build"]["args"]["GO_AGENT_BRANCH"])
 
+    def test_agent_go_enable_apm_server(self):
+        agent = AgentGoNetHttp(enable_apm_server=True).render()["agent-go-net-http"]
+        self.assertTrue("apm-server" in agent["depends_on"])
+
+        agent = AgentGoNetHttp(enable_apm_server=False).render()["agent-go-net-http"]
+        self.assertFalse("apm-server" in agent["depends_on"])
+
+    def test_agent_go_apm_api_key_with_old_version_apm_server(self):
+        agent = AgentGoNetHttp(version="6.3.100", enable_apm_server=True,
+                               elastic_apm_api_key="foo").render()["agent-go-net-http"]
+        self.assertFalse("ELASTIC_APM_API_KEY" in agent["environment"])
+
+    def test_agent_go_apm_api_key_with_apm_server(self):
+        agent = AgentGoNetHttp(version="7.6", enable_apm_server=True,
+                               elastic_apm_api_key="foo").render()["agent-go-net-http"]
+        self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
+
     def test_agent_nodejs_express(self):
         agent = AgentNodejsExpress().render()
         self.assertDictEqual(
@@ -92,6 +109,23 @@ class AgentServiceTest(ServiceTest):
         agent = AgentNodejsExpress(apm_server_url="http://foo").render()["agent-nodejs-express"]
         self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"], agent)
 
+    def test_agent_nodejs_express_enable_apm_server(self):
+        agent = AgentNodejsExpress(enable_apm_server=True).render()["agent-nodejs-express"]
+        self.assertTrue("apm-server" in agent["depends_on"])
+
+        agent = AgentNodejsExpress(enable_apm_server=False).render()["agent-nodejs-express"]
+        self.assertFalse("apm-server" in agent["depends_on"])
+
+    def test_agent_nodejs_express_apm_api_key_with_old_version_apm_server(self):
+        agent = AgentNodejsExpress(version="6.3.100", enable_apm_server=True,
+                                   elastic_apm_api_key="foo").render()["agent-nodejs-express"]
+        self.assertFalse("ELASTIC_APM_API_KEY" in agent["environment"])
+
+    def test_agent_nodejs_express_apm_api_key_with_apm_server(self):
+        agent = AgentNodejsExpress(version="7.6", enable_apm_server=True,
+                                   elastic_apm_api_key="foo").render()["agent-nodejs-express"]
+        self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
+
     def test_agent_python_django(self):
         agent = AgentPythonDjango().render()
         self.assertDictEqual(
@@ -121,6 +155,23 @@ class AgentServiceTest(ServiceTest):
         agent = AgentPythonDjango(apm_server_url="http://foo").render()["agent-python-django"]
         self.assertEqual("http://foo", agent["environment"]["APM_SERVER_URL"], agent)
 
+    def test_agent_python_django_enable_apm_server(self):
+        agent = AgentPythonDjango(enable_apm_server=True).render()["agent-python-django"]
+        self.assertTrue("apm-server" in agent["depends_on"])
+
+        agent = AgentPythonDjango(enable_apm_server=False).render()["agent-python-django"]
+        self.assertFalse("apm-server" in agent["depends_on"])
+
+    def test_agent_python_django_apm_api_key_with_old_version_apm_server(self):
+        agent = AgentPythonDjango(version="6.3.100", enable_apm_server=True,
+                                  elastic_apm_api_key="foo").render()["agent-python-django"]
+        self.assertFalse("ELASTIC_APM_API_KEY" in agent["environment"])
+
+    def test_agent_python_django_apm_api_key_with_apm_server(self):
+        agent = AgentPythonDjango(version="7.6", enable_apm_server=True,
+                                  elastic_apm_api_key="foo").render()["agent-python-django"]
+        self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
+
     def test_agent_python_flask(self):
         agent = AgentPythonFlask(version="6.2.4").render()
         self.assertDictEqual(
@@ -149,6 +200,23 @@ class AgentServiceTest(ServiceTest):
         # test overrides
         agent = AgentPythonFlask(apm_server_url="http://foo").render()["agent-python-flask"]
         self.assertEqual("http://foo", agent["environment"]["APM_SERVER_URL"])
+
+    def test_agent_python_flask_enable_apm_server(self):
+        agent = AgentPythonFlask(enable_apm_server=True).render()["agent-python-flask"]
+        self.assertTrue("apm-server" in agent["depends_on"])
+
+        agent = AgentPythonFlask(enable_apm_server=False).render()["agent-python-flask"]
+        self.assertFalse("apm-server" in agent["depends_on"])
+
+    def test_agent_python_flask_apm_api_key_with_old_version_apm_server(self):
+        agent = AgentPythonFlask(version="6.3.100", enable_apm_server=True,
+                                 elastic_apm_api_key="foo").render()["agent-python-flask"]
+        self.assertFalse("ELASTIC_APM_API_KEY" in agent["environment"])
+
+    def test_agent_python_flask_apm_api_key_with_apm_server(self):
+        agent = AgentPythonFlask(version="7.6", enable_apm_server=True,
+                                 elastic_apm_api_key="foo").render()["agent-python-flask"]
+        self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
 
     def test_agent_ruby_rails(self):
         agent = AgentRubyRails().render()
@@ -202,6 +270,23 @@ class AgentServiceTest(ServiceTest):
         agent = AgentRubyRails(ruby_agent_version="1.0").render()["agent-ruby-rails"]
         self.assertEqual("1.0", agent["environment"]["RUBY_AGENT_VERSION"])
 
+    def test_agent_ruby_enable_apm_server(self):
+        agent = AgentRubyRails(enable_apm_server=True).render()["agent-ruby-rails"]
+        self.assertTrue("apm-server" in agent["depends_on"])
+
+        agent = AgentRubyRails(enable_apm_server=False).render()["agent-ruby-rails"]
+        self.assertFalse("apm-server" in agent["depends_on"])
+
+    def test_agent_ruby_apm_api_key_with_old_version_apm_server(self):
+        agent = AgentRubyRails(version="6.3.100", enable_apm_server=True,
+                               elastic_apm_api_key="foo").render()["agent-ruby-rails"]
+        self.assertFalse("ELASTIC_APM_API_KEY" in agent["environment"])
+
+    def test_agent_ruby_apm_api_key_with_apm_server(self):
+        agent = AgentRubyRails(version="7.6", enable_apm_server=True,
+                               elastic_apm_api_key="foo").render()["agent-ruby-rails"]
+        self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
+
     def test_agent_ruby_version(self):
         agent = AgentRubyRails(ruby_version="2").render()["agent-ruby-rails"]
         self.assertEqual("2", agent["build"]["args"]["RUBY_VERSION"])
@@ -251,6 +336,27 @@ class AgentServiceTest(ServiceTest):
         agent = AgentJavaSpring(java_agent_release="1.0").render()["agent-java-spring"]
         self.assertEqual("1.0", agent["build"]["args"]["JAVA_AGENT_BUILT_VERSION"])
 
+    def test_agent_java_enable_apm_server(self):
+        agent = AgentJavaSpring(enable_apm_server=True).render()["agent-java-spring"]
+        self.assertTrue("apm-server" in agent["depends_on"])
+
+        agent = AgentJavaSpring(enable_apm_server=False).render()["agent-java-spring"]
+        self.assertFalse("apm-server" in agent["depends_on"])
+
+    def test_agent_java_apm_api_key_with_old_version_apm_server(self):
+        agent = AgentJavaSpring(version="6.3.100", enable_apm_server=True,
+                                elastic_apm_api_key="foo").render()["agent-java-spring"]
+        self.assertFalse("ELASTIC_APM_API_KEY" in agent["environment"])
+
+    def test_agent_java_apm_api_key_with_apm_server(self):
+        agent = AgentJavaSpring(version="7.6", enable_apm_server=True,
+                                elastic_apm_api_key="foo").render()["agent-java-spring"]
+        self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
+
+    def test_agent_java_m2_cache(self):
+        agent = AgentJavaSpring(java_m2_cache=True).render()["agent-java-spring"]
+        self.assertEqual("true", agent["build"]["args"]["JAVA_M2_CACHE"])
+
     def test_agent_dotnet(self):
         agent = AgentDotnet().render()
         self.assertDictEqual(
@@ -298,6 +404,75 @@ class AgentServiceTest(ServiceTest):
     def test_agent_dotnet_with_release(self):
         agent = AgentDotnet(dotnet_agent_release="1.0").render()["agent-dotnet"]
         self.assertEqual("1.0", agent["build"]["args"]["DOTNET_AGENT_VERSION"])
+
+    def test_agent_dotnet_enable_apm_server(self):
+        agent = AgentDotnet(enable_apm_server=True).render()["agent-dotnet"]
+        self.assertTrue("apm-server" in agent["depends_on"])
+
+        agent = AgentDotnet(enable_apm_server=False).render()["agent-dotnet"]
+        self.assertFalse("apm-server" in agent["depends_on"])
+
+    def test_agent_dotnet_apm_api_key_with_old_version_apm_server(self):
+        agent = AgentDotnet(version="6.3.100", enable_apm_server=True,
+                            elastic_apm_api_key="foo").render()["agent-dotnet"]
+        self.assertFalse("ELASTIC_APM_API_KEY" in agent["environment"])
+
+    def test_agent_dotnet_apm_api_key_with_apm_server(self):
+        agent = AgentDotnet(version="7.6", enable_apm_server=True, elastic_apm_api_key="foo").render()["agent-dotnet"]
+        self.assertEqual("foo", agent["environment"]["ELASTIC_APM_API_KEY"])
+
+    def test_agent_php(self):
+        agent = AgentPhpApache().render()
+        self.assertDictEqual(
+            agent, yaml.safe_load("""
+                agent-php-apache:
+                    build:
+                        args:
+                            PHP_AGENT_BRANCH: master
+                            PHP_AGENT_VERSION: ""
+                            PHP_AGENT_REPO: elastic/apm-agent-php
+                        dockerfile: Dockerfile
+                        context: docker/php/apache
+                    container_name: phpapacheapp
+                    depends_on:
+                        apm-server:
+                            condition: 'service_healthy'
+                    environment:
+                        ELASTIC_APM_SERVICE_NAME: 'phpapacheapp'
+                        ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
+                    healthcheck:
+                        interval: 10s
+                        retries: 12
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output",
+                        "/dev/null", "http://phpapacheapp:80/healthcheck"]
+                    ports:
+                        - 127.0.0.1:8030:80
+            """)
+        )
+
+        # test overrides
+        agent = AgentPhpApache(apm_server_url="http://foo").render()["agent-php-apache"]
+        self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"])
+
+    def test_agent_php_with_repo(self):
+        agent = AgentPhpApache(php_agent_repo="foo/myrepo.git").render()["agent-php-apache"]
+        self.assertEqual("foo/myrepo.git", agent["build"]["args"]["PHP_AGENT_REPO"])
+
+    def test_agent_php_with_branch(self):
+        agent = AgentPhpApache(php_agent_version="bar").render()["agent-php-apache"]
+        self.assertEqual("bar", agent["build"]["args"]["PHP_AGENT_BRANCH"])
+
+    def test_agent_php_with_release(self):
+        agent = AgentPhpApache(php_agent_release="1.0").render()["agent-php-apache"]
+        self.assertEqual("1.0", agent["build"]["args"]["PHP_AGENT_VERSION"])
+
+    def test_agent_php_enable_apm_server(self):
+        agent = AgentPhpApache(enable_apm_server=True).render()["agent-php-apache"]
+        self.assertTrue("apm-server" in agent["depends_on"])
+
+        agent = AgentPhpApache(enable_apm_server=False).render()["agent-php-apache"]
+        self.assertFalse("apm-server" in agent["depends_on"])
+
 
 class ApmServerServiceTest(ServiceTest):
     def test_default_snapshot(self):
@@ -501,6 +676,29 @@ class ApmServerServiceTest(ServiceTest):
         self.assertIsNone(apm_server.get("image"))
         self.assertDictEqual(apm_server["build"], {
             'args': {'apm_server_base_image': 'docker.elastic.co/apm/apm-server:6.3.100',
+                     'apm_server_binary': 'apm-server',
+                     'apm_server_branch_or_commit': 'master',
+                     'apm_server_repo': 'foo.git'},
+            'context': 'docker/apm-server'})
+
+    def test_apm_server_build_oss(self):
+        apm_server = ApmServer(version="6.3.100", apm_server_build="foo.git",
+                               release=True, oss=True).render()["apm-server"]
+        self.assertIsNone(apm_server.get("image"))
+        self.assertDictEqual(apm_server["build"], {
+            'args': {'apm_server_base_image': 'docker.elastic.co/apm/apm-server-oss:6.3.100',
+                     'apm_server_binary': 'apm-server-oss',
+                     'apm_server_branch_or_commit': 'master',
+                     'apm_server_repo': 'foo.git'},
+            'context': 'docker/apm-server'})
+
+    def test_apm_server_build_ubi8(self):
+        apm_server = ApmServer(version="7.9.2", apm_server_build="foo.git",
+                               release=True, ubi8=True).render()["apm-server"]
+        self.assertIsNone(apm_server.get("image"))
+        self.assertDictEqual(apm_server["build"], {
+            'args': {'apm_server_base_image': 'docker.elastic.co/apm/apm-server-ubi8:7.9.2',
+                     'apm_server_binary': 'apm-server',
                      'apm_server_branch_or_commit': 'master',
                      'apm_server_repo': 'foo.git'},
             'context': 'docker/apm-server'})
@@ -546,6 +744,136 @@ class ApmServerServiceTest(ServiceTest):
         self.assertFalse(
             any(e.startswith("setup.dashboards.enabled=") for e in apm_server["command"]),
             "setup.dashboards.enabled while enable_kibana=False"
+        )
+
+    def test_apm_server_acm(self):
+        apm_server = ApmServer(version="7.3").render()["apm-server"]
+        self.assertTrue("apm-server.kibana.enabled=true" in apm_server["command"],
+                        "APM Server Kibana enabled by default")
+
+        apm_server = ApmServer(version="7.3", apm_server_acm_disable=True).render()["apm-server"]
+        self.assertTrue("apm-server.kibana.enabled=false" in apm_server["command"],
+                        "APM Server Kibana disabled when apm_server_disable_kibana=True")
+
+        apm_server = ApmServer(version="7.3", xpack_secure=True).render()["apm-server"]
+        self.assertTrue("apm-server.kibana.username=apm_server_user" in apm_server["command"],
+                        "APM Server Kibana username set by default")
+        self.assertTrue("apm-server.kibana.password=changeme" in apm_server["command"],
+                        "APM Server Kibana password set by default")
+
+        apm_server = ApmServer(version="7.3", xpack_secure=True,
+                               apm_server_elasticsearch_username="another_apm_server_user",
+                               apm_server_elasticsearch_password="notchangeme").render()["apm-server"]
+        self.assertTrue("apm-server.kibana.username=another_apm_server_user" in apm_server["command"],
+                        "APM Server Kibana username overridden")
+        self.assertTrue("apm-server.kibana.password=notchangeme" in apm_server["command"],
+                        "APM Server Kibana password overridden")
+
+    def test_apm_server_custom_pipeline(self):
+        apm_server = ApmServer(version="8.0", apm_server_pipeline_path="foo").render()["apm-server"]
+        self.assertIn("foo:/usr/share/apm-server/ingest/pipeline/definition.json", apm_server["volumes"])
+        self.assertIn("apm-server.register.ingest.pipeline.overwrite=true", apm_server["command"])
+
+    def test_debug(self):
+        apm_server = ApmServer(version="6.8.0", apm_server_enable_debug=True).render()["apm-server"]
+        self.assertTrue("-d" in apm_server["command"])
+        self.assertTrue("*" in apm_server["command"])
+
+
+class ElasticAgentServiceTest(ServiceTest):
+    def test_default(self):
+        ea = ElasticAgent(version="7.12.345",enable_apm_server=True,apm_server_managed=True).render()["elastic-agent"]
+        self.assertEqual(
+            ea, {"container_name": "localtesting_7.12.345_elastic-agent",
+                 "depends_on": {"kibana": {"condition": "service_healthy"}},
+                 "environment": {"FLEET_ENROLL": "1",
+                                 "FLEET_ENROLL_INSECURE": 1,
+                                 "FLEET_SETUP": "1",
+                                 "KIBANA_HOST": "http://admin:changeme@kibana:5601",
+                                 "KIBANA_PASSWORD": "changeme",
+                                 "KIBANA_USERNAME": "admin"},
+                 "healthcheck": {"test": ["CMD", "/bin/true"]},
+                 "image": "docker.elastic.co/beats/elastic-agent:7.12.345-SNAPSHOT",
+                 "labels": ["co.elastic.apm.stack-version=7.12.345"],
+                 "logging": {"driver": "json-file",
+                             "options": {"max-file": "5", "max-size": "2m"}},
+                 'ports': ['127.0.0.1:8200:8200'],
+                 "volumes": ["/var/run/docker.sock:/var/run/docker.sock"]}
+        )
+
+    def test_default_snapshot(self):
+        ea = ElasticAgent(version="7.12.345", snapshot=True).render()["elastic-agent"]
+        self.assertEqual(
+            "docker.elastic.co/beats/elastic-agent:7.12.345-SNAPSHOT", ea["image"]
+        )
+
+    def test_kibana_tls(self):
+        ea = ElasticAgent(version="7.12.345", kibana_enable_tls=True).render()["elastic-agent"]
+        self.assertEqual(
+            "https://admin:changeme@kibana:5601", ea["environment"]["KIBANA_HOST"]
+        )
+
+    def test_kibana_url(self):
+        ea = ElasticAgent(version="7.12.345", elastic_agent_kibana_url="http://foo").render()["elastic-agent"]
+        self.assertEqual("http://foo", ea["environment"]["KIBANA_HOST"])
+        self.assertNotIn("KIBANA_PASSWORD", ea["environment"])
+        self.assertNotIn("KIBANA_USERNAME", ea["environment"])
+
+        ea = ElasticAgent(version="7.12.345", elastic_agent_kibana_url="http://u:p@h:123").render()["elastic-agent"]
+        self.assertEqual("http://u:p@h:123", ea["environment"]["KIBANA_HOST"])
+        self.assertEqual("p", ea["environment"]["KIBANA_PASSWORD"])
+        self.assertEqual("u", ea["environment"]["KIBANA_USERNAME"])
+
+
+class PackageRegistryServiceTest(ServiceTest):
+    def test_default(self):
+        epr = PackageRegistry(version="7.11").render()["package-registry"]
+        self.assertEqual(
+            epr, {'image': 'docker.elastic.co/package-regis[456 chars]m',
+                  'container_name': 'localtesting_7.11_package-registry',
+                  'environment': {},
+                  'healthcheck': {'interval': '5s',
+                                  'retries': 10,
+                                  'test': ['CMD',
+                                           'curl',
+                                           '--write-out',
+                                           "'HTTP %{http_code}'",
+                                           '-k',
+                                           '--fail',
+                                           '--silent',
+                                           '--output',
+                                           '/dev/null',
+                                           'http://localhost:8080/']},
+                  'image': 'docker.elastic.co/package-registry/distribution:snapshot',
+                  'labels': ['co.elastic.apm.stack-version=7.11'],
+                  'logging': {'driver': 'json-file',
+                              'options': {'max-file': '5', 'max-size': '2m'}},
+                  'ports': ['127.0.0.1:8080:8080']}
+        )
+
+    def test_production(self):
+        epr = PackageRegistry(version="7.11", package_registry_distribution="production").render()["package-registry"]
+        self.assertEqual(
+            epr, {'image': 'docker.elastic.co/package-regis[456 chars]m',
+                  'container_name': 'localtesting_7.11_package-registry',
+                  'environment': {},
+                  'healthcheck': {'interval': '5s',
+                                  'retries': 10,
+                                  'test': ['CMD',
+                                           'curl',
+                                           '--write-out',
+                                           "'HTTP %{http_code}'",
+                                           '-k',
+                                           '--fail',
+                                           '--silent',
+                                           '--output',
+                                           '/dev/null',
+                                           'http://localhost:8080/']},
+                  'image': 'docker.elastic.co/package-registry/distribution:production',
+                  'labels': ['co.elastic.apm.stack-version=7.11'],
+                  'logging': {'driver': 'json-file',
+                              'options': {'max-file': '5', 'max-size': '2m'}},
+                  'ports': ['127.0.0.1:8080:8080']}
         )
 
 
@@ -759,6 +1087,69 @@ class KibanaServiceTest(ServiceTest):
                         - co.elatic.apm.stack-version=6.3.5""")  # noqa: 501
         )
 
+    def test_kibana_elasticsearch_urls(self):
+        kibana = Kibana(version="6.3.5", release=True, kibana_elasticsearch_urls=[
+                        "elasticsearch01:9200"]).render()["kibana"]
+        self.assertTrue("elasticsearch" in kibana['depends_on'])
+        self.assertEqual("elasticsearch01:9200", kibana['environment']["ELASTICSEARCH_HOSTS"])
+
+        kibana = Kibana(version="6.3.5", release=True, kibana_elasticsearch_urls=[
+                        "elasticsearch01:9200", "elasticsearch02:9200"]).render()["kibana"]
+        self.assertTrue("elasticsearch" in kibana['depends_on'])
+        self.assertEqual("elasticsearch01:9200,elasticsearch02:9200", kibana['environment']["ELASTICSEARCH_HOSTS"])
+
+    def test_kibana_port(self):
+        kibana = Kibana(version="7.3.0", release=True, kibana_port="1234").render()["kibana"]
+        self.assertTrue("127.0.0.1:1234:5601" in kibana['ports'])
+
+    def test_kibana_version(self):
+        kibana = Kibana(version="7.3.0", release=True, kibana_version="7.3.0").render()["kibana"]
+        self.assertEqual("docker.elastic.co/kibana/kibana:7.3.0", kibana["image"])
+
+    def test_kibana_oss(self):
+        kibana = Kibana(version="7.3.0", release=True, kibana_oss=True, kibana_version="7.3.0").render()["kibana"]
+        self.assertEqual("docker.elastic.co/kibana/kibana-oss:7.3.0", kibana["image"])
+
+    def test_kibana_snapshot(self):
+        kibana = Kibana(version="7.3.0", kibana_snapshot=True, kibana_version="7.3.0").render()["kibana"]
+        self.assertEqual("docker.elastic.co/kibana/kibana:7.3.0-SNAPSHOT", kibana["image"])
+
+    def test_kibana_ubi8(self):
+        kibana = Kibana(version="7.10.0", release=True, kibana_ubi8=True, kibana_version="7.10.0").render()["kibana"]
+        self.assertEqual("docker.elastic.co/kibana/kibana-ubi8:7.10.0", kibana["image"])
+
+    def test_kibana_login_assistance_message(self):
+        kibana = Kibana(version="7.6.0", xpack_secure=True, kibana_version="7.6.0").render()["kibana"]
+        self.assertIn("Login&#32;details:&#32;`admin/changeme`.",
+                      kibana['environment']["XPACK_SECURITY_LOGINASSISTANCEMESSAGE"])
+        kibana = Kibana(version="7.6.0", oss=True, xpack_secure=True, kibana_version="7.6.0").render()["kibana"]
+        self.assertNotIn("XPACK_SECURITY_LOGINASSISTANCEMESSAGE", kibana['environment'])
+
+    def test_kibana_disable_apm_servicemaps(self):
+        kibana = Kibana(version="7.7.0").render()["kibana"]
+        self.assertIn("XPACK_APM_SERVICEMAPENABLED", kibana['environment'])
+
+        kibana = Kibana(version="7.7.0", no_kibana_apm_servicemaps=True).render()["kibana"]
+        self.assertNotIn("XPACK_APM_SERVICEMAPENABLED", kibana['environment'])
+
+    def test_kibana_login_assistance_message_wihtout_xpack(self):
+        kibana = Kibana(version="7.6.0", xpack_secure=False, kibana_version="7.6.0").render()["kibana"]
+        self.assertNotIn("XPACK_SECURITY_LOGINASSISTANCEMESSAGE", kibana['environment'])
+
+    def test_kibana_encryption_keys_in_7_6(self):
+        kibana = Kibana(version="7.6.0", kibana_version="7.6.0").render()["kibana"]
+        self.assertNotIn("XPACK_SECURITY_ENCRYPTIONKEY", kibana['environment'])
+        self.assertNotIn("XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY", kibana['environment'])
+
+    def test_kibana_encryption_keys_in_7_7(self):
+        kibana = Kibana(version="7.7.0", kibana_version="7.7.0").render()["kibana"]
+        self.assertIn("XPACK_SECURITY_ENCRYPTIONKEY", kibana['environment'])
+        self.assertIn("XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY", kibana['environment'])
+
+    def test_kibana_yml(self):
+        kibana = Kibana(kibana_yml="/path/to.yml").render()["kibana"]
+        self.assertIn("/path/to.yml:/usr/share/kibana/config/kibana.yml", kibana['volumes'])
+
 
 class LogstashServiceTest(ServiceTest):
     def test_snapshot(self):
@@ -860,6 +1251,69 @@ class PacketbeatServiceTest(ServiceTest):
                     privileged: 'true'
                     cap_add: ['NET_ADMIN', 'NET_RAW']""") # noqa: 501
         )
+
+    def test_config_6(self):
+        packetbeat = Packetbeat(version="6.2.4", release=True).render()["packetbeat"]
+        self.assertTrue("./docker/packetbeat/packetbeat.6.x-compat.yml:/usr/share/packetbeat/packetbeat.yml"
+                        in packetbeat["volumes"])
+
+    def test_config_71(self):
+        packetbeat = Packetbeat(version="7.1.0", release=True).render()["packetbeat"]
+        self.assertTrue("./docker/packetbeat/packetbeat.6.x-compat.yml:/usr/share/packetbeat/packetbeat.yml"
+                        in packetbeat["volumes"])
+
+    def test_config_post_72(self):
+        packetbeat = Packetbeat(version="7.2.0", release=True).render()["packetbeat"]
+        self.assertTrue("./docker/packetbeat/packetbeat.yml:/usr/share/packetbeat/packetbeat.yml"
+                        in packetbeat["volumes"])
+
+    def test_packetbeat_elasticsearch_output_tls(self):
+        packetbeat = Packetbeat(version="7.8.100", elasticsearch_enable_tls=True).render()["packetbeat"]
+        self.assertTrue(
+            "output.elasticsearch.ssl.certificate_authorities=['/usr/share/beats/config/certs/stack-ca.crt']" in
+            packetbeat["command"],
+            "CA not set when elasticsearch TLS is enabled")
+
+    def test_packetbeat_elasticsearch_urls(self):
+        beat = Packetbeat(version="6.2.4", release=True,
+                          packetbeat_elasticsearch_urls=["elasticsearch01:9200"]).render()["packetbeat"]
+        self.assertTrue("elasticsearch" in beat['depends_on'])
+        self.assertTrue("output.elasticsearch.hosts=[\"elasticsearch01:9200\"]" in beat['command'])
+
+        beat = Packetbeat(version="6.2.4", release=True,
+                          packetbeat_elasticsearch_urls=["elasticsearch01:9200", "elasticsearch02:9200"]
+                          ).render()["packetbeat"]
+        self.assertTrue("elasticsearch" in beat['depends_on'])
+        self.assertTrue(
+            "output.elasticsearch.hosts=[\"elasticsearch01:9200\", \"elasticsearch02:9200\"]" in beat['command'])
+
+    def test_packetbeat_with_kibana_username_password(self):
+        packetbeat = Packetbeat(packetbeat_kibana_username='foo',
+                                packetbeat_kibana_password='bar').render()["packetbeat"]
+        self.assertEqual("foo", packetbeat["environment"]["KIBANA_USERNAME"])
+        self.assertEqual("bar", packetbeat["environment"]["KIBANA_PASSWORD"])
+
+
+class HeartbeatServiceTest(ServiceTest):
+    def test_heartbeat_elasticsearch_output_tls(self):
+        heartbeat = Heartbeat(version="7.8.100", elasticsearch_enable_tls=True).render()["heartbeat"]
+        self.assertTrue(
+            "output.elasticsearch.ssl.certificate_authorities=['/usr/share/beats/config/certs/stack-ca.crt']" in
+            heartbeat["command"],
+            "CA not set when elasticsearch TLS is enabled")
+
+    def test_heartbeat_elasticsearch_urls(self):
+        beat = Heartbeat(version="6.2.4", release=True,
+                         heartbeat_elasticsearch_urls=["elasticsearch01:9200"]).render()["heartbeat"]
+        self.assertTrue("elasticsearch" in beat['depends_on'])
+        self.assertTrue("output.elasticsearch.hosts=[\"elasticsearch01:9200\"]" in beat['command'])
+
+        beat = Heartbeat(version="6.2.4", release=True,
+                         heartbeat_elasticsearch_urls=["elasticsearch01:9200", "elasticsearch02:9200"]
+                         ).render()["heartbeat"]
+        self.assertTrue("elasticsearch" in beat['depends_on'])
+        self.assertTrue(
+            "output.elasticsearch.hosts=[\"elasticsearch01:9200\", \"elasticsearch02:9200\"]" in beat['command'])
 
 
 class ZookeeperServiceTest(ServiceTest):
