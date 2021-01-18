@@ -685,7 +685,8 @@ class LocalSetup(object):
             self.run_docker_compose_process(docker_compose_cmd + up_params)
 
         if args.get("enable_elastic_agent", False) and args["elastic-agent-apm-binary-path"]:
-            is_snapshot = args["elastic_agent_snapshot"] or not (any((args["elastic_agent_bc"], args["elastic_agent_release"])))
+            is_snapshot = args["elastic_agent_snapshot"] or not (
+                any((args["elastic_agent_bc"], args["elastic_agent_release"])))
             version = args["version"] + "-SNAPSHOT" if is_snapshot else args["version"]
             filename = "apm-server-" + version + "-linux-x86_64.tar.gz" 
             subprocess.call(["./scripts/override-agent-apm-server.sh", args["elastic-agent-apm-binary-path"], filename])
