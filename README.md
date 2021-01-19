@@ -224,7 +224,7 @@ The container for each sevice may be instantly resized to the amount of availabl
 
 ### Enabling/disabling services
 
-Unchecking the button immediately above the panel of sliders for each service will immediatley cut off access to that service. The service itself will remain up but no traffice will be routed to it.
+Unchecking the button immediately above the panel of sliders for each service will immediately cut off access to that service. The service itself will remain up but no traffic will be routed to it.
 Re-checking the box will immediately restore the network connectivity for the service.
 
 ### Debugging problems
