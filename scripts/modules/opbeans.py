@@ -112,9 +112,9 @@ class OpbeansDotnet(OpbeansService):
     def _content(self):
         depends_on = []
         if self.options.get("enable_apm_server", True):
-            depends_on.append("apm-server")
+            depends_on["apm-server"] = {"condition": "service_healthy"}
         if self.options.get("enable_elasticsearch", True):
-            depends_on.append("elasticsearch")
+            depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
         content = dict(
             build=dict(
@@ -190,9 +190,9 @@ class OpbeansGo(OpbeansService):
         depends_on = ["postgres", "redis"]
 
         if self.options.get("enable_apm_server", True):
-            depends_on.append("apm-server")
+            depends_on["apm-server"] = {"condition": "service_healthy"}
         if self.options.get("enable_elasticsearch", True):
-            depends_on.append("elasticsearch")
+            depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
         content = dict(
             build=dict(
@@ -286,9 +286,9 @@ class OpbeansJava(OpbeansService):
     def _content(self):
         depends_on = ["postgres"]
         if self.options.get("enable_apm_server", True):
-            depends_on.append("apm-server")
+            depends_on["apm-server"] = {"condition": "service_healthy"}
         if self.options.get("enable_elasticsearch", True):
-            depends_on.append("elasticsearch")
+            depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
         content = dict(
             build=dict(
@@ -378,7 +378,7 @@ class OpbeansNode(OpbeansService):
         depends_on = ["postgres", "redis"]
 
         if self.options.get("enable_apm_server", True):
-            depends_on.append("apm-server")
+            depends_on["apm-server"] = {"condition": "service_healthy"}
 
         content = dict(
             build=dict(
@@ -481,9 +481,9 @@ class OpbeansPython(OpbeansService):
         depends_on = ["postgres", "redis"]
 
         if self.options.get("enable_apm_server", True):
-            depends_on.append("apm-server")
+            depends_on["apm-server"] = {"condition": "service_healthy"}
         if self.options.get("enable_elasticsearch", True):
-            depends_on.append("elasticsearch")
+            depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
         content = dict(
             build=dict(
@@ -574,9 +574,9 @@ class OpbeansRuby(OpbeansService):
         depends_on = ["postgres", "redis"]
 
         if self.options.get("enable_apm_server", True):
-            depends_on.append("apm-server")
+            depends_on["apm-server"] = {"condition": "service_healthy"}
         if self.options.get("enable_elasticsearch", True):
-            depends_on.append("elasticsearch")
+            depends_on["elasticsearch"] = {"condition": "service_healthy"}
 
         content = dict(
             build=dict(
