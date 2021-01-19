@@ -688,7 +688,7 @@ class LocalSetup(object):
             is_snapshot = args["elastic_agent_snapshot"] or not (
                 any((args["elastic_agent_bc"], args["elastic_agent_release"])))
             version = args["version"] + "-SNAPSHOT" if is_snapshot else args["version"]
-            filename = "apm-server-" + version + "-linux-x86_64.tar.gz" 
+            filename = "apm-server-" + version + "-linux-x86_64.tar.gz"
             subprocess.call(["./scripts/override-agent-apm-server.sh", args["elastic-agent-apm-binary-path"], filename])
 
     @staticmethod
