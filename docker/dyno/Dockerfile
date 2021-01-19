@@ -5,5 +5,4 @@ WORKDIR /
 COPY requirements.txt /dyno/requirements.txt
 RUN pip3 install -r dyno/requirements.txt
 COPY . /dyno
-WORKDIR /
 ENTRYPOINT  ["./dyno/entrypoint.sh"]
