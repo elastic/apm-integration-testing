@@ -201,7 +201,7 @@ any dependent services, such as Postgres or Redis.
 A pane on the left-hand side of the window allows load-generate to be started and stopped by clicking the checkbox for the Opbean(s) you wish to apply load to. Unchecking the box
 for an Opbean in this pane will cause load-generation to cease.
 
-After load generation is started, the number of requests can be adjusted by moving the `W` slider for the relevant Opbean up or down. To control the liklihood that a request will
+After load generation is started, the number of requests can be adjusted by moving the `W` slider for the relevant Opbean up or down. To control the likelihood that a request will
 result in an error in the application which can be seen in APM, use the `E` slider to adjust the error rate. Moving the slider up will result in a higher percentage of requests
 being errors.
 
