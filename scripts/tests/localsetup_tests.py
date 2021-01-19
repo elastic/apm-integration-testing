@@ -1296,7 +1296,7 @@ class LocalTest(unittest.TestCase):
             setup()
         docker_compose_yml.seek(0)
         got = yaml.safe_load(docker_compose_yml)
-        self.assertIn('dyno', got['services'])
+        self.assertIn('toxi', got['services'])
 
     @mock.patch(cli.__name__ + ".load_images")
     @mock.patch(cli.__name__ + ".open")
