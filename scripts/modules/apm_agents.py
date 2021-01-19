@@ -19,6 +19,7 @@ class AgentRUMJS(Service):
             self.depends_on = {
                 "apm-server": {"condition": "service_healthy"},
             }
+
     @classmethod
     def add_arguments(cls, parser):
         super(AgentRUMJS, cls).add_arguments(parser)

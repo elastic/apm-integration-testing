@@ -63,7 +63,7 @@ class ApmServer(StackService, Service):
                     ("apm-server.instrumentation.profiling.heap.enabled", "true"),
                 ])
         self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if options.get(
-                "enable_elasticsearch", True) else {}
+            "enable_elasticsearch", True) else {}
         self.build = self.options.get("apm_server_build")
 
         self.es_tls = self.options.get("elasticsearch_enable_tls", False)
