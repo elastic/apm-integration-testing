@@ -1,4 +1,4 @@
-FROM golang:latest 
+FROM golang:latest
 ENV GO111MODULE=on
 WORKDIR /src/apmpkg
 COPY . /src/apmpkg
