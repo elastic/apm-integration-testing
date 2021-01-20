@@ -49,6 +49,8 @@ pipeline {
     stage('Checkout'){
       options { skipDefaultCheckout() }
       steps {
+        echo "Correct PR"
+        sh('git show-ref')
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}",
           branch: "${params.INTEGRATION_TESTING_VERSION}",
