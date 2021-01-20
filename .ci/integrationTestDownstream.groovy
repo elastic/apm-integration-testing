@@ -187,13 +187,10 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
           "TMPDIR=${steps.env.WORKSPACE}"
           ]
         def label = "${tag}-${x}-${y}"
-        def dockerLogs = label.replace(":","_").replace(";","_").replace(" ","").replace("--","-")
         try{
+          saveResult(x, y, 0)
           steps.runScript(label: label, agentType: tag, env: env)
           saveResult(x, y, 1)
-        } catch (e){
-          saveResult(x, y, 0)
-          steps.error("${label} tests failed : ${e.toString()}\n")
         } finally {
           steps.wrappingup(label)
         }
@@ -211,6 +208,7 @@ def runScript(Map params = [:]){
   def label = params.containsKey('label') ? params.label : params?.agentType
   def agentType = params.agentType
   def env = params.env
+  def dockerLogs = label.replace(":","_").replace(";","_").replace(" ","").replace("--","-")
   log(level: 'INFO', text: "${label}")
   deleteDir()
   unstash "source"
