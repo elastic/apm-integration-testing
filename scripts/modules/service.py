@@ -58,7 +58,7 @@ class Service(object):
             else:
                 print('WARNING: elastic_apm_api_key is not supported for the current version. Use version +7.6.')
         if self.name() in ("elasticsearch", "kibana"):
-            if self.at_least_version("7.11") or (self.at_least_version("6.8.14") and self.version_lower_than("6.9")) :
+            if self.at_least_version("7.11") or (self.at_least_version("6.8.14") and self.version_lower_than("6.9")):
                 print('WARNING: OSS distribution is not supported in 7.11+/6.8.14+. Unset the oss flag.')
                 self._oss = False
 
