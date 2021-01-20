@@ -3,6 +3,7 @@ FROM maven:3.6.3-adoptopenjdk-11
 ARG JAVA_AGENT_REPO=elastic/apm-agent-java
 ARG JAVA_AGENT_BRANCH=master
 ARG JAVA_AGENT_BUILT_VERSION=
+ARG JAVA_M2_CACHE=false
 
 RUN mkdir /agent \
     && mkdir /app
@@ -17,13 +18,14 @@ RUN cd /agent/apm-agent-java \
   && git checkout ${JAVA_AGENT_BRANCH}
 
 COPY maven-package.sh /agent
+COPY .m2 /root/.m2
 RUN ./maven-package.sh "${JAVA_AGENT_BUILT_VERSION}"
 
 FROM adoptopenjdk:11-jre-hotspot
 COPY --from=0 /app /app
 COPY --from=0 /agent/apm-agent.jar /app
 RUN apt-get -qq update \
-  && apt-get -qq install -y --no-install-recommends curl \ 
+  && apt-get -qq install -y --no-install-recommends curl \
   && apt-get -qq clean \
   && rm -fr /var/lib/apt/lists/*
 WORKDIR /app
