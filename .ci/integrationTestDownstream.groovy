@@ -114,8 +114,10 @@ pipeline {
       steps {
         deleteDir()
         unstash "source"
-        dir("${BASE_DIR}"){
-          sh ".ci/scripts/all.sh"
+        fielbeat(output: "${dockerLogs}.log", archiveOnlyOnFail: true){
+          dir("${BASE_DIR}"){
+            sh ".ci/scripts/all.sh"
+          }
         }
       }
       post {
@@ -187,9 +189,7 @@ class IntegrationTestingParallelTaskGenerator extends DefaultParallelTaskGenerat
         def label = "${tag}-${x}-${y}"
         def dockerLogs = label.replace(":","_").replace(";","_").replace(" ","").replace("--","-")
         try{
-          fielbeat(output: "${dockerLogs}.log", archiveOnlyOnFail: true){
-            steps.runScript(label: label, agentType: tag, env: env)
-          }
+          steps.runScript(label: label, agentType: tag, env: env)
           saveResult(x, y, 1)
         } catch (e){
           saveResult(x, y, 0)
@@ -214,9 +214,11 @@ def runScript(Map params = [:]){
   log(level: 'INFO', text: "${label}")
   deleteDir()
   unstash "source"
-  dir("${BASE_DIR}"){
-    withEnv(env){
-      sh(label: "Testing ${agentType}", script: ".ci/scripts/${agentType}.sh")
+  fielbeat(output: "${dockerLogs}.log", archiveOnlyOnFail: true){
+    dir("${BASE_DIR}"){
+      withEnv(env){
+        sh(label: "Testing ${agentType}", script: ".ci/scripts/${agentType}.sh")
+      }
     }
   }
 }
