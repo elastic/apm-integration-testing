@@ -112,10 +112,12 @@ pipeline {
         PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
       }
       steps {
-        deleteDir()
-        unstash "source"
-        dir("${BASE_DIR}"){
-          sh ".ci/scripts/all.sh"
+        withGithubNotify(context: 'All') {
+          deleteDir()
+          unstash "source"
+          dir("${BASE_DIR}"){
+            sh ".ci/scripts/all.sh"
+          }
         }
       }
       post {
@@ -133,12 +135,14 @@ pipeline {
         HOME = "${WORKSPACE}/${BASE_DIR}"
       }
       steps {
-        deleteDir()
-        unstash "source"
-        dir("${BASE_DIR}"){
-          script {
-            docker.image('node:11').inside() {
-              sh(label: "Check Schema", script: ".ci/scripts/ui.sh")
+        withGithubNotify(context: 'UI') {
+          deleteDir()
+          unstash "source"
+          dir("${BASE_DIR}"){
+            script {
+              docker.image('node:11').inside() {
+                sh(label: "Check Schema", script: ".ci/scripts/ui.sh")
+              }
             }
           }
         }
@@ -208,12 +212,14 @@ def runScript(Map params = [:]){
   def label = params.containsKey('label') ? params.label : params?.agentType
   def agentType = params.agentType
   def env = params.env
-  log(level: 'INFO', text: "${label}")
-  deleteDir()
-  unstash "source"
-  dir("${BASE_DIR}"){
-    withEnv(env){
-      sh(label: "Testing ${agentType}", script: ".ci/scripts/${agentType}.sh")
+  withGithubNotify(context: "${label}") {
+    log(level: 'INFO', text: "${label}")
+    deleteDir()
+    unstash "source"
+    dir("${BASE_DIR}"){
+      withEnv(env){
+        sh(label: "Testing ${agentType}", script: ".ci/scripts/${agentType}.sh")
+      }
     }
   }
 }
