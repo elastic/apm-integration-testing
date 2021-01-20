@@ -215,7 +215,7 @@ def runTest(test){
   unstash 'source'
   withConfigEnv(){
     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-      fielbeat(output: "${dockerLogs}.log", archiveOnlyOnFail: true){
+      filebeat(output: "${dockerLogs}.log", archiveOnlyOnFail: true){
         dir("${BASE_DIR}"){
           sh ".ci/scripts/${test}.sh"
         }

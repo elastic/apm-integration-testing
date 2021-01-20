@@ -214,7 +214,7 @@ def runScript(Map params = [:]){
   log(level: 'INFO', text: "${label}")
   deleteDir()
   unstash "source"
-  fielbeat(output: "${dockerLogs}.log", archiveOnlyOnFail: true){
+  filebeat(output: "${dockerLogs}.log", archiveOnlyOnFail: true){
     dir("${BASE_DIR}"){
       withEnv(env){
         sh(label: "Testing ${agentType}", script: ".ci/scripts/${agentType}.sh")
