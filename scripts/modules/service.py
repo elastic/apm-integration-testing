@@ -1,4 +1,5 @@
 import json
+import sys
 
 from abc import abstractmethod
 
@@ -57,6 +58,10 @@ class Service(object):
                 self.apm_api_key = {"ELASTIC_APM_API_KEY": options.get("elastic_apm_api_key")}
             else:
                 print('WARNING: elastic_apm_api_key is not supported for the current version. Use version +7.6.')
+        if self._oss and self.name() in ("elasticsearch", "kibana"):
+            if self.at_least_version("7.11") or (self.at_least_version("6.8.14") and self.version_lower_than("6.9")):
+                print('ERROR: OSS distribution is ONLY supported in 7.11+/6.8.14+ for Kibana and Elasticsearch.')
+                sys.exit(1)
 
     @property
     def bc(self):
@@ -97,6 +102,9 @@ class Service(object):
 
     def at_least_version(self, target):
         return parse_version(self.version) >= parse_version(target)
+
+    def version_lower_than(self, target):
+        return parse_version(self.version) < parse_version(target)
 
     @classmethod
     def name(cls):

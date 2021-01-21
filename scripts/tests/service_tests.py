@@ -1058,6 +1058,22 @@ class ElasticsearchServiceTest(ServiceTest):
             "xpack.license.self_generated.type=trial" in elasticsearch["environment"], "xpack.license type"
         )
 
+    def test_6_8_14_oss_release_not_supported(self):
+        with self.assertRaises(SystemExit) as cm:
+            elasticsearch = Elasticsearch(version="6.8.14", oss=True, release=True).render()["elasticsearch"]
+        self.assertEqual(cm.exception.code, 1)
+
+    def test_6_9_oss_release_supported(self):
+        elasticsearch = Elasticsearch(version="6.9", oss=True, release=True).render()["elasticsearch"]
+        self.assertEqual(
+            elasticsearch["image"], "docker.elastic.co/elasticsearch/elasticsearch-oss:6.9"
+        )
+
+    def test_7_11_oss_release_not_supported(self):
+        with self.assertRaises(SystemExit) as cm:
+            elasticsearch = Elasticsearch(version="7.11.0", oss=True, release=True).render()["elasticsearch"]
+        self.assertEqual(cm.exception.code, 1)
+
     def test_data_dir(self):
         # default
         elasticsearch = Elasticsearch(version="6.3.100").render()["elasticsearch"]
@@ -1294,6 +1310,22 @@ class KibanaServiceTest(ServiceTest):
                     labels:
                         - co.elastic.apm.stack-version=6.3.5""")  # noqa: 501
         )
+
+    def test_6_8_14_oss_release_not_supported(self):
+        with self.assertRaises(SystemExit) as cm:
+            kibana = Kibana(version="6.8.14", oss=True, release=True).render()["kibana"]
+        self.assertEqual(cm.exception.code, 1)
+
+    def test_6_9_oss_release_supported(self):
+        kibana = Kibana(version="6.9", oss=True, release=True).render()["kibana"]
+        self.assertEqual(
+            kibana["image"], "docker.elastic.co/kibana/kibana-oss:6.9"
+        )
+
+    def test_7_11_oss_release_not_supported(self):
+        with self.assertRaises(SystemExit) as cm:
+            kibana = Kibana(version="7.11.1", oss=True, release=True).render()["kibana"]
+        self.assertEqual(cm.exception.code, 1)
 
     def test_kibana_elasticsearch_urls(self):
         kibana = Kibana(version="6.3.5", release=True, kibana_elasticsearch_urls=[
