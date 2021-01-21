@@ -1059,10 +1059,9 @@ class ElasticsearchServiceTest(ServiceTest):
         )
 
     def test_6_8_14_oss_release_not_supported(self):
-        elasticsearch = Elasticsearch(version="6.8.14", oss=True, release=True).render()["elasticsearch"]
-        self.assertEqual(
-            elasticsearch["image"], "docker.elastic.co/elasticsearch/elasticsearch:6.8.14"
-        )
+        with self.assertRaises(SystemExit) as cm:
+            elasticsearch = Elasticsearch(version="6.8.14", oss=True, release=True).render()["elasticsearch"]
+        self.assertEqual(cm.exception.code, 1)
 
     def test_6_9_oss_release_supported(self):
         elasticsearch = Elasticsearch(version="6.9", oss=True, release=True).render()["elasticsearch"]
@@ -1071,10 +1070,9 @@ class ElasticsearchServiceTest(ServiceTest):
         )
 
     def test_7_11_oss_release_not_supported(self):
-        elasticsearch = Elasticsearch(version="7.11.0", oss=True, release=True).render()["elasticsearch"]
-        self.assertEqual(
-            elasticsearch["image"], "docker.elastic.co/elasticsearch/elasticsearch:7.11.0"
-        )
+        with self.assertRaises(SystemExit) as cm:
+            elasticsearch = Elasticsearch(version="7.11.0", oss=True, release=True).render()["elasticsearch"]
+        self.assertEqual(cm.exception.code, 1)
 
     def test_data_dir(self):
         # default
@@ -1314,10 +1312,9 @@ class KibanaServiceTest(ServiceTest):
         )
 
     def test_6_8_14_oss_release_not_supported(self):
-        kibana = Kibana(version="6.8.14", oss=True, release=True).render()["kibana"]
-        self.assertEqual(
-            kibana["image"], "docker.elastic.co/kibana/kibana:6.8.14"
-        )
+        with self.assertRaises(SystemExit) as cm:
+            kibana = Kibana(version="6.8.14", oss=True, release=True).render()["kibana"]
+        self.assertEqual(cm.exception.code, 1)
 
     def test_6_9_oss_release_supported(self):
         kibana = Kibana(version="6.9", oss=True, release=True).render()["kibana"]
@@ -1326,10 +1323,9 @@ class KibanaServiceTest(ServiceTest):
         )
 
     def test_7_11_oss_release_not_supported(self):
-        kibana = Kibana(version="7.11.1", oss=True, release=True).render()["kibana"]
-        self.assertEqual(
-            kibana["image"], "docker.elastic.co/kibana/kibana:7.11.1"
-        )
+        with self.assertRaises(SystemExit) as cm:
+            kibana = Kibana(version="7.11.1", oss=True, release=True).render()["kibana"]
+        self.assertEqual(cm.exception.code, 1)
 
     def test_kibana_elasticsearch_urls(self):
         kibana = Kibana(version="6.3.5", release=True, kibana_elasticsearch_urls=[
