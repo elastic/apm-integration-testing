@@ -3,8 +3,7 @@ from __future__ import print_function
 import unittest
 import yaml
 
-
-from ..compose import (AgentGoNetHttp, AgentJavaSpring, AgentNodejsExpress,
+from ..compose import (AgentDotnet, AgentGoNetHttp, AgentJavaSpring, AgentNodejsExpress,
                        AgentPythonDjango, AgentPythonFlask, AgentRubyRails)
 
 from ..compose import (ApmServer, Kibana, Elasticsearch, Filebeat, Metricbeat,
@@ -26,6 +25,7 @@ class AgentServiceTest(ServiceTest):
                     build:
                         args:
                             GO_AGENT_BRANCH: master
+                            GO_AGENT_REPO: elastic/apm-agent-go
                         dockerfile: Dockerfile
                         context: docker/go/nethttp
                     container_name: gonethttpapp
@@ -141,6 +141,9 @@ class AgentServiceTest(ServiceTest):
                             RUBY_VERSION: latest
                     container_name: railsapp
                     command: bash -c "bundle install && RAILS_ENV=production bundle exec rails s -b 0.0.0.0 -p 8020"
+                    depends_on:
+                        apm-server:
+                            condition: 'service_healthy'
                     environment:
                         APM_SERVER_URL: http://apm-server:8200
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
@@ -150,6 +153,7 @@ class AgentServiceTest(ServiceTest):
                         RAILS_PORT: 8020
                         RUBY_AGENT_VERSION: latest
                         RUBY_AGENT_VERSION_STATE: release
+                        RUBY_AGENT_REPO: elastic/apm-agent-ruby
                     healthcheck:
                         interval: 10s
                         retries: 60
@@ -176,6 +180,7 @@ class AgentServiceTest(ServiceTest):
                         args:
                             JAVA_AGENT_BRANCH: master
                             JAVA_AGENT_BUILT_VERSION: ""
+                            JAVA_AGENT_REPO: elastic/apm-agent-java
                         dockerfile: Dockerfile
                         context: docker/java/spring
                     container_name: javaspring
@@ -195,6 +200,42 @@ class AgentServiceTest(ServiceTest):
         # test overrides
         agent = AgentJavaSpring(apm_server_url="http://foo").render()["agent-java-spring"]
         self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URL"])
+
+    def test_agent_dotnet(self):
+        agent = AgentDotnet().render()
+        self.assertDictEqual(
+            agent, yaml.load("""
+                agent-dotnet:
+                    build:
+                        args:
+                            DOTNET_AGENT_BRANCH: master
+                            DOTNET_AGENT_VERSION: ""
+                            DOTNET_AGENT_REPO: elastic/apm-agent-dotnet
+                        dockerfile: Dockerfile
+                        context: docker/dotnet
+                    container_name: dotnetapp
+                    depends_on:
+                        apm-server:
+                            condition: 'service_healthy'
+                    environment:
+                        ELASTIC_APM_API_REQUEST_TIME: '3s'
+                        ELASTIC_APM_FLUSH_INTERVAL: '5'
+                        ELASTIC_APM_SAMPLE_RATE: '1'
+                        ELASTIC_APM_SERVICE_NAME: dotnetapp
+                        ELASTIC_APM_TRANSACTION_IGNORE_NAMES: 'healthcheck'
+                    healthcheck:
+                        interval: 5s
+                        retries: 12
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "--fail", "--silent", "--output",
+                        "/dev/null", "http://dotnetapp:8100/healthcheck"]
+                    ports:
+                        - 127.0.0.1:8100:8100
+            """)
+        )
+
+        # test overrides
+        agent = AgentDotnet(apm_server_url="http://foo").render()["agent-dotnet"]
+        self.assertEqual("http://foo", agent["environment"]["ELASTIC_APM_SERVER_URLS"])
 
 
 class ApmServerServiceTest(ServiceTest):

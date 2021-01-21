@@ -58,6 +58,13 @@ def java_spring(apm_server):
                  apm_server)
 
 
+@pytest.fixture(scope="session")
+def dotnet(apm_server):
+    return Agent(default.from_env('DOTNET_SERVICE_NAME'),
+                 default.from_env('DOTNET_URL'),
+                 apm_server)
+
+
 class Agent:
     def __init__(self, app_name, url, apm_server):
         self.app_name = app_name

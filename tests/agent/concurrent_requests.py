@@ -38,14 +38,16 @@ class Concurrent:
             }
             if app_name in ("flaskapp", "djangoapp"):
                 self.agent = "python"
-            elif app_name in ("expressapp"):
+            elif app_name in ("expressapp",):
                 self.agent = "nodejs"
-            elif self.app_name in ("railsapp"):
+            elif self.app_name in ("railsapp",):
                 self.agent = "ruby"
-            elif self.app_name in ("gonethttpapp"):
+            elif self.app_name in ("gonethttpapp",):
                 self.agent = "go"
-            elif self.app_name in ("springapp"):
+            elif self.app_name in ("springapp",):
                 self.agent = "java"
+            elif self.app_name in ("dotnetapp",):
+                self.agent = "dotnet"
             else:
                 raise Exception(
                     "Missing agent for app {}".format(app_name))
@@ -216,15 +218,15 @@ class Concurrent:
             lang = lookup(context, 'service', 'language', 'name')
             if agent == 'nodejs':
                 assert lang == "javascript", context
-                assert framework in ("express"), context
+                assert framework in ("express",), context
                 assert search == '?q=1', context
             elif agent == 'python':
                 assert lang == "python", context
-                assert framework in ("django", "flask"), context
+                assert framework in ("django", "flask",), context
                 assert search == '?q=1', context
             elif agent == 'ruby':
                 assert lang == "ruby", context
-                assert framework in ("Ruby on Rails"), context
+                assert framework in ("Ruby on Rails",), context
             elif agent == 'go':
                 assert lang == "go", context
                 assert transaction['type'] == 'request'
@@ -232,6 +234,10 @@ class Concurrent:
             elif agent == 'java':
                 assert lang == "Java", context
                 assert transaction['type'] == 'request'
+                assert search == 'q=1', context
+            elif agent == 'dotnet':
+                assert lang == "C#", context
+                assert framework in ("ASP.NET Core",), context
                 assert search == 'q=1', context
             else:
                 raise Exception("Undefined agent {}".format(agent))
@@ -266,13 +272,11 @@ class Concurrent:
 
                 if 'stacktrace' in span.keys():
                     stacktrace = span['stacktrace']
-                    assert 15 < len(stacktrace) < 70, \
+                    assert 1 < len(stacktrace) < 70, \
                         "number of frames not expected, got {}, but this assertion might be too strict".format(
                             len(stacktrace))
 
-                    fns = [frame['function'] for frame in stacktrace]
-                    assert all(fns), fns
-                    for attr in ['abs_path', 'line', 'filename']:
+                    for attr in ['filename']:
                         assert all(
                             frame.get(attr) for frame in stacktrace), stacktrace[0].keys()
 
