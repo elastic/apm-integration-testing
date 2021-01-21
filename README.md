@@ -205,6 +205,19 @@ After load generation is started, the number of requests can be adjusted by movi
 result in an error in the application which can be seen in APM, use the `E` slider to adjust the error rate. Moving the slider up will result in a higher percentage of requests
 being errors.
 
+### Supported Dyno Opbeans
+
+Not all Opbeans are supported for use with Dyno
+
+|Opbean|Supported|
+|------|---------|
+|Python|:white_check_mark:|
+|Go|:black_square_button:|
+|.NET|:black_square_button:|
+|Java|:black_square_button:|
+|Node|:black_square_button:|
+|Ruby|:black_square_button:|
+
 ### Introducing failure into the network
 
 For each service, different classes of network failure can be introduced and adjusted with their respective sliders. They are as follows:
