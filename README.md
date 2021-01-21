@@ -60,6 +60,30 @@ docker-compose stop <service name>
 
 ## Example environments
 
+<<<<<<< HEAD
+=======
+We have a list with the most common flags combination that we internally use when developing our APM solution. You can find the list here:
+
+|Persona | Flags | Motivation / Use Case | Team | Comments |
+|--------|-------|-----------------------|------|----------|
+| CI Server | `python scripts/compose.py start 8.0.0 --java-agent-version ${COMMIT_SHA} --build-parallel --with-agent-java-spring --no-apm-server-dashboards --no-apm-server-self-instrument --no-kibana --force-build` | Prepare environment for running tests for APM Java agent | APM Agents |
+| CI Server	| `python scripts/compose.py start 8.0.0 --apm-server-build https://github.com/elastic/apm-server@${COMMIT_HASH} --build-parallel --no-apm-server-dashboards --no-apm-server-self-instrument --with-agent-rumjs --with-agent-dotnet --with-agent-go-net-http --with-agent-nodejs-express --with-agent-ruby-rails --with-agent-java-spring --with-agent-python-django --with-agent-python-flask --force-build`	| Prepare environment for running tests for APM Server	| APM Server | |
+| Demos & Screenshots	| `./scripts/compose.py start --release --with-opbeans-dotnet --with-opbeans-go --with-opbeans-java --opbeans-java-agent-branch=pr/588/head --force-build --with-opbeans-node --with-opbeans-python --with-opbeans-ruby --with-opbeans-rum --with-filebeat --with-metricbeat 7.3.0`	| demos, screenshots, ad hoc QA. It's also used to send heartbeat data to the cluster for Uptime | PMM	| Used for snapshots when close to a release, without the `--release` flag |
+| Development | `./scripts/compose.py start 7.3 --bc --with-opbeans-python --opbeans-python-agent-local-repo=~/elastic/apm-agent-python` | Use current state of local agent repo with opbeans | APM Agents | This works perfectly for Python, but has problems with Node.js. We are not mounting the local folder as a volume, but copy it. This is to avoid any side effects to the local repo. The node local dev folder can get very large due to node_modules, which takes some time to copy. |
+| | `./scripts/compose.py start 7.3 --bc --start-opbeans-deps` | This flag would start all opbeans dependencies (postgres, redis, apm-server, ...), but not any opbeans instances | APM Agents | This would help when developing with a locally running opbeans. Currently, we start the environment with a `--with-opbeans-python` flag, then stop the opbeans-python container manually |
+| Developer | `./scripts/compose.py start master --no-apm-server` | Only use Kibana + ES in desired version for testing | APM Server |  |
+| Developer | `./scripts/compose.py start --release 7.3 --no-apm-server` | Use released Kibana + ES, with custom agent and server running on host, for developing new features that span agent and server. | APM Agents | If `--opbeans-go-agent-local-repo` worked, we might be inclined to use that instead of running custom apps on the host. Would have been handy while developing support for breakdown graphs. Even then, it's probably still faster to iterate on the agent without involving Docker. |
+| Developer | `./scripts/compose.py start master --no-kibana` | Use newest ES/master, with custom kibana on host, for developing new features in kibana | APM |  |
+| Developer | `./scripts/compose.py start 6.3 --with-kafka --with-zookeeper --apm-server-output=kafka --with-logstash --with-agent-python-flask` | Testing with kafka and logstash ingestion methods | APM |  |
+| Developer | `./scripts/compose.py start master --no-kibana --with-opbeans-node --with-opbeans-rum --with-opbeans-x` | Developing UI features locally | APM UI | |
+| Developer | `./scripts/compose.py start master --docker-compose-path - --skip-download --no-kibana --with-opbeans-ruby --opbeans-ruby-agent-branch=master > docker-compose.yml` | Developing UI features againt specific configuration | APM UI | We sometimes explicity write a `docker-compose.yml` file and tinker with it until we get the desired configuration becore running `docker-compose up` |
+| Developer | `scripts/compose.py start ${version}` | Manual testing of agent features | APM Agents | |
+| Developer | `./scripts/compose.py start master --with-opbeans-java --opbeans-java-agent-branch=pr/588/head --apm-server-build https://github.com/elastic/apm-server.git@master` | Test with in-progress agent/server features | APM UI |  |
+| Developer | `./scripts/compose.py start 7.0 --release --apm-server-version=6.8.0` | Upgrade/mixed version testing | APM | Then, without losing es data, upgrade/downgrade various components |
+| Developer | `./scripts/compose.py start --with-opbeans-python --with-opbeans-python01 --dyno master` | Spin up a scenario for testing load-generation.  | APM | The management interface will be available at http://localhost:9000 |
+
+
+>>>>>>> 44af3b3 ([Feature] Dyno (#1028))
 ### Change default ports
 
 Expose Kibana on http://localhost:1234:
@@ -121,6 +145,53 @@ Note that index templates are not loaded automatically when using outputs other 
     ./scripts/compose.py load-dashboards
 
 If data was inserted before this point (eg an opbeans service was started) you'll probably have to delete the auto-created `apm-*` indexes and let them be recreated.
+
+## 🦖 Load testing in Dyno mode
+
+The APM Integration Test Suite includes the ability to create an environment that is useful for modeling various scenarios where services are failed or experiencing
+a variety of constraints, such as network, memory, or network pressure.
+
+Starting the APM Integration Test suite with the ability to generate load and manipulate the performance characteristics of the individual chararteristics is called `Dyno Mode`.
+
+To enable Dyno Mode, apped the `--dyno` flag to the arguments given to `./script/compose.py`. When this flag is passed, the test suite will start as it normally would, but various
+additional components will be enabled which all the user to generate load for various services and to manipulate the performance of various components.
+
+After starting in Dyno Mode, navigate to http://localhost:9000 in your browser. There, you should be presented with a page which shows the Opbeans which are running, along with
+any dependent services, such as Postgres or Redis.
+
+A pane on the left-hand side of the window allows load-generate to be started and stopped by clicking the checkbox for the Opbean(s) you wish to apply load to. Unchecking the box
+for an Opbean in this pane will cause load-generation to cease.
+
+After load generation is started, the number of requests can be adjusted by moving the `W` slider for the relevant Opbean up or down. To control the likelihood that a request will
+result in an error in the application which can be seen in APM, use the `E` slider to adjust the error rate. Moving the slider up will result in a higher percentage of requests
+being errors.
+
+### Introducing failure into the network
+
+For each service, different classes of network failure can be introduced and adjusted with their respective sliders. They are as follows:
+
+|Slider key|Slider name|Description|
+|:--------:|:---------:|:----------|
+| **L**    | Latency   | Adds latency to all data. The overall delay is equal to `latency` +/- `jitter`. |
+| **J**    | Jitter    | Adds jitter to all data. The overall delay is equal to `latency` +/- `jitter`. |
+| **B**    | Bandwidth | The overall amount of bandwidth available to the connection | 
+| **T**    | Timeout   | Stops all data from getting through, and closes the connection after timeout. If timeout is 0, the connection won't close, and data will be delayed until the timeout is increased.|
+| **Sas**  | Packet slice average size | Slice TCP packets into this average size |
+| **Ssd**  | Packet slice average delay | Introduce delay between the transmission of each packet |
+
+### Modifying system properties
+
+The container for each sevice may be instantly resized to the amount of available CPU power or total memory up or down through use of the CPU and Memory slider respectively.
+
+### Enabling/disabling services
+
+Unchecking the button immediately above the panel of sliders for each service will immediately cut off access to that service. The service itself will remain up but no traffic will be routed to it.
+Re-checking the box will immediately restore the network connectivity for the service.
+
+### Debugging problems
+#### Load generation is on but no requests are arriving
+Occasionally, all network routing will fail due to an unresolved bug with thread-safety in the proxy server. If you expect load-generation to be running but you do not see any traffic arriving at the Opbeans,
+it is possibly that the network proxy has crashed. To quickly restore it, run `docker-compose restart toxi`. Traffic should be immediatley restored.
 
 ## Advanced topics
 
