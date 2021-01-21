@@ -112,7 +112,7 @@ pipeline {
         PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
       }
       steps {
-        withGithubNotify(context: 'All') {
+        withGithubNotify(context: 'All', isBlueOcean: true) {
           deleteDir()
           unstash "source"
           dir("${BASE_DIR}"){
@@ -135,7 +135,7 @@ pipeline {
         HOME = "${WORKSPACE}/${BASE_DIR}"
       }
       steps {
-        withGithubNotify(context: 'UI') {
+        withGithubNotify(context: 'UI', isBlueOcean: true) {
           deleteDir()
           unstash "source"
           dir("${BASE_DIR}"){
@@ -212,7 +212,7 @@ def runScript(Map params = [:]){
   def label = params.containsKey('label') ? params.label : params?.agentType
   def agentType = params.agentType
   def env = params.env
-  withGithubNotify(context: "${label}") {
+  withGithubNotify(context: "${label}", isBlueOcean: true) {
     log(level: 'INFO', text: "${label}")
     deleteDir()
     unstash "source"
