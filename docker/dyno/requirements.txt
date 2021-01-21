@@ -1,0 +1,8 @@
+gunicorn
+docker
+pyyaml
+flask
+flask-cors
+Flask-Limiter
+Flask-Caching
+git+https://github.com/cachedout/toxiproxy-python.git

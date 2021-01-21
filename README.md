@@ -106,7 +106,8 @@ We have a list with the most common flags combination that we internally use whe
 | Developer | `./scripts/compose.py start master --docker-compose-path - --skip-download --no-kibana --with-opbeans-ruby --opbeans-ruby-agent-branch=master > docker-compose.yml` | Developing UI features againt specific configuration | APM UI | We sometimes explicity write a `docker-compose.yml` file and tinker with it until we get the desired configuration becore running `docker-compose up` |
 | Developer | `scripts/compose.py start ${version}` | Manual testing of agent features | APM Agents | |
 | Developer | `./scripts/compose.py start master --with-opbeans-java --opbeans-java-agent-branch=pr/588/head --apm-server-build https://github.com/elastic/apm-server.git@master` | Test with in-progress agent/server features | APM UI |  |
-| Developer | `compose.py start 7.0 --release --apm-server-version=6.8.0` | Upgrade/mixed version testing | APM | Then, without losing es data, upgrade/downgrade various components |
+| Developer | `./scripts/compose.py start 7.0 --release --apm-server-version=6.8.0` | Upgrade/mixed version testing | APM | Then, without losing es data, upgrade/downgrade various components |
+| Developer | `./scripts/compose.py start --with-opbeans-python --with-opbeans-python01 --dyno master` | Spin up a scenario for testing load-generation.  | APM | The management interface will be available at http://localhost:9000 |
 
 
 ### Change default ports
@@ -183,6 +184,53 @@ Note that index templates are not loaded automatically when using outputs other 
     ./scripts/compose.py load-dashboards
 
 If data was inserted before this point (eg an opbeans service was started) you'll probably have to delete the auto-created `apm-*` indexes and let them be recreated.
+
+## 🦖 Load testing in Dyno mode
+
+The APM Integration Test Suite includes the ability to create an environment that is useful for modeling various scenarios where services are failed or experiencing
+a variety of constraints, such as network, memory, or network pressure.
+
+Starting the APM Integration Test suite with the ability to generate load and manipulate the performance characteristics of the individual chararteristics is called `Dyno Mode`.
+
+To enable Dyno Mode, apped the `--dyno` flag to the arguments given to `./script/compose.py`. When this flag is passed, the test suite will start as it normally would, but various
+additional components will be enabled which all the user to generate load for various services and to manipulate the performance of various components.
+
+After starting in Dyno Mode, navigate to http://localhost:9000 in your browser. There, you should be presented with a page which shows the Opbeans which are running, along with
+any dependent services, such as Postgres or Redis.
+
+A pane on the left-hand side of the window allows load-generate to be started and stopped by clicking the checkbox for the Opbean(s) you wish to apply load to. Unchecking the box
+for an Opbean in this pane will cause load-generation to cease.
+
+After load generation is started, the number of requests can be adjusted by moving the `W` slider for the relevant Opbean up or down. To control the likelihood that a request will
+result in an error in the application which can be seen in APM, use the `E` slider to adjust the error rate. Moving the slider up will result in a higher percentage of requests
+being errors.
+
+### Introducing failure into the network
+
+For each service, different classes of network failure can be introduced and adjusted with their respective sliders. They are as follows:
+
+|Slider key|Slider name|Description|
+|:--------:|:---------:|:----------|
+| **L**    | Latency   | Adds latency to all data. The overall delay is equal to `latency` +/- `jitter`. |
+| **J**    | Jitter    | Adds jitter to all data. The overall delay is equal to `latency` +/- `jitter`. |
+| **B**    | Bandwidth | The overall amount of bandwidth available to the connection | 
+| **T**    | Timeout   | Stops all data from getting through, and closes the connection after timeout. If timeout is 0, the connection won't close, and data will be delayed until the timeout is increased.|
+| **Sas**  | Packet slice average size | Slice TCP packets into this average size |
+| **Ssd**  | Packet slice average delay | Introduce delay between the transmission of each packet |
+
+### Modifying system properties
+
+The container for each sevice may be instantly resized to the amount of available CPU power or total memory up or down through use of the CPU and Memory slider respectively.
+
+### Enabling/disabling services
+
+Unchecking the button immediately above the panel of sliders for each service will immediately cut off access to that service. The service itself will remain up but no traffic will be routed to it.
+Re-checking the box will immediately restore the network connectivity for the service.
+
+### Debugging problems
+#### Load generation is on but no requests are arriving
+Occasionally, all network routing will fail due to an unresolved bug with thread-safety in the proxy server. If you expect load-generation to be running but you do not see any traffic arriving at the Opbeans,
+it is possibly that the network proxy has crashed. To quickly restore it, run `docker-compose restart toxi`. Traffic should be immediatley restored.
 
 ## Advanced topics
 
