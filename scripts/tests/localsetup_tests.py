@@ -80,8 +80,12 @@ class OpbeansServiceTest(ServiceTest):
                           max-size: '2m'
                           max-file: '5'
                     depends_on:
-                      - apm-server
-                      - elasticsearch
+                      apm-server:
+                        condition:
+                          service_healthy
+                      elasticsearch:
+                        condition:
+                          service_healthy
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-dotnet:3000/"]
                         interval: 10s
@@ -144,10 +148,18 @@ class OpbeansServiceTest(ServiceTest):
                           max-size: '2m'
                           max-file: '5'
                     depends_on:
-                      - postgres
-                      - redis
-                      - apm-server
-                      - elasticsearch
+                      postgres:
+                        condition:
+                          service_healthy
+                      redis:
+                        condition:
+                          service_healthy
+                      apm-server:
+                        condition:
+                          service_healthy
+                      elasticsearch:
+                        condition:
+                          service_healthy
  """)  # noqa: 501
         )
 
@@ -202,9 +214,15 @@ class OpbeansServiceTest(ServiceTest):
                           max-size: '2m'
                           max-file: '5'
                     depends_on:
-                      - postgres
-                      - apm-server
-                      - elasticsearch
+                      postgres:
+                        condition:
+                          service_healthy
+                      apm-server:
+                        condition:
+                          service_healthy
+                      elasticsearch:
+                        condition:
+                          service_healthy
                     healthcheck:
                       test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-java:3000/"]
                       interval: 10s
@@ -270,9 +288,15 @@ class OpbeansServiceTest(ServiceTest):
                         - OPBEANS_DT_PROBABILITY=0.50
                         - ELASTIC_APM_ENVIRONMENT=production
                     depends_on:
-                        - postgres
-                        - redis
-                        - apm-server
+                        postgres:
+                          condition:
+                            service_healthy
+                        redis:
+                          condition:
+                            service_healthy
+                        apm-server:
+                          condition:
+                            service_healthy
                     healthcheck:
                         test: ["CMD", "wget", "-T", "3", "-q", "--server-response", "-O", "/dev/null", "http://opbeans-node:3000/"]
                         interval: 10s
@@ -338,10 +362,18 @@ class OpbeansServiceTest(ServiceTest):
                         - OPBEANS_DT_PROBABILITY=0.50
                         - ELASTIC_APM_ENVIRONMENT=production
                     depends_on:
-                        - postgres
-                        - redis
-                        - apm-server
-                        - elasticsearch
+                        postgres:
+                          condition:
+                            service_healthy
+                        redis:
+                          condition:
+                            service_healthy
+                        apm-server:
+                          condition:
+                            service_healthy
+                        elasticsearch:
+                          condition:
+                            service_healthy
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-python:3000/"]
                         interval: 10s
@@ -422,10 +454,18 @@ class OpbeansServiceTest(ServiceTest):
                           max-size: '2m'
                           max-file: '5'
                     depends_on:
-                      - postgres
-                      - redis
-                      - apm-server
-                      - elasticsearch
+                      postgres:
+                        condition:
+                          service_healthy
+                      redis:
+                        condition:
+                          service_healthy
+                      apm-server:
+                        condition:
+                          service_healthy
+                      elasticsearch:
+                        condition:
+                          service_healthy
                     healthcheck:
                       test: ["CMD", "wget", "-T", "3", "-q", "--server-response", "-O", "/dev/null", "http://opbeans-ruby:3000/"]
                       interval: 10s
@@ -464,7 +504,9 @@ class OpbeansServiceTest(ServiceTest):
                               max-size: '2m'
                               max-file: '5'
                      depends_on:
-                        - opbeans-node
+                        opbeans-node:
+                          condition:
+                            service_healthy
                      healthcheck:
                          test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:9222/"]
                          interval: 10s
@@ -571,8 +613,12 @@ class OpbeansServiceTest(ServiceTest):
                 image: opbeans/opbeans-loadgen:latest
                 container_name: localtesting_6.3.1_opbeans-load-generator
                 depends_on:
-                    - opbeans-python
-                    - opbeans-ruby
+                    opbeans-python:
+                      condition:
+                        service_healthy
+                    opbeans-ruby:
+                      condition:
+                        service_healthy
                 environment:
                  - 'WS=1'
                  - 'OPBEANS_URLS=opbeans-python:http://opbeans-python:3000,opbeans-ruby:http://opbeans-ruby:3000'
