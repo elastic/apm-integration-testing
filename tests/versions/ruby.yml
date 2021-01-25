@@ -3,5 +3,5 @@ RUBY_AGENT:
   # release;latest -> gem elastic-apm
   # release;version -> gem elastic-apm, version
   - 'github;master'
-  - 'github;2.x'
   - 'release;latest'
+  - 'github;2.x'

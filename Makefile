@@ -29,6 +29,8 @@ ELASTIC_APM_SECRET_TOKEN ?= SuPeRsEcReT
 
 PYTHONHTTPSVERIFY ?= 1
 
+PYTEST_ARGS ?=
+
 # Make sure we run local versions of everything, particularly commands
 # installed into our virtualenv with pip eg. `docker-compose`.
 export PATH := ./bin:$(VENV)/bin:$(PATH)
@@ -80,24 +82,24 @@ env-%: venv
 test: test-all  ## Run all the tests
 
 test-agent-%-version: venv
-	pytest tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s -m version $(JUNIT_OPT)/agent-$*-version-junit.xml
+	pytest $(PYTEST_ARGS) tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s -m version $(JUNIT_OPT)/agent-$*-version-junit.xml
 
 test-agent-%: venv ## Test a specific agent. ex: make test-agent-java
-	pytest tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/agent-$*-junit.xml
+	pytest $(PYTEST_ARGS) tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/agent-$*-junit.xml
 
 test-compose: venv
-	pytest scripts/tests/*_tests.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/compose-junit.xml
+	pytest $(PYTEST_ARGS) scripts/tests/*_tests.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/compose-junit.xml
 
 test-compose-2:
 	virtualenv --python=python2.7 venv2
 	./venv2/bin/pip2 install mock pytest pyyaml
-	./venv2/bin/pytest --noconftest scripts/tests/*_tests.py
+	./venv2/bin/pytest $(PYTEST_ARGS) --noconftest scripts/tests/*_tests.py
 
 test-kibana: venv ## Run the Kibana integration tests
-	pytest tests/kibana/test_integration.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/kibana-junit.xml
+	pytest $(PYTEST_ARGS) tests/kibana/test_integration.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/kibana-junit.xml
 
 test-server: venv  ## Run server tests
-	pytest tests/server/ --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/server-junit.xml
+	pytest $(PYTEST_ARGS) tests/server/ --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/server-junit.xml
 
 SUBCOMMANDS = list-options load-dashboards start status stop upload-sourcemap versions
 
@@ -105,7 +107,7 @@ test-helps:
 	$(foreach subcommand,$(SUBCOMMANDS), $(PYTHON) scripts/compose.py $(subcommand) --help >/dev/null || exit 1;)
 
 test-all: venv test-compose lint test-helps ## Run all the tests
-	pytest -v -s $(JUNIT_OPT)/all-junit.xml
+	pytest -v -s $(PYTEST_ARGS) $(JUNIT_OPT)/all-junit.xml
 
 docker-test-%: ## Run a specific dockerized test. Ex: make docker-test-java
 	TARGET=test-$* $(MAKE) dockerized-test

@@ -1,4 +1,4 @@
 APM_SERVER:
   - master
-  - master --oss
+  - master --apm-server-oss
   - master --ubi8

@@ -14,6 +14,7 @@ from .beats import BeatMixin
 from .helpers import load_images
 from .opbeans import OpbeansService, OpbeansRum
 from .service import Service, DEFAULT_APM_SERVER_URL
+from .proxy import Toxi, Dyno
 
 # these imports are used by discover_services function to discover services from modules loaded
 
@@ -25,7 +26,7 @@ from .elastic_stack import (  # noqa: F401
     ApmServer, ElasticAgent, Elasticsearch, EnterpriseSearch, Kibana, PackageRegistry
 )
 from .aux_services import (  # noqa: F401
-    Kafka, Logstash, Postgres, Redis, Zookeeper, WaitService
+    Kafka, Logstash, Postgres, Redis, StatsD, Zookeeper, WaitService
 )
 from .opbeans import (  # noqa: F401
     OpbeansNode, OpbeansRuby, OpbeansPython, OpbeansDotnet,
@@ -431,6 +432,13 @@ class LocalSetup(object):
             default="json"
         )
 
+        parser.add_argument(
+            '--dyno',
+            action='store_true',
+            help='All various services to be dynamically tuned to introduce latency or other pressure',
+            default=False
+        )
+
         self.store_options(parser)
 
         return parser
@@ -578,6 +586,19 @@ class LocalSetup(object):
                 selections.add(service(**args))
 
         selections.add(WaitService(selections, **args))
+        if args.get('dyno'):
+            toxi = Toxi()
+            selections.add(toxi)
+            toxi.gen_ports(selections)
+            c = toxi.gen_config(selections)
+            this_dir = os.path.dirname(os.path.realpath(__file__))
+            toxi_cfg_path = os.path.join(this_dir, "../../docker/toxi/toxi.cfg")
+            with open(toxi_cfg_path, 'w') as fh_:
+                fh_.write(c)
+            dyno = Dyno()
+            selections.add(dyno)
+            stasd = StatsD()
+            selections.add(stasd)
         # `docker load` images if necessary, usually only for build candidates
         services_to_load = {}
         for service in selections:

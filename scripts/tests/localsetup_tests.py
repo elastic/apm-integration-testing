@@ -80,10 +80,12 @@ class OpbeansServiceTest(ServiceTest):
                           max-size: '2m'
                           max-file: '5'
                     depends_on:
-                      elasticsearch:
-                        condition: service_healthy
                       apm-server:
-                        condition: service_healthy
+                        condition:
+                          service_healthy
+                      elasticsearch:
+                        condition:
+                          service_healthy
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-dotnet:3000/"]
                         interval: 10s
@@ -146,14 +148,19 @@ class OpbeansServiceTest(ServiceTest):
                           max-size: '2m'
                           max-file: '5'
                     depends_on:
-                      elasticsearch:
-                        condition: service_healthy
                       postgres:
-                        condition: service_healthy
+                        condition:
+                          service_healthy
                       redis:
-                        condition: service_healthy
+                        condition:
+                          service_healthy
                       apm-server:
-                        condition: service_healthy""")  # noqa: 501
+                        condition:
+                          service_healthy
+                      elasticsearch:
+                        condition:
+                          service_healthy
+ """)  # noqa: 501
         )
 
     def test_opbeans_go_branch(self):
@@ -207,12 +214,15 @@ class OpbeansServiceTest(ServiceTest):
                           max-size: '2m'
                           max-file: '5'
                     depends_on:
-                      elasticsearch:
-                        condition: service_healthy
                       postgres:
-                        condition: service_healthy
+                        condition:
+                          service_healthy
                       apm-server:
-                        condition: service_healthy
+                        condition:
+                          service_healthy
+                      elasticsearch:
+                        condition:
+                          service_healthy
                     healthcheck:
                       test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-java:3000/"]
                       interval: 10s
@@ -278,14 +288,17 @@ class OpbeansServiceTest(ServiceTest):
                         - OPBEANS_DT_PROBABILITY=0.50
                         - ELASTIC_APM_ENVIRONMENT=production
                     depends_on:
-                        redis:
-                            condition: service_healthy
                         postgres:
-                            condition: service_healthy
+                          condition:
+                            service_healthy
+                        redis:
+                          condition:
+                            service_healthy
                         apm-server:
-                            condition: service_healthy
+                          condition:
+                            service_healthy
                     healthcheck:
-                        test: ["CMD", "wget", "-q", "--server-response", "-O", "/dev/null", "http://opbeans-node:3000/"]
+                        test: ["CMD", "wget", "-T", "3", "-q", "--server-response", "-O", "/dev/null", "http://opbeans-node:3000/"]
                         interval: 10s
                         retries: 12
                     volumes:
@@ -349,14 +362,18 @@ class OpbeansServiceTest(ServiceTest):
                         - OPBEANS_DT_PROBABILITY=0.50
                         - ELASTIC_APM_ENVIRONMENT=production
                     depends_on:
-                        apm-server:
-                            condition: service_healthy
-                        elasticsearch:
-                            condition: service_healthy
                         postgres:
-                            condition: service_healthy
+                          condition:
+                            service_healthy
                         redis:
-                            condition: service_healthy
+                          condition:
+                            service_healthy
+                        apm-server:
+                          condition:
+                            service_healthy
+                        elasticsearch:
+                          condition:
+                            service_healthy
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-python:3000/"]
                         interval: 10s
@@ -437,16 +454,20 @@ class OpbeansServiceTest(ServiceTest):
                           max-size: '2m'
                           max-file: '5'
                     depends_on:
-                      redis:
-                        condition: service_healthy
-                      elasticsearch:
-                        condition: service_healthy
                       postgres:
-                        condition: service_healthy
+                        condition:
+                          service_healthy
+                      redis:
+                        condition:
+                          service_healthy
                       apm-server:
-                        condition: service_healthy
+                        condition:
+                          service_healthy
+                      elasticsearch:
+                        condition:
+                          service_healthy
                     healthcheck:
-                      test: ["CMD", "wget", "-q", "--server-response", "-O", "/dev/null", "http://opbeans-ruby:3000/"]
+                      test: ["CMD", "wget", "-T", "3", "-q", "--server-response", "-O", "/dev/null", "http://opbeans-ruby:3000/"]
                       interval: 10s
                       retries: 50""")  # noqa: 501
         )
@@ -483,8 +504,9 @@ class OpbeansServiceTest(ServiceTest):
                               max-size: '2m'
                               max-file: '5'
                      depends_on:
-                         opbeans-node:
-                             condition: service_healthy
+                        opbeans-node:
+                          condition:
+                            service_healthy
                      healthcheck:
                          test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:9222/"]
                          interval: 10s
@@ -591,14 +613,21 @@ class OpbeansServiceTest(ServiceTest):
                 image: opbeans/opbeans-loadgen:latest
                 container_name: localtesting_6.3.1_opbeans-load-generator
                 depends_on:
-                    opbeans-python: {condition: service_healthy}
-                    opbeans-ruby: {condition: service_healthy}
+                    opbeans-python:
+                      condition:
+                        service_healthy
+                    opbeans-ruby:
+                      condition:
+                        service_healthy
                 environment:
+                 - 'WS=1'
                  - 'OPBEANS_URLS=opbeans-python:http://opbeans-python:3000,opbeans-ruby:http://opbeans-ruby:3000'
                  - 'OPBEANS_RPMS=opbeans-python:50,opbeans-ruby:10'
                 logging:
                     driver: json-file
-                    options: {max-file: '5', max-size: 2m}""")
+                    options: {max-file: '5', max-size: 2m}
+                ports:
+                - '8999:8000'""")
 
 
 class PostgresServiceTest(ServiceTest):
@@ -686,8 +715,12 @@ class LocalTest(unittest.TestCase):
                     -E, 'output.elasticsearch.hosts=["http://elasticsearch:9200"]', -E, output.elasticsearch.enabled=true]
                 container_name: localtesting_6.2.10_apm-server
                 depends_on:
-                    elasticsearch: {condition: service_healthy}
-                    kibana: {condition: service_healthy}
+                    elasticsearch:
+                        condition:
+                            service_healthy
+                    kibana:
+                        condition:
+                            service_healthy
                 environment: [
                     BEAT_STRICT_PERMS=false
                 ]
@@ -738,11 +771,14 @@ class LocalTest(unittest.TestCase):
                 container_name: wait
                 depends_on:
                     apm-server:
-                        condition: service_healthy
+                        condition:
+                            service_healthy
                     elasticsearch:
-                        condition: service_healthy
+                        condition:
+                            service_healthy
                     kibana:
-                        condition: service_healthy
+                        condition:
+                            service_healthy
                 image: busybox
         networks:
             default: {name: apm-integration-testing}
@@ -777,8 +813,12 @@ class LocalTest(unittest.TestCase):
                     -E, 'output.elasticsearch.hosts=["http://elasticsearch:9200"]', -E, output.elasticsearch.enabled=true ]
                 container_name: localtesting_6.3.10_apm-server
                 depends_on:
-                    elasticsearch: {condition: service_healthy}
-                    kibana: {condition: service_healthy}
+                    elasticsearch:
+                        condition:
+                            service_healthy
+                    kibana:
+                        condition:
+                            service_healthy
                 environment: [
                     BEAT_STRICT_PERMS=false
                 ]
@@ -833,11 +873,14 @@ class LocalTest(unittest.TestCase):
                 container_name: wait
                 depends_on:
                     apm-server:
-                        condition: service_healthy
+                        condition:
+                            service_healthy
                     elasticsearch:
-                        condition: service_healthy
+                        condition:
+                            service_healthy
                     kibana:
-                        condition: service_healthy
+                        condition:
+                            service_healthy
                 image: busybox
         networks:
             default: {name: apm-integration-testing}
@@ -890,8 +933,12 @@ class LocalTest(unittest.TestCase):
                     ]
                 container_name: localtesting_8.0.0_apm-server
                 depends_on:
-                    elasticsearch: {condition: service_healthy}
-                    kibana: {condition: service_healthy}
+                    elasticsearch:
+                        condition:
+                            service_healthy
+                    kibana:
+                        condition:
+                            service_healthy
                 environment: [
                     BEAT_STRICT_PERMS=false
                 ]
@@ -952,7 +999,9 @@ class LocalTest(unittest.TestCase):
             kibana:
                 container_name: localtesting_8.0.0_kibana
                 depends_on:
-                    elasticsearch: {condition: service_healthy}
+                    elasticsearch:
+                        condition:
+                            service_healthy
                 environment: {
                     ELASTICSEARCH_PASSWORD: changeme,
                     ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200',
@@ -985,11 +1034,14 @@ class LocalTest(unittest.TestCase):
                 container_name: wait
                 depends_on:
                     apm-server:
-                        condition: service_healthy
+                        condition:
+                            service_healthy
                     elasticsearch:
-                        condition: service_healthy
+                        condition:
+                            service_healthy
                     kibana:
-                        condition: service_healthy
+                        condition:
+                            service_healthy
                 image: busybox
         networks:
             default: {name: apm-integration-testing}
@@ -998,6 +1050,33 @@ class LocalTest(unittest.TestCase):
             pgdata: {driver: local}
         """)  # noqa: 501
         self.assertDictEqual(got, want)
+
+    def test_start_master_with_oss(self):
+        docker_compose_yml = stringIO()
+        image_cache_dir = "/foo"
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            with self.assertRaises(SystemExit) as cm:
+                setup = LocalSetup(argv=self.common_setup_args + ["master", "--image-cache-dir", image_cache_dir, "--oss"])
+                setup.set_docker_compose_path(docker_compose_yml)
+                setup()
+            self.assertEqual(cm.exception.code, 1)
+
+    def test_start_master_with_apm_oss(self):
+        docker_compose_yml = stringIO()
+        version = "8.0.0"
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': version}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--apm-server-oss"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.safe_load(docker_compose_yml)
+        services = got["services"]
+        self.assertEqual(
+            "docker.elastic.co/elasticsearch/elasticsearch:{}-SNAPSHOT".format(version),
+            services["elasticsearch"]["image"]
+        )
+        self.assertEqual("docker.elastic.co/kibana/kibana:{}-SNAPSHOT".format(version), services["kibana"]["image"])
+        self.assertEqual("docker.elastic.co/apm/apm-server-oss:{}-SNAPSHOT".format(version), services["apm-server"]["image"])
 
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_6_x_xpack_secure(self, _ignore_load_images):
@@ -1171,14 +1250,14 @@ class LocalTest(unittest.TestCase):
             setup()
         docker_compose_yml.seek(0)
         got = yaml.safe_load(docker_compose_yml)
-        depends_on = set(got["services"]["opbeans-node"]["depends_on"].keys())
+        depends_on = set(got["services"]["opbeans-node"]["depends_on"])
         self.assertSetEqual({"postgres", "redis"}, depends_on)
-        depends_on = set(got["services"]["opbeans-python"]["depends_on"].keys())
+        depends_on = set(got["services"]["opbeans-python"]["depends_on"])
         self.assertSetEqual({"elasticsearch", "postgres", "redis"}, depends_on)
-        depends_on = set(got["services"]["opbeans-ruby"]["depends_on"].keys())
+        depends_on = set(got["services"]["opbeans-ruby"]["depends_on"])
         self.assertSetEqual({"elasticsearch", "postgres", "redis"}, depends_on)
         for name, service in got["services"].items():
-            self.assertNotIn("apm-server", service.get("depends_on", {}), "{} depends on apm-server".format(name))
+            self.assertNotIn("apm-server", service.get("depends_on", []), "{} depends on apm-server".format(name))
 
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_unsupported_version_pre_6_3(self, _ignore_load_images):
@@ -1213,6 +1292,216 @@ class LocalTest(unittest.TestCase):
             services["elasticsearch"]["image"]
         )
         self.assertEqual("docker.elastic.co/kibana/kibana:{}-SNAPSHOT".format(version), services["kibana"]["image"])
+
+    @mock.patch(cli.__name__ + ".load_images")
+    @mock.patch(cli.__name__ + ".open")
+    def test_start_with_dyno(self, _ignore_load_images, _ignore_open):
+        """
+        GIVEN a mocked CLI which does not actually load images
+        WHEN the CLI is called with the --dyno flag
+        THEN the generated Docker Compose file contains a configuration block for the Dyno container
+        """
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.safe_load(docker_compose_yml)
+        self.assertIn('dyno', got['services'])
+
+    @mock.patch(cli.__name__ + ".load_images")
+    @mock.patch(cli.__name__ + ".open")
+    def test_start_with_dyno_defaults(self, _ignore_load_images, _ignore_open):
+        """
+        GIVEN a mocked CLI which does not actually load images
+        WHEN the CLI is called with the --dyno flag
+        THEN the generated Docker Compose file contains the defaults for Dyno
+        """
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        received = yaml.safe_load(docker_compose_yml)
+        got = received['services']['dyno']
+        want = {
+                'build':
+                {
+                    'args': [],
+                    'context': 'docker/dyno',
+                    'dockerfile': 'Dockerfile'
+                },
+                'container_name': 'dyno',
+                'environment': {'TOXI_HOST': 'toxi', 'TOXI_PORT': '8474'},
+                'healthcheck': {
+                    'interval': '10s',
+                    'retries': 12,
+                    'test': [
+                        'CMD',
+                        'wget',
+                        '-T',
+                        '3',
+                        '-q',
+                        '--server-response',
+                        '-O',
+                        '/dev/null',
+                        'http://localhost:8000/'
+                        ]
+                    },
+                'ports': ['9000:8000'],
+                'volumes': ['/var/run/docker.sock:/var/run/docker.sock']}
+        self.assertDictEqual(got, want)
+
+    @mock.patch(cli.__name__ + ".load_images")
+    @mock.patch(cli.__name__ + ".open")
+    def test_start_with_toxi(self, _ignore_load_images, _ignore_open):
+        """
+        GIVEN a mocked CLI which does not actually load images
+        WHEN the CLI is called with the --dyno flag
+        THEN the generated Docker Compose file contains a configuration block for the Toxi container
+        """
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.safe_load(docker_compose_yml)
+        self.assertIn('toxi', got['services'])
+
+    @mock.patch(cli.__name__ + ".load_images")
+    @mock.patch(cli.__name__ + ".open")
+    def test_start_toxi_docker_defaults(self, _ignore_load_images, _ignore_open):
+        """
+        GIVEN a mocked CLI which does not actually load images
+        WHEN the CLI is called with the --dyno flag
+        THEN the generated Docker Compose file contains a configuration block for the Toxi container
+        """
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        received = yaml.safe_load(docker_compose_yml)
+        got = received['services']['toxi']
+        want = {
+                'command': [
+                    '-host=0.0.0.0',
+                    '-config=/toxi/toxi.cfg'
+                    ],
+                'container_name': 'localtesting_8.0_toxi',
+                'healthcheck': {
+                    'interval': '10s',
+                    'retries': 12,
+                    'test': [
+                        'CMD',
+                        'wget',
+                        '-T',
+                        '3',
+                        '-q',
+                        '--server-response',
+                        '-O',
+                        '/dev/null',
+                        'http://localhost:8474/proxies'
+                        ]
+                    },
+                'image': 'shopify/toxiproxy',
+                'logging': {
+                    'driver': 'json-file',
+                    'options': {
+                        'max-file': '5',
+                        'max-size': '2m'
+                        }
+                    },
+                'ports': [
+                    '8474:8474',
+                    '3004:3004',
+                    '3003:3003',
+                    '3002:3002',
+                    '3000:3000',
+                    '8000:8000',
+                    '3001:3001'
+                    ],
+                'restart': 'on-failure',
+                'volumes': [
+                    './docker/toxi/toxi.cfg:/toxi/toxi.cfg'
+                    ]
+                }
+        self.assertDictEqual(got, want)
+
+    @mock.patch(cli.__name__ + ".load_images")
+    @mock.patch(cli.__name__ + ".open")
+    def test_start_dyno_implies_statsd(self, _ignore_load_images, _ignore_open):
+        """
+        GIVEN a mocked CLI which does not actually load images
+        WHEN the CLI is called with the --dyno flag
+        THEN the generated Docker Compose file contains a configuration block for the StatsD container
+        """
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.safe_load(docker_compose_yml)
+        self.assertIn('stats-d', got['services'])
+
+    @mock.patch(cli.__name__ + ".load_images")
+    @mock.patch(cli.__name__ + ".open")
+    def test_start_dyno_generates_statsd_config(self, _ignore_load_images, _ignore_open):
+        """
+        GIVEN a mocked CLI which does not actually load images
+        WHEN the CLI is called with the --dyno flag
+        THEN the generated Docker Compose file contains the correct configuration for StatsD
+        """
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.safe_load(docker_compose_yml)
+        want = {
+                'build': {
+                    'args': [],
+                    'context': 'docker/statsd',
+                    'dockerfile': 'Dockerfile'
+                    },
+                'container_name': 'localtesting_8.0_stats-d',
+                'healthcheck': {
+                    'interval': '10s',
+                    'test': ['CMD', 'pidof', 'node']
+                    },
+                'logging': {
+                    'driver': 'json-file',
+                    'options': {'max-file': '5', 'max-size': '2m'}
+                    },
+                'ports': [
+                    '8125:8125/udp',
+                    '8126:8126',
+                    '8127:8127'
+                    ]
+                }
+
+    @mock.patch(cli.__name__ + ".load_images")
+    def test_start_with_toxi_cfg(self, _ignore_load_images):
+        """
+        GIVEN a mocked CLI which does not actually write a config
+        WHEN the CLI is called with the --dyno flag
+        THEN the generated toxi.cfg would contain the correct defaults
+        """
+        docker_compose_yml = stringIO()
+        toxi_open = mock.mock_open()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            with mock.patch('scripts.modules.cli.open', toxi_open):
+                setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+                setup.set_docker_compose_path(docker_compose_yml)
+                setup()
+        want = '[\n    {\n        "enabled": true,\n        "listen": "[::]:3004",\n        "name": "opbeans-dotnet",\n        "upstream": "opbeans-dotnet:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3003",\n        "name": "opbeans-go",\n        "upstream": "opbeans-go:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3002",\n        "name": "opbeans-java",\n        "upstream": "opbeans-java:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3000",\n        "name": "opbeans-node",\n        "upstream": "opbeans-node:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:8000",\n        "name": "opbeans-python",\n        "upstream": "opbeans-python:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3001",\n        "name": "opbeans-ruby",\n        "upstream": "opbeans-ruby:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:5432",\n        "name": "postgres",\n        "upstream": "postgres:5432"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:6379",\n        "name": "redis",\n        "upstream": "redis:6379"\n    }\n]'
+        toxi_open().write.assert_called_once_with(want)
 
     @mock.patch(service.__name__ + ".resolve_bc")
     @mock.patch(cli.__name__ + ".load_images")

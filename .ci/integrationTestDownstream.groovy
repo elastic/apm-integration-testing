@@ -114,11 +114,13 @@ pipeline {
         PATH = "${WORKSPACE}/${BASE_DIR}/.ci/scripts:${env.PATH}"
       }
       steps {
-        deleteDir()
-        unstash "source"
-        fielbeat(output: "${dockerLogs}.log", archiveOnlyOnFail: true){
-          dir("${BASE_DIR}"){
-            sh ".ci/scripts/all.sh"
+        withGithubNotify(context: 'All', isBlueOcean: true) {
+          deleteDir()
+          unstash "source"
+          fielbeat(output: "${dockerLogs}.log", archiveOnlyOnFail: true){
+            dir("${BASE_DIR}"){
+              sh ".ci/scripts/all.sh"
+            }
           }
         }
       }
@@ -137,12 +139,14 @@ pipeline {
         HOME = "${WORKSPACE}/${BASE_DIR}"
       }
       steps {
-        deleteDir()
-        unstash "source"
-        dir("${BASE_DIR}"){
-          script {
-            docker.image('node:11').inside() {
-              sh(label: "Check Schema", script: ".ci/scripts/ui.sh")
+        withGithubNotify(context: 'UI', isBlueOcean: true) {
+          deleteDir()
+          unstash "source"
+          dir("${BASE_DIR}"){
+            script {
+              docker.image('node:11').inside() {
+                sh(label: "Check Schema", script: ".ci/scripts/ui.sh")
+              }
             }
           }
         }
@@ -211,15 +215,17 @@ def runScript(Map params = [:]){
   def agentType = params.agentType
   def env = params.env
   def dockerLogs = label.replace(":","_").replace(";","_").replace(" ","").replace("--","-")
-  log(level: 'INFO', text: "${label}")
-  deleteDir()
-  unstash "source"
-  filebeat(output: "${dockerLogs}.log", archiveOnlyOnFail: true){
-    sh 'docker ps -a'
-    dir("${BASE_DIR}"){
-      withEnv(env){
-        sh(label: "Testing ${agentType}", script: ".ci/scripts/${agentType}.sh")
-        sh 'docker ps -a'
+  withGithubNotify(context: "${label}", isBlueOcean: true) {
+    log(level: 'INFO', text: "${label}")
+    deleteDir()
+    unstash "source"
+    filebeat(output: "${dockerLogs}.log", archiveOnlyOnFail: true){
+      sh 'docker ps -a'
+      dir("${BASE_DIR}"){
+        withEnv(env){
+          sh(label: "Testing ${agentType}", script: ".ci/scripts/${agentType}.sh")
+          sh 'docker ps -a'
+        }
       }
     }
   }

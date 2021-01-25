@@ -24,8 +24,41 @@ class ApmServer(StackService, Service):
 
     def __init__(self, **options):
         super(ApmServer, self).__init__(**options)
-        default_apm_server_creds = {"username": "apm_server_user", "password": "changeme"}
 
+        default_apm_server_creds = {"username": "apm_server_user", "password": "changeme"}
+        self.managed = False
+
+        # run apm-server managed by elastic-agent
+        if self.options.get("apm_server_managed"):
+            if not self.at_least_version("7.11"):
+                raise Exception("APM Server managed by Elastic Agent is only available in 7.11+")
+
+            self.managed = True
+            self.apm_server_command_args = []
+
+            kibana_url = options.get("elastic_agent_kibana_url")
+            if not kibana_url:
+                kibana_scheme = "https" if self.options.get("kibana_enable_tls", False) else "http"
+                kibana_url = kibana_scheme + "://admin:changeme@" + self.DEFAULT_KIBANA_HOST
+            self.depends_on = {"kibana": {"condition": "service_healthy"}}
+
+            xpack_registry_url = "https://epr-snapshot.elastic.co"
+            if options.get("enable_package_registry"):
+                xpack_registry_url = "http://package-registry:{}".format(PackageRegistry.SERVICE_PORT)
+                self.depends_on["package-registry"] = {"condition": "service_healthy"}
+            elif options.get("release") or options.get("apm_server_release"):
+                xpack_registry_url = "https://epr.elastic.co"
+            self.managed_environment = {"KIBANA_HOST": kibana_url,
+                                        "XPACK_FLEET_REGISTRYURL": xpack_registry_url,
+                                        "APM_SERVER_SECRET_TOKEN": self.options.get("apm_server_secret_token", "")}
+
+            # Not yet supported when run under elastic-agent:
+            # - apm-server config options
+            # - teeproxy and haproxy not yet supported
+            self.apm_server_count = 1
+            return
+
+        # run apm-server standalone
         v1_rate_limit = ("apm-server.frontend.rate_limit", "100000")
         if self.at_least_version("6.5"):
             rum_config = [
@@ -419,6 +452,13 @@ class ApmServer(StackService, Service):
             default=False,
             help="apm-server enable all the debugging output.",
         )
+        parser.add_argument(
+            '--apm-server-managed',
+            action="store_true",
+            dest="apm_server_managed",
+            default=False,
+            help="run apm-server managed by elastic-agent",
+        )
 
     def build_candidate_manifest(self):
         version = self.version
@@ -445,6 +485,9 @@ class ApmServer(StackService, Service):
             raise
 
     def _content(self):
+        if self.managed:
+            return dict()
+
         command_args = []
         for param, value in self.apm_server_command_args:
             command_args.extend(["-E", param + "=" + value])
@@ -527,10 +570,16 @@ class ApmServer(StackService, Service):
         return True
 
     def render(self):
-        """hack up render to support multiple apm servers behind a load balancer"""
+        """hack up render to support multiple apm servers behind a load balancer and apm-server under elastic agent"""
         ren = super(ApmServer, self).render()
         if self.apm_server_count == 1:
-            return ren
+            if self.managed:
+                # run a managed server
+                ren = self.render_managed()
+                return ren
+            else:
+                # return starndard apm-server
+                return ren
 
         # save a single server for use as backend template
         single = ren[self.name()]
@@ -553,6 +602,16 @@ class ApmServer(StackService, Service):
             ren.update({"-".join([self.name(), str(i)]): backend})
 
         return ren
+
+    def render_managed(self):
+        content = dict(
+            build={"context": "docker/apm-server/managed"},
+            container_name=self.default_container_name() + "-managed",
+            depends_on=self.depends_on,
+            environment=self.managed_environment,
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, host="elastic-agent", path="/", interval="10s", retries=12)
+        )
+        return {self.name(): content}
 
     def render_proxy(self):
         condition = {"condition": "service_healthy"}
@@ -669,6 +728,12 @@ class ElasticAgent(StackService, Service):
         if not kibana_url.startswith("https://"):
             self.environment["FLEET_ENROLL_INSECURE"] = 1
 
+        # set ports for defined integrations
+        self.ports = []
+        if self.options.get("enable_apm_server") and self.options.get("apm_server_managed"):
+            self.ports.append(self.publish_port(self.options.get(
+                "apm_server_port", ApmServer.SERVICE_PORT), ApmServer.SERVICE_PORT))
+
     def _content(self):
         return dict(
             depends_on=self.depends_on,
@@ -676,10 +741,10 @@ class ElasticAgent(StackService, Service):
             healthcheck={
                 "test": ["CMD", "/bin/true"],
             },
+            ports=self.ports,
             volumes=[
                 "/var/run/docker.sock:/var/run/docker.sock",
-            ],
-            ports=[self.publish_port(ApmServer.SERVICE_PORT)]
+            ]
         )
 
     @classmethod
@@ -977,6 +1042,8 @@ class Kibana(StackService, Service):
         urls = self.options.get("kibana_elasticsearch_urls") or [default_es_hosts]
         self.environment["ELASTICSEARCH_HOSTS"] = ",".join(urls)
         use_local_package_registry = options.get("enable_package_registry")
+        self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
+            "enable_elasticsearch", True) else {}
 
         if not self.oss:
             self.environment["XPACK_MONITORING_ENABLED"] = "true"
@@ -1017,11 +1084,13 @@ class Kibana(StackService, Service):
                 elif self.at_least_version("7.9"):
                     self.environment["XPACK_INGESTMANAGER_FLEET_TLSCHECKDISABLED"] = "true"
             if use_local_package_registry:
+                self.depends_on["package-registry"] = {"condition": "service_healthy"}
                 self.environment["XPACK_FLEET_REGISTRYURL"] = "http://package-registry:" + \
                     PackageRegistry.SERVICE_PORT
 
     @classmethod
     def add_arguments(cls, parser):
+        super(Kibana, cls).add_arguments(parser)
         parser.add_argument(
             "--kibana-elasticsearch-url",
             action="append",
@@ -1064,8 +1133,7 @@ class Kibana(StackService, Service):
         content = dict(
             healthcheck=curl_healthcheck(
                 self.SERVICE_PORT, "kibana", path="/api/status", retries=20, https=self.kibana_tls),
-            depends_on={"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
-                "enable_elasticsearch", True) else {},
+            depends_on=self.depends_on,
             environment=self.environment,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
         )
