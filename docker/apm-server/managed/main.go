@@ -52,9 +52,18 @@ func setupManagedAPM() error {
 
 	// fetch apm package installed to default policy and verify if it is aligned with
 	// expected setup
-	apmPackagePolicies, err := client.getPackagePolicies(fmt.Sprintf("kuery=ingest-package-policies.policy_id:%s", policy.ID))
+	defaultPolicyPackages, err := client.getPackagePolicies(fmt.Sprintf("kuery=ingest-package-policies.policy_id:%s", policy.ID))
 	if err != nil {
 		log.Fatal(err)
+	}
+	var apmPackagePolicies []packagePolicy
+	for _, p := range defaultPolicyPackages {
+		for _, input := range p.Inputs {
+			if input.Type == "apm" {
+				apmPackagePolicies = append(apmPackagePolicies, p)
+				break
+			}
+		}
 	}
 	var requiresSetup bool
 	switch len(apmPackagePolicies) {
