@@ -65,6 +65,9 @@ create-x509-cert:  ## Create an x509 certificate for use with the test suite
 
 .PHONY: lint
 
+build-env: venv ## Build the test environment
+	$(PYTHON) scripts/compose.py build $(COMPOSE_ARGS)
+
 start-env: venv ## Start the test environment
 	$(PYTHON) scripts/compose.py start $(COMPOSE_ARGS)
 	docker-compose up -d
