@@ -197,9 +197,42 @@ function drawSliders(service_name){
         <td align="center"><div style="color:#B84768">&#9632;</div></td>\
         <td align="center"><div style="color:#4768B8">&#9632;</div></td>\
         <td align="center"><div style="color:#4768B8">&#9632;</div></td>\
+        </tr>\
       </table>\
   </div>`
   );
+
+  if (service_name == "opbeans-python") {
+    $("#eq-"+service_name).append(
+   `<div style="margin: 15px" id="eq-app-latency-`+service_name+`" class="eq">\
+        <h3>Latency Distributor<span style="float:right"><select></select></span></h3>\
+          <table>\
+            <tr>\
+            <td><span id="D" class="molotov_slide"></span></td>\
+            <td><span id="Dl" class="molotov_slide"></span></td>\
+            </tr>\
+            <tr>\
+            <td align="center">D</td>\ 
+            <td align="center">Dl</td>\ 
+            </tr>\
+            <tr>\
+            <td align="center"><div style="color:#68B847">&#9632;</div></td>\            
+            <td align="center"><div style="color:#68B847">&#9632;</div></td>\            
+            </tr>\
+          </table>\
+      </div>`
+    );
+    $.get({
+      url: `http://localhost:8999/api/splays`,
+      contentType: "application/json",
+      dataType: "json",
+      success: function(result) {
+        $.each(result['splays'], function(_, s){
+          $("#eq-app-latency-"+service_name+" * > * > select").append(`<option>${s}</option>`);
+        }
+        )}
+      })
+  }
 
   // TODO set cur val for molotov vals
   $.get({
@@ -211,6 +244,31 @@ function drawSliders(service_name){
           // if (! service_name.startsWith("opbeans-")) {
           //   return
           // }
+          var lg_name = service_name.replace("opbeans-", "")
+          $( "#eq-app-latency-"+service_name).accordion({collapsible: true, active: false});
+          if (service_name == "opbeans-python") {
+            $( "#eq-app-latency-"+ service_name+"> * > * > * > * > .molotov_slide" ).each(function() {
+            if (this.id == 'Dl') {
+              var previouslySetSlider = result[lg_name]['app_latency_lower_bound'] / 10
+            } else if (this.id == 'D') {
+              var previouslySetSlider = result[lg_name]['app_latency_weight'] * 10
+            }
+            if (previouslySetSlider != 0 && typeof previouslySetSlider !== 'undefined') {
+              sliderVal = previouslySetSlider;
+            }
+              s = $( this ).empty().slider({
+                value: sliderVal,
+                min: 1,
+                range: "min",
+                animate: true,
+                orientation: "vertical",
+                change: handleMolotovSlideChange,
+              });
+              s.attr('service_name', service_name);
+            }
+            )}
+
+
 
           $( "#eq-"+ service_name+" > table > tbody > tr > td > .molotov_slide" ).each(function() {
             var lg_name = service_name.replace("opbeans-", "")
@@ -311,13 +369,16 @@ function drawSliders(service_name){
 function handleMolotovSlideChange(event, ui){
   proxy = ui.handle.parentElement.attributes.service_name.value;
   service = proxy.replace("opbeans-", "");
-
+  console.log(ui.handle.parentElement.id);
   if (ui.handle.parentElement.id == 'W'){
     d = JSON.stringify({'job': service, 'workers': (ui.value/10)});
   } else if (ui.handle.parentElement.id == 'Er'){
     d = JSON.stringify({'job': service, 'error_weight': ui.value});
-  }
-  
+  } else if (ui.handle.parentElement.id == 'D'){
+    d = JSON.stringify({'job': service, 'app_latency_weight': ui.value/10});
+  } else if (ui.handle.parentElement.id == 'Dl'){
+    d = JSON.stringify({'job': service, 'app_latency_lower_bound': ui.value * 10});
+  } 
   $.ajax({
     type: "POST",
     url: 'http://localhost:8999/api/update',
