@@ -117,7 +117,7 @@ pipeline {
         withGithubNotify(context: 'All', isBlueOcean: true) {
           deleteDir()
           unstash "source"
-          fielbeat(output: "${dockerLogs}.log", archiveOnlyOnFail: true){
+          filebeat(output: "docker-all.log", archiveOnlyOnFail: true){
             dir("${BASE_DIR}"){
               sh ".ci/scripts/all.sh"
             }
@@ -219,7 +219,7 @@ def runScript(Map params = [:]){
     log(level: 'INFO', text: "${label}")
     deleteDir()
     unstash "source"
-    filebeat(output: "${dockerLogs}.log", archiveOnlyOnFail: true){
+    filebeat(output: "docker-${dockerLogs}.log", archiveOnlyOnFail: true){
       sh 'docker ps -a'
       dir("${BASE_DIR}"){
         withEnv(env){
@@ -236,9 +236,6 @@ def wrappingup(label){
     def testResultsFolder = 'tests/results'
     def testResultsPattern = "${testResultsFolder}/*-junit*.xml"
     def labelFolder = normalise(label)
-    if(currentBuild.result == 'FAILURE' || currentBuild.result == 'UNSTABLE'){
-      dockerLogs(step: label, failNever: true)
-    }
     sh('make stop-env || echo 0')
     sh(label: 'Folder to aggregate test results from stages',
        script: "mkdir -p ${labelFolder}/${testResultsFolder} && cp -rf ${testResultsPattern} ${labelFolder}/${testResultsFolder}")

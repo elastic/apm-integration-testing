@@ -76,7 +76,7 @@ pipeline {
           steps {
             deleteDir()
             unstash "source"
-            filebeat(output: "${NAME}-${APP}-docker.log", archiveOnlyOnFail: true){
+            filebeat(output: "docker-${NAME}-${APP}.log", archiveOnlyOnFail: true){
               dir("${BASE_DIR}"){
                 sh(label: "Testing ${NAME} ${APP}", script: ".ci/scripts/agent.sh ${NAME} ${APP}")
               }
@@ -99,7 +99,7 @@ pipeline {
           steps {
             deleteDir()
             unstash "source"
-            filebeat(output: "${OPBEANS_APP}-docker.log", archiveOnlyOnFail: true){
+            filebeat(output: "docker-${OPBEANS_APP}.log", archiveOnlyOnFail: true){
               dir("${BASE_DIR}"){
                 sh(label: "Testing ${NAME} ${OPBEANS_APP}", script: ".ci/scripts/opbeans-app.sh ${NAME} ${APP} ${OPBEANS_APP}")
               }
@@ -126,7 +126,7 @@ pipeline {
               sh script: ".ci/bump-version.sh ${env.BUILD_OPTS.replaceAll('--rum-agent-branch ', '')} false", label: 'Bump version'
               sh script: 'make build', label: 'Build docker image with the new rum agent'
             }
-            filebeat(output: "opbeans-rum-docker.log", archiveOnlyOnFail: true){
+            filebeat(output: "docker-opbeans-rum.log", archiveOnlyOnFail: true){
               dir("${BASE_DIR}"){
                 sh(label: 'Testing RUM', script: '.ci/scripts/opbeans-rum.sh')
               }
@@ -153,7 +153,7 @@ pipeline {
       steps {
         deleteDir()
         unstash "source"
-        filebeat(output: "all-docker.log", archiveOnlyOnFail: true){
+        filebeat(output: "docker-all.log", archiveOnlyOnFail: true){
           dir("${BASE_DIR}"){
             sh ".ci/scripts/all.sh"
           }
@@ -204,7 +204,7 @@ pipeline {
       steps {
         deleteDir()
         unstash "source"
-        filebeat(output: "opbeans-docker.log", archiveOnlyOnFail: true){
+        filebeat(output: "docker-opbeans.log", archiveOnlyOnFail: true){
           dir("${BASE_DIR}"){
             sh ".ci/scripts/opbeans.sh"
           }
