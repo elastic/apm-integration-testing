@@ -369,7 +369,6 @@ function drawSliders(service_name){
 function handleMolotovSlideChange(event, ui){
   proxy = ui.handle.parentElement.attributes.service_name.value;
   service = proxy.replace("opbeans-", "");
-  console.log(ui.handle.parentElement.id);
   if (ui.handle.parentElement.id == 'W'){
     d = JSON.stringify({'job': service, 'workers': (ui.value/10)});
   } else if (ui.handle.parentElement.id == 'Er'){
