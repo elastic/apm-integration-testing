@@ -1,0 +1,14 @@
+// Disable random failures
+// see https://github.com/elastic/opbeans-frontend/blob/472f914f5529d64ccf4aad0fc4a76ec27fa0a135/src/components/ProductDetail/index.js#L9
+var _mathRamdom = Math.random;
+Math.random = function() {
+  return Math.abs(_mathRamdom() - 0.3);
+};
+
+// see https://github.com/elastic/opbeans-frontend/blob/849a7a7/src/rum.js#L40-L55
+var rumConfig = {
+  serverUrl: '{{ ELASTIC_APM_JS_BASE_SERVER_URL }}',
+  serviceName: '{{ ELASTIC_APM_JS_BASE_SERVICE_NAME }}',
+  serviceVersion: '{{ ELASTIC_APM_JS_BASE_SERVICE_VERSION }}',
+  {{ EXTRA_OPTS }}
+}

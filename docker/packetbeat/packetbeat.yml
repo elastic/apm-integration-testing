@@ -1,3 +1,4 @@
+---
 packetbeat.interfaces.snaplen: 1514
 packetbeat.interfaces.type: af_packet
 packetbeat.interfaces.buffer_size_mb: 250
@@ -7,7 +8,7 @@ packetbeat.protocols:
   include_authorities: true
   include_additionals: true
 - type: http
-  ports: [8080,80,8000,5000,3000,8200,9200,5601]
+  ports: [8080, 80, 8000, 5000, 3000, 8200, 9200, 5601]
   tags: ["http"]
   send_headers: true
   send_all_headers: true
@@ -24,16 +25,20 @@ packetbeat.flows:
 packetbeat.procs:
   enabled: true
   system.hostfs: "/hostfs/proc"
-fields: { interface: "${INTERFACE:eth0}" }
+fields: {interface: "${INTERFACE:eth0}"}
 processors:
   - add_docker_metadata:
       host: "unix:///var/run/docker.sock"
   - add_host_metadata:
-      #extremely verbose if enabled
+      # extremely verbose if enabled
       netinfo.enabled: false
-xpack.monitoring.enabled: true
+monitoring.enabled: true
 queue.mem:
   events: 20000
 setup.kibana.host: '${KIBANA_HOST:kibana}:${KIBANA_PORT:5601}'
-setup.kibana.username: '${KIBANA_USERNAME:}'
-setup.kibana.password: '${KIBANA_PASSWORD:}'
+setup.kibana.username: '${KIBANA_USERNAME:admin}'
+setup.kibana.password: '${KIBANA_PASSWORD:changeme}'
+
+http.enabled: true
+http.host: localhost
+http.port: 5066

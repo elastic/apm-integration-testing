@@ -1,4 +1,4 @@
-FROM golang:1.11
+FROM golang
 ENV CGO_ENABLED=0
 # use fork to quickly pin https://github.com/chrislusf/teeproxy
 RUN go get -v github.com/graphaelli/teeproxy

@@ -4,6 +4,7 @@ import elasticsearch
 import pytest
 import timeout_decorator
 
+from tests.utils import getElasticsearchURL
 from tests.fixtures import default
 
 
@@ -11,7 +12,10 @@ from tests.fixtures import default
 def es():
     class Elasticsearch(object):
         def __init__(self, url):
-            self.es = elasticsearch.Elasticsearch([url])
+            verify = default.from_env("PYTHONHTTPSVERIFY") == "1"
+            self.es = elasticsearch.Elasticsearch(url,
+                                                  verify_certs=verify,
+                                                  connection_class=elasticsearch.RequestsHttpConnection)
             self.index = "apm-*"
 
         def clean(self):
@@ -32,9 +36,10 @@ def es():
         def count(self, q):
             ct = 0
             while ct == 0:
-                time.sleep(3)
                 s = self.es.count(index=self.index, body=q)
                 ct = s['count']
-            return ct
+                if ct:
+                    return ct
+                time.sleep(3)
 
-    return Elasticsearch(default.from_env("ES_URL"))
+    return Elasticsearch(getElasticsearchURL())

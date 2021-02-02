@@ -1,9 +1,10 @@
 #!/bin/bash -e
 # for details about how it works see https://github.com/elastic/apm-integration-testing#continuous-integration
 
-srcdir=`dirname $0`
+srcdir=$(dirname "$0")
 test -z "$srcdir" && srcdir=.
-. ${srcdir}/common.sh
+# shellcheck disable=SC1090
+. "${srcdir}/common.sh"
 
 if [ -n "${APM_AGENT_NODEJS_VERSION}" ]; then
   APM_AGENT_NODEJS_VERSION=${APM_AGENT_NODEJS_VERSION/'github;'/'elastic/apm-agent-nodejs#'}
@@ -11,6 +12,13 @@ if [ -n "${APM_AGENT_NODEJS_VERSION}" ]; then
   BUILD_OPTS="${BUILD_OPTS} --nodejs-agent-package='${APM_AGENT_NODEJS_VERSION}'"
 fi
 
-DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} --no-apm-server-dashboards --no-apm-server-self-instrument --no-kibana --with-agent-nodejs-express --force-build"
+DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
+  --no-apm-server-dashboards \
+  --no-apm-server-self-instrument \
+  --no-kibana \
+  --with-agent-nodejs-express \
+  --force-build \
+  --no-xpack-secure \
+  --apm-log-level=debug"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
 runTests env-agent-nodejs docker-test-agent-nodejs
