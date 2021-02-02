@@ -1351,7 +1351,10 @@ class LocalTest(unittest.TestCase):
                         ]
                     },
                 'ports': ['9000:8000'],
-                'volumes': ['/var/run/docker.sock:/var/run/docker.sock']}
+                'volumes': [
+                    '/var/run/docker.sock:/var/run/docker.sock',
+                    './docker/dyno:/dyno'
+                    ]}
         self.assertDictEqual(got, want)
 
     @mock.patch(cli.__name__ + ".load_images")
