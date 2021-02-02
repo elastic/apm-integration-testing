@@ -248,14 +248,16 @@ function drawSliders(service_name){
           $( "#eq-app-latency-"+service_name).accordion({collapsible: true, active: false});
           if (service_name == "opbeans-python") {
             $( "#eq-app-latency-"+ service_name+"> * > * > * > * > .molotov_slide" ).each(function() {
-            if (this.id == 'Dl') {
-              var previouslySetSlider = result[lg_name]['app_latency_lower_bound'] / 10
-            } else if (this.id == 'D') {
-              var previouslySetSlider = result[lg_name]['app_latency_weight'] * 10
-            }
-            if (previouslySetSlider != 0 && typeof previouslySetSlider !== 'undefined') {
-              sliderVal = previouslySetSlider;
-            }
+              if (this.id == 'Dl') {
+                var previouslySetSlider = result[lg_name]['app_latency_lower_bound'] / 10
+              } else if (this.id == 'D') {
+                var previouslySetSlider = result[lg_name]['app_latency_weight'] * 10
+              }
+              if (previouslySetSlider != 0 && typeof previouslySetSlider !== 'undefined') {
+                var sliderVal = previouslySetSlider;
+              } else {
+                var sliderVal = 0;
+              }
               s = $( this ).empty().slider({
                 value: sliderVal,
                 min: 1,
@@ -265,8 +267,8 @@ function drawSliders(service_name){
                 change: handleMolotovSlideChange,
               });
               s.attr('service_name', service_name);
-            }
-            )}
+            })
+          }
 
 
 
@@ -276,7 +278,7 @@ function drawSliders(service_name){
               console.log('found it', result[lg_name])
               // FIXME temp scaffolding code
               if (this.id == 'W') {
-                var previouslySetSlider = result[lg_name]['workers']
+                var previouslySetSlider = (result[lg_name]['workers'] * 10);
               } else if (this.id == 'Er') {
                 var previouslySetSlider = result[lg_name]['error_rate']
               }
@@ -341,8 +343,6 @@ function drawSliders(service_name){
     contentType: "application/json",
     dataType: 'json',
     success: function(result){
-      console.log(result);
-
       // setup EQ for Docker
       $( "#eq-"+ service_name+" > table > tbody > tr > td > .docker_slide" ).each(function() {
         var previouslySetSlider = result[this.id];
