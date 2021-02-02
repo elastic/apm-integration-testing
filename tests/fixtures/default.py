@@ -25,6 +25,10 @@ JAVA_SPRING_SERVICE_NAME = "springapp"
 JAVA_SPRING_URL = "http://localhost:8090"
 RUM_SERVICE_NAME = "rumapp"
 RUM_URL = "http://localhost:8000"
+ES_USER = "elastic"
+ES_PASS = "changeme"
+ELASTIC_APM_SECRET_TOKEN = "SuPeRsEcReT"
+PYTHONHTTPSVERIFY = "1"
 
 
 def from_env(var):
