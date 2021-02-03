@@ -244,11 +244,11 @@ python3 ./scripts/compose.py start 8.0.0 \
 when the Docker container started you can connect to the Dyno UI at http://localhost:9000 and modify the scenario to cause errors,
 in this case we have disabled PostgreSQL to cause a database service error.
 
-![](images/dyno.png)
+![](images/dyno.png|width=400)
 
 Then we can check the result of our changes in Dyno in the APM UI, in this case we can see that
 the error rate for postgreSQL is increasing.
-![](images/apm-dyno.png)
+![](images/apm-dyno.png|width=400)
 
 ### Introducing failure into the network
 
