@@ -248,7 +248,7 @@ in this case we have disabled PostgreSQL to cause a database service error.
 
 Then we can check the result of our changes in Dyno in the APM UI, in this case we can see that
 the error rate for postgreSQL is increasing.
-![](images/apm-dyno.png|width=400)
+![](images/apm-dyno.png | width=400)
 
 ### Introducing failure into the network
 
