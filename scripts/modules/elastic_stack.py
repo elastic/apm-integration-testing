@@ -1090,6 +1090,7 @@ class Kibana(StackService, Service):
 
     @classmethod
     def add_arguments(cls, parser):
+        super(Kibana, cls).add_arguments(parser)
         parser.add_argument(
             "--kibana-elasticsearch-url",
             action="append",
