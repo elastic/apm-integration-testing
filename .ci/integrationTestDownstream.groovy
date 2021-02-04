@@ -228,7 +228,6 @@ def wrappingup(label){
     def testResultsPattern = "${testResultsFolder}/*-junit*.xml"
     def labelFolder = normalise(label)
     sh('make stop-env || echo 0')
-    def testResultsPattern = 'tests/results/*-junit*.xml'
     archiveArtifacts(
         allowEmptyArchive: true,
         artifacts: "tests/results/data-*.json,tests/results/packetbeat-*.json,${testResultsPattern}",
