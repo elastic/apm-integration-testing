@@ -13,7 +13,7 @@ function runTests() {
   fi
   targets="${targets} $*"
   export VENV=${VENV:-${TMPDIR:-/tmp/}venv-$$}
-# shellcheck disable=SC2086
+  # shellcheck disable=SC2086
   make ${targets}
 }
 
@@ -33,12 +33,6 @@ if [ -z "${DISABLE_BUILD_PARALLEL}" ] || [ "${DISABLE_BUILD_PARALLEL}" = "false"
 fi
 
 ELASTIC_STACK_VERSION=${ELASTIC_STACK_VERSION:-'7.10'}
-
-# assume we're under CI if BUILD_NUMBER is set
-if [ -n "${BUILD_NUMBER}" ]; then
-  # kill any running containers under CI
-  [ -n "$(docker ps -aq)" ] && ( (docker ps -aq | xargs -t docker rm -f) || true)
-fi
 
 echo "ELASTIC_STACK_VERSION=${ELASTIC_STACK_VERSION}"
 echo "APM_SERVER_BRANCH_VERSION=${APM_SERVER_BRANCH_VERSION}"
