@@ -999,6 +999,33 @@ class LocalTest(unittest.TestCase):
         """)  # noqa: 501
         self.assertDictEqual(got, want)
 
+    def test_start_master_with_oss(self):
+        docker_compose_yml = stringIO()
+        image_cache_dir = "/foo"
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            with self.assertRaises(SystemExit) as cm:
+                setup = LocalSetup(argv=self.common_setup_args + ["master", "--image-cache-dir", image_cache_dir, "--oss"])
+                setup.set_docker_compose_path(docker_compose_yml)
+                setup()
+            self.assertEqual(cm.exception.code, 1)
+
+    def test_start_master_with_apm_oss(self):
+        docker_compose_yml = stringIO()
+        version = "8.0.0"
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': version}):
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--apm-server-oss"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.safe_load(docker_compose_yml)
+        services = got["services"]
+        self.assertEqual(
+            "docker.elastic.co/elasticsearch/elasticsearch:{}-SNAPSHOT".format(version),
+            services["elasticsearch"]["image"]
+        )
+        self.assertEqual("docker.elastic.co/kibana/kibana:{}-SNAPSHOT".format(version), services["kibana"]["image"])
+        self.assertEqual("docker.elastic.co/apm/apm-server-oss:{}-SNAPSHOT".format(version), services["apm-server"]["image"])
+
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_6_x_xpack_secure(self, _ignore_load_images):
         docker_compose_yml = stringIO()
