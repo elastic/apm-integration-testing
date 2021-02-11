@@ -739,7 +739,7 @@ class ElasticAgent(StackService, Service):
             depends_on=self.depends_on,
             environment=self.environment,
             healthcheck={
-                "test": ["CMD", "/bin/true"],
+                "test": ["CMD", "elastic-agent", "version"],
             },
             ports=self.ports,
             volumes=[
