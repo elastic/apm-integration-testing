@@ -8,7 +8,7 @@ RUN git clone https://github.com/${GO_AGENT_REPO}.git /src/apm-agent-go
 RUN (cd /src/apm-agent-go \
   && git fetch -q origin '+refs/pull/*:refs/remotes/origin/pr/*' \
   && git checkout ${GO_AGENT_BRANCH})
-RUN CGO_ENABLED=0 go build
+RUN CGO_ENABLED=0 go build -mod=mod
 
 FROM alpine:latest
 RUN apk add --update curl && rm -rf /var/cache/apk/*
