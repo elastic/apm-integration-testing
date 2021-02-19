@@ -357,6 +357,7 @@ class OpbeansServiceTest(ServiceTest):
                         - ELASTICSEARCH_URL=http://elasticsearch:9200
                         - OPBEANS_USER=opbeans_user
                         - OPBEANS_PASS=changeme
+                        - OPBEANS_SERVER_URL=http://opbeans-python:3000
                         - PYTHON_AGENT_BRANCH=
                         - PYTHON_AGENT_REPO=
                         - PYTHON_AGENT_VERSION
