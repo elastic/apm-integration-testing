@@ -28,3 +28,8 @@ metricbeat:
   indices:
     - names: ['metricbeat-*', 'shrink-metricbeat-*']
       privileges: ['all']
+opbeans:
+  cluster: ['manage_index_templates', 'monitor', 'manage_ingest_pipelines', 'manage_ilm']
+  indices:
+    - names: ['opbeans-*']
+      privileges: ['write', 'manage']

@@ -355,7 +355,8 @@ class OpbeansServiceTest(ServiceTest):
                         - ELASTIC_APM_SOURCE_LINES_SPAN_LIBRARY_FRAMES
                         - REDIS_URL=redis://redis:6379
                         - ELASTICSEARCH_URL=http://elasticsearch:9200
-                        - OPBEANS_SERVER_URL=http://opbeans-python:3000
+                        - OPBEANS_USER=opbeans_user
+                        - OPBEANS_PASS=changeme
                         - PYTHON_AGENT_BRANCH=
                         - PYTHON_AGENT_REPO=
                         - PYTHON_AGENT_VERSION
