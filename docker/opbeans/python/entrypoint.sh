@@ -7,12 +7,12 @@ if [[ -f /local-install/setup.py ]]; then
     cd ~/local-install && python setup.py install
     cd -
 elif [ -n "$PYTHON_AGENT_VERSION" -a "$PYTHON_AGENT_VERSION" != "latest" ]; then
-    pip install -q -U elastic-apm==$PYTHON_AGENT_VERSION
-elif [[ $PYTHON_AGENT_BRANCH ]]; then
-    if [[ -z ${PYTHON_AGENT_REPO} ]]; then
+    pip install -q -U elastic-apm=="$PYTHON_AGENT_VERSION"
+elif [[ "$PYTHON_AGENT_BRANCH" ]]; then
+    if [[ -z "${PYTHON_AGENT_REPO}" ]]; then
         PYTHON_AGENT_REPO="elastic/apm-agent-python"
     fi
-    pip install -q -U https://github.com/${PYTHON_AGENT_REPO}/archive/${PYTHON_AGENT_BRANCH}.zip
+    pip install -q -U "https://github.com/${PYTHON_AGENT_REPO}/archive/${PYTHON_AGENT_BRANCH}.zip"
 else
     pip install -q -U elastic-apm
 fi
