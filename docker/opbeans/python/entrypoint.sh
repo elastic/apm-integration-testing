@@ -2,7 +2,7 @@
 if [[ -f /local-install/setup.py ]]; then
     echo "Installing from local folder"
     pip uninstall -y elastic-apm
-    # copy to folder inside container to ensure were not poluting the local folder
+    # copy to folder inside container to ensure were not polluting the local folder
     cp -r /local-install ~
     cd ~/local-install && python setup.py install
     cd -
@@ -18,4 +18,6 @@ else
 fi
 rm -f celerybeat.pid
 python manage.py migrate
+python manage.py sqlsequencereset opbeans | python manage.py dbshell
+
 exec "$@"
