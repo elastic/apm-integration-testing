@@ -514,6 +514,8 @@ class OpbeansPython(OpbeansService):
                 "ELASTIC_APM_SOURCE_LINES_SPAN_LIBRARY_FRAMES",
                 "REDIS_URL=redis://redis:6379",
                 "ELASTICSEARCH_URL={}".format(self.es_urls),
+                "OPBEANS_USER=opbeans_user",
+                "OPBEANS_PASS=changeme",
                 "OPBEANS_SERVER_URL=http://opbeans-python:3000",
                 "PYTHON_AGENT_BRANCH=" + self.agent_branch,
                 "PYTHON_AGENT_REPO=" + self.agent_repo,
