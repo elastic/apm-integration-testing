@@ -439,6 +439,12 @@ class LocalSetup(object):
             default=False
         )
 
+        parser.add_argument(
+            '--package-registry-url',
+            action="store",
+            help="Elastic Package Registry URL to use for fetching integration packages",
+        )
+
         self.store_options(parser)
 
         return parser

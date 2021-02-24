@@ -42,14 +42,8 @@ class ApmServer(StackService, Service):
                 kibana_url = kibana_scheme + "://admin:changeme@" + self.DEFAULT_KIBANA_HOST
             self.depends_on = {"kibana": {"condition": "service_healthy"}}
 
-            xpack_registry_url = "https://epr-snapshot.elastic.co"
-            if options.get("enable_package_registry"):
-                xpack_registry_url = "http://package-registry:{}".format(PackageRegistry.SERVICE_PORT)
-                self.depends_on["package-registry"] = {"condition": "service_healthy"}
-            elif options.get("release") or options.get("apm_server_release"):
-                xpack_registry_url = "https://epr.elastic.co"
             self.managed_environment = {"KIBANA_HOST": kibana_url,
-                                        "XPACK_FLEET_REGISTRYURL": xpack_registry_url,
+                                        "XPACK_FLEET_REGISTRYURL": package_registry_url(options),
                                         "APM_SERVER_SECRET_TOKEN": self.options.get("apm_server_secret_token", "")}
 
             # Not yet supported when run under elastic-agent:
@@ -1083,10 +1077,9 @@ class Kibana(StackService, Service):
                     self.environment["XPACK_FLEET_AGENTS_TLSCHECKDISABLED"] = "true"
                 elif self.at_least_version("7.9"):
                     self.environment["XPACK_INGESTMANAGER_FLEET_TLSCHECKDISABLED"] = "true"
+            self.environment["XPACK_FLEET_REGISTRYURL"] = package_registry_url(options)
             if use_local_package_registry:
                 self.depends_on["package-registry"] = {"condition": "service_healthy"}
-                self.environment["XPACK_FLEET_REGISTRYURL"] = "http://package-registry:" + \
-                    PackageRegistry.SERVICE_PORT
 
     @classmethod
     def add_arguments(cls, parser):
@@ -1146,3 +1139,17 @@ class Kibana(StackService, Service):
     @staticmethod
     def enabled():
         return True
+
+
+def package_registry_url(options):
+    """
+    package_registry_url returns the Elastic Package Registry URL to configure
+    in the managed APM Server service, and Kibana service.
+    """
+    if options.get("enable_package_registry"):
+        return "http://package-registry:{}".format(PackageRegistry.SERVICE_PORT)
+    elif options.get("release") or options.get("apm_server_release"):
+        return "https://epr.elastic.co"
+    elif options.get("snapshot"):
+        return "https://epr-snapshot.elastic.co"
+    return options.get("package_registry_url", "")
