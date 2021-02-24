@@ -1081,7 +1081,7 @@ class Kibana(StackService, Service):
                 elif self.at_least_version("7.9"):
                     self.environment["XPACK_INGESTMANAGER_FLEET_TLSCHECKDISABLED"] = "true"
             url = package_registry_url(options)
-            if url :
+            if url:
                 self.environment["XPACK_FLEET_REGISTRYURL"] = url
             if use_local_package_registry:
                 self.depends_on["package-registry"] = {"condition": "service_healthy"}
@@ -1158,4 +1158,5 @@ def package_registry_url(options):
         return "http://package-registry:{}".format(PackageRegistry.SERVICE_PORT)
     elif options.get("snapshot"):
         return "https://epr-snapshot.elastic.co"
-    return "" # default to production
+    # default to production
+    return ""
