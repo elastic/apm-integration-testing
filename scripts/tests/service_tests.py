@@ -1386,6 +1386,10 @@ class KibanaServiceTest(ServiceTest):
         self.assertIn("XPACK_SECURITY_ENCRYPTIONKEY", kibana['environment'])
         self.assertIn("XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY", kibana['environment'])
 
+    def test_kibana_package_registry_url(self):
+        kibana = Kibana(package_registry_url="http://testing.invalid").render()["kibana"]
+        self.assertEqual("http://testing.invalid", kibana['environment']['XPACK_FLEET_REGISTRYURL'])
+
     def test_kibana_yml(self):
         kibana = Kibana(kibana_yml="/path/to.yml").render()["kibana"]
         self.assertIn("/path/to.yml:/usr/share/kibana/config/kibana.yml", kibana['volumes'])
