@@ -27,7 +27,7 @@ pipeline {
     BUILD_OPTS = "${params.BUILD_OPTS}"
   }
   options {
-    timeout(time: 1, unit: 'HOURS')
+    timeout(time: 3, unit: 'HOURS')
     timestamps()
     ansiColor('xterm')
     disableResume()
