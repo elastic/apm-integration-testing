@@ -22,7 +22,7 @@ pipeline {
     DISABLE_BUILD_PARALLEL = "${params.DISABLE_BUILD_PARALLEL}"
   }
   options {
-    timeout(time: 1, unit: 'HOURS')
+    timeout(time: 3, unit: 'HOURS')
     buildDiscarder(logRotator(numToKeepStr: '300', artifactNumToKeepStr: '300'))
     timestamps()
     ansiColor('xterm')
