@@ -696,34 +696,58 @@ class ElasticAgent(StackService, Service):
         self.depends_on = {"kibana": {"condition": "service_healthy"}} if options.get("enable_kibana", True) else {}
 
         # build environment
+        #
         # Environment variables consumed by the Elastic Agent entrypoint
-        # https://github.com/elastic/beats/blob/4f4a5536b72f4a25962d56262f31e3b8533b252e/dev-tools/packaging/templates/docker/docker-entrypoint.elastic-agent.tmpl
-        # FLEET_ENROLLMENT_TOKEN - existing enrollment token to be used for enroll
-        # FLEET_ENROLL - if set to 1 enroll will be performed
-        # FLEET_ENROLL_INSECURE - if set to 1, agent will enroll with fleet using --insecure flag
-        # FLEET_SETUP - if  set to 1 fleet setup will be performed
-        # FLEET_TOKEN_NAME - token name for a token to be created
-        # KIBANA_HOST - actual kibana host [http://localhost:5601]
-        # KIBANA_PASSWORD - password for accessing kibana API [changeme]
-        # KIBANA_USERNAME - username for accessing kibana API [elastic]
+        # ---- Preparing Kibana for Fleet
+        # KIBANA_FLEET_SETUP - set to 1 enables this setup
+
+        # ---- Bootstrapping Fleet Server
+        # This bootstraps the Fleet Server to be run by this Elastic Agent.
+        # At least one Fleet Server is required in a Fleet deployment for
+        # other Elastic Agent to bootstrap.
+
+        # FLEET_SERVER_ENABLE - set to 1 enables bootstrapping of
+        # Fleet Server (forces FLEET_ENROLL enabled)
+        # FLEET_SERVER_POLICY_NAME - name of policy for the Fleet Server to use for itself
+
+        # ---- Elastic Agent Fleet Enrollment
+        # This enrolls the Elastic Agent into a Fleet Server. It is also possible
+        # to have this create a new enrollment token for this specific Elastic Agent.
+        # FLEET_ENROLL - set to 1 for enrollment to occur
+        # FLEET_INSECURE - communicate with Fleet with either insecure HTTP or un-verified HTTPS
+
+        # --------------
         kibana_url = options.get("elastic_agent_kibana_url")
         if not kibana_url:
             kibana_scheme = "https" if self.options.get("kibana_enable_tls", False) else "http"
             # TODO(gr): add default elastic-agent user
             kibana_url = kibana_scheme + "://admin:changeme@" + self.DEFAULT_KIBANA_HOST
-
         kibana_parsed_url = urlparse(kibana_url)
+
+        es_url = options.get("elastic_agent_elasticsearch_url")
+        if not es_url:
+            es_scheme = "https" if self.options.get("elasticsearch_enable_tls", False) else "http"
+            es_url = es_scheme + "://admin:changeme@" + self.DEFAULT_ELASTICSEARCH_HOST
+        es_parsed_url = urlparse(es_url)
+
         self.environment = {
+            "KIBANA_FLEET_SETUP": "1",
+            "FLEET_SERVER_ENABLE": "1",
             "FLEET_ENROLL": "1",
-            "FLEET_SETUP": "1",
+            "FLEET_SERVER_POLICY_NAME": "Default policy",  # TODO(simitt): make configurable
             "KIBANA_HOST": kibana_url,
+            "ELASTICSEARCH_HOST": es_url
         }
         if kibana_parsed_url.password:
             self.environment["KIBANA_PASSWORD"] = kibana_parsed_url.password
         if kibana_parsed_url.username:
             self.environment["KIBANA_USERNAME"] = kibana_parsed_url.username
         if not kibana_url.startswith("https://"):
-            self.environment["FLEET_ENROLL_INSECURE"] = 1
+            self.environment["FLEET_INSECURE"] = "1"
+        if es_parsed_url.password:
+            self.environment["ELASTICSEARCH_PASSWORD"] = es_parsed_url.password
+        if es_parsed_url.username:
+            self.environment["ELASTICSEARCH_USERNAME"] = es_parsed_url.username
 
         # set ports for defined integrations
         self.ports = []
@@ -751,6 +775,11 @@ class ElasticAgent(StackService, Service):
             "--elastic-agent-kibana-url",
             default="http://admin:changeme@" + cls.DEFAULT_KIBANA_HOST,
             help="Elastic Agent's Kibana URL, including username:password"
+        )
+        parser.add_argument(
+            "--elastic-agent-elasticsearch-url",
+            default="http://admin:changeme@" + cls.DEFAULT_ELASTICSEARCH_HOST,
+            help="Elastic Agent's Elasticsearch URL, including username:password"
         )
 
     def build_candidate_manifest(self):

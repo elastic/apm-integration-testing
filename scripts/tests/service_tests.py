@@ -917,16 +917,21 @@ class ApmServerServiceTest(ServiceTest):
 
 class ElasticAgentServiceTest(ServiceTest):
     def test_default(self):
-        ea = ElasticAgent(version="7.12.345",enable_apm_server=True,apm_server_managed=True).render()["elastic-agent"]
+        ea = ElasticAgent(version="7.12.345", enable_apm_server=True, apm_server_managed=True).render()["elastic-agent"]
         self.assertEqual(
             ea, {"container_name": "localtesting_7.12.345_elastic-agent",
                  "depends_on": {"kibana": {"condition": "service_healthy"}},
-                 "environment": {"FLEET_ENROLL": "1",
-                                 "FLEET_ENROLL_INSECURE": 1,
-                                 "FLEET_SETUP": "1",
-                                 "KIBANA_HOST": "http://admin:changeme@kibana:5601",
-                                 "KIBANA_PASSWORD": "changeme",
-                                 "KIBANA_USERNAME": "admin"},
+                 'environment': {'ELASTICSEARCH_HOST': 'http://admin:changeme@elasticsearch:9200',
+                                 'ELASTICSEARCH_PASSWORD': 'changeme',
+                                 'ELASTICSEARCH_USERNAME': 'admin',
+                                 'FLEET_ENROLL': '1',
+                                 'FLEET_SERVER_ENABLE': '1',
+                                 'FLEET_INSECURE': '1',
+                                 'FLEET_SERVER_POLICY_NAME': 'Default policy',
+                                 'KIBANA_FLEET_SETUP': '1',
+                                 'KIBANA_HOST': 'http://admin:changeme@kibana:5601',
+                                 'KIBANA_PASSWORD': 'changeme',
+                                 'KIBANA_USERNAME': 'admin'},
                  "healthcheck": {"test": ["CMD", "elastic-agent", "version"]},
                  "image": "docker.elastic.co/beats/elastic-agent:7.12.345-SNAPSHOT",
                  "labels": ["co.elastic.apm.stack-version=7.12.345"],
