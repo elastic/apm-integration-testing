@@ -25,7 +25,7 @@ class Logstash(StackService, Service):
 
     def _content(self):
         self.es_urls = ",".join(self.options.get(
-            "logstash_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
+            "logstash_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS_NO_TLS])
         if self.at_least_version("7.3") \
                 or self.options.get("apm_server_snapshot") \
                 or (not self.options.get("apm_server_version") is None and
