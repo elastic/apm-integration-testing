@@ -20,6 +20,11 @@ RUN git clone https://github.com/${GO_AGENT_REPO}.git /src/go.elastic.co/apm
 RUN (cd /src/go.elastic.co/apm \
     && git fetch -q origin '+refs/pull/*:refs/remotes/origin/pr/*' \
     && git checkout ${GO_AGENT_BRANCH})
+
+# Don't complain if there are missing dependencies in go.mod,
+# as we may be building against an unreleased branch.
+ENV GOFLAGS=-mod=mod
+
 # Add "replace" stanzas to go.mod to use the local agent repo
 RUN go list -m all | grep apm | cut -d' ' -f1 | xargs -i go mod edit -replace {}=/src/{}
 RUN go build
