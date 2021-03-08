@@ -24,9 +24,8 @@ class OpbeansService(Service):
         self.agent_local_repo = options.get(self.option_name() + "_agent_local_repo")
         self.opbeans_branch = options.get(self.option_name() + "_branch") or ""
         self.opbeans_repo = options.get(self.option_name() + "_repo") or ""
-        self.es_urls = ",".join(self.options.get("opbeans_elasticsearch_urls") 
-        if self.es_urls == "":
-            self.es_urls = [self.DEFAULT_ELASTICSEARCH_HOSTS_NO_TLS])
+        self.es_urls = ",".join(self.options.get("opbeans_elasticsearch_urls") or
+                                [self.DEFAULT_ELASTICSEARCH_HOSTS_NO_TLS])
         self.service_environment = \
             options.get(self.option_name() + "_service_environment") or self.DEFAULT_ELASTIC_APM_ENVIRONMENT
 
