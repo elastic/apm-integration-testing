@@ -702,11 +702,11 @@ class ElasticAgent(StackService, Service):
         # KIBANA_FLEET_SETUP - set to 1 enables this setup
 
         # ---- Bootstrapping Fleet Server
-        # This bootstraps the Fleet Server to be run by this Elastic Agent. 
-        # At least one Fleet Server is required in a Fleet deployment for 
-        # other Elastic Agent to bootstrap. 
+        # This bootstraps the Fleet Server to be run by this Elastic Agent.
+        # At least one Fleet Server is required in a Fleet deployment for
+        # other Elastic Agent to bootstrap.
 
-        # FLEET_SERVER_ENABLE - set to 1 enables bootstrapping of 
+        # FLEET_SERVER_ENABLE - set to 1 enables bootstrapping of
         # Fleet Server (forces FLEET_ENROLL enabled)
         # FLEET_SERVER_POLICY_NAME - name of policy for the Fleet Server to use for itself
 
