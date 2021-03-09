@@ -758,7 +758,7 @@ class LocalTest(unittest.TestCase):
                 container_name: localtesting_6.2.10_kibana
                 depends_on:
                     elasticsearch: {condition: service_healthy}
-                environment: {ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200', SERVER_HOST: 0.0.0.0, SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true'}
+                environment: {ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200', SERVER_HOST: 0.0.0.0, SERVER_NAME: kibana.example.org, XPACK_FLEET_REGISTRYURL: 'https://epr-snapshot.elastic.co', XPACK_MONITORING_ENABLED: 'true'}
                 healthcheck:
                     interval: 10s
                     retries: 20
@@ -860,7 +860,7 @@ class LocalTest(unittest.TestCase):
                 container_name: localtesting_6.3.10_kibana
                 depends_on:
                     elasticsearch: {condition: service_healthy}
-                environment: {ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200', SERVER_HOST: 0.0.0.0, SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
+                environment: {ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200', SERVER_HOST: 0.0.0.0, SERVER_NAME: kibana.example.org, XPACK_FLEET_REGISTRYURL: 'https://epr-snapshot.elastic.co', XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
                 healthcheck:
                     interval: 10s
                     retries: 20
@@ -896,7 +896,8 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-java", "--image-cache-dir", image_cache_dir, "--opbeans-java-service-version", "1.2.3"])
+            setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-java",
+                                                              "--image-cache-dir", image_cache_dir, "--opbeans-java-service-version", "1.2.3"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -1019,6 +1020,7 @@ class LocalTest(unittest.TestCase):
                     XPACK_FLEET_AGENTS_ELASTICSEARCH_HOST: 'http://elasticsearch:9200',
                     XPACK_FLEET_AGENTS_KIBANA_HOST: 'http://kibana:5601',
                     XPACK_FLEET_AGENTS_TLSCHECKDISABLED: 'true',
+                    XPACK_FLEET_REGISTRYURL: 'https://epr-snapshot.elastic.co',
                     XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false',
                     XPACK_SECURITY_LOGINASSISTANCEMESSAGE: 'Login&#32;details:&#32;`admin/changeme`.&#32;Further&#32;details&#32;[here](https://github.com/elastic/apm-integration-testing#logging-in).'
                 }
@@ -1058,7 +1060,8 @@ class LocalTest(unittest.TestCase):
         image_cache_dir = "/foo"
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
             with self.assertRaises(SystemExit) as cm:
-                setup = LocalSetup(argv=self.common_setup_args + ["master", "--image-cache-dir", image_cache_dir, "--oss"])
+                setup = LocalSetup(argv=self.common_setup_args +
+                                   ["master", "--image-cache-dir", image_cache_dir, "--oss"])
                 setup.set_docker_compose_path(docker_compose_yml)
                 setup()
             self.assertEqual(cm.exception.code, 1)
@@ -1078,7 +1081,8 @@ class LocalTest(unittest.TestCase):
             services["elasticsearch"]["image"]
         )
         self.assertEqual("docker.elastic.co/kibana/kibana:{}-SNAPSHOT".format(version), services["kibana"]["image"])
-        self.assertEqual("docker.elastic.co/apm/apm-server-oss:{}-SNAPSHOT".format(version), services["apm-server"]["image"])
+        self.assertEqual("docker.elastic.co/apm/apm-server-oss:{}-SNAPSHOT".format(version),
+                         services["apm-server"]["image"])
 
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_6_x_xpack_secure(self, _ignore_load_images):
@@ -1096,19 +1100,19 @@ class LocalTest(unittest.TestCase):
         self.assertFalse(any(cmd == "setup.dashboards.enabled=true" for cmd in apm_server_cmd), apm_server_cmd)
         # elasticsearch configuration
         es_env = got["services"]["elasticsearch"]["environment"]
-        ## auditing enabled
+        # auditing enabled
         self.assertIn("xpack.security.audit.enabled=true", es_env)
-        ## allow anonymous healthcheck
+        # allow anonymous healthcheck
         self.assertIn("xpack.security.authc.anonymous.roles=remote_monitoring_collector", es_env)
-        ## file based realm
+        # file based realm
         self.assertIn("xpack.security.authc.realms.file1.type=file", es_env)
-        ## native realm
+        # native realm
         self.assertIn("xpack.security.authc.realms.native1.type=native", es_env)
         # kibana should use user/pass -> es
         kibana_env = got["services"]["kibana"]["environment"]
         self.assertIn("ELASTICSEARCH_PASSWORD", kibana_env)
         self.assertIn("ELASTICSEARCH_USERNAME", kibana_env)
-        ## allow anonymous healthcheck
+        # allow anonymous healthcheck
         self.assertIn("STATUS_ALLOWANONYMOUS", kibana_env)
 
     @mock.patch(cli.__name__ + ".load_images")
@@ -1329,13 +1333,13 @@ class LocalTest(unittest.TestCase):
         received = yaml.safe_load(docker_compose_yml)
         got = received['services']['dyno']
         want = {
-                'build':
+            'build':
                 {
                     'args': [],
                     'context': 'docker/dyno',
                     'dockerfile': 'Dockerfile'
                 },
-                'container_name': 'dyno',
+            'container_name': 'dyno',
                 'environment': {'TOXI_HOST': 'toxi', 'TOXI_PORT': '8474'},
                 'healthcheck': {
                     'interval': '10s',
@@ -1350,13 +1354,13 @@ class LocalTest(unittest.TestCase):
                         '-O',
                         '/dev/null',
                         'http://localhost:8000/'
-                        ]
-                    },
+                    ]
+                },
                 'ports': ['9000:8000'],
                 'volumes': [
                     '/var/run/docker.sock:/var/run/docker.sock',
                     './docker/dyno:/dyno'
-                    ]}
+                ]}
         self.assertDictEqual(got, want)
 
     @mock.patch(cli.__name__ + ".load_images")
@@ -1393,48 +1397,48 @@ class LocalTest(unittest.TestCase):
         received = yaml.safe_load(docker_compose_yml)
         got = received['services']['toxi']
         want = {
-                'command': [
-                    '-host=0.0.0.0',
-                    '-config=/toxi/toxi.cfg'
-                    ],
-                'container_name': 'localtesting_8.0_toxi',
-                'healthcheck': {
-                    'interval': '10s',
-                    'retries': 12,
-                    'test': [
-                        'CMD',
-                        'wget',
-                        '-T',
-                        '3',
-                        '-q',
-                        '--server-response',
-                        '-O',
-                        '/dev/null',
-                        'http://localhost:8474/proxies'
-                        ]
-                    },
-                'image': 'shopify/toxiproxy',
-                'logging': {
-                    'driver': 'json-file',
-                    'options': {
-                        'max-file': '5',
-                        'max-size': '2m'
-                        }
-                    },
-                'ports': [
-                    '8474:8474',
-                    '3004:3004',
-                    '3003:3003',
-                    '3002:3002',
-                    '3000:3000',
-                    '8000:8000',
-                    '3001:3001'
-                    ],
-                'restart': 'on-failure',
-                'volumes': [
-                    './docker/toxi/toxi.cfg:/toxi/toxi.cfg'
-                    ]
+            'command': [
+                '-host=0.0.0.0',
+                '-config=/toxi/toxi.cfg'
+            ],
+            'container_name': 'localtesting_8.0_toxi',
+            'healthcheck': {
+                'interval': '10s',
+                'retries': 12,
+                'test': [
+                    'CMD',
+                    'wget',
+                    '-T',
+                    '3',
+                    '-q',
+                    '--server-response',
+                    '-O',
+                    '/dev/null',
+                    'http://localhost:8474/proxies'
+                ]
+            },
+            'image': 'shopify/toxiproxy',
+            'logging': {
+                'driver': 'json-file',
+                'options': {
+                    'max-file': '5',
+                    'max-size': '2m'
                 }
+            },
+            'ports': [
+                '8474:8474',
+                '3004:3004',
+                '3003:3003',
+                '3002:3002',
+                '3000:3000',
+                '8000:8000',
+                '3001:3001'
+            ],
+            'restart': 'on-failure',
+            'volumes': [
+                './docker/toxi/toxi.cfg:/toxi/toxi.cfg'
+            ]
+        }
         self.assertDictEqual(got, want)
 
     @mock.patch(cli.__name__ + ".load_images")
@@ -1470,26 +1474,26 @@ class LocalTest(unittest.TestCase):
         docker_compose_yml.seek(0)
         got = yaml.safe_load(docker_compose_yml)
         want = {
-                'build': {
-                    'args': [],
-                    'context': 'docker/statsd',
-                    'dockerfile': 'Dockerfile'
-                    },
-                'container_name': 'localtesting_8.0_stats-d',
-                'healthcheck': {
-                    'interval': '10s',
-                    'test': ['CMD', 'pidof', 'node']
-                    },
-                'logging': {
-                    'driver': 'json-file',
-                    'options': {'max-file': '5', 'max-size': '2m'}
-                    },
-                'ports': [
-                    '8125:8125/udp',
-                    '8126:8126',
-                    '8127:8127'
-                    ]
-                }
+            'build': {
+                'args': [],
+                'context': 'docker/statsd',
+                'dockerfile': 'Dockerfile'
+            },
+            'container_name': 'localtesting_8.0_stats-d',
+            'healthcheck': {
+                'interval': '10s',
+                'test': ['CMD', 'pidof', 'node']
+            },
+            'logging': {
+                'driver': 'json-file',
+                'options': {'max-file': '5', 'max-size': '2m'}
+            },
+            'ports': [
+                '8125:8125/udp',
+                '8126:8126',
+                '8127:8127'
+            ]
+        }
 
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_with_toxi_cfg(self, _ignore_load_images):
@@ -1814,12 +1818,12 @@ class LocalTest(unittest.TestCase):
         self.assertIn("ELASTIC_APM_JS_SERVER_URL=https://apm-server:8200", opbeans_python["environment"])
 
     def test_apm_server_kibana_url(self):
-      apmServer = ApmServer(apm_server_kibana_url="http://kibana.example.com:5601").render()["apm-server"]
-      self.assertIn("apm-server.kibana.host=http://kibana.example.com:5601", apmServer["command"])
+        apmServer = ApmServer(apm_server_kibana_url="http://kibana.example.com:5601").render()["apm-server"]
+        self.assertIn("apm-server.kibana.host=http://kibana.example.com:5601", apmServer["command"])
 
     def test_apm_server_index_refresh_interval(self):
-      apmServer = ApmServer(apm_server_index_refresh_interval="10ms").render()["apm-server"]
-      self.assertIn("setup.template.settings.index.refresh_interval=10ms", apmServer["command"])
+        apmServer = ApmServer(apm_server_index_refresh_interval="10ms").render()["apm-server"]
+        self.assertIn("setup.template.settings.index.refresh_interval=10ms", apmServer["command"])
 
     def test_parse(self):
         cases = [
@@ -1859,7 +1863,8 @@ class LocalTest(unittest.TestCase):
         self.assertIn("xpack.security.transport.ssl.key=" + certsKey, elasticsearch["environment"])
         self.assertIn("xpack.security.transport.ssl.certificate=" + certs, elasticsearch["environment"])
         self.assertIn("xpack.security.transport.ssl.certificate_authorities=" + caCerts, elasticsearch["environment"])
-        self.assertIn("curl -s -k https://localhost:9200/_cluster/health | grep -vq '\"status\":\"red\"'", elasticsearch["healthcheck"]["test"])
+        self.assertIn("curl -s -k https://localhost:9200/_cluster/health | grep -vq '\"status\":\"red\"'",
+                      elasticsearch["healthcheck"]["test"])
 
     @mock.patch(cli.__name__ + ".load_images")
     def test_kibana_tls(self, _ignore_load_images):

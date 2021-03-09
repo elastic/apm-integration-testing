@@ -37,6 +37,7 @@ func setupManagedAPM() error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("default policy fetched")
 
 	// fetch the available apm package
 	packages, err := client.getPackages("package=apm&experimental=true")
@@ -46,6 +47,7 @@ func setupManagedAPM() error {
 	if len(packages) == 0 {
 		return errors.New("no apm package found")
 	}
+	fmt.Println("apm package fetched")
 
 	// define expected APM package policy
 	expectedAPMPackagePolicy := apmPackagePolicy(policy.ID, packages[0])
@@ -69,8 +71,10 @@ func setupManagedAPM() error {
 	switch len(apmPackagePolicies) {
 	case 0:
 		requiresSetup = true
+		fmt.Println("agent policy has no apm integration")
 	case 1:
 		// apm package is defined to always only have 1 Input
+		fmt.Println("agent policy has existing apm integration")
 		existing := apmPackagePolicies[0]
 		// verify that package is enabled, has default namespace and expected package properties
 		if !existing.Enabled ||
@@ -90,23 +94,27 @@ func setupManagedAPM() error {
 	default:
 		// multiple apm package policies lead to issues,
 		// delete them and create a new setup
+		fmt.Println("agent policy has multiple existing apm integration")
 		requiresSetup = true
 	}
 	if !requiresSetup {
+		fmt.Println("apm integration does not require setup")
 		return nil
 	}
+	fmt.Println("apm integration requires setup")
 	if err := client.deletePackagePolicies(apmPackagePolicies); err != nil {
 		return err
 	}
 	if err := client.addPackagePolicy(expectedAPMPackagePolicy); err != nil {
 		return err
 	}
+	fmt.Println("apm integration succesfully added to agent policy")
 	return nil
 }
 
 func fetchDefaultPolicy(client *kibanaClient) (agentPolicy, error) {
 	for ct := 0; ct < 20; ct++ {
-		agentPolicies, err := client.getAgentPolicies("kuery=ingest-agent-policies.is_default:true")
+		agentPolicies, err := client.getAgentPolicies("kuery=ingest-agent-policies.is_default_fleet_server:true")
 		if err != nil {
 			return agentPolicy{}, err
 		}
@@ -161,7 +169,7 @@ type kibanaClient struct {
 func newKibanaClient() *kibanaClient {
 	host := os.Getenv("KIBANA_HOST")
 	if host == "" {
-		host = "http://admin:changeme@localhost:5601"
+		host = "http://admin:changeme@kibana:5601"
 	}
 	pkgURL := os.Getenv("XPACK_FLEET_REGISTRYURL")
 	if pkgURL == "" {
