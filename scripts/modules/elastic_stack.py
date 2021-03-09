@@ -735,7 +735,6 @@ class ElasticAgent(StackService, Service):
             "FLEET_SERVER_ENABLE": "1",
             "FLEET_ENROLL": "1",
             "FLEET_SERVER_INSECURE_HTTP": "1",
-            "FLEET_SERVER_POLICY_NAME": "Default policy",  # TODO(simitt): make configurable
             "KIBANA_HOST": kibana_url,
             "ELASTICSEARCH_HOST": es_url
         }
