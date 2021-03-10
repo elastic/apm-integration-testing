@@ -40,17 +40,17 @@ func setupManagedAPM() error {
 	fmt.Println("default policy fetched")
 
 	// fetch the available apm package
-	packages, err := client.getPackages("package=apm&experimental=true")
+	apmPkg, err := client.getAPMPackage()
 	if err != nil {
 		return err
 	}
-	if len(packages) == 0 {
+	if apmPkg == nil {
 		return errors.New("no apm package found")
 	}
 	fmt.Println("apm package fetched")
 
 	// define expected APM package policy
-	expectedAPMPackagePolicy := apmPackagePolicy(policy.ID, packages[0])
+	expectedAPMPackagePolicy := apmPackagePolicy(policy.ID, apmPkg)
 
 	// fetch apm package installed to default policy and verify if it is aligned with
 	// expected setup
@@ -129,7 +129,7 @@ func fetchDefaultPolicy(client *kibanaClient) (agentPolicy, error) {
 }
 
 // apmPackagePolicy defines the expected APM package policy
-func apmPackagePolicy(policyID string, pkg eprPackage) packagePolicy {
+func apmPackagePolicy(policyID string, pkg *eprPackage) packagePolicy {
 	return packagePolicy{
 		Name:          "apm-integration-testing",
 		Namespace:     "default",
@@ -163,7 +163,6 @@ func apmPackagePolicy(policyID string, pkg eprPackage) packagePolicy {
 
 type kibanaClient struct {
 	fleetURL string
-	pkgURL   string
 }
 
 func newKibanaClient() *kibanaClient {
@@ -171,23 +170,26 @@ func newKibanaClient() *kibanaClient {
 	if host == "" {
 		host = "http://admin:changeme@kibana:5601"
 	}
-	pkgURL := os.Getenv("XPACK_FLEET_REGISTRYURL")
-	if pkgURL == "" {
-		pkgURL = "https://epr.elastic.co"
-	}
-	return &kibanaClient{
-		fleetURL: fmt.Sprintf("%s/api/fleet", host),
-		pkgURL:   pkgURL,
-	}
+	return &kibanaClient{fleetURL: fmt.Sprintf("%s/api/fleet", host)}
 }
 
-func (client *kibanaClient) getPackages(query string) ([]eprPackage, error) {
-	url := fmt.Sprintf("%s/search?%s", client.pkgURL, query)
-	var packages []eprPackage
-	if err := makeRequest(http.MethodGet, url, nil, &packages); err != nil {
-		return packages, errors.Wrap(err, "getPackages")
+func (client *kibanaClient) getAPMPackage() (*eprPackage, error) {
+	url := fmt.Sprintf("%s/epm/packages?experimental=true", client.fleetURL)
+	var pkgs eprPackagesResponse
+	if err := makeRequest(http.MethodGet, url, nil, &pkgs); err != nil {
+		return nil, err
 	}
-	return packages, nil
+	for _, p := range pkgs.Packages {
+		if p.Name != "apm" {
+			continue
+		}
+		var apm eprPackageResponse
+		url := fmt.Sprintf("%s/epm/packages/%s-%s", client.fleetURL, p.Name, p.Version)
+		err := makeRequest(http.MethodGet, url, nil, &apm)
+		return &apm.Package, err
+
+	}
+	return nil, nil
 }
 
 func (client *kibanaClient) getAgentPolicies(query string) ([]agentPolicy, error) {
@@ -302,4 +304,12 @@ type eprPackage struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
 	Title   string `json:"title"`
+}
+
+type eprPackageResponse struct {
+	Package eprPackage `json:"response"`
+}
+
+type eprPackagesResponse struct {
+	Packages []eprPackage `json:"response"`
 }
