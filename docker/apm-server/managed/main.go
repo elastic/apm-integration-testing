@@ -44,9 +44,6 @@ func setupManagedAPM() error {
 	if err != nil {
 		return err
 	}
-	if apmPkg == nil {
-		return errors.New("no apm package found")
-	}
 	fmt.Println("apm package fetched")
 
 	// define expected APM package policy
@@ -189,7 +186,7 @@ func (client *kibanaClient) getAPMPackage() (*eprPackage, error) {
 		return &apm.Package, err
 
 	}
-	return nil, nil
+	return nil, errors.New("no apm package found")
 }
 
 func (client *kibanaClient) getAgentPolicies(query string) ([]agentPolicy, error) {
