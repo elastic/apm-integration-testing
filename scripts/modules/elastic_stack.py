@@ -40,7 +40,8 @@ class ApmServer(StackService, Service):
             if not kibana_url:
                 kibana_scheme = "https" if self.options.get("kibana_enable_tls", False) else "http"
                 kibana_url = kibana_scheme + "://admin:changeme@" + self.DEFAULT_KIBANA_HOST
-            self.depends_on = {"kibana": {"condition": "service_healthy"}}
+            self.depends_on = {"kibana": {"condition": "service_healthy"},
+                               "elastic-agent": {"condition": "service_healthy"}}
 
             self.managed_environment = {"KIBANA_HOST": kibana_url,
                                         "APM_SERVER_SECRET_TOKEN": self.options.get("apm_server_secret_token", "")}
@@ -734,7 +735,7 @@ class ElasticAgent(StackService, Service):
             "KIBANA_FLEET_SETUP": "1",
             "FLEET_SERVER_ENABLE": "1",
             "FLEET_ENROLL": "1",
-            "FLEET_SERVER_POLICY_NAME": "Default policy",  # TODO(simitt): make configurable
+            "FLEET_SERVER_INSECURE_HTTP": "1",
             "KIBANA_HOST": kibana_url,
             "ELASTICSEARCH_HOST": es_url
         }
@@ -1185,7 +1186,7 @@ def package_registry_url(options):
         return url
     if options.get("enable_package_registry"):
         return "http://package-registry:{}".format(PackageRegistry.SERVICE_PORT)
-    elif options.get("snapshot"):
+    elif options.get("snapshot") or not options.get("release"):
         return "https://epr-snapshot.elastic.co"
     # default to production
     return ""

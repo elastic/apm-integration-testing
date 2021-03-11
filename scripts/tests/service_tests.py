@@ -927,7 +927,7 @@ class ElasticAgentServiceTest(ServiceTest):
                                  'FLEET_ENROLL': '1',
                                  'FLEET_SERVER_ENABLE': '1',
                                  'FLEET_INSECURE': '1',
-                                 'FLEET_SERVER_POLICY_NAME': 'Default policy',
+                                 "FLEET_SERVER_INSECURE_HTTP": "1",
                                  'KIBANA_FLEET_SETUP': '1',
                                  'KIBANA_HOST': 'http://admin:changeme@kibana:5601',
                                  'KIBANA_PASSWORD': 'changeme',
