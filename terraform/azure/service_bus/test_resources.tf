@@ -80,4 +80,3 @@ output "connection_string" {
 	description = "The service bus primary connection string"
 	sensitive = true
 }
-
