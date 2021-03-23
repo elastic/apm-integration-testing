@@ -4,7 +4,6 @@ if [ -f /local-install/package.json ]; then
     echo "Installing elastic-apm-node from local folder (--opbeans-node-agent-local-repo)"
     # Copy to a folder inside container to ensure we're not polluting the
     # local folder. Skip possibly huge dirs to speed this up.
-    apk add rsync
     rsync -a /local-install/ ~/local-install/ --exclude node_modules --exclude build --exclude .git
     # Install elastic-apm-node from this copied dir.
     npm install ~/local-install
