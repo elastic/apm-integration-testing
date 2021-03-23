@@ -1,11 +1,13 @@
 #!/usr/bin/env sh
 set -ex
 if [ -f /local-install/package.json ]; then
-    echo "Installing from local folder"
-    # copy to folder inside container to ensure were not poluting the local folder
-    cp -r /local-install ~
-    cd ~/local-install && npm install .
-    cd -
+    echo "Installing elastic-apm-node from local folder (--opbeans-node-agent-local-repo)"
+    # Copy to a folder inside container to ensure we're not polluting the
+    # local folder. Skip possibly huge dirs to speed this up.
+    rsync -a /local-install/ ~/local-install/ --exclude node_modules --exclude build --exclude .git
+    # Install elastic-apm-node from this copied dir.
+    npm install ~/local-install
+    npm ls elastic-apm-node
 elif [ -n "${NODE_AGENT_VERSION}" ]; then
     echo "Installing ${NODE_AGENT_VERSION} from npm"
     npm install elastic-apm-node@"${NODE_AGENT_VERSION}"
