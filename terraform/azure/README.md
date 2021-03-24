@@ -30,6 +30,9 @@ For CI scenarios, a Service Principal can be provided through the following envi
 A Service Principal can be created using [Azure CLI 2.0](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret#creating-a-service-principal) or using [the Azure portal](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret#creating-a-service-principal-in-the-azure-portal). The Service Principal
 credentials can be stored in and retrieved from Vault as needed for CI steps.
 
+| IMPORTANT: The Service Principal must have [permission to list Service Principals from Microsoft Graph API](https://docs.microsoft.com/en-us/graph/api/serviceprincipal-list?view=graph-rest-1.0&tabs=http). The `Application.Read.All` permission is the least privileged permission that allows this. |
+| --- |
+
 Terraform will use the Service Principal specified in the environment variables to deploy resources.
 
 ### Local Development Authentication
