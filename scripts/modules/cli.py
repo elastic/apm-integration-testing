@@ -203,7 +203,6 @@ class LocalSetup(object):
     def __call__(self):
         self.args.func()
 
-
     def init_build_parser(self, parser, services, argv=None):
         return self.init_build_start_parser(parser, services, argv)
 
@@ -579,7 +578,6 @@ class LocalSetup(object):
 
     def listoptions_handler(self):
         print("{}".format("\n".join(sorted(self.available_options))))
-
 
     def build_handler(self):
         self.build_start_handler("build")
