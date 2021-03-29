@@ -53,7 +53,7 @@ pipeline {
       steps {
         withGithubNotify(context: 'Lint') {
           dir("${BASE_DIR}"){
-            sh '.ci/scripts/lint.sh'
+            sh(label: 'lint', script: '.ci/scripts/lint.sh')
           }
         }
       }
@@ -67,7 +67,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh '.ci/scripts/unit-tests.sh'
+                sh(label: 'unit tests', script: '.ci/scripts/unit-tests.sh')
               }
             }
           }
