@@ -37,18 +37,17 @@ func setupManagedAPM() error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("default policy fetched")
 
 	// fetch the available apm package
-	packages, err := client.getPackages("package=apm&experimental=true")
+	apmPkg, err := client.getAPMPackage()
 	if err != nil {
 		return err
 	}
-	if len(packages) == 0 {
-		return errors.New("no apm package found")
-	}
+	fmt.Println("apm package fetched")
 
 	// define expected APM package policy
-	expectedAPMPackagePolicy := apmPackagePolicy(policy.ID, packages[0])
+	expectedAPMPackagePolicy := apmPackagePolicy(policy.ID, apmPkg)
 
 	// fetch apm package installed to default policy and verify if it is aligned with
 	// expected setup
@@ -69,8 +68,10 @@ func setupManagedAPM() error {
 	switch len(apmPackagePolicies) {
 	case 0:
 		requiresSetup = true
+		fmt.Println("agent policy has no apm integration")
 	case 1:
 		// apm package is defined to always only have 1 Input
+		fmt.Println("agent policy has existing apm integration")
 		existing := apmPackagePolicies[0]
 		// verify that package is enabled, has default namespace and expected package properties
 		if !existing.Enabled ||
@@ -90,23 +91,27 @@ func setupManagedAPM() error {
 	default:
 		// multiple apm package policies lead to issues,
 		// delete them and create a new setup
+		fmt.Println("agent policy has multiple existing apm integration")
 		requiresSetup = true
 	}
 	if !requiresSetup {
+		fmt.Println("apm integration does not require setup")
 		return nil
 	}
+	fmt.Println("apm integration requires setup")
 	if err := client.deletePackagePolicies(apmPackagePolicies); err != nil {
 		return err
 	}
 	if err := client.addPackagePolicy(expectedAPMPackagePolicy); err != nil {
 		return err
 	}
+	fmt.Println("apm integration succesfully added to agent policy")
 	return nil
 }
 
 func fetchDefaultPolicy(client *kibanaClient) (agentPolicy, error) {
 	for ct := 0; ct < 20; ct++ {
-		agentPolicies, err := client.getAgentPolicies("kuery=ingest-agent-policies.is_default:true")
+		agentPolicies, err := client.getAgentPolicies("kuery=ingest-agent-policies.is_default_fleet_server:true")
 		if err != nil {
 			return agentPolicy{}, err
 		}
@@ -121,7 +126,7 @@ func fetchDefaultPolicy(client *kibanaClient) (agentPolicy, error) {
 }
 
 // apmPackagePolicy defines the expected APM package policy
-func apmPackagePolicy(policyID string, pkg eprPackage) packagePolicy {
+func apmPackagePolicy(policyID string, pkg *eprPackage) packagePolicy {
 	return packagePolicy{
 		Name:          "apm-integration-testing",
 		Namespace:     "default",
@@ -155,31 +160,33 @@ func apmPackagePolicy(policyID string, pkg eprPackage) packagePolicy {
 
 type kibanaClient struct {
 	fleetURL string
-	pkgURL   string
 }
 
 func newKibanaClient() *kibanaClient {
 	host := os.Getenv("KIBANA_HOST")
 	if host == "" {
-		host = "http://admin:changeme@localhost:5601"
+		host = "http://admin:changeme@kibana:5601"
 	}
-	pkgURL := os.Getenv("XPACK_FLEET_REGISTRYURL")
-	if pkgURL == "" {
-		pkgURL = "https://epr.elastic.co"
-	}
-	return &kibanaClient{
-		fleetURL: fmt.Sprintf("%s/api/fleet", host),
-		pkgURL:   pkgURL,
-	}
+	return &kibanaClient{fleetURL: fmt.Sprintf("%s/api/fleet", host)}
 }
 
-func (client *kibanaClient) getPackages(query string) ([]eprPackage, error) {
-	url := fmt.Sprintf("%s/search?%s", client.pkgURL, query)
-	var packages []eprPackage
-	if err := makeRequest(http.MethodGet, url, nil, &packages); err != nil {
-		return packages, errors.Wrap(err, "getPackages")
+func (client *kibanaClient) getAPMPackage() (*eprPackage, error) {
+	url := fmt.Sprintf("%s/epm/packages?experimental=true", client.fleetURL)
+	var pkgs eprPackagesResponse
+	if err := makeRequest(http.MethodGet, url, nil, &pkgs); err != nil {
+		return nil, err
 	}
-	return packages, nil
+	for _, p := range pkgs.Packages {
+		if p.Name != "apm" {
+			continue
+		}
+		var apm eprPackageResponse
+		url := fmt.Sprintf("%s/epm/packages/%s-%s", client.fleetURL, p.Name, p.Version)
+		err := makeRequest(http.MethodGet, url, nil, &apm)
+		return &apm.Package, err
+
+	}
+	return nil, errors.New("no apm package found")
 }
 
 func (client *kibanaClient) getAgentPolicies(query string) ([]agentPolicy, error) {
@@ -294,4 +301,12 @@ type eprPackage struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
 	Title   string `json:"title"`
+}
+
+type eprPackageResponse struct {
+	Package eprPackage `json:"response"`
+}
+
+type eprPackagesResponse struct {
+	Packages []eprPackage `json:"response"`
 }

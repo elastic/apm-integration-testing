@@ -54,9 +54,10 @@ venv: requirements.txt ## Prepare the virtual environment
 	test -d $(VENV) || virtualenv -q --python=$(PYTHON) $(VENV);\
 	source $(VENV)/bin/activate || exit 1;\
 	pip install -q -r requirements.txt;\
-	touch $(VENV);\
+	touch $(VENV);
 
 lint: venv  ## Lint the project
+	source $(VENV)/bin/activate; \
 	flake8 --ignore=D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403,W504  tests/ scripts/compose.py scripts/modules
 
 .PHONY: create-x509-cert
@@ -69,10 +70,12 @@ build-env: venv ## Build the test environment
 	$(PYTHON) scripts/compose.py build $(COMPOSE_ARGS)
 
 start-env: venv ## Start the test environment
+	source $(VENV)/bin/activate; \
 	$(PYTHON) scripts/compose.py start $(COMPOSE_ARGS)
 	docker-compose up -d
 
 stop-env: venv ## Stop the test environment
+	source $(VENV)/bin/activate; \
 	docker-compose down -v --remove-orphans || true
 
 destroy-env: venv ## Destroy the test environment
@@ -85,12 +88,15 @@ env-%: venv
 test: test-all  ## Run all the tests
 
 test-agent-%-version: venv
+	source $(VENV)/bin/activate; \
 	pytest $(PYTEST_ARGS) tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s -m version $(JUNIT_OPT)/agent-$*-version-junit.xml
 
 test-agent-%: venv ## Test a specific agent. ex: make test-agent-java
+	source $(VENV)/bin/activate; \
 	pytest $(PYTEST_ARGS) tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/agent-$*-junit.xml
 
 test-compose: venv
+	source $(VENV)/bin/activate; \
 	pytest $(PYTEST_ARGS) scripts/tests/*_tests.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/compose-junit.xml
 
 test-compose-2:
@@ -99,9 +105,11 @@ test-compose-2:
 	./venv2/bin/pytest $(PYTEST_ARGS) --noconftest scripts/tests/*_tests.py
 
 test-kibana: venv ## Run the Kibana integration tests
+	source $(VENV)/bin/activate; \
 	pytest $(PYTEST_ARGS) tests/kibana/test_integration.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/kibana-junit.xml
 
 test-server: venv  ## Run server tests
+	source $(VENV)/bin/activate; \
 	pytest $(PYTEST_ARGS) tests/server/ --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/server-junit.xml
 
 SUBCOMMANDS = list-options load-dashboards start status stop upload-sourcemap versions
@@ -110,6 +118,7 @@ test-helps:
 	$(foreach subcommand,$(SUBCOMMANDS), $(PYTHON) scripts/compose.py $(subcommand) --help >/dev/null || exit 1;)
 
 test-all: venv test-compose lint test-helps ## Run all the tests
+	source $(VENV)/bin/activate; \
 	pytest -v -s $(PYTEST_ARGS) $(JUNIT_OPT)/all-junit.xml
 
 docker-test-%: ## Run a specific dockerized test. Ex: make docker-test-java

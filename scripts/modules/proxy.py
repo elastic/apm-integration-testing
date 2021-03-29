@@ -29,7 +29,7 @@ class Dyno(Service):
             logging=None,
             healthcheck=wget_healthcheck(8000, path="/"),
             ports=["9000:8000"],
-            volumes=["/var/run/docker.sock:/var/run/docker.sock"],
+            volumes=["/var/run/docker.sock:/var/run/docker.sock", "./docker/dyno:/dyno"],
         )
 
 

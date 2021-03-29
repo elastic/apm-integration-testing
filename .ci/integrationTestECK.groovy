@@ -58,7 +58,7 @@ pipeline {
         axes {
           axis {
               name 'ELASTIC_STACK_VERSION'
-              values '7.12.0-SNAPSHOT', '7.11.0-SNAPSHOT', '7.10.2'
+              values '7.13.0-SNAPSHOT', '7.12.1-SNAPSHOT', '7.12.0'
           }
         }
         stages {
@@ -215,8 +215,10 @@ def runTest(test){
   unstash 'source'
   withConfigEnv(){
     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-      dir("${BASE_DIR}"){
-        sh ".ci/scripts/${test}.sh"
+      filebeat(output: "docker-${ELASTIC_STACK_VERSION}-${test}.log", archiveOnlyOnFail: true){
+        dir("${BASE_DIR}"){
+          sh ".ci/scripts/${test}.sh"
+        }
       }
     }
   }

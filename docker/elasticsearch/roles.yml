@@ -28,3 +28,7 @@ metricbeat:
   indices:
     - names: ['metricbeat-*', 'shrink-metricbeat-*']
       privileges: ['all']
+opbeans:
+  indices:
+    - names: ['opbeans-*']
+      privileges: ['write', 'read']

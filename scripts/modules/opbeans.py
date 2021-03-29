@@ -24,7 +24,8 @@ class OpbeansService(Service):
         self.agent_local_repo = options.get(self.option_name() + "_agent_local_repo")
         self.opbeans_branch = options.get(self.option_name() + "_branch") or ""
         self.opbeans_repo = options.get(self.option_name() + "_repo") or ""
-        self.es_urls = ",".join(self.options.get("opbeans_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
+        self.es_urls = ",".join(self.options.get("opbeans_elasticsearch_urls") or
+                                [self.DEFAULT_ELASTICSEARCH_HOSTS_NO_TLS])
         self.service_environment = \
             options.get(self.option_name() + "_service_environment") or self.DEFAULT_ELASTIC_APM_ENVIRONMENT
 
@@ -522,6 +523,8 @@ class OpbeansPython(OpbeansService):
                 "ELASTIC_APM_SOURCE_LINES_SPAN_LIBRARY_FRAMES",
                 "REDIS_URL=redis://redis:6379",
                 "ELASTICSEARCH_URL={}".format(self.es_urls),
+                "OPBEANS_USER=opbeans_user",
+                "OPBEANS_PASS=changeme",
                 "OPBEANS_SERVER_URL=http://opbeans-python:{}".format(self.APPLICATION_PORT),
                 "PYTHON_AGENT_BRANCH=" + self.agent_branch,
                 "PYTHON_AGENT_REPO=" + self.agent_repo,

@@ -1,5 +1,5 @@
 ARG apm_server_base_image=docker.elastic.co/apm/apm-server:8.0.0-SNAPSHOT
-ARG go_version=1.14
+ARG go_version=1.15.7
 ARG apm_server_binary=apm-server
 
 ###############################################################################
@@ -13,7 +13,7 @@ RUN apt -qq remove -y python2 && apt -qq autoremove -y
 
 # install make update prerequisites
 RUN apt-get -qq update \
-    && apt-get -qq install -y python3 python3-pip python3-venv
+    && apt-get -qq install -y python3 python3-pip python3-venv rsync
 
 RUN pip3 install --upgrade pip
 

@@ -66,7 +66,7 @@ class LocalSetup(object):
         '6.5': '6.5.4',
         '6.6': '6.6.2',
         '6.7': '6.7.2',
-        '6.8': '6.8.13',
+        '6.8': '6.8.15',
         '7.0': '7.0.1',
         '7.1': '7.1.1',
         '7.2': '7.2.1',
@@ -77,9 +77,10 @@ class LocalSetup(object):
         '7.7': '7.7.1',
         '7.8': '7.8.1',
         '7.9': '7.9.3',
-        '7.10': '7.10.1',
-        '7.11': '7.11.0',
+        '7.10': '7.10.3',
+        '7.11': '7.11.2',
         '7.12': '7.12.0',
+        '7.13': '7.13.0',
         'master': '8.0.0',
     }
 
@@ -455,6 +456,12 @@ class LocalSetup(object):
             action='store_true',
             help='All various services to be dynamically tuned to introduce latency or other pressure',
             default=False
+        )
+
+        parser.add_argument(
+            '--package-registry-url',
+            action="store",
+            help="Elastic Package Registry URL to use for fetching integration packages",
         )
 
         self.store_options(parser)

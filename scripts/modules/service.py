@@ -15,10 +15,10 @@ DEFAULT_SERVICE_VERSION = "9c2e41c8-fb2f-4b75-a89d-5089fb55fc64"
 class Service(object):
     """encapsulate docker-compose service definition"""
 
-    DEFAULT_ELASTICSEARCH_HOSTS = "http://elasticsearch:9200"
-    DEFAULT_ELASTICSEARCH_HOSTS_TLS = "https://elasticsearch:9200"
     DEFAULT_KIBANA_HOST = "kibana:5601"
-
+    DEFAULT_ELASTICSEARCH_HOST = "elasticsearch:9200"
+    DEFAULT_ELASTICSEARCH_HOSTS_NO_TLS = "http://" + DEFAULT_ELASTICSEARCH_HOST
+    DEFAULT_ELASTICSEARCH_HOSTS_TLS = "https://" + DEFAULT_ELASTICSEARCH_HOST
     # is this a side car service for opbeans. If yes, it will automatically
     # start if any opbeans service starts
     opbeans_side_car = False
@@ -62,6 +62,9 @@ class Service(object):
             if self.at_least_version("7.11") or (self.at_least_version("6.8.14") and self.version_lower_than("6.9")):
                 print('ERROR: OSS distribution is ONLY supported in 7.11+/6.8.14+ for Kibana and Elasticsearch.')
                 sys.exit(1)
+
+        self._es_tls = options.get("elasticsearch_enable_tls", False)
+        self._kibana_tls = options.get("kibana_enable_tls", False)
 
     @property
     def bc(self):
@@ -175,7 +178,7 @@ class Service(object):
         if tls:
             return self.DEFAULT_ELASTICSEARCH_HOSTS_TLS
         else:
-            return self.DEFAULT_ELASTICSEARCH_HOSTS
+            return self.DEFAULT_ELASTICSEARCH_HOSTS_NO_TLS
 
     @abstractmethod
     def _content(self):
