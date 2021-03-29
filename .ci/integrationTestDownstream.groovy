@@ -120,7 +120,7 @@ pipeline {
           filebeat(output: "docker-all.log", archiveOnlyOnFail: true){
             dir("${BASE_DIR}"){
               retryWithSleep(retries: 3, seconds: 5, backoff: true) {
-                sh(label: 'Prepare docker images', script: '.ci/scripts/build.sh')
+                sh(label: 'Prepare docker images', script: '.ci/scripts/build-docker-all.sh')
               }
               sh(label: 'Run all', script: '.ci/scripts/all.sh')
             }
