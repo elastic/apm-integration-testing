@@ -696,7 +696,7 @@ class LocalSetup(object):
             docker_compose_path.close()
             print("Starting/Building stack services..\n")
             docker_compose_cmd = ["docker-compose", "-f", docker_compose_path.name]
-            if not sys.stdin.isatty() and not action in ["build"]:
+            if not sys.stdin.isatty() and action not in ["build"]:
                 docker_compose_cmd.extend(["--no-ansi", "--log-level", "ERROR"])
 
             # always build if possible, should be quick for rebuilds
@@ -727,7 +727,7 @@ class LocalSetup(object):
                     up_params.append("--remove-orphans")
             if action in ["build"]:
                 up_params = ["build"]
-            if not sys.stdin.isatty() and not action in ["build"]:
+            if not sys.stdin.isatty() and action not in ["build"]:
                 up_params.extend(["--quiet-pull"])
             self.run_docker_compose_process(docker_compose_cmd + up_params)
 
