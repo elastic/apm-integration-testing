@@ -17,6 +17,16 @@ function runTests() {
   make ${targets}
 }
 
+function prepareAndRunGoals() {
+  DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} \
+    --no-apm-server-dashboards \
+    --no-apm-server-self-instrument \
+    --no-kibana \
+    --no-xpack-secure"
+  export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
+  runTests "$@"
+}
+
 if [ -n "${APM_SERVER_BRANCH}" ]; then
  APM_SERVER_BRANCH_VERSION=${APM_SERVER_BRANCH%;*}
  APM_SERVER_BRANCH_TYPE=${APM_SERVER_BRANCH//$APM_SERVER_BRANCH_VERSION/}

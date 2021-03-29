@@ -6,4 +6,4 @@ test -z "$srcdir" && srcdir=.
 # shellcheck disable=SC1090
 . "${srcdir}/common.sh"
 
-prepareAndRunGoals env-server test-compose test-helps
+prepareAndRunGoals lint
