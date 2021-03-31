@@ -925,9 +925,12 @@ class ElasticAgentServiceTest(ServiceTest):
                                  'ELASTICSEARCH_PASSWORD': 'changeme',
                                  'ELASTICSEARCH_USERNAME': 'admin',
                                  'FLEET_ENROLL': '1',
+                                 'FLEET_ENROLL_INSECURE': 1,
                                  'FLEET_SERVER_ENABLE': '1',
                                  'FLEET_INSECURE': '1',
                                  "FLEET_SERVER_INSECURE_HTTP": "1",
+                                 'FLEET_SERVER_HOST': '0.0.0.0',
+                                 'FLEET_SETUP': '1',
                                  'KIBANA_FLEET_SETUP': '1',
                                  'KIBANA_HOST': 'http://admin:changeme@kibana:5601',
                                  'KIBANA_PASSWORD': 'changeme',
@@ -937,7 +940,7 @@ class ElasticAgentServiceTest(ServiceTest):
                  "labels": ["co.elastic.apm.stack-version=7.12.345"],
                  "logging": {"driver": "json-file",
                              "options": {"max-file": "5", "max-size": "2m"}},
-                 'ports': ['127.0.0.1:8200:8200'],
+                 'ports': ['127.0.0.1:8220:8220', '127.0.0.1:8200:8200'],
                  "volumes": ["/var/run/docker.sock:/var/run/docker.sock"]}
         )
 
