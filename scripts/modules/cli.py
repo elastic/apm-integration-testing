@@ -168,6 +168,17 @@ class LocalSetup(object):
             description="Lists all available options (used for bash autocompletion)."
         ).set_defaults(func=self.listoptions_handler)
 
+        self.init_build_parser(
+            subparsers.add_parser(
+                'build',
+                help="Build the stack. See `build --help` for options.",
+                description="Build the stack. Use the arguments to specify which "
+                            "services to build. "
+            ),
+            services,
+            argv=argv,
+        ).set_defaults(func=self.build_handler)
+
         self.init_sourcemap_parser(
             subparsers.add_parser(
                 'upload-sourcemap',
@@ -192,7 +203,13 @@ class LocalSetup(object):
     def __call__(self):
         self.args.func()
 
+    def init_build_parser(self, parser, services, argv=None):
+        return self.init_build_start_parser(parser, services, argv)
+
     def init_start_parser(self, parser, services, argv=None):
+        return self.init_build_start_parser(parser, services, argv)
+
+    def init_build_start_parser(self, parser, services, argv=None):
         if not argv:
             argv = sys.argv
         available_versions = ' / '.join(list(self.SUPPORTED_VERSIONS))
@@ -562,7 +579,13 @@ class LocalSetup(object):
     def listoptions_handler(self):
         print("{}".format("\n".join(sorted(self.available_options))))
 
+    def build_handler(self):
+        self.build_start_handler("build")
+
     def start_handler(self):
+        self.build_start_handler("start")
+
+    def build_start_handler(self, action):
         args = vars(self.args)
 
         if "version" not in args:
@@ -671,9 +694,9 @@ class LocalSetup(object):
         # try to figure out if writing to a real file, not amazing
         if hasattr(docker_compose_path, "name") and os.path.isdir(os.path.dirname(docker_compose_path.name)):
             docker_compose_path.close()
-            print("Starting stack services..\n")
+            print("Starting/Building stack services..\n")
             docker_compose_cmd = ["docker-compose", "-f", docker_compose_path.name]
-            if not sys.stdin.isatty():
+            if not sys.stdin.isatty() and action not in ["build"]:
                 docker_compose_cmd.extend(["--no-ansi", "--log-level", "ERROR"])
 
             # always build if possible, should be quick for rebuilds
@@ -698,10 +721,13 @@ class LocalSetup(object):
                 self.run_docker_compose_process(docker_compose_cmd + pull_params + image_services)
 
             # really start
-            up_params = ["up", "-d"]
-            if args["remove_orphans"]:
-                up_params.append("--remove-orphans")
-            if not sys.stdin.isatty():
+            if action in ["start"]:
+                up_params = ["up", "-d"]
+                if args["remove_orphans"]:
+                    up_params.append("--remove-orphans")
+            if action in ["build"]:
+                up_params = ["build"]
+            if not sys.stdin.isatty() and action not in ["build"]:
                 up_params.extend(["--quiet-pull"])
             self.run_docker_compose_process(docker_compose_cmd + up_params)
 

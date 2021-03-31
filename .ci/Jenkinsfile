@@ -18,7 +18,7 @@ pipeline {
     GIT_REFERENCE_REPO = '/var/lib/jenkins/.git-references/apm-integration-testing.git'
   }
   triggers {
-    cron 'H H(3-4) * * 1-5'
+    cron(env.CHANGE_ID?.trim() ? '' : 'H H(3-4) * * 1-5')
     issueCommentTrigger('(?i)(.*(?:jenkins\\W+)?run\\W+(?:the\\W+)?tests(?:\\W+please)?.*|/test(?:all))')
   }
   options {
@@ -48,12 +48,18 @@ pipeline {
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
-
+    stage('Lint'){
+      options { skipDefaultCheckout() }
+      steps {
+        withGithubNotify(context: 'Lint') {
+          dir("${BASE_DIR}"){
+            sh(label: 'lint', script: '.ci/scripts/lint.sh')
+          }
+        }
+      }
+    }
     stage('Tests'){
       parallel {
-        /**
-          Validate UTs and lint the app
-        */
         stage('Unit Tests'){
           options { skipDefaultCheckout() }
           steps {
@@ -61,7 +67,7 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh '.ci/scripts/unit-tests.sh'
+                sh(label: 'unit tests', script: '.ci/scripts/unit-tests.sh')
               }
             }
           }

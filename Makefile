@@ -66,6 +66,11 @@ create-x509-cert:  ## Create an x509 certificate for use with the test suite
 
 .PHONY: lint
 
+build-env: venv ## Build the test environment
+	source $(VENV)/bin/activate; \
+	$(PYTHON) scripts/compose.py build $(COMPOSE_ARGS)
+	docker-compose build --parallel
+
 start-env: venv ## Start the test environment
 	source $(VENV)/bin/activate; \
 	$(PYTHON) scripts/compose.py start $(COMPOSE_ARGS)
@@ -77,6 +82,10 @@ stop-env: venv ## Stop the test environment
 
 destroy-env: venv ## Destroy the test environment
 	[ -n "$(docker ps -aqf network=apm-integration-testing)" ] && (docker ps -aqf network=apm-integration-testing | xargs -t docker rm -f && docker network rm apm-integration-testing) || true
+
+# default (all) built for now
+build-env-%: venv
+	$(MAKE) build-env
 
 # default (all) started for now
 env-%: venv
