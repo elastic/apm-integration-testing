@@ -720,16 +720,33 @@ class ElasticAgent(StackService, Service):
             "FLEET_ENROLL": "1",
             "FLEET_SETUP": "1",
             "KIBANA_HOST": kibana_url,
+<<<<<<< HEAD
+=======
+            "ELASTICSEARCH_HOST": es_url,
+            "FLEET_SERVER_HOST": "0.0.0.0"
+>>>>>>> 0f72d15... fix: elastic-agent ensure 7.12 backwards compatibility (#1090)
         }
+        if self.version_lower_than("7.13"):
+            self.environment["FLEET_SETUP"] = "1"
         if kibana_parsed_url.password:
             self.environment["KIBANA_PASSWORD"] = kibana_parsed_url.password
         if kibana_parsed_url.username:
             self.environment["KIBANA_USERNAME"] = kibana_parsed_url.username
         if not kibana_url.startswith("https://"):
+<<<<<<< HEAD
             self.environment["FLEET_ENROLL_INSECURE"] = 1
+=======
+            self.environment["FLEET_INSECURE"] = "1"
+            if self.version_lower_than("7.13"):
+                self.environment["FLEET_ENROLL_INSECURE"] = 1
+        if es_parsed_url.password:
+            self.environment["ELASTICSEARCH_PASSWORD"] = es_parsed_url.password
+        if es_parsed_url.username:
+            self.environment["ELASTICSEARCH_USERNAME"] = es_parsed_url.username
+>>>>>>> 0f72d15... fix: elastic-agent ensure 7.12 backwards compatibility (#1090)
 
         # set ports for defined integrations
-        self.ports = []
+        self.ports = [self.publish_port("8220")]
         if self.options.get("enable_apm_server") and self.options.get("apm_server_managed"):
             self.ports.append(self.publish_port(self.options.get(
                 "apm_server_port", ApmServer.SERVICE_PORT), ApmServer.SERVICE_PORT))

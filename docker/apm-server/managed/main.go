@@ -11,6 +11,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
@@ -96,8 +97,17 @@ func setupManagedAPM() error {
 }
 
 func fetchDefaultPolicy(client *kibanaClient) (agentPolicy, error) {
+	fleetServer := ""
+	if enable, err := strconv.ParseBool(os.Getenv("FLEET_SERVER_ENABLE")); err == nil && enable {
+		fleetServer = "_fleet_server"
+	}
+	kuery := fmt.Sprintf("kuery=ingest-agent-policies.is_default%s:true", fleetServer)
 	for ct := 0; ct < 20; ct++ {
+<<<<<<< HEAD
 		agentPolicies, err := client.getAgentPolicies("kuery=ingest-agent-policies.is_default:true")
+=======
+		agentPolicies, err := client.getAgentPolicies(kuery)
+>>>>>>> 0f72d15... fix: elastic-agent ensure 7.12 backwards compatibility (#1090)
 		if err != nil {
 			return agentPolicy{}, err
 		}
