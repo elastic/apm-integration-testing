@@ -967,6 +967,7 @@ class LocalTest(unittest.TestCase):
                     'ES_JAVA_OPTS=-XX:UseAVX=2 -Xms1g -Xmx1g',
                     path.data=/usr/share/elasticsearch/data/8.0.0,
                     indices.id_field_data.enabled=true,
+                    action.destructive_requires_name=false,
                     xpack.security.authc.anonymous.roles=remote_monitoring_collector,
                     xpack.security.authc.realms.file.file1.order=0,
                     xpack.security.authc.realms.native.native1.order=1,

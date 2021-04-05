@@ -850,6 +850,7 @@ class Elasticsearch(StackService, Service):
             try_to_set_slowlog(options.get("apm_server_elasticsearch_password"))
         if self.at_least_version("8.0"):
             self.environment.append("indices.id_field_data.enabled=true")
+            self.environment.append("action.destructive_requires_name=false")
         if not self.oss:
             xpack_security_enabled = "false"
             if self.xpack_secure:
