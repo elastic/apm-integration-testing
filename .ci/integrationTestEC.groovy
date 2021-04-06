@@ -95,11 +95,13 @@ def provisionEnvironment(){
 
 def runITs(){
   agentMapping.mapAgentsIDs.each { name, agentId ->
-    stage("Test ${name}")
-    try {
-      runTest(agentId)
-    } finally {
-      grabResultsAndLogs("${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}-${name}")
+    stage("Test ${TEST_ENVIRONMENT} - ${ELASTIC_STACK_VERSION} - ${name}"){
+      try {
+        runTest(agentId)
+      } finally {
+        destroyClusters()
+        grabResultsAndLogs("${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}-${name}")
+      }
     }
   }
 }
@@ -182,6 +184,18 @@ def grabResultsAndLogs(label){
         allowEmptyResults: true,
         keepLongStdio: true,
         testResults: "tests/results/*-junit*.xml")
+    }
+  }
+}
+
+def destroyClusters(){
+  stage("Destroy Cluster ${TEST_ENVIRONMENT} - ${ELASTIC_STACK_VERSION}"){
+    dir("${EC_DIR}/ansible"){
+      withTestEnv(){
+        catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+          sh(label: 'Destroy cluster', script: 'make destroy-cluster')
+        }
+      }
     }
   }
 }
