@@ -4,8 +4,6 @@ var apm = require('elastic-apm-node').start({
   frameworkName: 'express',
   frameworkVersion: 'unknown',
   serviceName: process.env.EXPRESS_SERVICE_NAME,
-  flushInterval: 1,
-  maxQueueSize: 1,
   apiRequestTime: "50ms",
   ignoreUrls: ['/healthcheck']
 })
@@ -58,4 +56,3 @@ app.use(function (err, req, res, next) {
 var server = app.listen(process.env.EXPRESS_PORT, '0.0.0.0', function () {
     console.log("Listening on %s...", server.address().port);
 });
-
