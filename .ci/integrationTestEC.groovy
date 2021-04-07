@@ -54,12 +54,13 @@ pipeline {
           agent: 'ubuntu-20',
           axes: [
             axis('ELASTIC_STACK_VERSION', [
-              stackVersions.edge(snapshot: true),
-              stackVersions.dev(snapshot: true),
+              // stackVersions.edge(snapshot: true),
+              // stackVersions.dev(snapshot: true),
               stackVersions.release()
             ]),
             axis('TEST_ENVIRONMENT', [
-              'eck', 'elastic_cloud'
+              // 'eck',
+              'elastic_cloud'
             ])
           ]
         ){
@@ -77,31 +78,28 @@ pipeline {
 }
 
 def provisionEnvironment(){
-  stage("Provision ${TEST_ENVIRONMENT} - ${ELASTIC_STACK_VERSION}"){
-    log(level: "INFO", text: "Running tests - ${ELASTIC_STACK_VERSION}")
-    deleteDir()
-    unstash 'source'
-    dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
-    dir("${EC_DIR}/ansible"){
-      withTestEnv(){
-        sh(label: "Deploy Cluster", script: "make create-cluster")
-        sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}.html")
-        archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
-      }
+  log(level: "INFO", text: "Provision ${TEST_ENVIRONMENT} - ${ELASTIC_STACK_VERSION}")
+  deleteDir()
+  unstash 'source'
+  dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
+  dir("${EC_DIR}/ansible"){
+    withTestEnv(){
+      sh(label: "Deploy Cluster", script: "make create-cluster")
+      sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}.html")
+      archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
     }
-    stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: "secrets-${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}"
   }
+  stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: "secrets-${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}"
 }
 
 def runITs(){
   agentMapping.mapAgentsIDs.each { name, agentId ->
-    stage("Test ${TEST_ENVIRONMENT} - ${ELASTIC_STACK_VERSION} - ${name}"){
-      try {
-        runTest(agentId)
-      } finally {
-        destroyClusters()
-        grabResultsAndLogs("${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}-${name}")
-      }
+    log(level: "INFO", text: "Test ${TEST_ENVIRONMENT} - ${ELASTIC_STACK_VERSION} - ${name}")
+    try {
+      runTest(agentId)
+    } finally {
+      destroyClusters()
+      grabResultsAndLogs("${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}-${name}")
     }
   }
 }
@@ -189,12 +187,11 @@ def grabResultsAndLogs(label){
 }
 
 def destroyClusters(){
-  stage("Destroy Cluster ${TEST_ENVIRONMENT} - ${ELASTIC_STACK_VERSION}"){
-    dir("${EC_DIR}/ansible"){
-      withTestEnv(){
-        catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-          sh(label: 'Destroy cluster', script: 'make destroy-cluster')
-        }
+  log(level: "INFO", text: "Destroy Cluster ${TEST_ENVIRONMENT} - ${ELASTIC_STACK_VERSION}")
+  dir("${EC_DIR}/ansible"){
+    withTestEnv(){
+      catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+        sh(label: 'Destroy cluster', script: 'make destroy-cluster')
       }
     }
   }
