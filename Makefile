@@ -81,7 +81,7 @@ stop-env: venv ## Stop the test environment
 	docker-compose down -v --remove-orphans || true
 
 destroy-env: venv ## Destroy the test environment
-	[ -n "$(docker ps -aqf network=apm-integration-testing)" ] && (docker ps -aqf network=apm-integration-testing | xargs -t docker rm -f && docker network rm apm-integration-testing) || true
+	[ -n "$$(docker ps -aqf network=apm-integration-testing)" ] && (docker ps -aqf network=apm-integration-testing | xargs -t docker rm -f && docker network rm apm-integration-testing) || true
 
 # default (all) built for now
 build-env-%: venv
