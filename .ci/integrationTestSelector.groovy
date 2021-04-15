@@ -248,10 +248,13 @@ def wrappingup(Map params = [:]){
 **/
 def githubCheckNotify(String status) {
   if (params.GITHUB_CHECK_NAME?.trim() && params.GITHUB_CHECK_REPO?.trim() && params.GITHUB_CHECK_SHA1?.trim()) {
+    log(level: 'INFO', text: "githubCheckNotify: ${params.GITHUB_CHECK_NAME}=${status} for elastic/${params.GITHUB_CHECK_REPO}.git@${params.GITHUB_CHECK_SHA1}")
     githubNotify context: "${params.GITHUB_CHECK_NAME}",
                  description: "${params.GITHUB_CHECK_NAME} ${status.toLowerCase()}",
                  status: "${status}",
                  targetUrl: "${env.RUN_DISPLAY_URL}",
                  sha: params.GITHUB_CHECK_SHA1, account: 'elastic', repo: params.GITHUB_CHECK_REPO, credentialsId: env.JOB_GIT_CREDENTIALS
+  } else {
+    log(level: 'INFO', text: 'githubCheckNotify: is not enabled.')
   }
 }
