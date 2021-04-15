@@ -935,7 +935,7 @@ class ElasticAgentServiceTest(ServiceTest):
                                  'KIBANA_HOST': 'http://admin:changeme@kibana:5601',
                                  'KIBANA_PASSWORD': 'changeme',
                                  'KIBANA_USERNAME': 'admin'},
-                 "healthcheck": {"test": ["CMD", "elastic-agent", "version"]},
+                 "healthcheck": {"test": ["CMD", "/bin/true"]},
                  "image": "docker.elastic.co/beats/elastic-agent:7.12.345-SNAPSHOT",
                  "labels": ["co.elastic.apm.stack-version=7.12.345"],
                  "logging": {"driver": "json-file",
