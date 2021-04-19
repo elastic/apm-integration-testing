@@ -30,9 +30,8 @@ class ApmServer(StackService, Service):
 
         # run apm-server managed by elastic-agent
         if self.options.get("apm_server_managed"):
-            if not self.at_least_version("7.11"):
+            if self.version_lower_than("7.11"):
                 raise Exception("APM Server managed by Elastic Agent is only available in 7.11+")
-
             self.managed = True
             self.apm_server_command_args = []
 
@@ -45,6 +44,9 @@ class ApmServer(StackService, Service):
 
             self.managed_environment = {"KIBANA_HOST": kibana_url,
                                         "APM_SERVER_SECRET_TOKEN": self.options.get("apm_server_secret_token", "")}
+
+            if self.at_least_version("7.13"):
+                self.managed_environment["FLEET_SERVER_ENABLE"] = "1"
 
             url = package_registry_url(options)
             if url:
@@ -1087,7 +1089,7 @@ class Kibana(StackService, Service):
             if self.at_least_version("7.7"):
                 self.environment["XPACK_SECURITY_ENCRYPTIONKEY"] = "fhjskloppd678ehkdfdlliverpoolfcr"
                 self.environment["XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY"] = "fhjskloppd678ehkdfdlliverpoolfcr"
-            if self.at_least_version("7.8"):
+            if self.at_least_version("7.8") and self.version_lower_than("7.13"):
                 self.environment["XPACK_FLEET_AGENTS_ELASTICSEARCH_HOST"] = urls[0]
                 self.environment["XPACK_FLEET_AGENTS_KIBANA_HOST"] = "{}://kibana:{}".format(
                     "https" if self.kibana_tls else "http", self.SERVICE_PORT)
@@ -1111,7 +1113,7 @@ class Kibana(StackService, Service):
                 self.environment["SERVER_SSL_CERTIFICATE"] = certs
                 self.environment["SERVER_SSL_KEY"] = certsKey
                 self.environment["ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES"] = caCerts
-            else:
+            elif self.version_lower_than("7.13"):
                 if self.at_least_version("7.10"):
                     self.environment["XPACK_FLEET_AGENTS_TLSCHECKDISABLED"] = "true"
                 elif self.at_least_version("7.9"):
