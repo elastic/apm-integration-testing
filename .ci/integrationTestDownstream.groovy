@@ -238,3 +238,7 @@ def wrappingup(label){
     archiveArtifacts(artifacts: 'docs.txt')
   }
 }
+
+def normalise(label) {
+  return label?.replace(';','/').replace('--','_').replace('.','_').replace(' ','_')
+}
