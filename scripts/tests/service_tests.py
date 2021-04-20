@@ -913,15 +913,6 @@ class ElasticAgentServiceTest(ServiceTest):
         self.assertEqual(
             ea, {"container_name": "localtesting_7.12.345_elastic-agent",
                  "depends_on": {"kibana": {"condition": "service_healthy"}},
-<<<<<<< HEAD
-                 "environment": {"FLEET_ENROLL": "1",
-                                 "FLEET_ENROLL_INSECURE": 1,
-                                 "FLEET_SETUP": "1",
-                                 "KIBANA_HOST": "http://admin:changeme@kibana:5601",
-                                 "KIBANA_PASSWORD": "changeme",
-                                 "KIBANA_USERNAME": "admin"},
-                 "healthcheck": {"test": ["CMD", "/bin/true"]},
-=======
                  'environment': {'ELASTICSEARCH_HOST': 'http://admin:changeme@elasticsearch:9200',
                                  'ELASTICSEARCH_PASSWORD': 'changeme',
                                  'ELASTICSEARCH_USERNAME': 'admin',
@@ -937,7 +928,6 @@ class ElasticAgentServiceTest(ServiceTest):
                                  'KIBANA_PASSWORD': 'changeme',
                                  'KIBANA_USERNAME': 'admin'},
                  "healthcheck": {"test": ["CMD", "elastic-agent", "version"]},
->>>>>>> 0f72d15... fix: elastic-agent ensure 7.12 backwards compatibility (#1090)
                  "image": "docker.elastic.co/beats/elastic-agent:7.12.345-SNAPSHOT",
                  "labels": ["co.elastic.apm.stack-version=7.12.345"],
                  "logging": {"driver": "json-file",
