@@ -103,11 +103,7 @@ func fetchDefaultPolicy(client *kibanaClient) (agentPolicy, error) {
 	}
 	kuery := fmt.Sprintf("kuery=ingest-agent-policies.is_default%s:true", fleetServer)
 	for ct := 0; ct < 20; ct++ {
-<<<<<<< HEAD
-		agentPolicies, err := client.getAgentPolicies("kuery=ingest-agent-policies.is_default:true")
-=======
 		agentPolicies, err := client.getAgentPolicies(kuery)
->>>>>>> 0f72d15... fix: elastic-agent ensure 7.12 backwards compatibility (#1090)
 		if err != nil {
 			return agentPolicy{}, err
 		}
