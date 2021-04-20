@@ -7,7 +7,7 @@
     "download-sample-docs": "./scripts/download-sample-docs.ts"
   },
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "prettier": "^1.16.4",
     "ts-node": "^8.0.2",
     "typescript": "3.7.4"
