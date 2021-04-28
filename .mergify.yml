@@ -15,9 +15,12 @@ pull_request_rules:
             ```
   - name: backport patches to 7.x branch
     conditions:
+      - merged
       - base=master
       - label=backport
     actions:
       backport:
+        assignees:
+          - "{{ author }}"
         branches:
           - "7.x"
