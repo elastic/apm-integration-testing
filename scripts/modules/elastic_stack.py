@@ -923,7 +923,10 @@ class Elasticsearch(StackService, Service):
         class storeDict(argparse.Action):
             def __call__(self, parser, namespace, value, option_string=None):
                 items = getattr(namespace, self.dest)
-                items.update(dict([value.split("=", 1)]))
+                if '=' in value:
+                    items.update({value.lstrip('-'): ''})
+                else:
+                    items.update(dict([value.split("=", 1)]))
 
         # this is a dict to enable deduplication
         # eg --elasticsearch-java-opts a==z --elasticsearch-java-opts a==b will add only -a=b to ES_JAVA_OPTS
