@@ -79,28 +79,28 @@ pipeline {
 
 def provisionEnvironment(){
   log(level: "INFO", text: "Provision ${TEST_ENVIRONMENT} - ${ELASTIC_STACK_VERSION}")
-  deleteDir()
-  unstash 'source'
-  dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
-  dir("${EC_DIR}/ansible"){
-    withTestEnv(){
-      sh(label: "Deploy Cluster", script: "make create-cluster")
-      sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}.html")
-      archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
-    }
-  }
-  stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: "secrets-${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}"
+  // deleteDir()
+  // unstash 'source'
+  // dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
+  // dir("${EC_DIR}/ansible"){
+  //   withTestEnv(){
+  //     sh(label: "Deploy Cluster", script: "make create-cluster")
+  //     sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}.html")
+  //     archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
+  //   }
+  // }
+  // stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: "secrets-${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}"
 }
 
 def runITs(){
   agentMapping.mapAgentsIDs.each { name, agentId ->
     log(level: "INFO", text: "Test ${TEST_ENVIRONMENT} - ${ELASTIC_STACK_VERSION} - ${name}")
-    try {
-      runTest(agentId)
-    } finally {
-      destroyClusters()
-      grabResultsAndLogs("${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}-${name}")
-    }
+    // try {
+    //   runTest(agentId)
+    // } finally {
+    //   destroyClusters()
+    //   grabResultsAndLogs("${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}-${name}")
+    // }
   }
 }
 
