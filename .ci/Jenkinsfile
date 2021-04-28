@@ -16,6 +16,7 @@ pipeline {
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     PIPELINE_LOG_LEVEL='INFO'
     GIT_REFERENCE_REPO = '/var/lib/jenkins/.git-references/apm-integration-testing.git'
+    ELASTIC_STACK_VERSION = "${ params?.ELASTIC_STACK_VERSION?.trim() ? params.ELASTIC_STACK_VERSION.trim() : stackVersions.edge() }"
   }
   triggers {
     cron(env.CHANGE_ID?.trim() ? '' : 'H H(3-4) * * 1-5')
@@ -31,7 +32,7 @@ pipeline {
     quietPeriod(10)
   }
   parameters {
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "8.0.0", description: "Elastic Stack Git branch/tag to use")
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Additional build options to pass to compose.py")
     string(name: 'SLACK_CHANNEL', defaultValue: 'observablt-bots', description: 'The Slack channel where errors will be posted')
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
