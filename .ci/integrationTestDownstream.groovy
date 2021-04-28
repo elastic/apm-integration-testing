@@ -20,6 +20,7 @@ pipeline {
     JOB_GIT_CREDENTIALS = "f6c7695a-671e-4f4f-a331-acdce44ff9ba"
     PIPELINE_LOG_LEVEL = 'INFO'
     DISABLE_BUILD_PARALLEL = "${params.DISABLE_BUILD_PARALLEL}"
+    ELASTIC_STACK_VERSION = "${ params?.ELASTIC_STACK_VERSION?.trim() ? params.ELASTIC_STACK_VERSION.trim() : stackVersions.release() }"
   }
   options {
     timeout(time: 3, unit: 'HOURS')
@@ -31,7 +32,7 @@ pipeline {
   }
   parameters {
     choice(name: 'INTEGRATION_TEST', choices: ['.NET', 'Go', 'Java', 'Node.js', 'Python', 'Ruby', 'RUM', 'UI', 'All'], description: 'Name of the Tests or APM Agent you want to run the integration tests.')
-    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "7.10", description: "Elastic Stack Git branch/tag to use")
+    string(name: 'ELASTIC_STACK_VERSION', defaultValue: "", description: "Elastic Stack Git branch/tag to use")
     string(name: 'INTEGRATION_TESTING_VERSION', defaultValue: "7.x", description: "Integration testing Git branch/tag to use")
     string(name: 'MERGE_TARGET', defaultValue: "7.x", description: "Integration testing Git branch/tag where to merge this code")
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
