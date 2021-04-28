@@ -79,28 +79,28 @@ pipeline {
 
 def provisionEnvironment(){
   log(level: "INFO", text: "Provision ${TEST_ENVIRONMENT} - ${ELASTIC_STACK_VERSION}")
-  // deleteDir()
-  // unstash 'source'
-  // dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
-  // dir("${EC_DIR}/ansible"){
-  //   withTestEnv(){
-  //     sh(label: "Deploy Cluster", script: "make create-cluster")
-  //     sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}.html")
-  //     archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
-  //   }
-  // }
-  // stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: "secrets-${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}"
+  deleteDir()
+  unstash 'source'
+  dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
+  dir("${EC_DIR}/ansible"){
+    withTestEnv(){
+      sh(label: "Deploy Cluster", script: "make create-cluster")
+      sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}.html")
+      archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
+    }
+  }
+  stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: "secrets-${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}"
 }
 
 def runITs(){
   agentMapping.mapAgentsIDs.each { name, agentId ->
     log(level: "INFO", text: "Test ${TEST_ENVIRONMENT} - ${ELASTIC_STACK_VERSION} - ${name}")
-    // try {
-    //   runTest(agentId)
-    // } finally {
-    //   destroyClusters()
-    //   grabResultsAndLogs("${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}-${name}")
-    // }
+    try {
+      runTest(agentId)
+    } finally {
+      destroyClusters()
+      grabResultsAndLogs("${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}-${name}")
+    }
   }
 }
 
@@ -153,9 +153,9 @@ def withConfigEnv(Closure body) {
   def esJson = getVaultSecret(secret: "${config.k8s_vault_elasticsearch_def_secret}")?.data.value
   def apmJson = getVaultSecret(secret: "${config.k8s_vault_apm_def_secret}")?.data.value
   def kbJson = getVaultSecret(secret: "${config.k8s_vault_kibana_def_secret}")?.data.value
-  def es = readJSON(text: esJson)
-  def apm = readJSON(text: apmJson)
-  def kb = readJSON(text: kbJson)
+  def es = toJSON(text: esJson)
+  def apm = toJSON(text: apmJson)
+  def kb = toJSON(text: kbJson)
 
   withEnvMask(vars: [
     [var: 'APM_SERVER_URL', password: apm.url],
@@ -171,18 +171,16 @@ def withConfigEnv(Closure body) {
 }
 
 def grabResultsAndLogs(label){
-  withConfigEnv(){
-    dir("${BASE_DIR}"){
-      sh('make stop-env || echo 0')
-      archiveArtifacts(
-          allowEmptyArchive: true,
-          artifacts: 'tests/results/*.json',
-          defaultExcludes: false)
-      junit(
-        allowEmptyResults: true,
-        keepLongStdio: true,
-        testResults: "tests/results/*-junit*.xml")
-    }
+  dir("${BASE_DIR}"){
+    sh('make stop-env || echo 0')
+    archiveArtifacts(
+        allowEmptyArchive: true,
+        artifacts: 'tests/results/*.json',
+        defaultExcludes: false)
+    junit(
+      allowEmptyResults: true,
+      keepLongStdio: true,
+      testResults: "tests/results/*-junit*.xml")
   }
 }
 
