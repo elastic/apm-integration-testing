@@ -261,3 +261,19 @@ make test-agent-python
 Testing unrelease code for other agents follows a simliar pattern.
 
 See `version*` in https://github.com/elastic/apm-integration-testing/tree/master/scripts/ci for details on how CI tests specific agent/elastic stack version combinations.
+
+### Testing docker images
+
+Tests are written using [bats](https://github.com/sstephenson/bats) under the docker/tests dir
+
+    make -C docker test-<app>
+    make -C docker test-opbeans-<agent>
+    make -C docker test-<agent>
+
+Test all the docker images for the Opbeans
+
+    make -C docker all-opbeans-tests
+
+Test all the docker images for the agents
+
+    make -C docker all-agents-tests
