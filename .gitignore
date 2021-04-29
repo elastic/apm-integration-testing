@@ -20,7 +20,18 @@ node_modules
 **/.vscode/settings.json
 **/obj
 **/bin
+docker-info/
+.vscode/
+*.swp
+*.bck
 
 # For the BATS testing
 bats-core/
 target/
+.tags*
+
+# For the docs generation
+.apm-its
+
+# For the cache java dependencies
+docker/java/spring/.m2
