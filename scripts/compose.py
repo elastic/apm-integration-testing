@@ -935,7 +935,7 @@ class AgentNodejsExpress(Service):
         return dict(
             build={"context": "docker/nodejs/express", "dockerfile": "Dockerfile"},
             command="bash -c \"npm install {} && node app.js\"".format(
-                self.agent_package, self.SERVICE_PORT),
+                self.agent_package),
             container_name="expressapp",
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "expressapp"),
             image=None,
@@ -2216,7 +2216,7 @@ class LocalSetup(object):
             '-F service_name="{service_name}" '
             '-F service_version="{service_version}" '
             '-F bundle_filepath="{bundle_path}" '
-            '-F sourcemap=@/tmp/sourcemap '
+            '-F sourcemap=@{sourcemap_file} '
             '{auth_header}'
             '{server_url}/v1/client-side/sourcemaps'
         ).format(
