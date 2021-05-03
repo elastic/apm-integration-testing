@@ -15,7 +15,6 @@ pipeline {
     REUSE_CONTAINERS = "true"
     LANG = "C.UTF-8"
     LC_ALL = "C.UTF-8"
-    CRYPTOGRAPHY_DONT_BUILD_RUST = "1"
   }
   triggers {
     cron 'H H(5-7) * * 1-5'
@@ -86,7 +85,11 @@ def provisionEnvironment(){
   dir("${EC_DIR}/ansible"){
     withTestEnv(){
       sh 'export'
-      sh(label: "Deploy Cluster", script: "make create-cluster")
+      sh(label: "Deploy Cluster", script: """
+        source ${VENV}/bin/activate
+        python -m pip install -U pip
+        make create-cluster
+      """)
       sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}.html")
       archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
     }
