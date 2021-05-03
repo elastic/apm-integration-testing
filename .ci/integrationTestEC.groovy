@@ -84,6 +84,7 @@ def provisionEnvironment(){
   dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
   dir("${EC_DIR}/ansible"){
     withTestEnv(){
+      sh 'export'
       sh(label: "Deploy Cluster", script: "make create-cluster")
       sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}.html")
       archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
@@ -108,6 +109,7 @@ def runTest(test){
   deleteDir()
   unstash 'source'
   withConfigEnv(){
+    sh 'export'
     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
       filebeat(output: "docker-${TEST_ENVIRONMENT}-${ELASTIC_STACK_VERSION}-${test}.log", archiveOnlyOnFail: true){
         dir("${BASE_DIR}"){
