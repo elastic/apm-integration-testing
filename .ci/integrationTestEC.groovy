@@ -86,6 +86,7 @@ def provisionEnvironment(){
     withTestEnv(){
       sh 'export'
       sh(label: "Deploy Cluster", script: """
+        virtualenv -q --python=python3 ${VENV}
         source ${VENV}/bin/activate
         python -m pip install -U pip
         make create-cluster
