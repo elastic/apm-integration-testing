@@ -15,6 +15,7 @@ pipeline {
     REUSE_CONTAINERS = "true"
     LANG = "C.UTF-8"
     LC_ALL = "C.UTF-8"
+    CRYPTOGRAPHY_DONT_BUILD_RUST = "1"
   }
   triggers {
     cron 'H H(5-7) * * 1-5'
