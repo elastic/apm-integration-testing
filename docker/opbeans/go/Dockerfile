@@ -2,7 +2,7 @@
 #
 # GO_AGENT_REPO and GO_AGENT_BRANCH parameterise the Go agent
 # repo and branch (or commit) to use.
-FROM golang:stretch
+FROM golang:1.15
 ENV GO111MODULE=on
 ARG OPBEANS_GO_REPO=elastic/opbeans-go
 ARG OPBEANS_GO_BRANCH=master
