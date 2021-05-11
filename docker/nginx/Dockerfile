@@ -15,7 +15,7 @@ RUN git clone --shallow-submodules --depth 1 --recurse-submodules -b v1.35.0 htt
   && make -j2 \
   && make install
 
-RUN git clone --shallow-submodules --depth 1 --recurse-submodules \
+RUN git clone --shallow-submodules --depth 1 -b "v0.4.0" --recurse-submodules \
   https://github.com/open-telemetry/opentelemetry-cpp.git \
   && cd opentelemetry-cpp \
   && mkdir build \
@@ -24,7 +24,7 @@ RUN git clone --shallow-submodules --depth 1 --recurse-submodules \
   && make -j2 \
   && make install
 
-RUN git clone --depth 1 https://github.com/open-telemetry/opentelemetry-cpp-contrib.git \
+RUN git clone --depth 1 -b "v0.1.0" https://github.com/open-telemetry/opentelemetry-cpp-contrib.git \
   && mkdir -p opentelemetry-cpp-contrib/instrumentation/nginx/build \
   && cd opentelemetry-cpp-contrib/instrumentation/nginx/build \
   && cmake -DCMAKE_INSTALL_PREFIX=/usr/share/nginx/modules .. \
