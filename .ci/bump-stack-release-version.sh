@@ -48,7 +48,12 @@ else
 	fi
 fi
 
-git add ${CLI_FILE} ${APM_SERVER_FILE}
+SCRIPT_COMMON=.ci/scripts/common.sh
+echo "Update stack with versions ${RELEASE_VERSION} in ${SCRIPT_COMMON}"
+# Update patch.
+${SED} -E -e 's#^(ELASTIC_STACK_VERSION=\$\{ELASTIC_STACK_VERSION:-)(.*)\}#\1'"'${RELEASE_VERSION}'"'\}#g' "${SCRIPT_COMMON}"
+
+git add "${CLI_FILE}" "${APM_SERVER_FILE}" "${SCRIPT_COMMON}"
 git diff --staged --quiet || git commit -m "[Automation] Update elastic stack release version to ${RELEASE_VERSION}"
 git --no-pager log -1
 

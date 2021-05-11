@@ -32,7 +32,11 @@ if [ -z "${DISABLE_BUILD_PARALLEL}" ] || [ "${DISABLE_BUILD_PARALLEL}" = "false"
  BUILD_OPTS="${BUILD_OPTS} --build-parallel"
 fi
 
+<<<<<<< HEAD
 ELASTIC_STACK_VERSION=${ELASTIC_STACK_VERSION:-'7.10'}
+=======
+ELASTIC_STACK_VERSION=${ELASTIC_STACK_VERSION:-'7.12.2'}
+>>>>>>> b5ae4e8... feat: update the common.sh script with the current stack version (#1141)
 
 echo "ELASTIC_STACK_VERSION=${ELASTIC_STACK_VERSION}"
 echo "APM_SERVER_BRANCH_VERSION=${APM_SERVER_BRANCH_VERSION}"
