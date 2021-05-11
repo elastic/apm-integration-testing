@@ -230,7 +230,7 @@ and using the version name `test-demo`
 APM_SERVER_URL=https://apm.example.com \
 APM_TOKEN=MySuPerApMToKen \
 python3 ./scripts/compose.py start 8.0.0 \
-  --no-kibana
+  --no-kibana \
   --no-elasticsearch \
   --dyno  \
   --apm-server-url "${APM_SERVER_URL}" \
