@@ -317,6 +317,8 @@ docker run --rm -it --network apm-integration-testing \
 -p8080-8083:8080-8083 jaegertracing/example-hotrod:latest all
 ```
 
+Finally, navigate to http://localhost:8080/ and click around to generate data.
+
 #### HTTP/Thrift (deprecated)
 
 To test HTTP/Thrift with a Jaeger microservice demo, run separately:
