@@ -291,24 +291,39 @@ Omit `--skip-download` to just download images.
 
 ### Jaeger
 
-APM Server can work as a drop-in replacement for a Jaeger collector, and ingest traces directly from a Jaeger client via
-HTTP/Thrift or from a Jaeger agent via gRPC.
+APM Server can work as a drop-in replacement for a Jaeger collector and ingest traces directly from a Jaeger agent via gRPC,
+or from a Jaeger client via HTTP/Thrift (deprecated).
 
-#### HTTP/Thrift
+#### gRPC
+
+To test gRPC, start apm-integration-testing, run the Jaeger Agent, and start the Jaeger hotrod demo:
+
+```
+./scripts/compose.py start 7.13 \
+--apm-server-secret-token="abc123"
+```
+
+```
+docker run --rm -it --name jaeger-agent --network apm-integration-testing -p6831:6831/udp \
+-e REPORTER_GRPC_HOST_PORT=apm-server:8200 \
+-e AGENT_TAGS="elastic-apm-auth=Bearer abc123" \
+jaegertracing/jaeger-agent:latest
+```
+
+```
+docker run --rm -it --network apm-integration-testing \
+-e JAEGER_AGENT_HOST=jaeger-agent \
+-e JAEGER_AGENT_PORT=6831 \
+-p8080-8083:8080-8083 jaegertracing/example-hotrod:latest all
+```
+
+Finally, navigate to http://localhost:8080/ and click around to generate data.
+
+#### HTTP/Thrift (deprecated)
 
 To test HTTP/Thrift with a Jaeger microservice demo, run separately:
 
     docker run --rm -it -p8080-8083:8080-8083 -e JAEGER_ENDPOINT=http://apm-server:14268/api/traces  --network apm-integration-testing  jaegertracing/example-hotrod:latest  all
-
-#### gRPC
-
-To test gRPC, run the Jaeger Agent separately:
-
-    docker run --rm -it --name jaeger-agent --network apm-integration-testing -p6831:6831/udp -p5778:5778 -e REPORTER_GRPC_HOST_PORT=apm-server:14250 jaegertracing/jaeger-agent:latest
-
-And the Jaeger hotrod demo:
-
-    docker run --rm -it --network apm-integration-testing -e JAEGER_AGENT_HOST=jaeger-agent -e JAEGER_AGENT_PORT=6831 -p8080-8083:8080-8083 jaegertracing/example-hotrod:latest all
 
 ## Running Tests
 
