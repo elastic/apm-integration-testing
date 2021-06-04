@@ -36,3 +36,10 @@ target/
 
 # For the cache java dependencies
 docker/java/spring/.m2
+
+# Terraform configuration state files
+.terraform
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.tfstate.lock.info

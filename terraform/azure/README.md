@@ -9,6 +9,18 @@ more detailed documentation, please consult the [Terraform documentation.](https
 
 [Download and install Terraform to get started.](https://www.terraform.io/downloads.html)
 
+----
+
+**IMPORTANT**
+
+By default, [Terraform stores state](https://www.terraform.io/docs/language/state/index.html) about 
+the infrastructure and configuration in a local file named `terraform.tfstate`. This file will be
+created in the directory from which terraform is run and can contain sensitive information about
+the deployed resources such as keys and connection strings. It's important that state files are never checked
+in.
+
+----
+
 ## Authenticating to Azure
 
 The Terraform `azurerm` provider requires 
