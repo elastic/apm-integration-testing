@@ -48,7 +48,11 @@ func setupManagedAPM() error {
 	fmt.Println("apm package fetched")
 
 	// define expected APM package policy
-	expectedAPMPackagePolicy := apmPackagePolicy(policy.ID, apmPkg)
+	expectedAPMPackagePolicy, err := apmPackagePolicy(policy.ID, apmPkg)
+	if err != nil {
+		return err
+	}
+	fmt.Println("apm package policy defined")
 
 	// fetch apm package installed to default policy and verify if it is aligned with
 	// expected setup
@@ -132,8 +136,8 @@ func fetchDefaultPolicy(client *kibanaClient) (agentPolicy, error) {
 }
 
 // apmPackagePolicy defines the expected APM package policy
-func apmPackagePolicy(policyID string, pkg *eprPackage) packagePolicy {
-	return packagePolicy{
+func apmPackagePolicy(policyID string, pkg *eprPackage) (packagePolicy, error) {
+	p := packagePolicy{
 		Name:          "apm-integration-testing",
 		Namespace:     "default",
 		Enabled:       true,
@@ -143,25 +147,33 @@ func apmPackagePolicy(policyID string, pkg *eprPackage) packagePolicy {
 			Version: pkg.Version,
 			Title:   pkg.Title,
 		},
-		Inputs: []packagePolicyInput{{
-			Type:    "apm",
-			Enabled: true,
-			Streams: []interface{}{},
-			Vars: map[string]map[string]interface{}{
-				"enable_rum": map[string]interface{}{
-					"type":  "bool",
-					"value": true,
-				},
-				"host": map[string]interface{}{
-					"type":  "string",
-					"value": "0.0.0.0:8200",
-				},
-				"secret_token": map[string]interface{}{
-					"type":  "string",
-					"value": os.Getenv("APM_SERVER_SECRET_TOKEN"),
-				},
-			},
-		}}}
+	}
+
+	if len(pkg.PolicyTemplates) != 1 || len(pkg.PolicyTemplates[0].Inputs) != 1 {
+		return p, fmt.Errorf("apm package policy input missing: %+v", pkg)
+	}
+	input := pkg.PolicyTemplates[0].Inputs[0]
+	vars := make(map[string]map[string]interface{})
+	for _, inputVar := range input.Vars {
+		varMap := map[string]interface{}{"type": inputVar.Type}
+		switch inputVar.Name {
+		case "host":
+			varMap["value"] = "0.0.0.0:8200"
+		case "enable_rum":
+			varMap["value"] = true
+		case "secret_token":
+			varMap["value"] = os.Getenv("APM_SERVER_SECRET_TOKEN")
+
+		}
+		vars[inputVar.Name] = varMap
+	}
+	p.Inputs = append(p.Inputs, packagePolicyInput{
+		Type:    input.Type,
+		Enabled: true,
+		Streams: []interface{}{},
+		Vars:    vars,
+	})
+	return p, nil
 }
 
 type kibanaClient struct {
@@ -278,6 +290,19 @@ type agentPolicy struct {
 	ID string `json:"id"`
 }
 
+type eprPackage struct {
+	Name            string                  `json:"name"`
+	Version         string                  `json:"version"`
+	Release         string                  `json:"release"`
+	Type            string                  `json:"type"`
+	Title           string                  `json:"title"`
+	Description     string                  `json:"description"`
+	Download        string                  `json:"download"`
+	Path            string                  `json:"path"`
+	Status          string                  `json:"status"`
+	PolicyTemplates []packagePolicyTemplate `json:"policy_templates"`
+}
+
 // packagePolicy holds details of a Fleet Package Policy.
 type packagePolicy struct {
 	ID            string               `json:"id,omitempty"`
@@ -303,10 +328,21 @@ type packagePolicyInput struct {
 	Vars    map[string]map[string]interface{} `json:"vars,omitempty"`
 }
 
-type eprPackage struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	Title   string `json:"title"`
+type packagePolicyTemplate struct {
+	Inputs []packagePolicyTemplateInput `json:"inputs"`
+}
+
+type packagePolicyTemplateInput struct {
+	Type         string                          `json:"type"`
+	Title        string                          `json:"title"`
+	TemplatePath string                          `json:"template_path"`
+	Description  string                          `json:"description"`
+	Vars         []packagePolicyTemplateInputVar `json:"vars"`
+}
+
+type packagePolicyTemplateInputVar struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
 }
 
 type eprPackageResponse struct {
