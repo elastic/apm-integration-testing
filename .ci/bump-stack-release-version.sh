@@ -59,7 +59,7 @@ git add "${SCRIPT_COMMON}"
 ## Update EC and ECK pipelines accordingly
 for FILE in ".ci/integrationTestEC.groovy" ".ci/integrationTestECK.groovy" ; do
   echo "Update stack with versions ${RELEASE_VERSION} in ${FILE}"
-  ${SED} -E -e "s#(values '7.x',) '[0-9]+\.[0-9]+\.[0-9]+'#\1 '${RELEASE_VERSION}'#g" "${FILE}"
+  ${SED} -E -e "s#('7.x',) '[0-9]+\.[0-9]+\.[0-9]+'#\1 '${RELEASE_VERSION}'#g" "${FILE}"
   git add "${FILE}"
 done
 
