@@ -55,14 +55,17 @@ pipeline {
         agent { label 'linux && immutable' }
         axes {
           axis {
-              name 'ELASTIC_STACK_VERSION'
-              values '8.0.0-SNAPSHOT', '7.12.1-SNAPSHOT', '7.12.0'
+            name 'STACK_VERSION'
+            // The below line is part of the bump release automation
+            // if you change anything please modifies the file
+            // .ci/bump-stack-release-version.sh
+            values '8.0.0-SNAPSHOT', '7.x', '7.13.2'
           }
         }
         stages {
           stage('Prepare Test'){
             steps {
-              log(level: "INFO", text: "Running tests - ${ELASTIC_STACK_VERSION}")
+              log(level: "INFO", text: "Running tests - ${getElasticStackVersion()}")
               deleteDir()
               unstash 'source'
             }
@@ -78,11 +81,11 @@ pipeline {
                   dir("${EC_DIR}/ansible"){
                     withTestEnv(){
                       sh(label: "Deploy Cluster", script: "make create-cluster")
-                      sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${ELASTIC_STACK_VERSION}.html")
+                      sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${getElasticStackVersion()}.html")
                       archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
                     }
                   }
-                  stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: "secrets-${ELASTIC_STACK_VERSION}"
+                  stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: "secrets-${getElasticStackVersion()}"
                 }
               }
               stage("Test Go") {
@@ -91,7 +94,7 @@ pipeline {
                 }
                 post {
                   cleanup {
-                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-go")
+                    grabResultsAndLogs("${getElasticStackVersion()}-go")
                   }
                 }
               }
@@ -101,7 +104,7 @@ pipeline {
                 }
                 post {
                   cleanup {
-                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-dotnet")
+                    grabResultsAndLogs("${getElasticStackVersion()}-dotnet")
                   }
                 }
               }
@@ -111,7 +114,7 @@ pipeline {
                 }
                 post {
                   cleanup {
-                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-java")
+                    grabResultsAndLogs("${getElasticStackVersion()}-java")
                   }
                 }
               }
@@ -121,7 +124,7 @@ pipeline {
                 }
                 post {
                   cleanup {
-                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-nodejs")
+                    grabResultsAndLogs("${getElasticStackVersion()}-nodejs")
                   }
                 }
               }
@@ -131,7 +134,7 @@ pipeline {
                 }
                 post {
                   cleanup {
-                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-php")
+                    grabResultsAndLogs("${getElasticStackVersion()}-php")
                   }
                 }
               }
@@ -141,7 +144,7 @@ pipeline {
                 }
                 post {
                   cleanup {
-                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-python")
+                    grabResultsAndLogs("${getElasticStackVersion()}-python")
                   }
                 }
               }
@@ -151,7 +154,7 @@ pipeline {
                 }
                 post {
                   cleanup {
-                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-ruby")
+                    grabResultsAndLogs("${getElasticStackVersion()}-ruby")
                   }
                 }
               }
@@ -161,7 +164,7 @@ pipeline {
                 }
                 post {
                   cleanup {
-                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-rum")
+                    grabResultsAndLogs("${getElasticStackVersion()}-rum")
                   }
                 }
               }
@@ -171,7 +174,7 @@ pipeline {
                 }
                 post {
                   cleanup {
-                    grabResultsAndLogs("${ELASTIC_STACK_VERSION}-all")
+                    grabResultsAndLogs("${getElasticStackVersion()}-all")
                   }
                 }
               }
@@ -197,11 +200,13 @@ pipeline {
 def runTest(test){
   deleteDir()
   unstash 'source'
-  withConfigEnv(){
-    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-      filebeat(output: "docker-${ELASTIC_STACK_VERSION}-${test}.log", archiveOnlyOnFail: true){
-        dir("${BASE_DIR}"){
-          sh ".ci/scripts/${test}.sh"
+  withElasticStackVersion(){
+    withConfigEnv(){
+      catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+        filebeat(output: "docker-${getElasticStackVersion()}-${test}.log", archiveOnlyOnFail: true){
+          dir("${BASE_DIR}"){
+            sh ".ci/scripts/${test}.sh"
+          }
         }
       }
     }
@@ -210,17 +215,19 @@ def runTest(test){
 
 def withTestEnv(Closure body){
   def ecWs ="${env.WORKSPACE}/${env.EC_DIR}"
-  withEnv([
-    "TMPDIR=${env.WORKSPACE}",
-    "HOME=${env.WORKSPACE}",
-    "CONFIG_HOME=${env.WORKSPACE}",
-    "VENV=${env.WORKSPACE}/.venv",
-    "PATH=${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.VENV}/bin:${ecWs}/bin:${ecWs}/.ci/scripts:${env.PATH}",
-    "CLUSTER_CONFIG_FILE=${ecWs}/tests/environments/elastic_cloud.yml",
-    "BUILD_NUMBER=${ params.destroy_mode ? params.build_num_to_destroy : env.BUILD_NUMBER}"
-  ]){
-    withVaultEnv(){
-      body()
+  withElasticStackVersion(){
+    withEnv([
+      "TMPDIR=${env.WORKSPACE}",
+      "HOME=${env.WORKSPACE}",
+      "CONFIG_HOME=${env.WORKSPACE}",
+      "VENV=${env.WORKSPACE}/.venv",
+      "PATH=${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.VENV}/bin:${ecWs}/bin:${ecWs}/.ci/scripts:${env.PATH}",
+      "CLUSTER_CONFIG_FILE=${ecWs}/tests/environments/elastic_cloud.yml",
+      "BUILD_NUMBER=${ params.destroy_mode ? params.build_num_to_destroy : env.BUILD_NUMBER}"
+    ]){
+      withVaultEnv(){
+        body()
+      }
     }
   }
 }
@@ -239,7 +246,7 @@ def withVaultEnv(Closure body){
 }
 
 def withConfigEnv(Closure body) {
-  unstash "secrets-${ELASTIC_STACK_VERSION}"
+  unstash "secrets-${getElasticStackVersion()}"
   def config = readYaml(file: "${EC_DIR}/ansible/build/config_secrets.yml")
   def esJson = getVaultSecret(secret: "${config.k8s_vault_elasticsearch_def_secret}")?.data.value
   def apmJson = getVaultSecret(secret: "${config.k8s_vault_apm_def_secret}")?.data.value
@@ -286,5 +293,15 @@ def destroyClusters(){
         }
       }
     }
+  }
+}
+
+def getElasticStackVersion() {
+  return (env.STACK_VERSION == '7.x') ? artifactsApi(action: '7.x-version') : env.STACK_VERSION
+}
+
+def withElasticStackVersion(Closure body) {
+  withEnv(["ELASTIC_STACK_VERSION=${getElasticStackVersion()}"]){
+    body()
   }
 }
