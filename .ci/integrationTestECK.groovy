@@ -216,11 +216,13 @@ pipeline {
 def runTest(test){
   deleteDir()
   unstash 'source'
-  withConfigEnv(){
-    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-      filebeat(output: "docker-${getElasticStackVersion()}-${test}.log", archiveOnlyOnFail: true){
-        dir("${BASE_DIR}"){
-          sh ".ci/scripts/${test}.sh"
+  withElasticStackVersion() {
+    withConfigEnv(){
+      catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+        filebeat(output: "docker-${getElasticStackVersion()}-${test}.log", archiveOnlyOnFail: true){
+          dir("${BASE_DIR}"){
+            sh ".ci/scripts/${test}.sh"
+          }
         }
       }
     }
@@ -229,17 +231,19 @@ def runTest(test){
 
 def withTestEnv(Closure body){
   def ecWs ="${env.WORKSPACE}/${env.EC_DIR}"
-  withEnv([
-    "TMPDIR =${env.WORKSPACE}",
-    "HOME=${env.WORKSPACE}",
-    "CONFIG_HOME=${env.WORKSPACE}",
-    "VENV=${env.WORKSPACE}/.venv",
-    "PATH=${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.VENV}/bin:${ecWs}/bin:${ecWs}/.ci/scripts:${env.PATH}",
-    "CLUSTER_CONFIG_FILE=${ecWs}/tests/environments/eck.yml",
-    "BUILD_NUMBER=${ params.destroy_mode ? params.build_num_to_destroy : env.BUILD_NUMBER}"
-  ]){
-    withVaultEnv(){
-      body()
+  withElasticStackVersion(){
+    withEnv([
+      "TMPDIR =${env.WORKSPACE}",
+      "HOME=${env.WORKSPACE}",
+      "CONFIG_HOME=${env.WORKSPACE}",
+      "VENV=${env.WORKSPACE}/.venv",
+      "PATH=${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.VENV}/bin:${ecWs}/bin:${ecWs}/.ci/scripts:${env.PATH}",
+      "CLUSTER_CONFIG_FILE=${ecWs}/tests/environments/eck.yml",
+      "BUILD_NUMBER=${ params.destroy_mode ? params.build_num_to_destroy : env.BUILD_NUMBER}"
+    ]){
+      withVaultEnv(){
+        body()
+      }
     }
   }
 }
@@ -314,4 +318,10 @@ def destroyClusters(){
 
 def getElasticStackVersion() {
   return (env.STACK_VERSION == '7.x') ? artifactsApi(action: '7.x-version') : env.STACK_VERSION
+}
+
+def withElasticStackVersion(Closure body) {
+  withEnv(["ELASTIC_STACK_VERSION=${getElasticStackVersion()}"]){
+    body()
+  }
 }
