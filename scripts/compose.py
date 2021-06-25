@@ -16,6 +16,7 @@ def main():
     setup = LocalSetup(sys.argv[1:])
     setup()
 
+
 def verify_if_docker_is_installed():
     try:
         subprocess.check_output(
@@ -23,6 +24,7 @@ def verify_if_docker_is_installed():
     except subprocess.CalledProcessError:
         print("Please start Docker before running the apm-integration-testing.")
         sys.exit(1)
+
 
 if __name__ == '__main__':
     verify_if_docker_is_installed()
