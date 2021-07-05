@@ -60,8 +60,6 @@ docker-compose stop <service name>
 
 ## Example environments
 
-<<<<<<< HEAD
-=======
 We have a list with the most common flags combination that we internally use when developing our APM solution. You can find the list here:
 
 |Persona | Flags | Motivation / Use Case | Team | Comments |
@@ -83,7 +81,6 @@ We have a list with the most common flags combination that we internally use whe
 | Developer | `./scripts/compose.py start --with-opbeans-python --with-opbeans-python01 --dyno master` | Spin up a scenario for testing load-generation.  | APM | The management interface will be available at http://localhost:9000 |
 
 
->>>>>>> 44af3b3 ([Feature] Dyno (#1028))
 ### Change default ports
 
 Expose Kibana on http://localhost:1234:

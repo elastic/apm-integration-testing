@@ -24,10 +24,7 @@ node_modules
 docker-info/
 .vscode/
 *.swp
-<<<<<<< HEAD
 *.bck
-=======
->>>>>>> 44af3b3 ([Feature] Dyno (#1028))
 
 # For the BATS testing
 bats-core/
