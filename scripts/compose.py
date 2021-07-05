@@ -19,7 +19,7 @@ def main():
 def verify_if_docker_is_installed():
     try:
         subprocess.check_call('docker ps')
-    except OSError as err:
+    except OSError:
         print("Please start Docker before running the apm-integration-testing.")
         sys.exit(1)
 
