@@ -104,8 +104,6 @@ SUBCOMMANDS = list-options load-dashboards start status stop upload-sourcemap ve
 test-helps:
 	$(foreach subcommand,$(SUBCOMMANDS), $(PYTHON) scripts/compose.py $(subcommand) --help > /tmp/file-output && echo "Passed $(subcommand)" || { echo "Failed $(subcommand). See output: " ; cat /tmp/file-output ; exit 1; };)
 
-test-all: venv test-compose lint test-helps ## Run all the tests
-	pytest -v -s $(JUNIT_OPT)/all-junit.xml
 test-all: venv test-compose lint  ## Run all the tests
 	pytest -v -s $(PYTEST_ARGS) $(JUNIT_OPT)/all-junit.xml
 
