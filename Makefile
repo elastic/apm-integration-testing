@@ -121,7 +121,7 @@ test-server: venv  ## Run server tests
 SUBCOMMANDS = list-options load-dashboards start status stop upload-sourcemap versions
 
 test-helps:
-	$(foreach subcommand,$(SUBCOMMANDS), $(PYTHON) scripts/compose.py $(subcommand) --help >/dev/null || exit 1;)
+	$(foreach subcommand,$(SUBCOMMANDS), $(PYTHON) scripts/compose.py $(subcommand) --help > /tmp/file-output && echo "Passed $(subcommand)" || { echo "Failed $(subcommand). See output: " ; cat /tmp/file-output ; exit 1; };)
 
 test-all: venv test-compose lint test-helps ## Run all the tests
 	source $(VENV)/bin/activate; \
