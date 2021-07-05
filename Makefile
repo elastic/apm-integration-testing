@@ -91,7 +91,7 @@ build-env-%: venv
 env-%: venv
 	$(MAKE) start-env
 
-test: test-all  ## Run all the tests
+test: test-all test-helps ## Run all the tests
 
 test-agent-%-version: venv
 	source $(VENV)/bin/activate; \
@@ -123,7 +123,7 @@ SUBCOMMANDS = list-options load-dashboards start status stop upload-sourcemap ve
 test-helps:
 	$(foreach subcommand,$(SUBCOMMANDS), $(PYTHON) scripts/compose.py $(subcommand) --help > /tmp/file-output && echo "Passed $(subcommand)" || { echo "Failed $(subcommand). See output: " ; cat /tmp/file-output ; exit 1; };)
 
-test-all: venv test-compose lint test-helps ## Run all the tests
+test-all: venv test-compose lint  ## Run all the tests
 	source $(VENV)/bin/activate; \
 	pytest -v -s $(PYTEST_ARGS) $(JUNIT_OPT)/all-junit.xml
 
@@ -165,5 +165,8 @@ dockerized-test: ## Run all the dockerized tests
 		--entrypoint make \
 		apm-integration-testing \
 		$(TARGET)
+
+	@echo running make test-helps outside a container
+	$(MAKE) test-helps
 
 .PHONY: test-% docker-test-% dockerized-test docker-compose-wait
