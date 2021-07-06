@@ -29,6 +29,8 @@ ELASTIC_APM_SECRET_TOKEN ?= SuPeRsEcReT
 
 PYTHONHTTPSVERIFY ?= 1
 
+PYTEST_ARGS ?=
+
 # Make sure we run local versions of everything, particularly commands
 # installed into our virtualenv with pip eg. `docker-compose`.
 export PATH := ./bin:$(VENV)/bin:$(PATH)
@@ -52,9 +54,10 @@ venv: requirements.txt ## Prepare the virtual environment
 	test -d $(VENV) || virtualenv -q --python=$(PYTHON) $(VENV);\
 	source $(VENV)/bin/activate || exit 1;\
 	pip install -q -r requirements.txt;\
-	touch $(VENV);\
+	touch $(VENV);
 
 lint: venv  ## Lint the project
+	source $(VENV)/bin/activate; \
 	flake8 --ignore=D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403,W504  tests/ scripts/compose.py scripts/modules
 
 .PHONY: create-x509-cert
@@ -64,10 +67,12 @@ create-x509-cert:  ## Create an x509 certificate for use with the test suite
 .PHONY: lint
 
 start-env: venv ## Start the test environment
+	source $(VENV)/bin/activate; \
 	$(PYTHON) scripts/compose.py start $(COMPOSE_ARGS)
 	docker-compose up -d
 
 stop-env: venv ## Stop the test environment
+	source $(VENV)/bin/activate; \
 	docker-compose down -v --remove-orphans || true
 
 destroy-env: venv ## Destroy the test environment
@@ -80,13 +85,16 @@ env-%: venv
 test: test-all test-helps ## Run all the tests
 
 test-agent-%-version: venv
-	pytest tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s -m version $(JUNIT_OPT)/agent-$*-version-junit.xml
+	source $(VENV)/bin/activate; \
+	pytest $(PYTEST_ARGS) tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s -m version $(JUNIT_OPT)/agent-$*-version-junit.xml
 
 test-agent-%: venv ## Test a specific agent. ex: make test-agent-java
-	pytest tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/agent-$*-junit.xml
+	source $(VENV)/bin/activate; \
+	pytest $(PYTEST_ARGS) tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/agent-$*-junit.xml
 
 test-compose: venv
-	pytest scripts/tests/*_tests.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/compose-junit.xml
+	source $(VENV)/bin/activate; \
+	pytest $(PYTEST_ARGS) scripts/tests/*_tests.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/compose-junit.xml
 
 test-compose-2:
 	virtualenv --python=python2.7 venv2
@@ -94,10 +102,12 @@ test-compose-2:
 	./venv2/bin/pytest --noconftest scripts/tests/*_tests.py
 
 test-kibana: venv ## Run the Kibana integration tests
-	pytest tests/kibana/test_integration.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/kibana-junit.xml
+	source $(VENV)/bin/activate; \
+	pytest $(PYTEST_ARGS) tests/kibana/test_integration.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/kibana-junit.xml
 
 test-server: venv  ## Run server tests
-	pytest tests/server/ --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/server-junit.xml
+	source $(VENV)/bin/activate; \
+	pytest $(PYTEST_ARGS) tests/server/ --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/server-junit.xml
 
 SUBCOMMANDS = list-options load-dashboards start status stop upload-sourcemap versions
 
@@ -105,7 +115,8 @@ test-helps:
 	$(foreach subcommand,$(SUBCOMMANDS), $(PYTHON) scripts/compose.py $(subcommand) --help > /tmp/file-output && echo "Passed $(subcommand)" || { echo "Failed $(subcommand). See output: " ; cat /tmp/file-output ; exit 1; };)
 
 test-all: venv test-compose lint  ## Run all the tests
-	pytest -v -s $(JUNIT_OPT)/all-junit.xml
+	source $(VENV)/bin/activate; \
+	pytest -v -s $(PYTEST_ARGS) $(JUNIT_OPT)/all-junit.xml
 
 docker-test-%: ## Run a specific dockerized test. Ex: make docker-test-java
 	TARGET=test-$* $(MAKE) dockerized-test
