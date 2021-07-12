@@ -741,7 +741,7 @@ class LocalTest(unittest.TestCase):
                 container_name: localtesting_6.2.10_elasticsearch
                 environment: [bootstrap.memory_lock=true, cluster.name=docker-cluster, cluster.routing.allocation.disk.threshold_enabled=false, discovery.type=single-node, path.repo=/usr/share/elasticsearch/data/backups, 'ES_JAVA_OPTS=-Xms1g -Xmx1g', path.data=/usr/share/elasticsearch/data/6.2.10, xpack.security.enabled=false, xpack.license.self_generated.type=trial]
                 healthcheck:
-                    interval: '20'
+                    interval: 20s
                     retries: 10
                     test: [CMD-SHELL, 'curl -s -k http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
                 image: docker.elastic.co/elasticsearch/elasticsearch-platinum:6.2.10-SNAPSHOT
@@ -839,7 +839,7 @@ class LocalTest(unittest.TestCase):
                 container_name: localtesting_6.3.10_elasticsearch
                 environment: [bootstrap.memory_lock=true, cluster.name=docker-cluster, cluster.routing.allocation.disk.threshold_enabled=false, discovery.type=single-node, path.repo=/usr/share/elasticsearch/data/backups, 'ES_JAVA_OPTS=-Xms1g -Xmx1g', path.data=/usr/share/elasticsearch/data/6.3.10, xpack.security.enabled=false, xpack.license.self_generated.type=trial, xpack.monitoring.collection.enabled=true]
                 healthcheck:
-                    interval: '20'
+                    interval: 20s
                     retries: 10
                     test: [CMD-SHELL, 'curl -s -k http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
                 image: docker.elastic.co/elasticsearch/elasticsearch:6.3.10-SNAPSHOT
@@ -978,7 +978,7 @@ class LocalTest(unittest.TestCase):
                     xpack.monitoring.collection.enabled=true
                 ]
                 healthcheck:
-                    interval: '20'
+                    interval: 20s
                     retries: 10
                     test: [CMD-SHELL, 'curl -s -k http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
                 image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0-SNAPSHOT

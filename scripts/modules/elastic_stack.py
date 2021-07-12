@@ -971,7 +971,7 @@ class Elasticsearch(StackService, Service):
         return dict(
             environment=self.environment,
             healthcheck={
-                "interval": "20",
+                "interval": "20s",
                 "retries": 10,
                 "test": ["CMD-SHELL", "curl -s -k {} | grep -vq '\"status\":\"red\"'".format(entrypoint)]
             },
