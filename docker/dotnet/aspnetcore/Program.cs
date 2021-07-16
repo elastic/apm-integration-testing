@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace TestAspNetCoreApp
 {
@@ -9,6 +10,11 @@ namespace TestAspNetCoreApp
 
 		public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
 			WebHost.CreateDefaultBuilder(args)
+				.ConfigureLogging(logger =>
+				{
+					logger.ClearProviders();
+					logger.AddConsole();
+				})
 				.UseStartup<Startup>();
 	}
 }
