@@ -1278,7 +1278,7 @@ class KibanaServiceTest(ServiceTest):
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://kibana:5601/api/status"]
                         interval: 10s
-                        retries: 20
+                        retries: 30
                     depends_on:
                         elasticsearch:
                           condition:
@@ -1310,7 +1310,7 @@ class KibanaServiceTest(ServiceTest):
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://kibana:5601/api/status"]
                         interval: 10s
-                        retries: 20
+                        retries: 30
                     depends_on:
                         elasticsearch:
                           condition:
