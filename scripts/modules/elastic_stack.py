@@ -86,7 +86,8 @@ class ApmServer(StackService, Service):
             ("setup.template.settings.index.refresh_interval",
                 "{}".format(self.options.get("apm_server_index_refresh_interval"))),
             ("monitoring.elasticsearch" if self.at_least_version("7.2") else "xpack.monitoring.elasticsearch", "true"),
-            ("monitoring.enabled" if self.at_least_version("7.2") else "xpack.monitoring.enabled", "true")
+            ("monitoring.enabled" if self.at_least_version("7.2") else "xpack.monitoring.enabled", "true"),
+            ("apm-server.rum.allow_headers", "[\"x-custom-header\"]")
         ])
         if options.get("apm_server_self_instrument", True):
             self.apm_server_command_args.append(("apm-server.instrumentation.enabled", "true"))

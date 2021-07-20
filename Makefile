@@ -92,7 +92,7 @@ test-agent-%: venv ## Test a specific agent. ex: make test-agent-java
 	source $(VENV)/bin/activate; \
 	pytest $(PYTEST_ARGS) tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/agent-$*-junit.xml
 
-test-compose: venv
+test-compose: venv ## Test compose.py
 	source $(VENV)/bin/activate; \
 	pytest $(PYTEST_ARGS) scripts/tests/*_tests.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/compose-junit.xml
 
