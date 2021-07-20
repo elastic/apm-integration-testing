@@ -728,7 +728,7 @@ class LocalTest(unittest.TestCase):
                 environment: {ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200', SERVER_HOST: 0.0.0.0, SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true'}
                 healthcheck:
                     interval: 10s
-                    retries: 20
+                    retries: 30
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', -k, --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
                 image: docker.elastic.co/kibana/kibana-x-pack:6.2.10-SNAPSHOT
                 labels: [co.elastic.apm.stack-version=6.2.10]
@@ -823,7 +823,7 @@ class LocalTest(unittest.TestCase):
                 environment: {ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200', SERVER_HOST: 0.0.0.0, SERVER_NAME: kibana.example.org, XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
                 healthcheck:
                     interval: 10s
-                    retries: 20
+                    retries: 30
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', -k, --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
                 image: docker.elastic.co/kibana/kibana:6.3.10-SNAPSHOT
                 labels: [co.elastic.apm.stack-version=6.3.10]
@@ -976,7 +976,7 @@ class LocalTest(unittest.TestCase):
                 }
                 healthcheck:
                     interval: 10s
-                    retries: 20
+                    retries: 30
                     test: [CMD, curl, --write-out, '''HTTP %{http_code}''', -k, --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
                 image: docker.elastic.co/kibana/kibana:8.0.0-SNAPSHOT
                 labels: [co.elastic.apm.stack-version=8.0.0]
