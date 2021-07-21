@@ -1216,7 +1216,6 @@ class Kibana(StackService, Service):
             content["working_dir"] = "/usr/share/kibana"
             content["command"] = "'{}'".format(self.options.get("kibana_src_start_cmd"))
             self.environment["NODE_OPTIONS"] = "--max-old-space-size=4096"
-            self.environment["FORCE_COLOR"] = "1"
             self.environment["BABEL_DISABLE_CACHE"] = "true"
             self.environment["HOME"] = "/usr/share/kibana"
             content["healthcheck"] = curl_healthcheck(
