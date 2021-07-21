@@ -1205,14 +1205,13 @@ class Kibana(StackService, Service):
             with open("{}/.node-version".format(kibana_src), 'r') as file:
                 node_version = file.read().replace('\n', '')
             content["build"] = dict(
-                                    context="docker/kibana_src",
-                                    dockerfile="Dockerfile",
-                                    args=[
-                                        "NODE_VERSION={}".format(node_version.replace('\n', '')),
-                                        "UID={}".format(os.getuid()),
-                                        "GID={}".format(os.getgid()),
-                                    ]
-                                )
+                context="docker/kibana_src",
+                dockerfile="Dockerfile",
+                args=[
+                    "NODE_VERSION={}".format(node_version.replace('\n', '')),
+                    "UID={}".format(os.getuid()),
+                    "GID={}".format(os.getgid()),
+                ])
             content["image"] = "kibana_src"
             content["working_dir"] = "/usr/share/kibana"
             content["command"] = "'{}'".format(self.options.get("kibana_src_start_cmd"))
