@@ -1,0 +1,5 @@
+**/.git
+**/.ci
+**/.github
+**/node_modules
+**/kibana/target
