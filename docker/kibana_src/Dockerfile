@@ -22,7 +22,7 @@ ENV BABEL_DISABLE_CACHE=true
 
 EXPOSE 5601
 ENTRYPOINT ["/bin/bash", "-c"]
-CMD ["yarn kbn bootstrap && yarn start"]
+CMD ["yarn kbn bootstrap && yarn start -c /usr/share/kibana/config/kibana_src.yml -c /usr/share/kibana/config/kibana.yml --no-dev-config"]
 
 
 HEALTHCHECK --interval=10s --timeout=5s --start-period=1m --retries=300 CMD curl -sSL http://127.0.0.1:5601/login|grep -v 'Kibana server is not ready yet'

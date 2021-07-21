@@ -1167,8 +1167,14 @@ class Kibana(StackService, Service):
         parser.add_argument(
             "--kibana-src-start-cmd",
             nargs="?",
-            help="Command used to start Kibana from sources (yarn kbn bootstrap && yarn start).",
-            default="yarn kbn bootstrap && yarn start"
+            help="Command used to start Kibana from sources " +
+                 "(yarn kbn bootstrap && yarn start " +
+                 "-c /usr/share/kibana/config/kibana_src.yml " +
+                 "-c /usr/share/kibana/config/kibana.yml).",
+            default="yarn kbn bootstrap && yarn start " +
+                    "-c /usr/share/kibana/config/kibana_src.yml " +
+                    "-c /usr/share/kibana/config/kibana.yml " +
+                    "--no-dev-config"
         )
 
     def _content(self):
@@ -1185,6 +1191,7 @@ class Kibana(StackService, Service):
             kibana_src = self.options.get("kibana_src")
             volumes.extend([
                 "{}:/usr/share/kibana".format(kibana_src),
+                "./docker/kibana_src/kibana_src.yml:/usr/share/kibana/config/kibana_src.yml"
             ])
 
         if self.kibana_yml:
