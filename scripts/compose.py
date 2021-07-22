@@ -371,7 +371,8 @@ class ApmServer(StackService, Service):
             ("setup.template.settings.index.number_of_shards", "1"),
             ("setup.template.settings.index.refresh_interval", "1ms"),
             ("xpack.monitoring.elasticsearch", "true"),
-            ("xpack.monitoring.enabled", "true")
+            ("xpack.monitoring.enabled", "true"),
+            ("apm-server.rum.allow_headers", "[\"x-custom-header\"]")
         ]
         if options.get("apm_server_self_instrument"):
             self.apm_server_command_args.append(("apm-server.instrumentation.enabled", "true"))
