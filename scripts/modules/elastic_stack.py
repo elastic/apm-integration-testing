@@ -1158,13 +1158,40 @@ class Kibana(StackService, Service):
             help="disable the APM service maps UI",
         )
 
+        parser.add_argument(
+            "--kibana-src",
+            nargs="?",
+            help="Use Kibana source folder to run Kibana from sources.",
+        )
+
+        parser.add_argument(
+            "--kibana-src-start-cmd",
+            nargs="?",
+            help="Command used to start Kibana from sources " +
+                 "(yarn kbn bootstrap && yarn start " +
+                 "-c /usr/share/kibana/config/kibana_src.yml " +
+                 "-c /usr/share/kibana/config/kibana.yml).",
+            default="yarn kbn bootstrap && yarn start " +
+                    "-c /usr/share/kibana/config/kibana_src.yml " +
+                    "-c /usr/share/kibana/config/kibana.yml " +
+                    "--no-dev-config"
+        )
+
     def _content(self):
         volumes = []
+
         if self.kibana_tls:
             volumes.extend([
                 "./scripts/tls/kibana/kibana.crt:/usr/share/kibana/config/certs/tls.crt",
                 "./scripts/tls/kibana/kibana.key:/usr/share/kibana/config/certs/tls.key",
                 "./scripts/tls/ca/ca.crt:/usr/share/kibana/config/certs/ca.crt"
+            ])
+
+        if self.options.get("kibana_src"):
+            kibana_src = self.options.get("kibana_src")
+            volumes.extend([
+                "{}:/usr/share/kibana".format(kibana_src),
+                "./docker/kibana_src/kibana_src.yml:/usr/share/kibana/config/kibana_src.yml"
             ])
 
         if self.kibana_yml:
@@ -1181,6 +1208,25 @@ class Kibana(StackService, Service):
         if volumes:
             content["volumes"] = volumes
 
+        if self.options.get("kibana_src"):
+            with open("{}/.node-version".format(kibana_src), 'r') as file:
+                node_version = file.read().replace('\n', '')
+            content["build"] = dict(
+                context="docker/kibana_src",
+                dockerfile="Dockerfile",
+                args=[
+                    "NODE_VERSION={}".format(node_version.replace('\n', '')),
+                    "UID={}".format(os.getuid()),
+                    "GID={}".format(os.getgid()),
+                ])
+            content["image"] = "kibana_src"
+            content["working_dir"] = "/usr/share/kibana"
+            content["command"] = "'{}'".format(self.options.get("kibana_src_start_cmd"))
+            self.environment["NODE_OPTIONS"] = "--max-old-space-size=4096"
+            self.environment["BABEL_DISABLE_CACHE"] = "true"
+            self.environment["HOME"] = "/usr/share/kibana"
+            content["healthcheck"] = curl_healthcheck(
+                self.SERVICE_PORT, "kibana", path="/api/status", retries=300, https=self.kibana_tls)
         return content
 
     @staticmethod

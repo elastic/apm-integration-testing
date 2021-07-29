@@ -5,9 +5,9 @@ import sys
 import unittest
 import collections
 import yaml
+import os
 
 from ..modules import cli
-from ..modules import helpers
 from ..modules import service
 from ..modules.aux_services import Postgres, Redis
 from ..modules.elastic_stack import ApmServer, Elasticsearch
@@ -1893,4 +1893,28 @@ class LocalTest(unittest.TestCase):
         self.assertIn(certs, kibana["environment"]["SERVER_SSL_CERTIFICATE"])
         self.assertIn(certsKey, kibana["environment"]["SERVER_SSL_KEY"])
         self.assertIn(caCerts, kibana["environment"]["ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES"])
-        self.assertIn("https://kibana:5601/api/status", kibana["healthcheck"]["test"])
+
+    @mock.patch(cli.__name__ + ".load_images")
+    def test_kibana_src(self, _ignore_load_images):
+        docker_compose_yml = stringIO()
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+            with mock.patch('builtins.open', mock.mock_open(read_data='14.17.3\n')):
+                setup = LocalSetup(argv=self.common_setup_args + [
+                    "master", "--kibana-src=/foo", "--kibana-src-start-cmd=bar"])
+                setup.set_docker_compose_path(docker_compose_yml)
+                setup()
+        docker_compose_yml.seek(0)
+        got = yaml.safe_load(docker_compose_yml)
+        services = set(got["services"])
+        self.assertIn("kibana", services)
+
+        kibana = got["services"]["kibana"]
+        self.assertIn("/foo:/usr/share/kibana", kibana["volumes"])
+        self.assertIn("bar", kibana["command"])
+        self.assertIn("true", kibana["environment"]["BABEL_DISABLE_CACHE"])
+        self.assertIn("--max-old-space-size=4096", kibana["environment"]["NODE_OPTIONS"])
+        self.assertIn("/usr/share/kibana", kibana["environment"]["HOME"])
+        self.assertIn("true", kibana["environment"]["BABEL_DISABLE_CACHE"])
+        self.assertIn("NODE_VERSION=14.17.3", kibana["build"]["args"])
+        self.assertIn("UID={}".format(os.getuid()), kibana["build"]["args"])
+        self.assertIn("GID={}".format(os.getgid()), kibana["build"]["args"])
