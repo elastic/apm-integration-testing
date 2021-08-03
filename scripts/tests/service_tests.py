@@ -1589,7 +1589,7 @@ class PacketbeatServiceTest(ServiceTest):
                         - /var/run/docker.sock:/var/run/docker.sock
                         - ./scripts/tls/ca/ca.crt:/usr/share/beats/config/certs/stack-ca.crt
                     network_mode: 'service:apm-server'
-                    privileged: 'true'
+                    privileged: true
                     cap_add: ['NET_ADMIN', 'NET_RAW']""")  # noqa: 501
         )
 
