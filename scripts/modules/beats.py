@@ -249,7 +249,7 @@ class Packetbeat(BeatMixin, StackService, Service):
             environment=self.environment,
             labels=None,
             user="root",
-            privileged="true",
+            privileged=True,
             cap_add=["NET_ADMIN", "NET_RAW"],
             network_mode="service:apm-server",
             healthcheck=curl_healthcheck("5066", "localhost", path="/?pretty"),
