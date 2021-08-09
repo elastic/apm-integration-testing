@@ -1384,6 +1384,10 @@ class KibanaServiceTest(ServiceTest):
         kibana = Kibana(version="7.6.0", xpack_secure=False, kibana_version="7.6.0").render()["kibana"]
         self.assertNotIn("XPACK_SECURITY_LOGINASSISTANCEMESSAGE", kibana['environment'])
 
+    def test_kibana_verbose(self):
+        kibana = Kibana(version="8.0.0", kibana_verbose=True).render()["kibana"]
+        self.assertTrue(kibana['environment']['LOGGING_VERBOSE'])
+
     def test_kibana_encryption_keys_in_7_6(self):
         kibana = Kibana(version="7.6.0", kibana_version="7.6.0").render()["kibana"]
         self.assertNotIn("XPACK_SECURITY_ENCRYPTIONKEY", kibana['environment'])
