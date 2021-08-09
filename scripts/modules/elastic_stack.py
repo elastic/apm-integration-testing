@@ -1084,6 +1084,8 @@ class Kibana(StackService, Service):
         self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if self.options.get(
             "enable_elasticsearch", True) else {}
 
+        if options.get('kibana_verbose'):
+            self.environment["LOGGING_VERBOSE"] = "true"
         if not self.oss:
             self.environment["XPACK_MONITORING_ENABLED"] = "true"
             if self.at_least_version("6.3"):
@@ -1131,6 +1133,11 @@ class Kibana(StackService, Service):
     @classmethod
     def add_arguments(cls, parser):
         super(Kibana, cls).add_arguments(parser)
+        parser.add_argument(
+            "--kibana-verbose",
+            action="store_true",
+            help="Enable Kibana verbose logging"
+        )
         parser.add_argument(
             "--kibana-elasticsearch-url",
             action="append",
