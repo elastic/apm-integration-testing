@@ -1135,7 +1135,6 @@ class Kibana(StackService, Service):
         if self.at_least_version("8.0"):
             self.environment["ENTERPRISESEARCH_HOST"] = "http://enterprise-search:" + str(EnterpriseSearch.SERVICE_PORT)
 
-
     @classmethod
     def add_arguments(cls, parser):
         super(Kibana, cls).add_arguments(parser)
