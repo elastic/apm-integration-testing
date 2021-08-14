@@ -1017,6 +1017,7 @@ class LocalTest(unittest.TestCase):
                     ELASTICSEARCH_PASSWORD: changeme,
                     ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200',
                     ELASTICSEARCH_USERNAME: kibana_system_user,
+                    ENTERPRISESEARCH_HOST: 'http://enterprise-search:3002',
                     SERVER_HOST: 0.0.0.0,
                     SERVER_NAME: kibana.example.org,
                     STATUS_ALLOWANONYMOUS: 'true',
