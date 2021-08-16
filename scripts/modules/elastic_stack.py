@@ -1028,7 +1028,10 @@ class EnterpriseSearch(StackService, Service):
         self.environment = {
             "allow_es_settings_modification": "true",
             "ent_search.external_url": "http://localhost:{}".format(self.port),
+            "kibana.external_url": "http://localhost:5601",
             "secret_management.encryption_keys": '[4a2cd3f81d39bf28738c10db0ca782095ffac07279561809eecc722e0c20eb09]',
+            "apm.enabled": "true",
+            "apm.server_url": options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
             "ELASTIC_APM_ACTIVE": "true",
             "ELASTIC_APM_SERVER_URL": options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
             "ENT_SEARCH_DEFAULT_PASSWORD": options.get("enterprise_search_password", "changeme")
@@ -1129,6 +1132,8 @@ class Kibana(StackService, Service):
                 self.environment["XPACK_FLEET_REGISTRYURL"] = url
             if use_local_package_registry:
                 self.depends_on["package-registry"] = {"condition": "service_healthy"}
+        if self.at_least_version("8.0"):
+            self.environment["ENTERPRISESEARCH_HOST"] = "http://enterprise-search:" + str(EnterpriseSearch.SERVICE_PORT)
 
     @classmethod
     def add_arguments(cls, parser):

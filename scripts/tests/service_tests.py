@@ -1125,6 +1125,15 @@ class EnterpriseSearchServiceTest(ServiceTest):
             entsearch["image"], "docker.elastic.co/enterprise-search/enterprise-search:7.12.20"
         )
 
+    def test_8_0_0(self):
+        entsearch = EnterpriseSearch(version="8.0.0").render()["enterprise-search"]
+        self.assertEqual(
+            entsearch["image"], "docker.elastic.co/enterprise-search/enterprise-search:8.0.0-SNAPSHOT"
+        )
+        self.assertDictContainsSubset({"apm.enabled": "true", "kibana.external_url": "http://localhost:5601"}, entsearch["environment"])
+        kibana = Kibana(version="8.0.0", with_enterprise_search=True).render()["kibana"]
+        self.assertDictContainsSubset({"ENTERPRISESEARCH_HOST": "http://enterprise-search:3002"}, kibana["environment"])
+
 
 class FilebeatServiceTest(ServiceTest):
     def test_filebeat_pre_6_1(self):
