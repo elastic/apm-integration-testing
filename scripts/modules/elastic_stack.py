@@ -1211,7 +1211,7 @@ class Kibana(StackService, Service):
 
         content = dict(
             healthcheck=curl_healthcheck(
-                self.SERVICE_PORT, "kibana", path="/api/status", retries=30, https=self.kibana_tls),
+                self.SERVICE_PORT, "kibana", path="/api/status", retries=30, https=self.kibana_tls, start_period="10s"),
             depends_on=self.depends_on,
             environment=self.environment,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],

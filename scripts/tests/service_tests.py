@@ -47,6 +47,7 @@ class AgentServiceTest(ServiceTest):
                         interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://gonethttpapp:8080/healthcheck"]
+                        timeout: 5s
                     ports:
                         - 127.0.0.1:8080:8080
             """)  # noqa: 501
@@ -104,6 +105,7 @@ class AgentServiceTest(ServiceTest):
                         interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://expressapp:8010/healthcheck"]
+                        timeout: 5s
                     ports:
                         - 127.0.0.1:8010:8010
             """)  # noqa: 501
@@ -156,6 +158,7 @@ class AgentServiceTest(ServiceTest):
                         interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://djangoapp:8003/healthcheck"]
+                        timeout: 5s
                     ports:
                         - 127.0.0.1:8003:8003
             """)  # noqa: 501
@@ -204,6 +207,7 @@ class AgentServiceTest(ServiceTest):
                         interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://flaskapp:8001/healthcheck"]
+                        timeout: 5s
                     ports:
                         - 127.0.0.1:8001:8001
             """)  # noqa: 501
@@ -264,6 +268,7 @@ class AgentServiceTest(ServiceTest):
                         interval: 10s
                         retries: 60
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://railsapp:8020/healthcheck"]
+                        timeout: 5s
                     ports:
                         - 127.0.0.1:8020:8020
             """)  # noqa: 501
@@ -334,6 +339,7 @@ class AgentServiceTest(ServiceTest):
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output",
                         "/dev/null", "http://javaspring:8090/healthcheck"]
+                        timeout: 5s
                     ports:
                         - 127.0.0.1:8090:8090
             """)
@@ -406,6 +412,7 @@ class AgentServiceTest(ServiceTest):
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output",
                         "/dev/null", "http://dotnetapp:8100/healthcheck"]
+                        timeout: 5s
                     ports:
                         - 127.0.0.1:8100:8100
             """)
@@ -468,6 +475,7 @@ class AgentServiceTest(ServiceTest):
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output",
                         "/dev/null", "http://phpapacheapp:80/healthcheck"]
+                        timeout: 5s
                     ports:
                         - 127.0.0.1:8030:80
             """)
@@ -977,6 +985,7 @@ class PackageRegistryServiceTest(ServiceTest):
                   'environment': {},
                   'healthcheck': {'interval': '5s',
                                   'retries': 10,
+                                  'timeout': '5s',
                                   'test': ['CMD',
                                            'curl',
                                            '--write-out',
@@ -1002,6 +1011,7 @@ class PackageRegistryServiceTest(ServiceTest):
                   'environment': {},
                   'healthcheck': {'interval': '5s',
                                   'retries': 10,
+                                  'timeout': '5s',
                                   'test': ['CMD',
                                            'curl',
                                            '--write-out',
@@ -1162,6 +1172,7 @@ class FilebeatServiceTest(ServiceTest):
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:5066/?pretty"]
                         interval: 10s
                         retries: 12
+                        timeout: 5s
                     volumes:
                         - ./docker/filebeat/filebeat.simple.yml:/usr/share/filebeat/filebeat.yml
                         - /var/lib/docker/containers:/var/lib/docker/containers
@@ -1195,6 +1206,7 @@ class FilebeatServiceTest(ServiceTest):
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:5066/?pretty"]
                         interval: 10s
                         retries: 12
+                        timeout: 5s
                     volumes:
                         - ./docker/filebeat/filebeat.6.x-compat.yml:/usr/share/filebeat/filebeat.yml
                         - /var/lib/docker/containers:/var/lib/docker/containers
@@ -1288,6 +1300,8 @@ class KibanaServiceTest(ServiceTest):
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://kibana:5601/api/status"]
                         interval: 10s
                         retries: 30
+                        timeout: 5s
+                        start_period: 10s
                     depends_on:
                         elasticsearch:
                           condition:
@@ -1318,8 +1332,10 @@ class KibanaServiceTest(ServiceTest):
                             max-file: '5'
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://kibana:5601/api/status"]
+                        timeout: 5s
                         interval: 10s
                         retries: 30
+                        start_period: 10s
                     depends_on:
                         elasticsearch:
                           condition:
@@ -1439,6 +1455,7 @@ class LogstashServiceTest(ServiceTest):
             environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200'}
             healthcheck:
                 test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://logstash:9600/"]
+                timeout: 5s
                 interval: 10s
                 retries: 12
             image: docker.elastic.co/logstash/logstash:6.3.0
@@ -1510,6 +1527,7 @@ class MetricbeatServiceTest(ServiceTest):
                             service_healthy
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:5066/?pretty"]
+                        timeout: 5s
                         interval: 10s
                         retries: 12
                     volumes:
@@ -1595,6 +1613,7 @@ class PacketbeatServiceTest(ServiceTest):
                             service_healthy
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:5066/?pretty"]
+                        timeout: 5s
                         interval: 10s
                         retries: 12
                     volumes:
