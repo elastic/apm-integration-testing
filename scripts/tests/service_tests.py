@@ -1140,7 +1140,7 @@ class EnterpriseSearchServiceTest(ServiceTest):
         self.assertEqual(
             entsearch["image"], "docker.elastic.co/enterprise-search/enterprise-search:8.0.0-SNAPSHOT"
         )
-        self.assertDictContainsSubset({"apm.enabled": "true", "kibana.external_url": "http://localhost:5601"}, entsearch["environment"])
+        self.assertDictContainsSubset({"apm.enabled": "true", "kibana.external_url": "http://localhost:5601", "kibana.host": "http://kibana:5601"}, entsearch["environment"])
         kibana = Kibana(version="8.0.0", with_enterprise_search=True).render()["kibana"]
         self.assertDictContainsSubset({"ENTERPRISESEARCH_HOST": "http://enterprise-search:3002"}, kibana["environment"])
 
