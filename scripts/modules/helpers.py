@@ -84,6 +84,7 @@ def load_images(urls, cache_dir):
 
 DEFAULT_HEALTHCHECK_INTERVAL = "10s"
 DEFAULT_HEALTHCHECK_RETRIES = 12
+DEFAULT_HEALTHCHECK_TIMEOUT = "5s"
 
 
 def _print_done(service_name):
@@ -154,20 +155,30 @@ def _set_slowlog_json(password):
                 break
 
 
-def curl_healthcheck(port, host="localhost", path="/healthcheck",
-                     interval=DEFAULT_HEALTHCHECK_INTERVAL, retries=DEFAULT_HEALTHCHECK_RETRIES, https=False):
-
+def curl_healthcheck(
+    port,
+    host="localhost",
+    path="/healthcheck",
+    interval=DEFAULT_HEALTHCHECK_INTERVAL,
+    retries=DEFAULT_HEALTHCHECK_RETRIES,
+    https=False,
+    timeout=DEFAULT_HEALTHCHECK_TIMEOUT,
+    start_period=None,
+):
     protocol = 'http'
     if https:
         protocol = 'https'
-
-    return {
+    ret = {
         "interval": interval,
         "retries": retries,
+        "timeout": timeout,
         "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent",
                  "--output", "/dev/null",
                  "{}://{}:{}{}".format(protocol, host, port, path)]
     }
+    if start_period:
+        ret['start_period'] = start_period
+    return ret
 
 
 def wget_healthcheck(port, host="localhost", path="/healthcheck",
