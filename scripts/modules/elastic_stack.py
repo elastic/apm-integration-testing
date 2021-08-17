@@ -1044,6 +1044,7 @@ class EnterpriseSearch(StackService, Service):
         kibana_scheme = "https" if self.kibana_tls else "http"
         self.environment.update({
             "kibana.external_url": kibana_scheme + "://localhost:5601",
+            "kibana.host": kibana_scheme + "://kibana:5601",
         })
 
         default_creds = {"username": "admin", "password": "changeme"}
