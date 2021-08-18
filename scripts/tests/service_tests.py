@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import json
 import os
+import pytest
 import unittest
 
 import yaml
@@ -916,6 +917,10 @@ class ApmServerServiceTest(ServiceTest):
         apm_server = ApmServer(version="8.0", apm_server_pipeline_path="foo").render()["apm-server"]
         self.assertIn("foo:/usr/share/apm-server/ingest/pipeline/definition.json", apm_server["volumes"])
         self.assertIn("apm-server.register.ingest.pipeline.overwrite=true", apm_server["command"])
+
+    def test_data_streams(self):
+        apm_server = ApmServer(version="7.16.0", apm_server_enable_data_streams=True).render()["apm-server"]
+        self.assertIn("apm-server.data_streams.enabled=true", apm_server["command"])
 
     def test_debug(self):
         apm_server = ApmServer(version="6.8.0", apm_server_enable_debug=True).render()["apm-server"]

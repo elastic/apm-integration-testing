@@ -247,6 +247,9 @@ class ApmServer(StackService, Service):
                     ("output.file.path", self.options.get("apm_server_output_file", os.devnull)),
                 ])
 
+        if self.options.get("apm_server_enable_data_streams"):
+            self.apm_server_command_args.append(("apm-server.data_streams.enabled", "true"))
+
         for opt in options.get("apm_server_opt", []):
             self.apm_server_command_args.append(opt.split("=", 1))
 
@@ -386,6 +389,11 @@ class ApmServer(StackService, Service):
             dest="apm_server_jaeger",
             action="store_false",
             help="make apm-server act as a Jaeger collector (HTTP and gRPC).",
+        )
+        parser.add_argument(
+            "--apm-server-enable-data-streams",
+            action="store_true",
+            help='enable writing to data streams'
         )
         parser.add_argument(
             '--apm-server-enable-tls',
