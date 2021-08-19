@@ -12,8 +12,8 @@ class Dyno(Service):
     SERVICE_PORT = 9999
     opbeans_side_car = False
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **options):
+        super(Dyno, self).__init__(**options)
 
     def _content(self):
         return dict(
@@ -37,9 +37,9 @@ class Toxi(Service):
     SERVICE_PORT = 8474
     opbeans_side_car = False
 
-    def __init__(self):
+    def __init__(self, **options):
         self.service_offset = 10000
-        super().__init__()
+        super(Toxi, self).__init__(**options)
         self.generated_ports = [self.publish_port(self.port, self.SERVICE_PORT, expose=True)]
 
     def _content(self):
