@@ -25,7 +25,8 @@ class ApmServer(StackService, Service):
     def __init__(self, **options):
         super(ApmServer, self).__init__(**options)
 
-        default_apm_server_creds = {"username": "apm_server_user", "password": "changeme"}
+        default_apm_server_es_creds = {"username": "apm_server_user", "password": "changeme"}
+        default_apm_server_kibana_creds = dict(default_apm_server_es_creds)
         self.managed = False
 
         # run apm-server managed by elastic-agent
@@ -89,6 +90,12 @@ class ApmServer(StackService, Service):
             ("monitoring.enabled" if self.at_least_version("7.2") else "xpack.monitoring.enabled", "true"),
             ("apm-server.rum.allow_headers", "[\"x-custom-header\"]")
         ])
+
+        self.enable_data_streams = bool(self.options.get("apm_server_enable_data_streams"))
+        if self.enable_data_streams:
+            self.apm_server_command_args.append(("apm-server.data_streams.enabled", "true"))
+            default_apm_server_kibana_creds = {"username": "admin", "password": "changeme"}
+
         if options.get("apm_server_self_instrument", True):
             self.apm_server_command_args.append(("apm-server.instrumentation.enabled", "true"))
             if self.at_least_version("7.6") and options.get("apm_server_profile", True):
@@ -140,7 +147,7 @@ class ApmServer(StackService, Service):
                         self.apm_server_command_args.append(("apm-server.kibana.{}".format(cfg), self.options[es_opt]))
                     elif self.options.get("xpack_secure"):
                         self.apm_server_command_args.append(
-                            ("apm-server.kibana.{}".format(cfg), default_apm_server_creds.get(cfg)))
+                            ("apm-server.kibana.{}".format(cfg), default_apm_server_kibana_creds.get(cfg)))
 
         if self.options.get("enable_kibana", True):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
@@ -203,7 +210,7 @@ class ApmServer(StackService, Service):
                 if self.options.get(es_opt):
                     args.append((prefix + ".elasticsearch.{}".format(cfg), self.options[es_opt]))
                 elif self.options.get("xpack_secure"):
-                    args.append((prefix + ".elasticsearch.{}".format(cfg), default_apm_server_creds.get(cfg)))
+                    args.append((prefix + ".elasticsearch.{}".format(cfg), default_apm_server_es_creds.get(cfg)))
             if tls:
                 args.append((prefix + ".elasticsearch.ssl.certificate_authorities", "['" + self.STACK_CA_PATH + "']"))
 
@@ -215,15 +222,26 @@ class ApmServer(StackService, Service):
                 ("output.elasticsearch.enabled", "true"),
             ])
             if options.get("apm_server_enable_pipeline", True) and self.at_least_version("6.5"):
-                pipeline_name = "apm" if self.at_least_version("7.2") else "apm_user_agent"
-                self.apm_server_command_args.extend([
-                    ("output.elasticsearch.pipelines", "[{pipeline: '%s'}]" % pipeline_name),
-                    ("apm-server.register.ingest.pipeline.enabled", "true"),
-                ])
-                if options.get("apm_server_pipeline_path"):
-                    self.apm_server_command_args.append(
-                        ("apm-server.register.ingest.pipeline.overwrite", "true"),
-                    )
+                if self.enable_data_streams:
+                    # TODO(gr): make it configurable if not aligning with stack
+                    pipeline_name = "traces-apm-0.3.0"
+                elif self.at_least_version("7.2"):
+                    pipeline_name = "apm"
+                else:
+                    pipeline_name = "apm_user_agent"
+
+                self.apm_server_command_args.append(
+                    ("output.elasticsearch.pipelines", "[{pipeline: '%s'}]" % pipeline_name)
+                )
+
+                if not self.enable_data_streams:
+                    self.apm_server_command_args.extend([
+                        ("apm-server.register.ingest.pipeline.enabled", "true"),
+                    ])
+                    if options.get("apm_server_pipeline_path"):
+                        self.apm_server_command_args.append(
+                            ("apm-server.register.ingest.pipeline.overwrite", "true"),
+                        )
         else:
             add_es_config(self.apm_server_command_args,
                           prefix="monitoring" if self.at_least_version("7.2") else "xpack.monitoring")
@@ -246,9 +264,6 @@ class ApmServer(StackService, Service):
                     ("output.file.enabled", "true"),
                     ("output.file.path", self.options.get("apm_server_output_file", os.devnull)),
                 ])
-
-        if self.options.get("apm_server_enable_data_streams"):
-            self.apm_server_command_args.append(("apm-server.data_streams.enabled", "true"))
 
         for opt in options.get("apm_server_opt", []):
             self.apm_server_command_args.append(opt.split("=", 1))
