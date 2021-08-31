@@ -5,3 +5,10 @@ monitoring.ui.container.elasticsearch.enabled: true
 
 elastic.apm.active: true
 elastic.apm.serverUrl: "http://apm-server:8200"
+xpack.task_manager.monitored_stats_health_verbose_log.enabled: true
+
+logging:
+  loggers:
+      - context: plugins.taskManager
+        appenders: [console]
+        level: debug
