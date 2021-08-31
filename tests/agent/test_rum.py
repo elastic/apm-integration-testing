@@ -1,6 +1,5 @@
 from tests.endpoint import Endpoint
 from tests import utils
-from pytest import skip
 import pytest
 import requests
 
