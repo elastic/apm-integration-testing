@@ -46,6 +46,7 @@ function prepareAndRunAll() {
     --no-xpack-secure \
     --apm-server-enable-tls \
     --no-verify-server-cert  \
+    --no-kibana \
     --apm-server-secret-token=${ELASTIC_APM_SECRET_TOKEN} \
     --apm-server-url=${APM_SERVER_URL} \
     --apm-log-level=debug"
