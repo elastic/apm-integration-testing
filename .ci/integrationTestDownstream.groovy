@@ -223,11 +223,11 @@ def runScript(Map params = [:]){
     deleteDir()
     unstash "source"
     filebeat(output: "docker-${dockerLogs}.log", archiveOnlyOnFail: true){
-      sh 'docker ps -a'
+      sh 'docker ps -a && docker images -a'
       dir("${BASE_DIR}"){
         withEnv(env){
           sh(label: "Testing ${agentType}", script: ".ci/scripts/${agentType}.sh")
-          sh 'docker ps -a'
+          sh 'docker ps -a && docker images -a'
         }
       }
     }
