@@ -3,7 +3,7 @@
 
 srcdir=$(dirname "$0")
 test -z "$srcdir" && srcdir=.
-# shellcheck disable=SC1090
+# shellcheck disable=SC1091
 . "${srcdir}/common.sh"
 
 if [ -n "${APM_AGENT_PHP_VERSION}" ]; then
@@ -19,6 +19,7 @@ DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
   --with-agent-php-apache \
   --apm-server-agent-config-poll=1s \
   --force-build \
+  --no-kibana \
   --no-xpack-secure"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
 runTests env-agent-php docker-test-agent-php
