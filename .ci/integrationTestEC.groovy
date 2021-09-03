@@ -88,6 +88,11 @@ pipeline {
                   stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: "secrets-${getElasticStackVersion()}"
                 }
               }
+              stage("Waiting for services to settle") {
+                  steps {
+                      sleep 60
+                  }
+              }
               stage("Test Go") {
                 steps {
                   runTest('go')
