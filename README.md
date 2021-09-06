@@ -353,6 +353,10 @@ Tests should always eventually be run within a Docker container to ensure a cons
 
 Prefix any of the `test-` targets with `docker-` to run them in a container eg: `make docker-test-server`.
 
+### Running cloud tests manually
+
+To run cloud tests manually, please see the [documentation on cloud testing](docs/cloud_testing.md).
+
 ### Network issues diagnose
 
 It is possible to diagnose network issues related with lost documents
