@@ -90,7 +90,7 @@ pipeline {
               }
               stage("Waiting for services to settle") {
                   steps {
-                      sleep 60
+                      sleep 300
                   }
               }
               stage("Test Go") {
