@@ -12,7 +12,7 @@ It is also possible to run the integration test suite manually without needing t
 
 1. Do a git checkout of the Observability Test Environments repo: `git checkout git@github.com:elastic/observability-test-environments.git`.
 2. Ensure that you have this repo checked out as well: `git checkout git@github.com:elastic/apm-integration-testing.git`.
-3. Ensure that you are logged into Elastic's Vault service. You can verify this by ensuring that results are returned for `vault read secret/apm-team/ci/docker-registry/prod`.
+3. Ensure that you are logged into Elastic's Vault service. You can verify this by ensuring that results are returned for `vault list secret/observability-team`.
 4. Export an environment variable corresponding to the version of the stack you wish to test on in Elastic Cloud. Possible values may be found by examining the [values present in the Groovy definition for the job](https://github.com/elastic/apm-integration-testing/blob/master/.ci/integrationTestEC.groovy#L58). As of this writing, those possible values are `8.0.0-SNAPSHOT`, `7.x`, `7.14.1`. Export the version before continuing: `export ELASTIC_STACK_VERSION=8.0.0-SNAPSHOT`.
 5. Export an environment variable `CLUSTER_CONFIG_FILE` which points to the checked-out copy of `observability-test-environments/tests/environments/elastic_cloud_tf_gcp.yml`.
 6. Export a variable for your test run which differentiates your cluster from others. This value may be arbitrary and will just be used to ensure that your cluster does not overwrite another: `export BUILD_NUMBER=my-great-test`.
