@@ -20,7 +20,7 @@ It is also possible to run the integration test suite manually without needing t
 7. After the cluster has been configured, a number of additional environment variables will need to be exported. They are located in a file which should now be present in `observability-test-environments/ansible/build/config_secrets.yml`. The file contains various paths to Vault keys which store the secrets themselves. Below [is a table showing](#config-secrets) which environment variables must be set, which Vault keys they are stored in and which values they are located within the YAML data structure returned by a Vault lookup. Following the table, ensure that the allowed variables listed in the first column of the table are exported.
 8. Export a variable called `BUILD_OPTS` which contains the flags which should be passed to the APM Integration Test suite. At a minimum, the following must be set: `--apm-server-url $APM_SERVER_URL --apm-server-secret-token $APM_SERVER_TOKEN`. To duplicate the values used by the CI, the following may also be added: `--no-elasticsearch --no-apm-server --no-kibana --no-apm-server-dashboards --no-apm-server-self-instrument`.
 9. Run the tests as desired. Various scripts for starting up tests may be found in [the scripts directory](../.ci/scripts/). For example, to run all tests, execute `all.sh` or to run just the Python tests, execute `python.sh`.
-10. Once testing has been concluded, please tear down your cloud environment by running `make destroy-cluster` from the `observability-test-environments/ansible` directory.
+10. Once testing has been concluded, please tear down your cloud environment by running `make -C ansible destroy-cluster` from the `observability-test-environments` directory.
 
 #### Config secrets
 
