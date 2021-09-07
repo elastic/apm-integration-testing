@@ -13,11 +13,13 @@ pull_request_rules:
             git merge upstream/{{base}}
             git push upstream {{head}}
             ```
-  - name: add backport label
+  - name: automate backport creation to 7.x branch
     conditions:
       - merged
       - base=master
     actions:
+      comment:
+        message: "@Mergifyio backport 7.x"
       label:
         add:
           - backport
