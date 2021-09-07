@@ -18,8 +18,11 @@ pull_request_rules:
       - merged
       - base=master
     actions:
-      comment:
-        message: "@Mergifyio backport 7.x"
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "7.x"
       label:
         add:
           - backport
