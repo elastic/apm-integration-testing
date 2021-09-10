@@ -70,7 +70,8 @@ class OpbeansService(Service):
             '--' + cls.name() + '-sample-rate',
             default=cls.DEFAULT_SAMPLE_RATE,
             dest=cls.option_name() + '_sample_rate',
-            help=cls.name() + " sample rate percentage"
+            help=cls.name() + " sample rate percentage",
+            choices=range(1,101)
         )
         if hasattr(cls, 'DEFAULT_SERVICE_NAME'):
             parser.add_argument(
