@@ -74,6 +74,7 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTICSEARCH_URL=http://elasticsearch:9200
                       - OPBEANS_DT_PROBABILITY=0.50
                       - ELASTIC_APM_ENVIRONMENT=production
+                      - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.10
                     logging:
                       driver: 'json-file'
                       options:
@@ -132,7 +133,6 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTIC_APM_VERIFY_SERVER_CERT=true
                       - ELASTIC_APM_FLUSH_INTERVAL=5
                       - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
-                      - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=1
                       - ELASTICSEARCH_URL=http://elasticsearch:9200
                       - OPBEANS_CACHE=redis://redis:6379
                       - OPBEANS_PORT=3000
@@ -143,6 +143,7 @@ class OpbeansServiceTest(ServiceTest):
                       - PGSSLMODE=disable
                       - OPBEANS_DT_PROBABILITY=0.50
                       - ELASTIC_APM_ENVIRONMENT=production
+                      - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.10
                     logging:
                       driver: 'json-file'
                       options:
@@ -198,7 +199,6 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTIC_APM_VERIFY_SERVER_CERT=true
                       - ELASTIC_APM_FLUSH_INTERVAL=5
                       - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
-                      - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=1
                       - ELASTIC_APM_ENABLE_LOG_CORRELATION=true
                       - DATABASE_URL=jdbc:postgresql://postgres/opbeans?user=postgres&password=verysecure
                       - DATABASE_DIALECT=POSTGRESQL
@@ -209,6 +209,7 @@ class OpbeansServiceTest(ServiceTest):
                       - JAVA_AGENT_VERSION
                       - OPBEANS_DT_PROBABILITY=0.50
                       - ELASTIC_APM_ENVIRONMENT=production
+                      - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.10
                     logging:
                       driver: 'json-file'
                       options:
@@ -289,6 +290,7 @@ class OpbeansServiceTest(ServiceTest):
                         - NODE_AGENT_REPO=
                         - OPBEANS_DT_PROBABILITY=0.50
                         - ELASTIC_APM_ENVIRONMENT=production
+                        - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.10
                     depends_on:
                         postgres:
                           condition:
@@ -350,7 +352,6 @@ class OpbeansServiceTest(ServiceTest):
                         - ELASTIC_APM_VERIFY_SERVER_CERT=true
                         - ELASTIC_APM_FLUSH_INTERVAL=5
                         - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
-                        - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.5
                         - ELASTIC_APM_SOURCE_LINES_ERROR_APP_FRAMES
                         - ELASTIC_APM_SOURCE_LINES_SPAN_APP_FRAMES=5
                         - ELASTIC_APM_SOURCE_LINES_ERROR_LIBRARY_FRAMES
@@ -365,6 +366,7 @@ class OpbeansServiceTest(ServiceTest):
                         - PYTHON_AGENT_VERSION
                         - OPBEANS_DT_PROBABILITY=0.50
                         - ELASTIC_APM_ENVIRONMENT=production
+                        - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.10
                     depends_on:
                         postgres:
                           condition:
@@ -453,6 +455,7 @@ class OpbeansServiceTest(ServiceTest):
                       - RUBY_AGENT_VERSION
                       - OPBEANS_DT_PROBABILITY=0.50
                       - ELASTIC_APM_ENVIRONMENT=production
+                      - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.10
                     logging:
                       driver: 'json-file'
                       options:

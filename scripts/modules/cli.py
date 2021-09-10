@@ -241,12 +241,6 @@ class LocalSetup(object):
                     default=service.enabled(),
                 )
 
-                enabled_group.add_argument(
-                    '--opbeans-' + service.name() + '-sample-rate',
-                    dest='sample_rate_' + service.option.name(),
-                    help='Sampling rate percentage',
-                    default=10
-                )
             service.add_arguments(parser)
         if enabled_group:
             enabled_group.add_argument(
