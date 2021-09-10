@@ -465,6 +465,12 @@ class LocalSetup(object):
             help="Elastic Package Registry URL to use for fetching integration packages",
         )
 
+        parser.add_argument(
+            '--drop-unsampled',
+            action='store_true',
+            help='Drop unsampled transactions'
+        )
+
         self.store_options(parser)
 
         return parser
