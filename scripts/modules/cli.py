@@ -894,7 +894,7 @@ class LocalSetup(object):
             if version:
                 print("\t{0}".format(version))
 
-        def print_apmserver_version(container):
+        def print_apm_server_version(container):
             print("\nAPM Server (image built: %s UTC):" % container.created)
 
             version = run_container_command('apm-server', 'apm-server version')
@@ -921,7 +921,7 @@ class LocalSetup(object):
                 print("\tBuild SHA: {}".format(data['build']['sha']))
                 print("\tBuild number: {}".format(data['build']['number']))
 
-        def print_opbeansnode_version(_):
+        def print_opbeans_node_version(_):
             print("\nAgent version (in opbeans-node):")
 
             version = run_container_command(
@@ -932,7 +932,7 @@ class LocalSetup(object):
                 version = version.replace('+-- elastic-apm-node@', '')
                 print("\t{0}".format(version))
 
-        def print_opbeanspython_version(_):
+        def print_opbeans_python_version(_):
             print("\nAgent version (in opbeans-python):")
 
             version = run_container_command(
@@ -943,7 +943,7 @@ class LocalSetup(object):
                 version = version.replace('elastic-apm==', '')
                 print("\t{0}".format(version))
 
-        def print_opbeansruby_version(_):
+        def print_opbeans_ruby_version(_):
             print("\nAgent version (in opbeans-ruby):")
 
             version = run_container_command(
@@ -955,12 +955,12 @@ class LocalSetup(object):
                 print("\t{0}".format(version))
 
         dispatch = {
-            'apm-server': print_apmserver_version,
+            'apm-server': print_apm_server_version,
             'elasticsearch': print_elasticsearch_version,
             'kibana': print_kibana_version,
-            'opbeans-node': print_opbeansnode_version,
-            'opbeans-python': print_opbeanspython_version,
-            'opbeans-ruby': print_opbeansruby_version,
+            'opbeans-node': print_opbeans_node_version,
+            'opbeans-python': print_opbeans_python_version,
+            'opbeans-ruby': print_opbeans_ruby_version,
         }
         for service_name, container in running_versions.items():
             print_version = dispatch.get(service_name)
