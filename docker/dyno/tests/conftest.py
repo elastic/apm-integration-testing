@@ -19,7 +19,10 @@
 """
 Tests for Dyno control plane
 """
-import toxiproxy
+try:
+    import toxiproxy
+except ImportError:
+    pass
 import pytest
 import dyno
 import yaml
@@ -110,4 +113,3 @@ def docker_inspect():
     with open(fn_, "r") as fh_:
         inspect_data = yaml.load(fh_, Loader=yaml.FullLoader)
     return inspect_data
-
