@@ -468,7 +468,8 @@ class LocalSetup(object):
         parser.add_argument(
             '--drop-unsampled',
             action='store_true',
-            help='Drop unsampled transactions'
+            help='Drop unsampled transactions',
+            default=None
         )
 
         self.store_options(parser)
