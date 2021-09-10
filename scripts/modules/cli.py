@@ -147,8 +147,8 @@ class LocalSetup(object):
 
         subparsers.add_parser(
             'load-dashboards',
-            help="Loads APM dashbords into Kibana using APM Server.",
-            description="Loads APM dashbords into Kibana using APM Server. APM Server, Elasticsearch, and Kibana must "
+            help="Loads APM dashboards into Kibana using APM Server.",
+            description="Loads APM dashboards into Kibana using APM Server. APM Server, Elasticsearch, and Kibana must "
                         "be running. "
         ).set_defaults(func=self.dashboards_handler)
 
@@ -221,6 +221,7 @@ class LocalSetup(object):
         parser.add_argument("stack-version", action='store', help=help_text)
 
         # Add a --no-x / --with-x argument for each service
+        enabled_group = None
         for service in services:
             if not service.opbeans_side_car:
                 enabled_group = parser.add_mutually_exclusive_group()
@@ -239,15 +240,22 @@ class LocalSetup(object):
                     help='Disable ' + service.name(),
                     default=service.enabled(),
                 )
-            service.add_arguments(parser)
 
-        enabled_group.add_argument(
-            '--no-opbeans-load-generator',
-            action='store_true',
-            dest='disable_opbeans_load_generator',
-            help='Disable opbeans-load-generator',
-            default=False,
-        )
+                enabled_group.add_argument(
+                    '--opbeans-' + service.name() + '-sample-rate',
+                    dest='sample_rate_' + service.option.name(),
+                    help='Sampling rate percentage',
+                    default=10
+                )
+            service.add_arguments(parser)
+        if enabled_group:
+            enabled_group.add_argument(
+                '--no-opbeans-load-generator',
+                action='store_true',
+                dest='disable_opbeans_load_generator',
+                help='Disable opbeans-load-generator',
+                default=False,
+            )
 
         parser.add_argument(
             '--opbeans-dt-probability',
@@ -636,8 +644,8 @@ class LocalSetup(object):
                 fh_.write(c)
             dyno = Dyno()
             selections.add(dyno)
-            stasd = StatsD()
-            selections.add(stasd)
+            statsd = StatsD()
+            selections.add(statsd)
         # `docker load` images if necessary, usually only for build candidates
         services_to_load = {}
         for service in selections:
@@ -691,6 +699,7 @@ class LocalSetup(object):
                 import yaml
             except ImportError:
                 print("Failed to import 'yaml': pip install yaml, or specify an alternative --output-format.")
+                sys.exit(1)
             yaml.dump(compose, docker_compose_path,
                       explicit_start=True,
                       default_flow_style=False,
