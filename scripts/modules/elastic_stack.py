@@ -214,10 +214,26 @@ class ApmServer(StackService, Service):
             self.apm_server_command_args.extend([
                 ("output.elasticsearch.enabled", "true"),
             ])
+<<<<<<< HEAD
             if options.get("apm_server_enable_pipeline", True) and self.at_least_version("6.5"):
                 pipeline_name = "apm" if self.at_least_version("7.2") else "apm_user_agent"
                 self.apm_server_command_args.extend([
                     ("output.elasticsearch.pipelines", "[{pipeline: '%s'}]" % pipeline_name),
+=======
+            # pipeline is defined in the data stream settings, don't set a pipeline in that case, no overrides
+            if options.get("apm_server_enable_pipeline", True) and self.at_least_version("6.5") and \
+                    not self.enable_data_streams:
+                if self.at_least_version("7.2"):
+                    pipeline_name = "apm"
+                else:
+                    pipeline_name = "apm_user_agent"
+
+                self.apm_server_command_args.append(
+                    ("output.elasticsearch.pipelines", "[{pipeline: '%s'}]" % pipeline_name)
+                )
+
+                self.apm_server_command_args.extend([
+>>>>>>> 9228b68 (do not set es pipeline with data streams enabled (#1256))
                     ("apm-server.register.ingest.pipeline.enabled", "true"),
                 ])
                 if options.get("apm_server_pipeline_path"):
