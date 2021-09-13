@@ -103,12 +103,12 @@ test-agent-%: venv ## Test a specific agent. ex: make test-agent-java
 
 test-compose: venv ## Test compose.py
 	source $(VENV)/bin/activate; \
-	pytest $(PYTEST_ARGS) scripts/tests/*_tests.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/compose-junit.xml
+	pytest $(PYTEST_ARGS) scripts/tests/test_*.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/compose-junit.xml
 
 test-compose-2:
 	virtualenv --python=python2.7 venv2
 	./venv2/bin/pip2 install mock pytest pyyaml
-	./venv2/bin/pytest $(PYTEST_ARGS) --noconftest scripts/tests/*_tests.py
+	./venv2/bin/pytest $(PYTEST_ARGS) --noconftest scripts/tests/test_*.py
 
 test-kibana: venv ## Run the Kibana integration tests
 	source $(VENV)/bin/activate; \
