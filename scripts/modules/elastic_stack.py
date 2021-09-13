@@ -226,11 +226,10 @@ class ApmServer(StackService, Service):
             self.apm_server_command_args.extend([
                 ("output.elasticsearch.enabled", "true"),
             ])
-            if options.get("apm_server_enable_pipeline", True) and self.at_least_version("6.5"):
-                if self.enable_data_streams:
-                    # TODO(gr): make it configurable if not aligning with stack
-                    pipeline_name = "traces-apm-0.3.0"
-                elif self.at_least_version("7.2"):
+            # pipeline is defined in the data stream settings, don't set a pipeline in that case, no overrides
+            if options.get("apm_server_enable_pipeline", True) and self.at_least_version("6.5") and \
+                    not self.enable_data_streams:
+                if self.at_least_version("7.2"):
                     pipeline_name = "apm"
                 else:
                     pipeline_name = "apm_user_agent"
@@ -239,14 +238,13 @@ class ApmServer(StackService, Service):
                     ("output.elasticsearch.pipelines", "[{pipeline: '%s'}]" % pipeline_name)
                 )
 
-                if not self.enable_data_streams:
-                    self.apm_server_command_args.extend([
-                        ("apm-server.register.ingest.pipeline.enabled", "true"),
-                    ])
-                    if options.get("apm_server_pipeline_path"):
-                        self.apm_server_command_args.append(
-                            ("apm-server.register.ingest.pipeline.overwrite", "true"),
-                        )
+                self.apm_server_command_args.extend([
+                    ("apm-server.register.ingest.pipeline.enabled", "true"),
+                ])
+                if options.get("apm_server_pipeline_path"):
+                    self.apm_server_command_args.append(
+                        ("apm-server.register.ingest.pipeline.overwrite", "true"),
+                    )
         else:
             add_es_config(self.apm_server_command_args,
                           prefix="monitoring" if self.at_least_version("7.2") else "xpack.monitoring")

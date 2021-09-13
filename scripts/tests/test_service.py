@@ -919,6 +919,10 @@ class ApmServerServiceTest(ServiceTest):
     def test_data_streams(self):
         apm_server = ApmServer(version="7.16.0", apm_server_enable_data_streams=True).render()["apm-server"]
         self.assertIn("apm-server.data_streams.enabled=true", apm_server["command"])
+        self.assertFalse(
+            any(a.startswith("output.elasticsearch.pipelines=") for a in apm_server["command"]),
+            "output.elasticsearch.pipelines with data streams enabled",
+        )
 
     def test_debug(self):
         apm_server = ApmServer(version="6.8.0", apm_server_enable_debug=True).render()["apm-server"]
