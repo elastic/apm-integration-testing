@@ -200,6 +200,11 @@ class ApmServer(StackService, Service):
                 q.pop("write")
             self.apm_server_command_args.append(("queue.spool", json.dumps(q)))
 
+        if options.get('drop_unsampled') or (options.get('drop_unsampled') is None and self.at_least_version("7.16")):
+            self.apm_server_command_args.extend([
+                ("apm-server.sampling.keep_unsampled", "true")
+            ])
+
         es_urls = []
 
         def add_es_config(args, prefix="output", tls=self.es_tls):

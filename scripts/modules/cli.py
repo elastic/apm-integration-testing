@@ -147,8 +147,8 @@ class LocalSetup(object):
 
         subparsers.add_parser(
             'load-dashboards',
-            help="Loads APM dashbords into Kibana using APM Server.",
-            description="Loads APM dashbords into Kibana using APM Server. APM Server, Elasticsearch, and Kibana must "
+            help="Loads APM dashboards into Kibana using APM Server.",
+            description="Loads APM dashboards into Kibana using APM Server. APM Server, Elasticsearch, and Kibana must "
                         "be running. "
         ).set_defaults(func=self.dashboards_handler)
 
@@ -221,6 +221,7 @@ class LocalSetup(object):
         parser.add_argument("stack-version", action='store', help=help_text)
 
         # Add a --no-x / --with-x argument for each service
+        enabled_group = None
         for service in services:
             if not service.opbeans_side_car:
                 enabled_group = parser.add_mutually_exclusive_group()
@@ -239,15 +240,16 @@ class LocalSetup(object):
                     help='Disable ' + service.name(),
                     default=service.enabled(),
                 )
-            service.add_arguments(parser)
 
-        enabled_group.add_argument(
-            '--no-opbeans-load-generator',
-            action='store_true',
-            dest='disable_opbeans_load_generator',
-            help='Disable opbeans-load-generator',
-            default=False,
-        )
+            service.add_arguments(parser)
+        if enabled_group:
+            enabled_group.add_argument(
+                '--no-opbeans-load-generator',
+                action='store_true',
+                dest='disable_opbeans_load_generator',
+                help='Disable opbeans-load-generator',
+                default=False,
+            )
 
         parser.add_argument(
             '--opbeans-dt-probability',
@@ -465,6 +467,13 @@ class LocalSetup(object):
             help="Elastic Package Registry URL to use for fetching integration packages",
         )
 
+        parser.add_argument(
+            '--drop-unsampled',
+            action='store_true',
+            help='Drop unsampled transactions',
+            default=None
+        )
+
         self.store_options(parser)
 
         return parser
@@ -629,8 +638,8 @@ class LocalSetup(object):
                 fh_.write(c)
             dyno = Dyno()
             selections.add(dyno)
-            stasd = StatsD()
-            selections.add(stasd)
+            statsd = StatsD()
+            selections.add(statsd)
         # `docker load` images if necessary, usually only for build candidates
         services_to_load = {}
         for service in selections:
@@ -684,6 +693,7 @@ class LocalSetup(object):
                 import yaml
             except ImportError:
                 print("Failed to import 'yaml': pip install yaml, or specify an alternative --output-format.")
+                sys.exit(1)
             yaml.dump(compose, docker_compose_path,
                       explicit_start=True,
                       default_flow_style=False,
@@ -878,7 +888,7 @@ class LocalSetup(object):
             if version:
                 print("\t{0}".format(version))
 
-        def print_apmserver_version(container):
+        def print_apm_server_version(container):
             print("\nAPM Server (image built: %s UTC):" % container.created)
 
             version = run_container_command('apm-server', 'apm-server version')
@@ -905,7 +915,7 @@ class LocalSetup(object):
                 print("\tBuild SHA: {}".format(data['build']['sha']))
                 print("\tBuild number: {}".format(data['build']['number']))
 
-        def print_opbeansnode_version(_):
+        def print_opbeans_node_version(_):
             print("\nAgent version (in opbeans-node):")
 
             version = run_container_command(
@@ -916,7 +926,7 @@ class LocalSetup(object):
                 version = version.replace('+-- elastic-apm-node@', '')
                 print("\t{0}".format(version))
 
-        def print_opbeanspython_version(_):
+        def print_opbeans_python_version(_):
             print("\nAgent version (in opbeans-python):")
 
             version = run_container_command(
@@ -927,7 +937,7 @@ class LocalSetup(object):
                 version = version.replace('elastic-apm==', '')
                 print("\t{0}".format(version))
 
-        def print_opbeansruby_version(_):
+        def print_opbeans_ruby_version(_):
             print("\nAgent version (in opbeans-ruby):")
 
             version = run_container_command(
@@ -939,12 +949,12 @@ class LocalSetup(object):
                 print("\t{0}".format(version))
 
         dispatch = {
-            'apm-server': print_apmserver_version,
+            'apm-server': print_apm_server_version,
             'elasticsearch': print_elasticsearch_version,
             'kibana': print_kibana_version,
-            'opbeans-node': print_opbeansnode_version,
-            'opbeans-python': print_opbeanspython_version,
-            'opbeans-ruby': print_opbeansruby_version,
+            'opbeans-node': print_opbeans_node_version,
+            'opbeans-python': print_opbeans_python_version,
+            'opbeans-ruby': print_opbeans_ruby_version,
         }
         for service_name, container in running_versions.items():
             print_version = dispatch.get(service_name)
