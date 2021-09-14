@@ -403,7 +403,6 @@ class AgentServiceTest(ServiceTest):
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_FLUSH_INTERVAL: '5'
                         ELASTIC_APM_LOG_LEVEL: Info
-                        ELASTIC_APM_TRANSACTION_SAMPLE_RATE: '1'
                         ELASTIC_APM_SERVICE_NAME: dotnetapp
                         ELASTIC_APM_TRANSACTION_IGNORE_NAMES: 'healthcheck'
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
