@@ -70,7 +70,6 @@ class OpbeansServiceTest(ServiceTest):
                       - ELASTIC_APM_VERIFY_SERVER_CERT=true
                       - ELASTIC_APM_FLUSH_INTERVAL=5
                       - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
-                      - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=1
                       - ELASTICSEARCH_URL=http://elasticsearch:9200
                       - OPBEANS_DT_PROBABILITY=0.50
                       - ELASTIC_APM_ENVIRONMENT=production
