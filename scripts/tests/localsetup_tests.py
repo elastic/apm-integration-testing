@@ -4,6 +4,7 @@ import io
 import sys
 import unittest
 import collections
+from unittest.mock import Mock, MagicMock
 import yaml
 import os
 
@@ -1841,6 +1842,17 @@ class LocalTest(unittest.TestCase):
     def test_apm_server_kibana_url(self):
         apmServer = ApmServer(apm_server_kibana_url="http://kibana.example.com:5601").render()["apm-server"]
         self.assertIn("apm-server.kibana.host=http://kibana.example.com:5601", apmServer["command"])
+
+    def test_apm_server_kibana_url_no_kibana(self):
+        darwin_mock = MagicMock(return_value='darwin')
+        with mock.patch('platform.system', darwin_mock):
+            apmServer = ApmServer(enable_kibana=False).render()["apm-server"]
+        self.assertIn("apm-server.kibana.host=host.docker.internal:5601", apmServer["command"])
+
+        linux_mock = MagicMock(return_value='linux')
+        with mock.patch('platform.system', linux_mock):
+            apmServer = ApmServer(enable_kibana=False).render()["apm-server"]
+        self.assertIn("apm-server.kibana.host=172.17.0.1:5601", apmServer["command"])
 
     def test_apm_server_index_refresh_interval(self):
         apmServer = ApmServer(apm_server_index_refresh_interval="10ms").render()["apm-server"]

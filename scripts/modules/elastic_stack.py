@@ -4,6 +4,7 @@
 
 import argparse
 import json
+import platform
 import os
 
 from .helpers import curl_healthcheck, try_to_set_slowlog, urlparse
@@ -28,6 +29,11 @@ class ApmServer(StackService, Service):
         default_apm_server_es_creds = {"username": "apm_server_user", "password": "changeme"}
         default_apm_server_kibana_creds = dict(default_apm_server_es_creds)
         self.managed = False
+        if self.options.get("enable_kibana") is False:
+            if platform.system().lower() == 'darwin':
+                self.DEFAULT_KIBANA_HOST = 'host.docker.internal:5601'
+            elif platform.system().lower() == 'linux':
+                self.DEFAULT_KIBANA_HOST = '172.17.0.1:5601'
 
         # run apm-server managed by elastic-agent
         if self.options.get("apm_server_managed"):
@@ -148,7 +154,6 @@ class ApmServer(StackService, Service):
                     elif self.options.get("xpack_secure"):
                         self.apm_server_command_args.append(
                             ("apm-server.kibana.{}".format(cfg), default_apm_server_kibana_creds.get(cfg)))
-
         if self.options.get("enable_kibana", True):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
             if options.get("apm_server_dashboards", True) and not self.at_least_version("7.0") \
@@ -156,6 +161,9 @@ class ApmServer(StackService, Service):
                 self.apm_server_command_args.append(
                     ("setup.dashboards.enabled", "true")
                 )
+        elif self.options.get("enable_kibana") is False:
+            self.apm_server_command_args.extend([
+                ("apm-server.kibana.host", self.options.get("apm_server_kibana_url", self.DEFAULT_KIBANA_HOST))])
 
         if self.at_least_version("7.6"):
             if options.get("apm_server_jaeger"):
