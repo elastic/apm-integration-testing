@@ -9,50 +9,77 @@ const [owner = 'elastic', branch = 'master'] = process.argv.slice(2);
 console.log(`Downloading sample docs: ${owner}:${branch}`);
 
 interface DocType {
-  interfaceName: string;
-  interfacePath: string;
+  name: string;
   url: string;
+  getFileContent: (data: any) => string;
 }
 
 const docTypes: DocType[] = [
   {
-    interfaceName: 'SpanRaw',
-    interfacePath: '../apm-ui-interfaces/raw/span_raw',
-    url: `https://raw.githubusercontent.com/elastic/apm-server/${branch}/beater/test_approved_es_documents/TestPublishIntegrationSpans.approved.json`
+    name: 'spans',
+    url: `https://raw.githubusercontent.com/elastic/apm-server/${branch}/beater/test_approved_es_documents/TestPublishIntegrationSpans.approved.json`,
+    getFileContent: data => {
+      return `import { SpanRaw } from '../apm-ui-interfaces/raw/span_raw';
+      import { AllowUnknownProperties } from '../../scripts/helpers';
+      export const sampleDoc:AllowUnknownProperties<SpanRaw>[] = ${JSON.stringify(
+        data.events
+      )}`;
+    }
   },
   {
-    interfaceName: 'TransactionRaw',
-    interfacePath: '../apm-ui-interfaces/raw/transaction_raw',
-    url: `https://raw.githubusercontent.com/elastic/apm-server/${branch}/beater/test_approved_es_documents/TestPublishIntegrationTransactions.approved.json`
+    name: 'transactions',
+    url: `https://raw.githubusercontent.com/elastic/apm-server/${branch}/beater/test_approved_es_documents/TestPublishIntegrationTransactions.approved.json`,
+    getFileContent: data => {
+      return `import { TransactionRaw } from '../apm-ui-interfaces/raw/transaction_raw';
+      import { AllowUnknownProperties } from '../../scripts/helpers';
+      export const sampleDoc:AllowUnknownProperties<TransactionRaw>[] = ${JSON.stringify(
+        data.events
+      )}`;
+    }
   },
   {
-    interfaceName: 'ErrorRaw',
-    interfacePath: '../apm-ui-interfaces/raw/error_raw',
-    url: `https://raw.githubusercontent.com/elastic/apm-server/${branch}/beater/test_approved_es_documents/TestPublishIntegrationErrors.approved.json`
+    name: 'errors',
+    url: `https://raw.githubusercontent.com/elastic/apm-server/${branch}/beater/test_approved_es_documents/TestPublishIntegrationErrors.approved.json`,
+    getFileContent: data => {
+      return `import { ErrorRaw } from '../apm-ui-interfaces/raw/error_raw';
+      import { AllowUnknownProperties } from '../../scripts/helpers';
+      export const sampleDoc:AllowUnknownProperties<ErrorRaw>[] = ${JSON.stringify(
+        data.events
+      )}`;
+    }
   },
   {
-    interfaceName: 'MetricRaw',
-    interfacePath: '../apm-ui-interfaces/raw/metric_raw',
-    url: `https://raw.githubusercontent.com/elastic/apm-server/${branch}/beater/test_approved_es_documents/TestPublishIntegrationMetricsets.approved.json`
+    name: 'metrics',
+    url: `https://raw.githubusercontent.com/elastic/apm-server/${branch}/beater/test_approved_es_documents/TestPublishIntegrationMetricsets.approved.json`,
+    getFileContent: data => {
+      return `import { MetricRaw } from '../apm-ui-interfaces/raw/metric_raw';
+      import { AllowUnknownProperties } from '../../scripts/helpers';
+      export const sampleDoc:AllowUnknownProperties<MetricRaw>[] = ${JSON.stringify(
+        data.events
+      )}`;
+    }
+  },
+  {
+    name: 'minimal',
+    url: `https://raw.githubusercontent.com/elastic/apm-server/${branch}/beater/test_approved_es_documents/TestPublishIntegrationMinimalEvents.approved.json`,
+    getFileContent: data => {
+      return `import { SpanRaw } from '../apm-ui-interfaces/raw/span_raw';
+      import { TransactionRaw } from '../apm-ui-interfaces/raw/transaction_raw';
+      import { ErrorRaw } from '../apm-ui-interfaces/raw/error_raw';
+      import { MetricRaw } from '../apm-ui-interfaces/raw/metric_raw';
+      import { AllowUnknownProperties } from '../../scripts/helpers';
+      export const sampleDoc: AllowUnknownProperties<
+        SpanRaw | TransactionRaw | ErrorRaw | MetricRaw
+      >[] = ${JSON.stringify(data.events)}`;
+    }
   }
 ];
 
-docTypes.map(docType => writeConvertedFile(docType));
+const promises = docTypes.map(async docType => {
+  const fileName = `./tmp/apm-server-docs/${docType.name}.ts`;
+  const { data } = await axios.get(docType.url);
 
-async function writeConvertedFile({
-  interfaceName,
-  interfacePath,
-  url
-}: DocType) {
-  const name = `${interfaceName}Docs`;
-  const fileName = `./tmp/apm-server-docs/${name}.ts`;
-  const { data } = await axios.get(url);
-
-  const content = `import { ${interfaceName} } from '${interfacePath}';
-  import { AllowUnknownProperties } from '../../scripts/helpers';
-  export const ${name}:AllowUnknownProperties<${interfaceName}>[] = ${JSON.stringify(
-    data.events
-  )}`;
+  const content = docType.getFileContent(data);
 
   const formattedContent = prettier.format(content, {
     ...prettierRc,
@@ -60,4 +87,6 @@ async function writeConvertedFile({
   });
 
   await writeFile(fileName, formattedContent);
-}
+});
+
+Promise.all(promises);
