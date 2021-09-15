@@ -5,6 +5,7 @@
 import argparse
 import json
 import os
+import platform
 
 from .helpers import curl_healthcheck, try_to_set_slowlog, urlparse
 from .service import StackService, Service, DEFAULT_APM_SERVER_URL
@@ -864,7 +865,10 @@ class Elasticsearch(StackService, Service):
                 "Xmx": options["elasticsearch_heap"],
             })
         es_java_opts.update(dict(options.get("elasticsearch_java_opts", {}) or {}))
-        if self.at_least_version("6.4"):
+        # AVX aren't valid instructions on ARM architectures. From Java 11 onwards this
+        # flag isn't needed. We should most likely remove the if clause after 8.x.
+        arm_architectures = ['aarch64', 'arm64']
+        if self.at_least_version("6.4") and not platform.machine() in arm_architectures:
             # per https://github.com/elastic/elasticsearch/pull/32138/files
             es_java_opts["XX:UseAVX"] = "=2"
 
