@@ -280,18 +280,20 @@ class OpbeansJava(OpbeansService):
             default=cls.DEFAULT_OPBEANS_VERSION,
             help=cls.name() + " version for the docker image of opbeans java"
         )
-        # only support by the java agent for now
         parser.add_argument(
-            '--' + cls.name() + '-infer-spans',
+            '--' + cls.name() + '-no-infer-spans',
             action="store_true",
-            help=cls.name() + " enable inferred span collection"
+            help=cls.name() + " disable inferred span collection",
         )
 
     def __init__(self, **options):
         super(OpbeansJava, self).__init__(**options)
         self.opbeans_image = options.get('opbeans_java_image')
         self.opbeans_version = options.get('opbeans_java_version')
-        self.infer_spans = options.get('opbeans_java_infer_spans')
+        self.infer_spans = self._resolve_span_setting(options)
+
+    def _resolve_span_setting(self, options):
+        return not options.get('opbeans_java_no_infer_spans')
 
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")

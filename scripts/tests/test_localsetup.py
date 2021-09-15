@@ -209,6 +209,7 @@ class OpbeansServiceTest(ServiceTest):
                       - OPBEANS_DT_PROBABILITY=0.50
                       - ELASTIC_APM_ENVIRONMENT=production
                       - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.10
+                      - ELASTIC_APM_PROFILING_INFERRED_SPANS_ENABLED=true
                     logging:
                       driver: 'json-file'
                       options:
@@ -236,10 +237,14 @@ class OpbeansServiceTest(ServiceTest):
         branch = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_JAVA_IMAGE")]
         self.assertEqual(branch, ["OPBEANS_JAVA_IMAGE=foo"])
 
-    def test_opbeans_java_infer_spans(self):
-        opbeans = OpbeansJava(opbeans_java_infer_spans=True).render()["opbeans-java"]
-        infer = [e for e in opbeans["environment"] if e.startswith("ELASTIC_APM_PROFILING_INFERRED_SPANS_ENABLED")]
-        self.assertEqual(infer, ["ELASTIC_APM_PROFILING_INFERRED_SPANS_ENABLED=true"])
+    def test_opbeans_java_no_infer_spans(self):
+        opbeans = OpbeansJava(opbeans_java_no_infer_spans=True).render()["opbeans-java"]
+        self.assertTrue("ELASTIC_APM_PROFILING_INFERRED_SPANS_ENABLED=true" not in opbeans['environment'])
+
+    def opbeans_java_infer_spans_default_spans(self):
+        opbeans = OpbeansJava().render()["opbeans-java"]
+        self.assertTrue("ELASTIC_APM_PROFILING_INFERRED_SPANS_ENABLED=true" in opbeans['environment'])
+
 
     def test_opbeans_java_version(self):
         opbeans = OpbeansJava(opbeans_java_version="bar").render()["opbeans-java"]
