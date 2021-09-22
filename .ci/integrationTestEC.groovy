@@ -256,9 +256,9 @@ def withConfigEnv(Closure body) {
   def esJson = getVaultSecret(secret: "${config.k8s_vault_elasticsearch_def_secret}")?.data.value
   def apmJson = getVaultSecret(secret: "${config.k8s_vault_apm_def_secret}")?.data.value
   def kbJson = getVaultSecret(secret: "${config.k8s_vault_kibana_def_secret}")?.data.value
-  def es = readJSON(text: esJson)
-  def apm = readJSON(text: apmJson)
-  def kb = readJSON(text: kbJson)
+  def es = toJSON(esJson)
+  def apm = toJSON(apmJson)
+  def kb = toJSON(kbJson)
 
   withEnvMask(vars: [
     [var: 'APM_SERVER_URL', password: apm.url],
