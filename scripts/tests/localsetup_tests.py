@@ -201,11 +201,7 @@ class OpbeansServiceTest(ServiceTest):
                       - JAVA_AGENT_VERSION
                       - OPBEANS_DT_PROBABILITY=0.50
                       - ELASTIC_APM_ENVIRONMENT=production
-<<<<<<< HEAD:scripts/tests/localsetup_tests.py
-=======
-                      - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.10
                       - ELASTIC_APM_PROFILING_INFERRED_SPANS_ENABLED=true
->>>>>>> 14728c0 (Enable inferred spans by default for Java (#1262)):scripts/tests/test_localsetup.py
                     logging:
                       driver: 'json-file'
                       options:
