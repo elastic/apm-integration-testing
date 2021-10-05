@@ -59,7 +59,7 @@ pipeline {
             // The below line is part of the bump release automation
             // if you change anything please modifies the file
             // .ci/bump-stack-release-version.sh
-            values '8.0.0-SNAPSHOT', '7.x', '7.14.1'
+            values '8.0.0-SNAPSHOT', '7.x', '7.15.0'
           }
         }
         stages {
