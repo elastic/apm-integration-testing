@@ -1,4 +1,5 @@
 from timeout_decorator import TimeoutError
+import time
 import requests
 
 
@@ -45,6 +46,7 @@ def check_elasticsearch_count(elasticsearch,
         try:
             actual = elasticsearch.count(query)
             retries += 1
+            time.sleep(10)
         except TimeoutError:
             retries = max_retries
             actual = -1
