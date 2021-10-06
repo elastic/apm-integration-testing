@@ -675,7 +675,6 @@ class ApmServer(StackService, Service):
 
 
 class PackageRegistry(StackService, Service):
-
     SERVICE_PORT = "8080"
 
     docker_path = "package-registry"
@@ -878,6 +877,9 @@ class Elasticsearch(StackService, Service):
 
         self.environment = self.default_environment + [
             java_opts_env, "path.data=/usr/share/elasticsearch/data/" + data_dir]
+        snapshot_urls = [s for s in self.options.get("elasticsearch_snapshot_repo", []) if s.startswith("http")]
+        if snapshot_urls:
+            self.environment.append("repositories.url.allowed_urls={:s}".format(",".join(snapshot_urls)))
         self.es_tls = not self.oss and self.options.get("elasticsearch_enable_tls", False)
         if options.get("elasticsearch_slow_log"):
             try_to_set_slowlog(options.get("apm_server_elasticsearch_password"))
@@ -949,6 +951,13 @@ class Elasticsearch(StackService, Service):
             "--elasticsearch-slow-log",
             action="store_true",
             help="enable the Elasticsearch slow log"
+        )
+
+        parser.add_argument(
+            "--elasticsearch-snapshot-repo",
+            action="append",
+            default=[],
+            help="configure elasticsearch snapshot repository",
         )
 
         class storeDict(argparse.Action):
