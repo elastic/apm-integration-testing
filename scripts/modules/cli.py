@@ -25,7 +25,11 @@ from .elastic_stack import (  # noqa: F401
     ApmServer, ElasticAgent, Elasticsearch, EnterpriseSearch, Kibana, PackageRegistry
 )
 from .aux_services import (  # noqa: F401
+<<<<<<< HEAD
     Kafka, Logstash, Postgres, Redis, Zookeeper, WaitService
+=======
+    CommandService, Kafka, Logstash, Postgres, Redis, StatsD, Zookeeper, WaitService
+>>>>>>> ed44add (add --elasticsearch-snapshot-repo option (#1281))
 )
 from .opbeans import (  # noqa: F401
     OpbeansNode, OpbeansRuby, OpbeansPython, OpbeansDotnet,
@@ -581,7 +585,46 @@ class LocalSetup(object):
                     (run_all and is_obs and not is_opbeans_2nd)):
                 selections.add(service(**args))
 
+<<<<<<< HEAD
         selections.add(WaitService(selections, **args))
+=======
+        if args.get('dyno'):
+            toxi = Toxi()
+            selections.add(toxi)
+            toxi.gen_ports(selections)
+            c = toxi.gen_config(selections)
+            this_dir = os.path.dirname(os.path.realpath(__file__))
+            toxi_cfg_path = os.path.join(this_dir, "../../docker/toxi/toxi.cfg")
+            with open(toxi_cfg_path, 'w') as fh_:
+                fh_.write(c)
+            dyno = Dyno()
+            selections.add(dyno)
+            statsd = StatsD()
+            selections.add(statsd)
+
+        # freeze wait service selections here, future modifications of selections will not impact the wait service
+        selections.add(WaitService(set(selections), **args))
+
+        # any image with curl
+        curl_image = "docker.elastic.co/elasticsearch/elasticsearch:8.0.0-SNAPSHOT"
+        for c, snapshot_repo in enumerate(args.get("elasticsearch_snapshot_repo", [])):
+            if not snapshot_repo.startswith("http"):
+                print("skipping setup of non-http(s) repo: {}".format(snapshot_repo))
+                continue
+            if not snapshot_repo.endswith("/"):
+                print("http(s) repo should probably end with '/': {}".format(snapshot_repo))
+            repo_label = "repo{:d}".format(c)
+            cmd = [
+                "curl", "-X", "PUT",
+                "-H", "Content-Type: application/json",
+                "-d",
+                json.dumps({"type": "url", "settings": {"url": snapshot_repo}}),
+                # es creds + url only usable with default setup
+                "http://admin:changeme@elasticsearch:9200/_snapshot/{:s}".format(repo_label),
+            ]
+            selections.add(CommandService(cmd, service=repo_label, image=curl_image, depends_on=["elasticsearch"]))
+
+>>>>>>> ed44add (add --elasticsearch-snapshot-repo option (#1281))
         # `docker load` images if necessary, usually only for build candidates
         services_to_load = {}
         for service in selections:

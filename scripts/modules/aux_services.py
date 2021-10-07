@@ -120,6 +120,51 @@ class Zookeeper(Service):
         )
 
 
+<<<<<<< HEAD
+=======
+class StatsD(Service):
+    SERVICE_PORT = 8125
+
+    def _content(self):
+        return dict(
+            build=dict(
+                context="docker/statsd",
+                dockerfile="Dockerfile",
+                args=[]
+            ),
+            healthcheck={"interval": "10s", "test": ["CMD", "pidof", "node"]},
+            image=None,
+            labels=None,
+            ports=["8125:8125/udp", "8126:8126", "8127:8127"],
+        )
+
+
+class CommandService(object):
+    def __init__(self, command, service="command", image="busybox", depends_on=None):
+        self.command = command
+
+        self.depends_on = depends_on
+        self.image = image
+        self.service = service
+
+    def name(self):
+        return self.service
+
+    @staticmethod
+    def image_download_url():
+        return None
+
+    def render(self):
+        content = {
+            "command": self.command,
+            "image": self.image,
+        }
+        if self.depends_on:
+            content["depends_on"] = {d: {"condition": "service_healthy"} for d in self.depends_on}
+        return {self.service: content}
+
+
+>>>>>>> ed44add (add --elasticsearch-snapshot-repo option (#1281))
 class WaitService(Service):
     """Create a service that depends on all services ."""
 

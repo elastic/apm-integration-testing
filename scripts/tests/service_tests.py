@@ -1093,6 +1093,15 @@ class ElasticsearchServiceTest(ServiceTest):
         java_opts = [e for e in elasticsearch["environment"] if e.startswith("ES_JAVA_OPTS=")]
         self.assertListEqual(["ES_JAVA_OPTS=-XX:+UseConcMarkSweepGC"], java_opts)
 
+    def test_snapshot(self):
+        elasticsearch = Elasticsearch(version="7.11.100", elasticsearch_snapshot_repo=["http://single_repo.url/p/ath"]).render()["elasticsearch"]
+        repos_allowed = [e for e in elasticsearch["environment"] if e.startswith("repositories.url.allowed_urls=")]
+        self.assertEqual(["repositories.url.allowed_urls=http://single_repo.url/p/ath"], repos_allowed)
+
+        elasticsearch = Elasticsearch(version="7.11.100", elasticsearch_snapshot_repo=["http://first_repo.url/p/ath", "http://second_repo.url/p/ath"]).render()["elasticsearch"]
+        repos_allowed = [e for e in elasticsearch["environment"] if e.startswith("repositories.url.allowed_urls=")]
+        self.assertEqual(["repositories.url.allowed_urls=http://first_repo.url/p/ath,http://second_repo.url/p/ath"], repos_allowed)
+
     def test_tls(self):
         elasticsearch = Elasticsearch(version="7.11.100", elasticsearch_tls_enable=True).render()["elasticsearch"]
         self.assertListEqual(["co.elastic.apm.stack-version=7.11.100",
