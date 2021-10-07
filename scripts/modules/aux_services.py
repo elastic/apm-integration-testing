@@ -137,6 +137,31 @@ class StatsD(Service):
         )
 
 
+class CommandService(object):
+    def __init__(self, command, service="command", image="busybox", depends_on=None):
+        self.command = command
+
+        self.depends_on = depends_on
+        self.image = image
+        self.service = service
+
+    def name(self):
+        return self.service
+
+    @staticmethod
+    def image_download_url():
+        return None
+
+    def render(self):
+        content = {
+            "command": self.command,
+            "image": self.image,
+        }
+        if self.depends_on:
+            content["depends_on"] = {d: {"condition": "service_healthy"} for d in self.depends_on}
+        return {self.service: content}
+
+
 class WaitService(Service):
     """Create a service that depends on all services ."""
 

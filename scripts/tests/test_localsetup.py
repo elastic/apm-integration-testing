@@ -1940,3 +1940,19 @@ class LocalTest(unittest.TestCase):
         self.assertIn("NODE_VERSION=14.17.3", kibana["build"]["args"])
         self.assertIn("UID={}".format(os.getuid()), kibana["build"]["args"])
         self.assertIn("GID={}".format(os.getgid()), kibana["build"]["args"])
+
+    def test_elasticsearch_snapshot_repo(self):
+        docker_compose_yml = stringIO()
+        image_cache_dir = "/foo"
+        setup = LocalSetup(argv=self.common_setup_args + ["8.0.0", "--image-cache-dir", image_cache_dir,
+                                                          "--elasticsearch-snapshot-repo", "https://example.com/1/",
+                                                          "--elasticsearch-snapshot-repo", "https://example.com/2/"])
+        setup.set_docker_compose_path(docker_compose_yml)
+        setup()
+        docker_compose_yml.seek(0)
+        got = yaml.safe_load(docker_compose_yml)
+        services = set(got["services"])
+        self.assertIn("repo0", services)
+        self.assertIn("repo1", services)
+        repo0 = got["services"]["repo0"]
+        self.assertIn('{"type": "url", "settings": {"url": "https://example.com/1/"}}', repo0["command"])
