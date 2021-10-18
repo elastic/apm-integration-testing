@@ -9,8 +9,6 @@ ARG apm_server_binary=apm-server
 FROM golang:${go_version} AS build
 ARG apm_server_binary
 
-RUN apt -qq remove -y python2 && apt -qq autoremove -y
-
 # install make update prerequisites
 RUN apt-get -qq update \
     && apt-get -qq install -y python3 python3-pip python3-venv rsync
