@@ -1,3 +1,4 @@
+import collections
 import json
 import sys
 
@@ -63,6 +64,13 @@ class Service(object):
                 print('ERROR: OSS distribution is ONLY supported in 7.11+/6.8.14+ for Kibana and Elasticsearch.')
                 sys.exit(1)
 
+<<<<<<< HEAD
+=======
+        self._es_tls = options.get("elasticsearch_enable_tls", False)
+        self._kibana_tls = options.get("kibana_enable_tls", False)
+        self._env_vars = options.get(self.option_name() + "_env_vars", [])
+
+>>>>>>> 584de76 (add per service -env-var options (#1284))
     @property
     def bc(self):
         return self._bc
@@ -148,7 +156,14 @@ class Service(object):
         for prune in "image", "labels", "logging":
             if content[prune] is None:
                 del (content[prune])
-
+        if self._env_vars:
+            if isinstance(content["environment"], collections.Mapping):
+                for ev in self._env_vars:
+                    k, v = ev.split("=", 1)
+                    content["environment"][k] = v
+            else:
+                # it's a list of strings
+                content["environment"].extend(self._env_vars)
         return {self.name(): content}
 
     @property
@@ -167,6 +182,12 @@ class Service(object):
                 dest=cls.option_name() + '_port',
                 help="service port"
             )
+        parser.add_argument(
+            '--' + cls.name() + '-env-var',
+            action="append",
+            dest=cls.option_name() + "_env_vars",
+            help="arbitrary enviornment variables to set"
+        )
 
     def image_download_url(self):
         pass

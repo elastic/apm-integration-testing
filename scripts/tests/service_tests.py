@@ -1082,6 +1082,11 @@ class ElasticsearchServiceTest(ServiceTest):
         data_path = [e for e in elasticsearch["environment"] if e.startswith("path.data=")]
         self.assertListEqual(["path.data=/usr/share/elasticsearch/data/foo"], data_path)
 
+    def test_env_vars(self):
+        elasticsearch = Elasticsearch(version="7.3.0", release=True,
+            elasticsearch_env_vars=["some.es.env=bar"]).render()["elasticsearch"]
+        self.assertIn("some.es.env=bar", elasticsearch['environment'])
+
     def test_heap(self):
         elasticsearch = Elasticsearch(version="6.3.100", elasticsearch_heap="5m").render()["elasticsearch"]
         java_opts = [e for e in elasticsearch["environment"] if e.startswith("ES_JAVA_OPTS=")]
@@ -1323,6 +1328,10 @@ class KibanaServiceTest(ServiceTest):
                         "elasticsearch01:9200", "elasticsearch02:9200"]).render()["kibana"]
         self.assertTrue("elasticsearch" in kibana['depends_on'])
         self.assertEqual("elasticsearch01:9200,elasticsearch02:9200", kibana['environment']["ELASTICSEARCH_HOSTS"])
+
+    def test_kibana_env_vars(self):
+        kibana = Kibana(version="7.3.0", release=True, kibana_env_vars=["FOO=bar"]).render()["kibana"]
+        self.assertIn("FOO", kibana['environment'])
 
     def test_kibana_port(self):
         kibana = Kibana(version="7.3.0", release=True, kibana_port="1234").render()["kibana"]
