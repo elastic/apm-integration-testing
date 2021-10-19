@@ -34,7 +34,8 @@ class AgentServiceTest(ServiceTest):
                     container_name: gonethttpapp
                     depends_on:
                         apm-server:
-                            condition: 'service_healthy'
+                          condition:
+                            service_healthy
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_FLUSH_INTERVAL: 500ms
@@ -46,6 +47,7 @@ class AgentServiceTest(ServiceTest):
                         interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://gonethttpapp:8080/healthcheck"]
+                        timeout: 5s
                     ports:
                         - 127.0.0.1:8080:8080
             """)  # noqa: 501
@@ -91,7 +93,8 @@ class AgentServiceTest(ServiceTest):
                     container_name: expressapp
                     depends_on:
                         apm-server:
-                            condition: 'service_healthy'
+                          condition:
+                            service_healthy
                     command: bash -c "npm install elastic-apm-node && node app.js"
                     environment:
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
@@ -102,6 +105,7 @@ class AgentServiceTest(ServiceTest):
                         interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://expressapp:8010/healthcheck"]
+                        timeout: 5s
                     ports:
                         - 127.0.0.1:8010:8010
             """)  # noqa: 501
@@ -144,7 +148,8 @@ class AgentServiceTest(ServiceTest):
                     container_name: djangoapp
                     depends_on:
                         apm-server:
-                            condition: 'service_healthy'
+                          condition:
+                            service_healthy
                     environment:
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
                         DJANGO_SERVICE_NAME: djangoapp
@@ -153,6 +158,7 @@ class AgentServiceTest(ServiceTest):
                         interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://djangoapp:8003/healthcheck"]
+                        timeout: 5s
                     ports:
                         - 127.0.0.1:8003:8003
             """)  # noqa: 501
@@ -191,7 +197,8 @@ class AgentServiceTest(ServiceTest):
                     container_name: flaskapp
                     depends_on:
                         apm-server:
-                            condition: 'service_healthy'
+                          condition:
+                            service_healthy
                     environment:
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
                         FLASK_SERVICE_NAME: flaskapp
@@ -200,6 +207,7 @@ class AgentServiceTest(ServiceTest):
                         interval: 10s
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://flaskapp:8001/healthcheck"]
+                        timeout: 5s
                     ports:
                         - 127.0.0.1:8001:8001
             """)  # noqa: 501
@@ -241,7 +249,8 @@ class AgentServiceTest(ServiceTest):
                     container_name: railsapp
                     depends_on:
                         apm-server:
-                            condition: 'service_healthy'
+                          condition:
+                            service_healthy
                     command: bash -c "bundle install && RAILS_ENV=production bundle exec rails s -b 0.0.0.0 -p 8020"
                     environment:
                         APM_SERVER_URL: http://apm-server:8200
@@ -259,6 +268,7 @@ class AgentServiceTest(ServiceTest):
                         interval: 10s
                         retries: 60
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://railsapp:8020/healthcheck"]
+                        timeout: 5s
                     ports:
                         - 127.0.0.1:8020:8020
             """)  # noqa: 501
@@ -317,7 +327,8 @@ class AgentServiceTest(ServiceTest):
                     container_name: javaspring
                     depends_on:
                         apm-server:
-                            condition: 'service_healthy'
+                          condition:
+                            service_healthy
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_LOG_LEVEL: 'info'
@@ -328,6 +339,7 @@ class AgentServiceTest(ServiceTest):
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output",
                         "/dev/null", "http://javaspring:8090/healthcheck"]
+                        timeout: 5s
                     ports:
                         - 127.0.0.1:8090:8090
             """)
@@ -385,12 +397,12 @@ class AgentServiceTest(ServiceTest):
                     container_name: dotnetapp
                     depends_on:
                         apm-server:
-                            condition: 'service_healthy'
+                          condition:
+                            service_healthy
                     environment:
                         ELASTIC_APM_API_REQUEST_TIME: '3s'
                         ELASTIC_APM_FLUSH_INTERVAL: '5'
                         ELASTIC_APM_LOG_LEVEL: Info
-                        ELASTIC_APM_TRANSACTION_SAMPLE_RATE: '1'
                         ELASTIC_APM_SERVICE_NAME: dotnetapp
                         ELASTIC_APM_TRANSACTION_IGNORE_NAMES: 'healthcheck'
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
@@ -399,6 +411,7 @@ class AgentServiceTest(ServiceTest):
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output",
                         "/dev/null", "http://dotnetapp:8100/healthcheck"]
+                        timeout: 5s
                     ports:
                         - 127.0.0.1:8100:8100
             """)
@@ -451,7 +464,8 @@ class AgentServiceTest(ServiceTest):
                     container_name: phpapacheapp
                     depends_on:
                         apm-server:
-                            condition: 'service_healthy'
+                          condition:
+                            service_healthy
                     environment:
                         ELASTIC_APM_SERVICE_NAME: 'phpapacheapp'
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
@@ -460,6 +474,7 @@ class AgentServiceTest(ServiceTest):
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output",
                         "/dev/null", "http://phpapacheapp:80/healthcheck"]
+                        timeout: 5s
                     ports:
                         - 127.0.0.1:8030:80
             """)
@@ -901,6 +916,14 @@ class ApmServerServiceTest(ServiceTest):
         self.assertIn("foo:/usr/share/apm-server/ingest/pipeline/definition.json", apm_server["volumes"])
         self.assertIn("apm-server.register.ingest.pipeline.overwrite=true", apm_server["command"])
 
+    def test_data_streams(self):
+        apm_server = ApmServer(version="7.16.0", apm_server_enable_data_streams=True).render()["apm-server"]
+        self.assertIn("apm-server.data_streams.enabled=true", apm_server["command"])
+        self.assertFalse(
+            any(a.startswith("output.elasticsearch.pipelines=") for a in apm_server["command"]),
+            "output.elasticsearch.pipelines with data streams enabled",
+        )
+
     def test_debug(self):
         apm_server = ApmServer(version="6.8.0", apm_server_enable_debug=True).render()["apm-server"]
         self.assertTrue("-d" in apm_server["command"])
@@ -909,22 +932,30 @@ class ApmServerServiceTest(ServiceTest):
 
 class ElasticAgentServiceTest(ServiceTest):
     def test_default(self):
-        ea = ElasticAgent(version="7.12.345",enable_apm_server=True,apm_server_managed=True).render()["elastic-agent"]
+        ea = ElasticAgent(version="7.12.345", enable_apm_server=True, apm_server_managed=True).render()["elastic-agent"]
         self.assertEqual(
             ea, {"container_name": "localtesting_7.12.345_elastic-agent",
                  "depends_on": {"kibana": {"condition": "service_healthy"}},
-                 "environment": {"FLEET_ENROLL": "1",
-                                 "FLEET_ENROLL_INSECURE": 1,
-                                 "FLEET_SETUP": "1",
-                                 "KIBANA_HOST": "http://admin:changeme@kibana:5601",
-                                 "KIBANA_PASSWORD": "changeme",
-                                 "KIBANA_USERNAME": "admin"},
+                 'environment': {'ELASTICSEARCH_HOST': 'http://admin:changeme@elasticsearch:9200',
+                                 'ELASTICSEARCH_PASSWORD': 'changeme',
+                                 'ELASTICSEARCH_USERNAME': 'admin',
+                                 'FLEET_ENROLL': '1',
+                                 'FLEET_ENROLL_INSECURE': 1,
+                                 'FLEET_SERVER_ENABLE': '1',
+                                 'FLEET_INSECURE': '1',
+                                 "FLEET_SERVER_INSECURE_HTTP": "1",
+                                 'FLEET_SERVER_HOST': '0.0.0.0',
+                                 'FLEET_SETUP': '1',
+                                 'KIBANA_FLEET_SETUP': '1',
+                                 'KIBANA_HOST': 'http://admin:changeme@kibana:5601',
+                                 'KIBANA_PASSWORD': 'changeme',
+                                 'KIBANA_USERNAME': 'admin'},
                  "healthcheck": {"test": ["CMD", "/bin/true"]},
                  "image": "docker.elastic.co/beats/elastic-agent:7.12.345-SNAPSHOT",
                  "labels": ["co.elastic.apm.stack-version=7.12.345"],
                  "logging": {"driver": "json-file",
                              "options": {"max-file": "5", "max-size": "2m"}},
-                 'ports': ['127.0.0.1:8200:8200'],
+                 'ports': ['127.0.0.1:8220:8220', '127.0.0.1:8200:8200'],
                  "volumes": ["/var/run/docker.sock:/var/run/docker.sock"]}
         )
 
@@ -961,6 +992,7 @@ class PackageRegistryServiceTest(ServiceTest):
                   'environment': {},
                   'healthcheck': {'interval': '5s',
                                   'retries': 10,
+                                  'timeout': '5s',
                                   'test': ['CMD',
                                            'curl',
                                            '--write-out',
@@ -986,6 +1018,7 @@ class PackageRegistryServiceTest(ServiceTest):
                   'environment': {},
                   'healthcheck': {'interval': '5s',
                                   'retries': 10,
+                                  'timeout': '5s',
                                   'test': ['CMD',
                                            'curl',
                                            '--write-out',
@@ -1093,6 +1126,15 @@ class ElasticsearchServiceTest(ServiceTest):
         java_opts = [e for e in elasticsearch["environment"] if e.startswith("ES_JAVA_OPTS=")]
         self.assertListEqual(["ES_JAVA_OPTS=-XX:+UseConcMarkSweepGC"], java_opts)
 
+    def test_snapshot(self):
+        elasticsearch = Elasticsearch(version="7.11.100", elasticsearch_snapshot_repo=["http://single_repo.url/p/ath"]).render()["elasticsearch"]
+        repos_allowed = [e for e in elasticsearch["environment"] if e.startswith("repositories.url.allowed_urls=")]
+        self.assertEqual(["repositories.url.allowed_urls=http://single_repo.url/p/ath"], repos_allowed)
+
+        elasticsearch = Elasticsearch(version="7.11.100", elasticsearch_snapshot_repo=["http://first_repo.url/p/ath", "http://second_repo.url/p/ath"]).render()["elasticsearch"]
+        repos_allowed = [e for e in elasticsearch["environment"] if e.startswith("repositories.url.allowed_urls=")]
+        self.assertEqual(["repositories.url.allowed_urls=http://first_repo.url/p/ath,http://second_repo.url/p/ath"], repos_allowed)
+
     def test_tls(self):
         elasticsearch = Elasticsearch(version="7.11.100", elasticsearch_tls_enable=True).render()["elasticsearch"]
         self.assertListEqual(["co.elastic.apm.stack-version=7.11.100",
@@ -1108,6 +1150,15 @@ class EnterpriseSearchServiceTest(ServiceTest):
         self.assertEqual(
             entsearch["image"], "docker.elastic.co/enterprise-search/enterprise-search:7.12.20"
         )
+
+    def test_8_0_0(self):
+        entsearch = EnterpriseSearch(version="8.0.0").render()["enterprise-search"]
+        self.assertEqual(
+            entsearch["image"], "docker.elastic.co/enterprise-search/enterprise-search:8.0.0-SNAPSHOT"
+        )
+        self.assertDictContainsSubset({"apm.enabled": "true", "kibana.external_url": "http://localhost:5601", "kibana.host": "http://kibana:5601"}, entsearch["environment"])
+        kibana = Kibana(version="8.0.0", with_enterprise_search=True).render()["kibana"]
+        self.assertDictContainsSubset({"ENTERPRISESEARCH_HOST": "http://enterprise-search:3002"}, kibana["environment"])
 
 
 class FilebeatServiceTest(ServiceTest):
@@ -1128,13 +1179,16 @@ class FilebeatServiceTest(ServiceTest):
                             max-file: '5'
                     depends_on:
                         elasticsearch:
-                            condition: service_healthy
+                          condition:
+                            service_healthy
                         kibana:
-                            condition: service_healthy
+                          condition:
+                            service_healthy
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:5066/?pretty"]
                         interval: 10s
                         retries: 12
+                        timeout: 5s
                     volumes:
                         - ./docker/filebeat/filebeat.simple.yml:/usr/share/filebeat/filebeat.yml
                         - /var/lib/docker/containers:/var/lib/docker/containers
@@ -1159,13 +1213,16 @@ class FilebeatServiceTest(ServiceTest):
                             max-file: '5'
                     depends_on:
                         elasticsearch:
-                            condition: service_healthy
+                          condition:
+                            service_healthy
                         kibana:
-                            condition: service_healthy
+                          condition:
+                            service_healthy
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:5066/?pretty"]
                         interval: 10s
                         retries: 12
+                        timeout: 5s
                     volumes:
                         - ./docker/filebeat/filebeat.6.x-compat.yml:/usr/share/filebeat/filebeat.yml
                         - /var/lib/docker/containers:/var/lib/docker/containers
@@ -1259,9 +1316,12 @@ class KibanaServiceTest(ServiceTest):
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://kibana:5601/api/status"]
                         interval: 10s
                         retries: 30
+                        timeout: 5s
+                        start_period: 10s
                     depends_on:
                         elasticsearch:
-                            condition: service_healthy
+                          condition:
+                            service_healthy
                     labels:
                         - co.elastic.apm.stack-version=6.2.4""")  # noqa: 501
         )
@@ -1288,11 +1348,14 @@ class KibanaServiceTest(ServiceTest):
                             max-file: '5'
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://kibana:5601/api/status"]
+                        timeout: 5s
                         interval: 10s
                         retries: 30
+                        start_period: 10s
                     depends_on:
                         elasticsearch:
-                            condition: service_healthy
+                          condition:
+                            service_healthy
                     labels:
                         - co.elastic.apm.stack-version=6.3.5""")  # noqa: 501
         )
@@ -1362,6 +1425,10 @@ class KibanaServiceTest(ServiceTest):
         kibana = Kibana(version="7.6.0", xpack_secure=False, kibana_version="7.6.0").render()["kibana"]
         self.assertNotIn("XPACK_SECURITY_LOGINASSISTANCEMESSAGE", kibana['environment'])
 
+    def test_kibana_verbose(self):
+        kibana = Kibana(version="8.0.0", kibana_verbose=True).render()["kibana"]
+        self.assertTrue(kibana['environment']['LOGGING_VERBOSE'])
+
     def test_kibana_encryption_keys_in_7_6(self):
         kibana = Kibana(version="7.6.0", kibana_version="7.6.0").render()["kibana"]
         self.assertNotIn("XPACK_SECURITY_ENCRYPTIONKEY", kibana['environment'])
@@ -1371,6 +1438,10 @@ class KibanaServiceTest(ServiceTest):
         kibana = Kibana(version="7.7.0", kibana_version="7.7.0").render()["kibana"]
         self.assertIn("XPACK_SECURITY_ENCRYPTIONKEY", kibana['environment'])
         self.assertIn("XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY", kibana['environment'])
+
+    def test_kibana_package_registry_url(self):
+        kibana = Kibana(package_registry_url="http://testing.invalid").render()["kibana"]
+        self.assertEqual("http://testing.invalid", kibana['environment']['XPACK_FLEET_REGISTRYURL'])
 
     def test_kibana_yml(self):
         kibana = Kibana(kibana_yml="/path/to.yml").render()["kibana"]
@@ -1394,10 +1465,13 @@ class LogstashServiceTest(ServiceTest):
         logstash:
             container_name: localtesting_6.3.0_logstash
             depends_on:
-                elasticsearch: {condition: service_healthy}
+                elasticsearch:
+                  condition:
+                    service_healthy
             environment: {ELASTICSEARCH_URL: 'http://elasticsearch:9200'}
             healthcheck:
                 test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://logstash:9600/"]
+                timeout: 5s
                 interval: 10s
                 retries: 12
             image: docker.elastic.co/logstash/logstash:6.3.0
@@ -1462,11 +1536,14 @@ class MetricbeatServiceTest(ServiceTest):
                             max-file: '5'
                     depends_on:
                         elasticsearch:
-                            condition: service_healthy
+                          condition:
+                            service_healthy
                         kibana:
-                            condition: service_healthy
+                          condition:
+                            service_healthy
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:5066/?pretty"]
+                        timeout: 5s
                         interval: 10s
                         retries: 12
                     volumes:
@@ -1545,11 +1622,14 @@ class PacketbeatServiceTest(ServiceTest):
                             max-file: '5'
                     depends_on:
                         elasticsearch:
-                            condition: service_healthy
+                          condition:
+                            service_healthy
                         kibana:
-                            condition: service_healthy
+                          condition:
+                            service_healthy
                     healthcheck:
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://localhost:5066/?pretty"]
+                        timeout: 5s
                         interval: 10s
                         retries: 12
                     volumes:
@@ -1557,7 +1637,7 @@ class PacketbeatServiceTest(ServiceTest):
                         - /var/run/docker.sock:/var/run/docker.sock
                         - ./scripts/tls/ca/ca.crt:/usr/share/beats/config/certs/stack-ca.crt
                     network_mode: 'service:apm-server'
-                    privileged: 'true'
+                    privileged: true
                     cap_add: ['NET_ADMIN', 'NET_RAW']""")  # noqa: 501
         )
 

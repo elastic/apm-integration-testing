@@ -4,11 +4,14 @@
 
 from collections import OrderedDict
 
-from .helpers import add_agent_environment, curl_healthcheck, wget_healthcheck
+from .helpers import add_agent_environment, curl_healthcheck, wget_healthcheck, dyno
 from .service import Service, DEFAULT_APM_SERVER_URL, DEFAULT_APM_JS_SERVER_URL, DEFAULT_SERVICE_VERSION
 
 
 class OpbeansService(Service):
+    APPLICATION_PORT = 3000
+    DEFAULT_SAMPLE_RATE = 10
+
     def __init__(self, **options):
         super(OpbeansService, self).__init__(**options)
         self.apm_server_url = options.get("apm_server_url", DEFAULT_APM_SERVER_URL)
@@ -22,7 +25,9 @@ class OpbeansService(Service):
         self.agent_local_repo = options.get(self.option_name() + "_agent_local_repo")
         self.opbeans_branch = options.get(self.option_name() + "_branch") or ""
         self.opbeans_repo = options.get(self.option_name() + "_repo") or ""
-        self.es_urls = ",".join(self.options.get("opbeans_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
+        self.sample_rate = float(int(options.get(self.option_name() + "_sample_rate") or 1) / 10)
+        self.es_urls = ",".join(self.options.get("opbeans_elasticsearch_urls") or
+                                [self.DEFAULT_ELASTICSEARCH_HOSTS_NO_TLS])
         self.service_environment = \
             options.get(self.option_name() + "_service_environment") or self.DEFAULT_ELASTIC_APM_ENVIRONMENT
 
@@ -61,6 +66,13 @@ class OpbeansService(Service):
             dest=cls.option_name() + '_service_version',
             help=cls.name() + " service version"
         )
+        parser.add_argument(
+            '--' + cls.name() + '-sample-rate',
+            default=cls.DEFAULT_SAMPLE_RATE,
+            dest=cls.option_name() + '_sample_rate',
+            help=cls.name() + " sample rate percentage",
+            choices=range(1, 101)
+        )
         if hasattr(cls, 'DEFAULT_SERVICE_NAME'):
             parser.add_argument(
                 '--' + cls.name() + '-service-name',
@@ -79,6 +91,7 @@ class OpbeansDotnet(OpbeansService):
     DEFAULT_OPBEANS_BRANCH = "master"
     DEFAULT_OPBEANS_REPO = "elastic/opbeans-dotnet"
     DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
+    DEFAULT_SAMPLE_RATE = 10
 
     @classmethod
     def add_arguments(cls, parser):
@@ -134,16 +147,16 @@ class OpbeansDotnet(OpbeansService):
                 "ELASTIC_APM_VERIFY_SERVER_CERT={}".format(str(not self.options.get("no_verify_server_cert")).lower()),
                 "ELASTIC_APM_FLUSH_INTERVAL=5",
                 "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
-                "ELASTIC_APM_TRANSACTION_SAMPLE_RATE=1",
                 "ELASTICSEARCH_URL={}".format(self.es_urls),
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
                 "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
+                "ELASTIC_APM_TRANSACTION_SAMPLE_RATE={:.2f}".format(self.sample_rate),
             ],
             depends_on=depends_on,
             image=None,
             labels=None,
-            healthcheck=curl_healthcheck(3000, "opbeans-dotnet", path="/", retries=36),
-            ports=[self.publish_port(self.port, 3000)],
+            healthcheck=curl_healthcheck(self.APPLICATION_PORT, "opbeans-dotnet", path="/", retries=36),
+            ports=[self.publish_port(self.port, self.APPLICATION_PORT)],
         )
         return content
 
@@ -164,6 +177,7 @@ class OpbeansGo(OpbeansService):
     DEFAULT_OPBEANS_REPO = "elastic/opbeans-go"
     DEFAULT_SERVICE_NAME = "opbeans-go"
     DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
+    DEFAULT_SAMPLE_RATE = 10
 
     @classmethod
     def add_arguments(cls, parser):
@@ -214,10 +228,9 @@ class OpbeansGo(OpbeansService):
                 "ELASTIC_APM_VERIFY_SERVER_CERT={}".format(str(not self.options.get("no_verify_server_cert")).lower()),
                 "ELASTIC_APM_FLUSH_INTERVAL=5",
                 "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
-                "ELASTIC_APM_TRANSACTION_SAMPLE_RATE=1",
                 "ELASTICSEARCH_URL={}".format(self.es_urls),
                 "OPBEANS_CACHE=redis://redis:6379",
-                "OPBEANS_PORT=3000",
+                "OPBEANS_PORT={}".format(self.APPLICATION_PORT),
                 "PGHOST=postgres",
                 "PGPORT=5432",
                 "PGUSER=postgres",
@@ -225,11 +238,12 @@ class OpbeansGo(OpbeansService):
                 "PGSSLMODE=disable",
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
                 "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
+                "ELASTIC_APM_TRANSACTION_SAMPLE_RATE={:.2f}".format(self.sample_rate),
             ],
             depends_on=depends_on,
             image=None,
             labels=None,
-            ports=[self.publish_port(self.port, 3000)],
+            ports=[self.publish_port(self.port, self.APPLICATION_PORT)],
         )
         return content
 
@@ -251,6 +265,7 @@ class OpbeansJava(OpbeansService):
     DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-java'
     DEFAULT_OPBEANS_VERSION = 'latest'
     DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
+    DEFAULT_SAMPLE_RATE = 10
 
     @classmethod
     def add_arguments(cls, parser):
@@ -283,6 +298,9 @@ class OpbeansJava(OpbeansService):
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
     ])
+    @dyno({"DATABASE_URL": "jdbc:postgresql://toxi/opbeans?user=postgres&password=verysecure",
+           "REDIS_URL": "redis://toxi:6379"
+           })
     def _content(self):
         depends_on = {
             "postgres": {"condition": "service_healthy"},
@@ -312,23 +330,23 @@ class OpbeansJava(OpbeansService):
                 "ELASTIC_APM_VERIFY_SERVER_CERT={}".format(str(not self.options.get("no_verify_server_cert")).lower()),
                 "ELASTIC_APM_FLUSH_INTERVAL=5",
                 "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
-                "ELASTIC_APM_TRANSACTION_SAMPLE_RATE=1",
                 "ELASTIC_APM_ENABLE_LOG_CORRELATION=true",
                 "DATABASE_URL=jdbc:postgresql://postgres/opbeans?user=postgres&password=verysecure",
                 "DATABASE_DIALECT=POSTGRESQL",
                 "DATABASE_DRIVER=org.postgresql.Driver",
                 "REDIS_URL=redis://redis:6379",
                 "ELASTICSEARCH_URL={}".format(self.es_urls),
-                "OPBEANS_SERVER_PORT=3000",
+                "OPBEANS_SERVER_PORT={}".format(self.APPLICATION_PORT),
                 "JAVA_AGENT_VERSION",
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
                 "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
+                "ELASTIC_APM_TRANSACTION_SAMPLE_RATE={:.2f}".format(self.sample_rate),
             ],
             depends_on=depends_on,
             image=None,
             labels=None,
-            healthcheck=curl_healthcheck(3000, "opbeans-java", path="/", retries=36),
-            ports=[self.publish_port(self.port, 3000)],
+            healthcheck=curl_healthcheck(self.APPLICATION_PORT, "opbeans-java", path="/", retries=36),
+            ports=[self.publish_port(self.port, self.APPLICATION_PORT)],
         )
         if self.agent_local_repo:
             content["volumes"] = [
@@ -353,6 +371,7 @@ class OpbeansNode(OpbeansService):
     DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-node'
     DEFAULT_OPBEANS_VERSION = 'latest'
     DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
+    DEFAULT_SAMPLE_RATE = 10
 
     @classmethod
     def add_arguments(cls, parser):
@@ -407,7 +426,7 @@ class OpbeansNode(OpbeansService):
                 "WORKLOAD_ELASTIC_APM_APP_NAME=workload",
                 "WORKLOAD_ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
                 "WORKLOAD_DISABLED={}".format(self.options.get("no_opbeans_node_loadgen", False)),
-                "OPBEANS_SERVER_PORT=3000",
+                "OPBEANS_SERVER_PORT={}".format(self.APPLICATION_PORT),
                 "OPBEANS_SERVER_HOSTNAME=opbeans-node",
                 "NODE_ENV=production",
                 "PGHOST=postgres",
@@ -419,12 +438,13 @@ class OpbeansNode(OpbeansService):
                 "NODE_AGENT_REPO=" + self.agent_repo,
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
                 "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
+                "ELASTIC_APM_TRANSACTION_SAMPLE_RATE={:.2f}".format(self.sample_rate),
             ],
             depends_on=depends_on,
             image=None,
             labels=None,
-            healthcheck=wget_healthcheck(3000, "opbeans-node", path="/"),
-            ports=[self.publish_port(self.port, 3000)],
+            healthcheck=wget_healthcheck(self.APPLICATION_PORT, "opbeans-node", path="/"),
+            ports=[self.publish_port(self.port, self.APPLICATION_PORT)],
             volumes=[
                 "./docker/opbeans/node/sourcemaps:/sourcemaps",
             ]
@@ -453,6 +473,7 @@ class OpbeansPython(OpbeansService):
     DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-python'
     DEFAULT_OPBEANS_VERSION = 'latest'
     DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
+    DEFAULT_SAMPLE_RATE = 10
 
     @classmethod
     def add_arguments(cls, parser):
@@ -480,6 +501,9 @@ class OpbeansPython(OpbeansService):
     @add_agent_environment([
         ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
     ])
+    @dyno({"DATABASE_URL": "postgres://postgres:verysecure@toxi/opbeans",
+           "REDIS_URL": "redis://toxi:6379"
+           })
     def _content(self):
         depends_on = {
             "postgres": {"condition": "service_healthy"},
@@ -509,7 +533,6 @@ class OpbeansPython(OpbeansService):
                 "ELASTIC_APM_VERIFY_SERVER_CERT={}".format(str(not self.options.get("no_verify_server_cert")).lower()),
                 "ELASTIC_APM_FLUSH_INTERVAL=5",
                 "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
-                "ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.5",
                 "ELASTIC_APM_SOURCE_LINES_ERROR_APP_FRAMES",
                 "ELASTIC_APM_SOURCE_LINES_SPAN_APP_FRAMES=5",
                 "ELASTIC_APM_SOURCE_LINES_ERROR_LIBRARY_FRAMES",
@@ -518,18 +541,19 @@ class OpbeansPython(OpbeansService):
                 "ELASTICSEARCH_URL={}".format(self.es_urls),
                 "OPBEANS_USER=opbeans_user",
                 "OPBEANS_PASS=changeme",
-                "OPBEANS_SERVER_URL=http://opbeans-python:3000",
+                "OPBEANS_SERVER_URL=http://opbeans-python:{}".format(self.APPLICATION_PORT),
                 "PYTHON_AGENT_BRANCH=" + self.agent_branch,
                 "PYTHON_AGENT_REPO=" + self.agent_repo,
                 "PYTHON_AGENT_VERSION",
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
                 "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
+                "ELASTIC_APM_TRANSACTION_SAMPLE_RATE={:.2f}".format(self.sample_rate),
             ],
             depends_on=depends_on,
             image=None,
             labels=None,
-            healthcheck=curl_healthcheck(3000, "opbeans-python", path="/"),
-            ports=[self.publish_port(self.port, 3000)],
+            healthcheck=curl_healthcheck(self.APPLICATION_PORT, "opbeans-python", path="/"),
+            ports=[self.publish_port(self.port, self.APPLICATION_PORT)],
         )
         if self.agent_local_repo:
             content["volumes"] = [
@@ -555,6 +579,7 @@ class OpbeansRuby(OpbeansService):
     DEFAULT_OPBEANS_IMAGE = 'opbeans/opbeans-ruby'
     DEFAULT_OPBEANS_VERSION = 'latest'
     DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
+    DEFAULT_SAMPLE_RATE = 10
 
     @classmethod
     def add_arguments(cls, parser):
@@ -606,22 +631,23 @@ class OpbeansRuby(OpbeansService):
                 "DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans-ruby",
                 "REDIS_URL=redis://redis:6379",
                 "ELASTICSEARCH_URL={}".format(self.es_urls),
-                "OPBEANS_SERVER_URL=http://opbeans-ruby:3000",
+                "OPBEANS_SERVER_URL=http://opbeans-ruby:{}".format(self.APPLICATION_PORT),
                 "RAILS_ENV=production",
                 "RAILS_LOG_TO_STDOUT=1",
-                "PORT=3000",
+                "PORT={}".format(self.APPLICATION_PORT),
                 "RUBY_AGENT_BRANCH=" + self.agent_branch,
                 "RUBY_AGENT_REPO=" + self.agent_repo,
                 "RUBY_AGENT_VERSION",
                 "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
                 "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
+                "ELASTIC_APM_TRANSACTION_SAMPLE_RATE={:.2f}".format(self.sample_rate),
             ],
             depends_on=depends_on,
             image=None,
             labels=None,
             # lots of retries as the ruby app can take a long time to boot
-            healthcheck=wget_healthcheck(3000, "opbeans-ruby", path="/", retries=50),
-            ports=[self.publish_port(self.port, 3000)],
+            healthcheck=wget_healthcheck(self.APPLICATION_PORT, "opbeans-ruby", path="/", retries=50),
+            ports=[self.publish_port(self.port, self.APPLICATION_PORT)],
         )
         if self.agent_local_repo:
             content["volumes"] = [
@@ -639,6 +665,7 @@ class OpbeansRuby01(OpbeansRuby):
 
 
 class OpbeansRum(Service):
+    # FIXME this might not work with dyno because we are inherting from Service
     # OpbeansRum is not really an Opbeans service, so we inherit from Service
     SERVICE_PORT = 9222
 
@@ -651,7 +678,7 @@ class OpbeansRum(Service):
         )
         parser.add_argument(
             '--' + cls.name() + '-backend-port',
-            default='3000',
+            default=3000,
         )
 
     def __init__(self, **options):
@@ -716,9 +743,11 @@ class OpbeansLoadGenerator(Service):
     def _content(self):
         content = dict(
             image="opbeans/opbeans-loadgen:latest",
+            ports=["8999:8000"],
             depends_on={service: {'condition': 'service_healthy'} for service in self.loadgen_services},
             environment=[
-                "OPBEANS_URLS={}".format(','.join('{0}:http://{0}:3000'.format(s) for s in sorted(self.loadgen_services))),  # noqa: E501
+                "WS=1",
+                "OPBEANS_URLS={}".format(','.join('{0}:http://{0}:{1}'.format(s, OpbeansService.APPLICATION_PORT) for s in sorted(self.loadgen_services))),  # noqa: E501
                 "OPBEANS_RPMS={}".format(','.join('{}:{}'.format(k, v) for k, v in sorted(self.loadgen_rpms.items())))
             ],
             labels=None,

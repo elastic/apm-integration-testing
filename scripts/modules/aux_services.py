@@ -25,7 +25,7 @@ class Logstash(StackService, Service):
 
     def _content(self):
         self.es_urls = ",".join(self.options.get(
-            "logstash_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS])
+            "logstash_elasticsearch_urls") or [self.DEFAULT_ELASTICSEARCH_HOSTS_NO_TLS])
         if self.at_least_version("7.3") \
                 or self.options.get("apm_server_snapshot") \
                 or (not self.options.get("apm_server_version") is None and
@@ -120,6 +120,48 @@ class Zookeeper(Service):
         )
 
 
+class StatsD(Service):
+    SERVICE_PORT = 8125
+
+    def _content(self):
+        return dict(
+            build=dict(
+                context="docker/statsd",
+                dockerfile="Dockerfile",
+                args=[]
+            ),
+            healthcheck={"interval": "10s", "test": ["CMD", "pidof", "node"]},
+            image=None,
+            labels=None,
+            ports=["8125:8125/udp", "8126:8126", "8127:8127"],
+        )
+
+
+class CommandService(object):
+    def __init__(self, command, service="command", image="busybox", depends_on=None):
+        self.command = command
+
+        self.depends_on = depends_on
+        self.image = image
+        self.service = service
+
+    def name(self):
+        return self.service
+
+    @staticmethod
+    def image_download_url():
+        return None
+
+    def render(self):
+        content = {
+            "command": self.command,
+            "image": self.image,
+        }
+        if self.depends_on:
+            content["depends_on"] = {d: {"condition": "service_healthy"} for d in self.depends_on}
+        return {self.service: content}
+
+
 class WaitService(Service):
     """Create a service that depends on all services ."""
 
@@ -128,7 +170,9 @@ class WaitService(Service):
         self.services = services
 
     def _content(self):
-        for s in self.services:
+        # Sorting is not relavant to docker-compose but is included here
+        # to allow the tests to check for a consistently-ordered list
+        for s in sorted(self.services, key=lambda x: x.name()):
             if s.name() != self.name() and s.name() != "opbeans-load-generator":
                 self.depends_on[s.name()] = {"condition": "service_healthy"}
         return dict(

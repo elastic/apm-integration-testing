@@ -66,6 +66,11 @@ create-x509-cert:  ## Create an x509 certificate for use with the test suite
 
 .PHONY: lint
 
+build-env: venv ## Build the test environment
+	source $(VENV)/bin/activate; \
+	$(PYTHON) scripts/compose.py build $(COMPOSE_ARGS)
+	docker-compose build --parallel
+
 start-env: venv ## Start the test environment
 	source $(VENV)/bin/activate; \
 	$(PYTHON) scripts/compose.py start $(COMPOSE_ARGS)
@@ -77,6 +82,10 @@ stop-env: venv ## Stop the test environment
 
 destroy-env: venv ## Destroy the test environment
 	[ -n "$$(docker ps -aqf network=apm-integration-testing)" ] && (docker ps -aqf network=apm-integration-testing | xargs -t docker rm -f && docker network rm apm-integration-testing) || true
+
+# default (all) built for now
+build-env-%: venv
+	$(MAKE) build-env
 
 # default (all) started for now
 env-%: venv
@@ -94,12 +103,12 @@ test-agent-%: venv ## Test a specific agent. ex: make test-agent-java
 
 test-compose: venv ## Test compose.py
 	source $(VENV)/bin/activate; \
-	pytest $(PYTEST_ARGS) scripts/tests/*_tests.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/compose-junit.xml
+	pytest $(PYTEST_ARGS) scripts/tests/test_*.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/compose-junit.xml
 
 test-compose-2:
 	virtualenv --python=python2.7 venv2
 	./venv2/bin/pip2 install mock pytest pyyaml
-	./venv2/bin/pytest --noconftest scripts/tests/*_tests.py
+	./venv2/bin/pytest $(PYTEST_ARGS) --noconftest scripts/tests/test_*.py
 
 test-kibana: venv ## Run the Kibana integration tests
 	source $(VENV)/bin/activate; \
