@@ -87,6 +87,10 @@ destroy-env: venv ## Destroy the test environment
 build-env-%: venv
 	$(MAKE) build-env
 
+# default (all) built for now
+build-env-%: venv
+	$(MAKE) build-env
+
 # default (all) started for now
 env-%: venv
 	$(MAKE) start-env
