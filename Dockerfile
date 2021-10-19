@@ -1,17 +1,16 @@
-FROM python:3.7
+FROM node:12-buster as BUILD_IMAGE
+WORKDIR /app
+RUN npm install elasticdump
 
-#Install elasticdump
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
-    && apt-get -yqq update \
-    && apt-get install -yqq nodejs \
-    && rm -rf /var/lib/apt/lists/* \
-    && npm install elasticdump -g
-
+FROM python:3.7-buster
 COPY requirements.txt requirements.txt
 RUN pip install -q -r requirements.txt
 
 RUN useradd -U -m -s /bin/bash -d /app tester
-
 COPY . /app
 WORKDIR /app
+COPY --from=BUILD_IMAGE /app .
+RUN ln -s /app/node_modules/elasticdump/bin/elasticdump /usr/local/bin/elasticdump
+RUN ln -s /app/node_modules/elasticdump/bin/multielasticdump /usr/local/bin/multielasticdump
+COPY --from=BUILD_IMAGE /usr/local/bin/node /usr/local/bin/node
 USER tester
