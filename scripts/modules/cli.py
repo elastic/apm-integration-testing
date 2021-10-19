@@ -14,6 +14,7 @@ from .beats import BeatMixin
 from .helpers import load_images
 from .opbeans import OpbeansService, OpbeansRum
 from .service import Service, DEFAULT_APM_SERVER_URL
+from .proxy import Toxi, Dyno
 
 # these imports are used by discover_services function to discover services from modules loaded
 
@@ -25,7 +26,7 @@ from .elastic_stack import (  # noqa: F401
     ApmServer, ElasticAgent, Elasticsearch, EnterpriseSearch, Kibana, PackageRegistry
 )
 from .aux_services import (  # noqa: F401
-    Kafka, Logstash, Postgres, Redis, Zookeeper, WaitService
+    CommandService, Kafka, Logstash, Postgres, Redis, StatsD, Zookeeper, WaitService
 )
 from .opbeans import (  # noqa: F401
     OpbeansNode, OpbeansRuby, OpbeansPython, OpbeansDotnet,
@@ -65,7 +66,7 @@ class LocalSetup(object):
         '6.5': '6.5.4',
         '6.6': '6.6.2',
         '6.7': '6.7.2',
-        '6.8': '6.8.15',
+        '6.8': '6.8.20',
         '7.0': '7.0.1',
         '7.1': '7.1.1',
         '7.2': '7.2.1',
@@ -76,15 +77,14 @@ class LocalSetup(object):
         '7.7': '7.7.1',
         '7.8': '7.8.1',
         '7.9': '7.9.3',
-        '7.10': '7.10.2',
+        '7.10': '7.10.3',
         '7.11': '7.11.2',
         '7.12': '7.12.1',
         '7.13': '7.13.4',
+        '7.14': '7.14.3',
+        '7.15': '7.15.1',
 
-        '7.14': '7.14.1',
-
-        '7.15': '7.15.0',
-
+        '7.16': '7.16.0',
         'master': '8.0.0',
     }
 
@@ -149,8 +149,8 @@ class LocalSetup(object):
 
         subparsers.add_parser(
             'load-dashboards',
-            help="Loads APM dashbords into Kibana using APM Server.",
-            description="Loads APM dashbords into Kibana using APM Server. APM Server, Elasticsearch, and Kibana must "
+            help="Loads APM dashboards into Kibana using APM Server.",
+            description="Loads APM dashboards into Kibana using APM Server. APM Server, Elasticsearch, and Kibana must "
                         "be running. "
         ).set_defaults(func=self.dashboards_handler)
 
@@ -171,6 +171,17 @@ class LocalSetup(object):
             help="Lists all available options.",
             description="Lists all available options (used for bash autocompletion)."
         ).set_defaults(func=self.listoptions_handler)
+
+        self.init_build_parser(
+            subparsers.add_parser(
+                'build',
+                help="Build the stack. See `build --help` for options.",
+                description="Build the stack. Use the arguments to specify which "
+                            "services to build. "
+            ),
+            services,
+            argv=argv,
+        ).set_defaults(func=self.build_handler)
 
         self.init_sourcemap_parser(
             subparsers.add_parser(
@@ -196,7 +207,13 @@ class LocalSetup(object):
     def __call__(self):
         self.args.func()
 
+    def init_build_parser(self, parser, services, argv=None):
+        return self.init_build_start_parser(parser, services, argv)
+
     def init_start_parser(self, parser, services, argv=None):
+        return self.init_build_start_parser(parser, services, argv)
+
+    def init_build_start_parser(self, parser, services, argv=None):
         if not argv:
             argv = sys.argv
         available_versions = ' / '.join(list(self.SUPPORTED_VERSIONS))
@@ -206,6 +223,7 @@ class LocalSetup(object):
         parser.add_argument("stack-version", action='store', help=help_text)
 
         # Add a --no-x / --with-x argument for each service
+        enabled_group = None
         for service in services:
             if not service.opbeans_side_car:
                 enabled_group = parser.add_mutually_exclusive_group()
@@ -224,15 +242,16 @@ class LocalSetup(object):
                     help='Disable ' + service.name(),
                     default=service.enabled(),
                 )
-            service.add_arguments(parser)
 
-        enabled_group.add_argument(
-            '--no-opbeans-load-generator',
-            action='store_true',
-            dest='disable_opbeans_load_generator',
-            help='Disable opbeans-load-generator',
-            default=False,
-        )
+            service.add_arguments(parser)
+        if enabled_group:
+            enabled_group.add_argument(
+                '--no-opbeans-load-generator',
+                action='store_true',
+                dest='disable_opbeans_load_generator',
+                help='Disable opbeans-load-generator',
+                default=False,
+            )
 
         parser.add_argument(
             '--opbeans-dt-probability',
@@ -437,6 +456,26 @@ class LocalSetup(object):
             default="json"
         )
 
+        parser.add_argument(
+            '--dyno',
+            action='store_true',
+            help='All various services to be dynamically tuned to introduce latency or other pressure',
+            default=False
+        )
+
+        parser.add_argument(
+            '--package-registry-url',
+            action="store",
+            help="Elastic Package Registry URL to use for fetching integration packages",
+        )
+
+        parser.add_argument(
+            '--drop-unsampled',
+            action='store_true',
+            help='Drop unsampled transactions',
+            default=None
+        )
+
         self.store_options(parser)
 
         return parser
@@ -553,7 +592,13 @@ class LocalSetup(object):
     def listoptions_handler(self):
         print("{}".format("\n".join(sorted(self.available_options))))
 
+    def build_handler(self):
+        self.build_start_handler("build")
+
     def start_handler(self):
+        self.build_start_handler("start")
+
+    def build_start_handler(self, action):
         args = vars(self.args)
 
         if "version" not in args:
@@ -583,7 +628,42 @@ class LocalSetup(object):
                     (run_all and is_obs and not is_opbeans_2nd)):
                 selections.add(service(**args))
 
-        selections.add(WaitService(selections, **args))
+        if args.get('dyno'):
+            toxi = Toxi()
+            selections.add(toxi)
+            toxi.gen_ports(selections)
+            c = toxi.gen_config(selections)
+            this_dir = os.path.dirname(os.path.realpath(__file__))
+            toxi_cfg_path = os.path.join(this_dir, "../../docker/toxi/toxi.cfg")
+            with open(toxi_cfg_path, 'w') as fh_:
+                fh_.write(c)
+            dyno = Dyno()
+            selections.add(dyno)
+            statsd = StatsD()
+            selections.add(statsd)
+
+        # freeze wait service selections here, future modifications of selections will not impact the wait service
+        selections.add(WaitService(set(selections), **args))
+
+        # any image with curl
+        curl_image = "docker.elastic.co/elasticsearch/elasticsearch:8.0.0-SNAPSHOT"
+        for c, snapshot_repo in enumerate(args.get("elasticsearch_snapshot_repo", [])):
+            if not snapshot_repo.startswith("http"):
+                print("skipping setup of non-http(s) repo: {}".format(snapshot_repo))
+                continue
+            if not snapshot_repo.endswith("/"):
+                print("http(s) repo should probably end with '/': {}".format(snapshot_repo))
+            repo_label = "repo{:d}".format(c)
+            cmd = [
+                "curl", "-X", "PUT",
+                "-H", "Content-Type: application/json",
+                "-d",
+                json.dumps({"type": "url", "settings": {"url": snapshot_repo}}),
+                # es creds + url only usable with default setup
+                "http://admin:changeme@elasticsearch:9200/_snapshot/{:s}".format(repo_label),
+            ]
+            selections.add(CommandService(cmd, service=repo_label, image=curl_image, depends_on=["elasticsearch"]))
+
         # `docker load` images if necessary, usually only for build candidates
         services_to_load = {}
         for service in selections:
@@ -637,6 +717,7 @@ class LocalSetup(object):
                 import yaml
             except ImportError:
                 print("Failed to import 'yaml': pip install yaml, or specify an alternative --output-format.")
+                sys.exit(1)
             yaml.dump(compose, docker_compose_path,
                       explicit_start=True,
                       default_flow_style=False,
@@ -649,9 +730,9 @@ class LocalSetup(object):
         # try to figure out if writing to a real file, not amazing
         if hasattr(docker_compose_path, "name") and os.path.isdir(os.path.dirname(docker_compose_path.name)):
             docker_compose_path.close()
-            print("Starting stack services..\n")
+            print("Starting/Building stack services..\n")
             docker_compose_cmd = ["docker-compose", "-f", docker_compose_path.name]
-            if not sys.stdin.isatty():
+            if not sys.stdin.isatty() and action not in ["build"]:
                 docker_compose_cmd.extend(["--no-ansi", "--log-level", "ERROR"])
 
             # always build if possible, should be quick for rebuilds
@@ -676,10 +757,13 @@ class LocalSetup(object):
                 self.run_docker_compose_process(docker_compose_cmd + pull_params + image_services)
 
             # really start
-            up_params = ["up", "-d"]
-            if args["remove_orphans"]:
-                up_params.append("--remove-orphans")
-            if not sys.stdin.isatty():
+            if action in ["start"]:
+                up_params = ["up", "-d"]
+                if args["remove_orphans"]:
+                    up_params.append("--remove-orphans")
+            if action in ["build"]:
+                up_params = ["build"]
+            if not sys.stdin.isatty() and action not in ["build"]:
                 up_params.extend(["--quiet-pull"])
             self.run_docker_compose_process(docker_compose_cmd + up_params)
 
@@ -828,7 +912,7 @@ class LocalSetup(object):
             if version:
                 print("\t{0}".format(version))
 
-        def print_apmserver_version(container):
+        def print_apm_server_version(container):
             print("\nAPM Server (image built: %s UTC):" % container.created)
 
             version = run_container_command('apm-server', 'apm-server version')
@@ -855,7 +939,7 @@ class LocalSetup(object):
                 print("\tBuild SHA: {}".format(data['build']['sha']))
                 print("\tBuild number: {}".format(data['build']['number']))
 
-        def print_opbeansnode_version(_):
+        def print_opbeans_node_version(_):
             print("\nAgent version (in opbeans-node):")
 
             version = run_container_command(
@@ -866,7 +950,7 @@ class LocalSetup(object):
                 version = version.replace('+-- elastic-apm-node@', '')
                 print("\t{0}".format(version))
 
-        def print_opbeanspython_version(_):
+        def print_opbeans_python_version(_):
             print("\nAgent version (in opbeans-python):")
 
             version = run_container_command(
@@ -877,7 +961,7 @@ class LocalSetup(object):
                 version = version.replace('elastic-apm==', '')
                 print("\t{0}".format(version))
 
-        def print_opbeansruby_version(_):
+        def print_opbeans_ruby_version(_):
             print("\nAgent version (in opbeans-ruby):")
 
             version = run_container_command(
@@ -889,12 +973,12 @@ class LocalSetup(object):
                 print("\t{0}".format(version))
 
         dispatch = {
-            'apm-server': print_apmserver_version,
+            'apm-server': print_apm_server_version,
             'elasticsearch': print_elasticsearch_version,
             'kibana': print_kibana_version,
-            'opbeans-node': print_opbeansnode_version,
-            'opbeans-python': print_opbeanspython_version,
-            'opbeans-ruby': print_opbeansruby_version,
+            'opbeans-node': print_opbeans_node_version,
+            'opbeans-python': print_opbeans_python_version,
+            'opbeans-ruby': print_opbeans_ruby_version,
         }
         for service_name, container in running_versions.items():
             print_version = dispatch.get(service_name)

@@ -84,6 +84,7 @@ def load_images(urls, cache_dir):
 
 DEFAULT_HEALTHCHECK_INTERVAL = "10s"
 DEFAULT_HEALTHCHECK_RETRIES = 12
+DEFAULT_HEALTHCHECK_TIMEOUT = "5s"
 
 
 def _print_done(service_name):
@@ -154,20 +155,30 @@ def _set_slowlog_json(password):
                 break
 
 
-def curl_healthcheck(port, host="localhost", path="/healthcheck",
-                     interval=DEFAULT_HEALTHCHECK_INTERVAL, retries=DEFAULT_HEALTHCHECK_RETRIES, https=False):
-
+def curl_healthcheck(
+    port,
+    host="localhost",
+    path="/healthcheck",
+    interval=DEFAULT_HEALTHCHECK_INTERVAL,
+    retries=DEFAULT_HEALTHCHECK_RETRIES,
+    https=False,
+    timeout=DEFAULT_HEALTHCHECK_TIMEOUT,
+    start_period=None,
+):
     protocol = 'http'
     if https:
         protocol = 'https'
-
-    return {
+    ret = {
         "interval": interval,
         "retries": retries,
+        "timeout": timeout,
         "test": ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent",
                  "--output", "/dev/null",
                  "{}://{}:{}{}".format(protocol, host, port, path)]
     }
+    if start_period:
+        ret['start_period'] = start_period
+    return ret
 
 
 def wget_healthcheck(port, host="localhost", path="/healthcheck",
@@ -175,7 +186,7 @@ def wget_healthcheck(port, host="localhost", path="/healthcheck",
     return {
         "interval": interval,
         "retries": retries,
-        "test": ["CMD", "wget", "-q", "--server-response", "-O", "/dev/null",
+        "test": ["CMD", "wget", "-T", "3", "-q", "--server-response", "-O", "/dev/null",
                  "http://{}:{}{}".format(host, port, path)]
     }
 
@@ -247,4 +258,21 @@ def add_agent_environment(mappings):
                         content["environment"].append(envvar + "=" + val)
             return content
         return add_content
+    return fn
+
+
+def dyno(dyno_env):
+    def fn(func):
+        def munge_env(self):
+            if not self.options.get('dyno'):
+                return func(self)
+            self.port += 10000
+            content = func(self)
+            for count, env_enum in enumerate(content["environment"]):
+                if "=" in env_enum:
+                    env_key, _ = env_enum.split("=", maxsplit=1)
+                    if env_key in dyno_env:
+                        content["environment"][count] = "=".join([env_key, dyno_env[env_key]])
+            return content
+        return munge_env
     return fn
