@@ -11,6 +11,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
@@ -37,31 +38,45 @@ func setupManagedAPM() error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("default policy fetched")
 
 	// fetch the available apm package
-	packages, err := client.getPackages("package=apm&experimental=true")
+	apmPkg, err := client.getAPMPackage()
 	if err != nil {
 		return err
 	}
-	if len(packages) == 0 {
-		return errors.New("no apm package found")
-	}
+	fmt.Println("apm package fetched")
 
 	// define expected APM package policy
-	expectedAPMPackagePolicy := apmPackagePolicy(policy.ID, packages[0])
+	expectedAPMPackagePolicy, err := apmPackagePolicy(policy.ID, apmPkg)
+	if err != nil {
+		return err
+	}
+	fmt.Println("apm package policy defined")
 
 	// fetch apm package installed to default policy and verify if it is aligned with
 	// expected setup
-	apmPackagePolicies, err := client.getPackagePolicies(fmt.Sprintf("kuery=ingest-package-policies.policy_id:%s", policy.ID))
+	defaultPolicyPackages, err := client.getPackagePolicies(fmt.Sprintf("kuery=ingest-package-policies.policy_id:%s", policy.ID))
 	if err != nil {
 		log.Fatal(err)
+	}
+	var apmPackagePolicies []packagePolicy
+	for _, p := range defaultPolicyPackages {
+		for _, input := range p.Inputs {
+			if input.Type == "apm" {
+				apmPackagePolicies = append(apmPackagePolicies, p)
+				break
+			}
+		}
 	}
 	var requiresSetup bool
 	switch len(apmPackagePolicies) {
 	case 0:
 		requiresSetup = true
+		fmt.Println("agent policy has no apm integration")
 	case 1:
 		// apm package is defined to always only have 1 Input
+		fmt.Println("agent policy has existing apm integration")
 		existing := apmPackagePolicies[0]
 		// verify that package is enabled, has default namespace and expected package properties
 		if !existing.Enabled ||
@@ -81,23 +96,32 @@ func setupManagedAPM() error {
 	default:
 		// multiple apm package policies lead to issues,
 		// delete them and create a new setup
+		fmt.Println("agent policy has multiple existing apm integration")
 		requiresSetup = true
 	}
 	if !requiresSetup {
+		fmt.Println("apm integration does not require setup")
 		return nil
 	}
+	fmt.Println("apm integration requires setup")
 	if err := client.deletePackagePolicies(apmPackagePolicies); err != nil {
 		return err
 	}
 	if err := client.addPackagePolicy(expectedAPMPackagePolicy); err != nil {
 		return err
 	}
+	fmt.Println("apm integration succesfully added to agent policy")
 	return nil
 }
 
 func fetchDefaultPolicy(client *kibanaClient) (agentPolicy, error) {
+	fleetServer := ""
+	if enable, err := strconv.ParseBool(os.Getenv("FLEET_SERVER_ENABLE")); err == nil && enable {
+		fleetServer = "_fleet_server"
+	}
+	kuery := fmt.Sprintf("kuery=ingest-agent-policies.is_default%s:true", fleetServer)
 	for ct := 0; ct < 20; ct++ {
-		agentPolicies, err := client.getAgentPolicies("kuery=ingest-agent-policies.is_default:true")
+		agentPolicies, err := client.getAgentPolicies(kuery)
 		if err != nil {
 			return agentPolicy{}, err
 		}
@@ -112,8 +136,8 @@ func fetchDefaultPolicy(client *kibanaClient) (agentPolicy, error) {
 }
 
 // apmPackagePolicy defines the expected APM package policy
-func apmPackagePolicy(policyID string, pkg eprPackage) packagePolicy {
-	return packagePolicy{
+func apmPackagePolicy(policyID string, pkg *eprPackage) (packagePolicy, error) {
+	p := packagePolicy{
 		Name:          "apm-integration-testing",
 		Namespace:     "default",
 		Enabled:       true,
@@ -123,54 +147,64 @@ func apmPackagePolicy(policyID string, pkg eprPackage) packagePolicy {
 			Version: pkg.Version,
 			Title:   pkg.Title,
 		},
-		Inputs: []packagePolicyInput{{
-			Type:    "apm",
-			Enabled: true,
-			Streams: []interface{}{},
-			Vars: map[string]map[string]interface{}{
-				"enable_rum": map[string]interface{}{
-					"type":  "bool",
-					"value": true,
-				},
-				"host": map[string]interface{}{
-					"type":  "string",
-					"value": "0.0.0.0:8200",
-				},
-				"secret_token": map[string]interface{}{
-					"type":  "string",
-					"value": os.Getenv("APM_SERVER_SECRET_TOKEN"),
-				},
-			},
-		}}}
+	}
+
+	if len(pkg.PolicyTemplates) != 1 || len(pkg.PolicyTemplates[0].Inputs) != 1 {
+		return p, fmt.Errorf("apm package policy input missing: %+v", pkg)
+	}
+	input := pkg.PolicyTemplates[0].Inputs[0]
+	vars := make(map[string]map[string]interface{})
+	for _, inputVar := range input.Vars {
+		varMap := map[string]interface{}{"type": inputVar.Type}
+		switch inputVar.Name {
+		case "host":
+			varMap["value"] = "0.0.0.0:8200"
+		case "enable_rum":
+			varMap["value"] = true
+		case "secret_token":
+			varMap["value"] = os.Getenv("APM_SERVER_SECRET_TOKEN")
+
+		}
+		vars[inputVar.Name] = varMap
+	}
+	p.Inputs = append(p.Inputs, packagePolicyInput{
+		Type:    input.Type,
+		Enabled: true,
+		Streams: []interface{}{},
+		Vars:    vars,
+	})
+	return p, nil
 }
 
 type kibanaClient struct {
 	fleetURL string
-	pkgURL   string
 }
 
 func newKibanaClient() *kibanaClient {
 	host := os.Getenv("KIBANA_HOST")
 	if host == "" {
-		host = "http://admin:changeme@localhost:5601"
+		host = "http://admin:changeme@kibana:5601"
 	}
-	pkgURL := os.Getenv("XPACK_FLEET_REGISTRYURL")
-	if pkgURL == "" {
-		pkgURL = "https://epr.elastic.co"
-	}
-	return &kibanaClient{
-		fleetURL: fmt.Sprintf("%s/api/fleet", host),
-		pkgURL:   pkgURL,
-	}
+	return &kibanaClient{fleetURL: fmt.Sprintf("%s/api/fleet", host)}
 }
 
-func (client *kibanaClient) getPackages(query string) ([]eprPackage, error) {
-	url := fmt.Sprintf("%s/search?%s", client.pkgURL, query)
-	var packages []eprPackage
-	if err := makeRequest(http.MethodGet, url, nil, &packages); err != nil {
-		return packages, errors.Wrap(err, "getPackages")
+func (client *kibanaClient) getAPMPackage() (*eprPackage, error) {
+	url := fmt.Sprintf("%s/epm/packages?experimental=true", client.fleetURL)
+	var pkgs eprPackagesResponse
+	if err := makeRequest(http.MethodGet, url, nil, &pkgs); err != nil {
+		return nil, err
 	}
-	return packages, nil
+	for _, p := range pkgs.Packages {
+		if p.Name != "apm" {
+			continue
+		}
+		var apm eprPackageResponse
+		url := fmt.Sprintf("%s/epm/packages/%s-%s", client.fleetURL, p.Name, p.Version)
+		err := makeRequest(http.MethodGet, url, nil, &apm)
+		return &apm.Package, err
+
+	}
+	return nil, errors.New("no apm package found")
 }
 
 func (client *kibanaClient) getAgentPolicies(query string) ([]agentPolicy, error) {
@@ -256,6 +290,19 @@ type agentPolicy struct {
 	ID string `json:"id"`
 }
 
+type eprPackage struct {
+	Name            string                  `json:"name"`
+	Version         string                  `json:"version"`
+	Release         string                  `json:"release"`
+	Type            string                  `json:"type"`
+	Title           string                  `json:"title"`
+	Description     string                  `json:"description"`
+	Download        string                  `json:"download"`
+	Path            string                  `json:"path"`
+	Status          string                  `json:"status"`
+	PolicyTemplates []packagePolicyTemplate `json:"policy_templates"`
+}
+
 // packagePolicy holds details of a Fleet Package Policy.
 type packagePolicy struct {
 	ID            string               `json:"id,omitempty"`
@@ -281,8 +328,27 @@ type packagePolicyInput struct {
 	Vars    map[string]map[string]interface{} `json:"vars,omitempty"`
 }
 
-type eprPackage struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	Title   string `json:"title"`
+type packagePolicyTemplate struct {
+	Inputs []packagePolicyTemplateInput `json:"inputs"`
+}
+
+type packagePolicyTemplateInput struct {
+	Type         string                          `json:"type"`
+	Title        string                          `json:"title"`
+	TemplatePath string                          `json:"template_path"`
+	Description  string                          `json:"description"`
+	Vars         []packagePolicyTemplateInputVar `json:"vars"`
+}
+
+type packagePolicyTemplateInputVar struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+type eprPackageResponse struct {
+	Package eprPackage `json:"response"`
+}
+
+type eprPackagesResponse struct {
+	Packages []eprPackage `json:"response"`
 }
