@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+# shellcheck disable=SC1091
 source /usr/local/bin/bash_standard_lib.sh
 
 DOCKER_IMAGES="alpine:3.4
