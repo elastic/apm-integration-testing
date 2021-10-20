@@ -6,4 +6,4 @@ test -z "$srcdir" && srcdir=.
 # shellcheck disable=SC1090
 . "${srcdir}/common.sh"
 
-prepareAndRunAll env-agent-all docker-test-all
+prepareAndRunAll build-env
