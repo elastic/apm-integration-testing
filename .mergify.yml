@@ -1,3 +1,9 @@
+queue_rules:
+  - name: auto-merge
+    conditions:
+      - check-success=apm-ci/pr-merge
+      - label=automation
+
 pull_request_rules:
   - name: ask to resolve conflict
     conditions:
@@ -26,35 +32,18 @@ pull_request_rules:
       label:
         add:
           - backport
-  - name: backport patches to 7.x branch
-    conditions:
-      - merged
-      - base=master
-      - label=backport
-    actions:
-      backport:
-        assignees:
-          - "{{ author }}"
-        branches:
-          - "7.x"
   - name: automatic merge when CI passes and the file tests/versions/apm_server.yml is modified.
     conditions:
-      - check-success=apm-ci/pr-merge
-      - label=automation
       - files~=^tests/versions/apm_server.yml$
     actions:
-      merge:
-        method: squash
-        strict: smart+fasttrack
+      queue:
+        name: auto-merge
   - name: automatic merge when CI passes and the file scripts/modules/cli.py is modified.
     conditions:
-      - check-success=apm-ci/pr-merge
-      - label=automation
       - files~=^scripts/modules/cli.py$
     actions:
-      merge:
-        method: squash
-        strict: smart+fasttrack
+      queue:
+        name: auto-merge
   - name: delete upstream branch after merging changes on dev-tools/integration/.env
     conditions:
       - merged
