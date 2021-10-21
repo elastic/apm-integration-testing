@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dyno</title>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <style>
+  .eq > table > tbody > tr > td > span {
+    height:120px; float:left; margin:10px
+  }
+
+  </style>
+  <script src="static/jquery-1.12.4.js"></script>
+  <script src="static/jquery-ui.js"></script>
+  <script src="static/socket.io.js"></script>
+  <script src="static/jquery.sparkline.js"></script>
+  <script src="static/dyno.js"></script>
+  <script>
+  $( function() {
+
+  
+    var stats_socket = io.connect('http://localhost:8127');
+    stats_socket.on('connect', function (data) {
+      stats_socket.emit('subscribe', 'all');
+      // TODO We can add timers and get additional performance information
+      // stats_socket.emit('subscribe', 'timers');
+    });
+    stats_socket.on('all', function(data) {
+      if (data){
+        processMolotov(data);
+      }
+    });
+
+    var socket = io.connect('http://localhost:8999');
+
+    $.get({
+        url: window.location.origin + "/api/apps?full=1",
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result){
+          drawProxies(result);
+          drawLg(result);
+        }
+    });
+  } );
+  </script>
+</head>
+<body>
+    <div id="fancy-header", style="float: right; width: 500px">
+        <span style="word-wrap: normal;"><h1 style="float:left;">APM Dyno</h1>
+            <img src="static/dino.jpg" width="100px"><br>
+            Dyno can load test your Opbeans applications.<br><br>
+            Start load tests for services on the left and control<br>
+            the performance of services using their respective sliders.<p></p>
+        </span>
+        <table>
+            <thead>
+                <th>Load generator</th><th><div style="float: left;color:#68B847">&#9632;</div></th>
+            </thead>
+            <tr>
+                <td>W: Workers</td>
+            <tr>
+                <td>Er: Error rate</td>
+            </tr>
+            </tr>
+        </table>
+        <br>
+        <table>
+            <thead>
+                <th>Network conditions</th><th><div style="float: left;color:#8B4768">&#9632;</div></th>
+            </thead>
+            <tr>
+                <td>L: Latency</td>
+                <td>J: Jitter</td>
+            </tr>
+            <tr>
+                <td>B: Bandwidth</td>
+                <td>SC: Slow close</td>
+            </tr>
+            <tr>
+                <td>Sas: Slicer [Avg size]</td>
+                <td>Ssv: Slicer [Delay]</td>
+            </tr>
+        </table>
+        <br>
+        <table>
+            <thead>
+                <th style="float: left;">Operating system &thinsp;<div style="float:right;color:#4768B8">&#9632;</div></th>
+            </thead>
+            <tr>
+                <td>CPU: Processor quota</td>
+            </tr>
+            <tr>
+                <td>Mem: Container memory</td>
+            </tr>
+        </table>
+    </div>
+    <div id="proxy-container" style="padding:4px;margin-left: 185px; width:1050px;"></div>
+    <div id="load-container" style="padding: 4px; width: 180px; position: fixed;">
+
+
+
+                   
+  <div id="load-controls">
+    <form action="#">
+      <fieldset>
+        <label for="scenarios">Select a load generation scenario</label>
+        <p></p>
+        <select name="scenarios" id="scenarios_selector">
+          <option selected="selected">Default</option>
+        </select>
+        <hr>
+        <div id="load-stats" style="width: 40px">
+            <table id="get_stats" style="float:left;"></table>
+            <table id="post_stats" style="float:left;"></table>
+        </div>
+
+  </div>
+</div>
+</body>
+</html>
