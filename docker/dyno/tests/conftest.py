@@ -61,7 +61,7 @@ def toxi_default_environment(monkeypatch):
 
 @pytest.fixture
 def fetch_proxy_mock():
-    # Put the Toxiproxy mock into a container mock for use in
+    # Put the Toxiproxy mock into a container mock for use in 
     return mock.MagicMock(return_value=toxi_mock())
 
 
@@ -76,7 +76,7 @@ def toxi_mock():
     # Create the mock that we'll ultimately return
     toxi_mock = mock.patch('toxiproxy.server.Toxiproxy', autospec=True)
     # Create the mock that we'll use to represent a Proxy
-    #p = toxiproxy.Proxy(name='opbeans-proxy', enabled= True, listen=8080, upstream='fake_upstream')
+    #p = toxiproxy.Proxy(name='opbeans-proxy', enabled= True, listen=8080, upstream='fake_upstream') 
     p = mock.patch('toxiproxy.Proxy', autospec=True)
     p.name = 'opbeans-proxy'
     p.enabled = True
@@ -95,7 +95,7 @@ def toxi_mock():
     p.toxics = toxic_mock
     # Overlay a dictionary as a return for the .proxies() function to Toxiproxy
     toxi_mock.proxies = lambda: {'fake_proxy': p}
-    # Put the Toxiproxy mock into a container mock for use in
+    # Put the Toxiproxy mock into a container mock for use in 
     #fetch_proxy_mock = mock.MagicMock(return_value=toxi_mock)
 
     #return fetch_proxy_mock
