@@ -125,6 +125,7 @@ test-helps:
 
 test-all: venv test-compose lint  ## Run all the tests
 	source $(VENV)/bin/activate; \
+	pip install -q -r docker/dyno/requirements.txt;\
 	pytest -v -s $(PYTEST_ARGS) $(JUNIT_OPT)/all-junit.xml
 
 docker-test-%: ## Run a specific dockerized test. Ex: make docker-test-java
