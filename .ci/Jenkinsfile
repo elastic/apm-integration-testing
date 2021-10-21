@@ -33,8 +33,14 @@ pipeline {
   }
   parameters {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "", description: "Elastic Stack Git branch/tag to use")
+<<<<<<< HEAD
     string(name: 'BUILD_OPTS', defaultValue: "", description: "Addicional build options to passing compose.py")
     booleanParam(name: 'Run_As_Master_Branch', defaultValue: true, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
+=======
+    string(name: 'BUILD_OPTS', defaultValue: "--apm-log-level=debug", description: "Additional build options to pass to compose.py")
+    string(name: 'SLACK_CHANNEL', defaultValue: 'observablt-bots', description: 'The Slack channel where errors will be posted')
+    booleanParam(name: 'Run_As_Master_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on master branch.')
+>>>>>>> 13bf820 (Temporarily turn APM log level to debug (#1302))
   }
   stages{
     /**
