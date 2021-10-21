@@ -99,7 +99,7 @@ class ApmServer(StackService, Service):
 
         if options.get("apm_server_self_instrument", True):
             self.apm_server_command_args.append(("apm-server.instrumentation.enabled", "true"))
-            if self.at_least_version("7.6") and options.get("no_apm_server_profile", False) == False:
+            if self.at_least_version("7.6") and not options.get("no_apm_server_profile", False):
                 self.apm_server_command_args.extend([
                     ("apm-server.instrumentation.profiling.cpu.enabled", "true"),
                     ("apm-server.instrumentation.profiling.heap.enabled", "true"),
