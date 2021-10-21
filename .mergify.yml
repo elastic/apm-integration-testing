@@ -29,8 +29,7 @@ pull_request_rules:
           - "{{ author }}"
         branches:
           - "7.x"
-      label:
-        add:
+        labels:
           - backport
   - name: automatic merge backported Pull Requests from mergify when CI passes.
     conditions:
