@@ -772,7 +772,7 @@ class ApmServerServiceTest(ServiceTest):
 
         # self instrumentation comes with profiling by default but can be disabled
         apm_server = ApmServer(
-            version="8.0.0", apm_server_self_instrument=True, apm_server_profile=False).render()["apm-server"]
+            version="8.0.0", apm_server_self_instrument=True, no_apm_server_profile=True).render()["apm-server"]
         self.assertIn("apm-server.instrumentation.enabled=true", apm_server["command"])
         self.assertFalse(
             any(e.startswith("apm-server.instrumentation.profiling") for e in apm_server["command"]),
@@ -781,7 +781,7 @@ class ApmServerServiceTest(ServiceTest):
 
         # need self instrumentation enabled to get profiling
         apm_server = ApmServer(
-            version="8.0.0", apm_server_self_instrument=False, apm_server_profile=True).render()["apm-server"]
+            version="8.0.0", apm_server_self_instrument=False, no_apm_server_profile=True).render()["apm-server"]
         self.assertNotIn("apm-server.instrumentation.enabled=true", apm_server["command"])
         self.assertNotIn("apm-server.instrumentation.profiling.cpu.enabled=true", apm_server["command"])
         self.assertNotIn("apm-server.instrumentation.profiling.heap.enabled=true", apm_server["command"])
