@@ -173,6 +173,7 @@ pipeline {
         TMPDIR = "${WORKSPACE}/${BASE_DIR}"
         HOME = "${WORKSPACE}/${BASE_DIR}"
         NAME = 'ui'
+        MERGE_TARGET = "7.16"
       }
       steps {
         deleteDir()
