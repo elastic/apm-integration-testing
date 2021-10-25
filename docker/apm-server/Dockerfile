@@ -1,5 +1,5 @@
 ARG apm_server_base_image=docker.elastic.co/apm/apm-server:8.0.0-SNAPSHOT
-ARG go_version=1.17.1
+ARG go_version=404: Not Found
 ARG apm_server_binary=apm-server
 
 ###############################################################################
