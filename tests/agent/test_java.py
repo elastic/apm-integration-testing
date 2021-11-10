@@ -10,6 +10,7 @@ def test_req_java_spring(java_spring):
         java_spring.foo, java_spring.apm_server.elasticsearch)
 
 
+@pytest.mark.skip(reason="Very unstable on CI. Disabling in 6.x")
 @pytest.mark.java_spring
 def test_java_spring_error(java_spring):
     utils.check_agent_error(
