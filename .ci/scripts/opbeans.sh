@@ -7,10 +7,7 @@ test -z "$srcdir" && srcdir=.
 . "${srcdir}/common.sh"
 
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
-  --no-apm-server-dashboards \
   --no-apm-server-self-instrument \
-  --no-kibana \
-  --force-build \
-  --no-xpack-secure"
+  --force-build"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
 runTests env-server test-compose lint test-helps
