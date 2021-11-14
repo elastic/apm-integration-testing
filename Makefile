@@ -23,7 +23,7 @@ PHP_APACHE_URL ?= http://phpapacheapp
 RAILS_URL ?= http://railsapp:8020
 RUM_URL ?= http://rum:8000
 
-ES_USER ?= elastic
+ES_USER ?= admin
 ES_PASS ?= changeme
 ELASTIC_APM_SECRET_TOKEN ?= SuPeRsEcReT
 
