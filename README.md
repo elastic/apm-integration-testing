@@ -93,8 +93,8 @@ We have a list with the most common flags combination that we internally use whe
 
 |Persona | Flags | Motivation / Use Case | Team | Comments |
 |--------|-------|-----------------------|------|----------|
-| CI Server | `python scripts/compose.py start 8.0.0 --java-agent-version ${COMMIT_SHA} --build-parallel --with-agent-java-spring --no-apm-server-dashboards --no-apm-server-self-instrument --no-kibana --force-build` | Prepare environment for running tests for APM Java agent | APM Agents |
-| CI Server	| `python scripts/compose.py start 8.0.0 --apm-server-build https://github.com/elastic/apm-server@${COMMIT_HASH} --build-parallel --no-apm-server-dashboards --no-apm-server-self-instrument --with-agent-rumjs --with-agent-dotnet --with-agent-go-net-http --with-agent-nodejs-express --with-agent-ruby-rails --with-agent-java-spring --with-agent-python-django --with-agent-python-flask --force-build`	| Prepare environment for running tests for APM Server	| APM Server | |
+| CI Server | `python scripts/compose.py start 8.0.0 --java-agent-version ${COMMIT_SHA} --build-parallel --with-agent-java-spring --no-apm-server-self-instrument --force-build` | Prepare environment for running tests for APM Java agent | APM Agents |
+| CI Server	| `python scripts/compose.py start 8.0.0 --apm-server-build https://github.com/elastic/apm-server@${COMMIT_HASH} --build-parallel --no-apm-server-self-instrument --with-agent-rumjs --with-agent-dotnet --with-agent-go-net-http --with-agent-nodejs-express --with-agent-ruby-rails --with-agent-java-spring --with-agent-python-django --with-agent-python-flask --force-build`	| Prepare environment for running tests for APM Server	| APM Server | |
 | Demos & Screenshots	| `./scripts/compose.py start --release --with-opbeans-dotnet --with-opbeans-go --with-opbeans-java --opbeans-java-agent-branch=pr/588/head --force-build --with-opbeans-node --with-opbeans-python --with-opbeans-ruby --with-opbeans-rum --with-filebeat --with-metricbeat 7.3.0`	| demos, screenshots, ad hoc QA. It's also used to send heartbeat data to the cluster for Uptime | PMM	| Used for snapshots when close to a release, without the `--release` flag |
 | Development | `./scripts/compose.py start 7.3 --bc --with-opbeans-python --opbeans-python-agent-local-repo=~/elastic/apm-agent-python` | Use current state of local agent repo with opbeans | APM Agents | |
 | | `./scripts/compose.py start 7.3 --bc --start-opbeans-deps` | This flag would start all opbeans dependencies (postgres, redis, apm-server, ...), but not any opbeans instances | APM Agents | This would help when developing with a locally running opbeans. Currently, we start the environment with a `--with-opbeans-python` flag, then stop the opbeans-python container manually |
@@ -291,12 +291,9 @@ Omit `--skip-download` to just download images.
 
 ### Jaeger
 
-APM Server can work as a drop-in replacement for a Jaeger collector and ingest traces directly from a Jaeger agent via gRPC,
-or from a Jaeger client via HTTP/Thrift (deprecated).
+APM Server can work as a drop-in replacement for a Jaeger collector and ingest traces directly from a Jaeger agent via gRPC.
 
-#### gRPC
-
-To test gRPC, start apm-integration-testing, run the Jaeger Agent, and start the Jaeger hotrod demo:
+To test Jaeger/gRPC, start apm-integration-testing, run the Jaeger Agent, and start the Jaeger hotrod demo:
 
 ```
 ./scripts/compose.py start 7.13 \
@@ -318,12 +315,6 @@ docker run --rm -it --network apm-integration-testing \
 ```
 
 Finally, navigate to http://localhost:8080/ and click around to generate data.
-
-#### HTTP/Thrift (deprecated)
-
-To test HTTP/Thrift with a Jaeger microservice demo, run separately:
-
-    docker run --rm -it -p8080-8083:8080-8083 -e JAEGER_ENDPOINT=http://apm-server:14268/api/traces  --network apm-integration-testing  jaegertracing/example-hotrod:latest  all
 
 ## Running Tests
 
@@ -481,7 +472,7 @@ For example, to test an update to the Python agent from user `elasticcontributor
 ```bash
 # start test deps: apm-server, elasticsearch, and the two python test applications
 # the test applications will use elasticcontributor's newfeature1 apm agent
-./scripts/compose.py start master --no-kibana --with-agent-python-django --with-agent-python-flask --python-agent-package=git+https://github.com/elasticcontributor/apm-agent-python.git@newfeature1 --force-build
+./scripts/compose.py start master --with-agent-python-django --with-agent-python-flask --python-agent-package=git+https://github.com/elasticcontributor/apm-agent-python.git@newfeature1 --force-build
 
 # wait for healthiness
 docker-compose ps

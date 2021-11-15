@@ -537,7 +537,7 @@ class ApmServerServiceTest(ServiceTest):
 
     def test_api_key_auth(self):
         apm_server = ApmServer(version="7.6.100", apm_server_api_key_auth=True).render()["apm-server"]
-        self.assertIn("apm-server.api_key.enabled=true", apm_server["command"])
+        self.assertIn("apm-server.auth.api_key.enabled=true", apm_server["command"])
 
     def test_elasticsearch_output(self):
         apm_server = ApmServer(version="6.3.100", apm_server_output="elasticsearch").render()["apm-server"]
@@ -579,24 +579,6 @@ class ApmServerServiceTest(ServiceTest):
                                ).render()["apm-server"]
         self.assertTrue("output.elasticsearch.ssl.certificate_authorities=['/usr/share/apm-server/config/certs/stack-ca.crt']" in apm_server["command"],
                         "CA not set when elasticsearch TLS is enabled")
-
-    def test_ilm_default(self):
-        """enable ILM by default in 7.2+"""
-        apm_server = ApmServer(version="6.3.100").render()["apm-server"]
-        self.assertFalse("apm-server.ilm.enabled=true" in
-                         apm_server["command"], "ILM not enabled by default in < 7.2")
-
-        apm_server = ApmServer(version="7.2.0").render()["apm-server"]
-        self.assertTrue("apm-server.ilm.enabled=true" in apm_server["command"],
-                        "ILM enabled by default in = 7.2")
-
-        apm_server = ApmServer(version="7.3.0").render()["apm-server"]
-        self.assertTrue("apm-server.ilm.enabled" not in apm_server["command"],
-                        "ILM auto by default in >= 7.3")
-
-    def test_ilm_disabled(self):
-        apm_server = ApmServer(version="7.2.0", apm_server_ilm_disable=True).render()["apm-server"]
-        self.assertFalse("apm-server.ilm.enabled=true" in apm_server["command"], "ILM enabled but should not be")
 
     def test_file_output(self):
         apm_server = ApmServer(version="7.3.100", apm_server_output="file").render()["apm-server"]
@@ -699,42 +681,6 @@ class ApmServerServiceTest(ServiceTest):
             "some.option should be set "
         )
 
-    def test_pipeline(self):
-        def get_pipelines(command):
-            # also checks that output.elasticsearch.pipeline isn't set
-            got = [e.split("=", 1) for e in command if e.startswith("output.elasticsearch.pipeline")]
-            # ensure single output.elasticsearch.pipeline setting, should be output.elasticsearch.pipelines=
-            self.assertEqual(1, len(got))
-            directive, setting = got[0]
-            self.assertEqual("output.elasticsearch.pipelines", directive)
-            return yaml.safe_load(setting)
-
-        apm_server = ApmServer(version="6.5.10").render()["apm-server"]
-        self.assertEqual(get_pipelines(apm_server["command"]), [{'pipeline': 'apm_user_agent'}],
-                         "output.elasticsearch.pipelines should be set to apm_user_agent in 7.2 > version >= 6.5")
-
-        apm_server = ApmServer(version="7.2.0", apm_server_enable_pipeline=True).render()["apm-server"]
-        self.assertEqual(get_pipelines(apm_server["command"]), [{'pipeline': 'apm'}],
-                         "output.elasticsearch.pipelines should be set to apm in version >= 7.2")
-
-        apm_server = ApmServer(version="6.5.10", apm_server_enable_pipeline=False).render()["apm-server"]
-        self.assertFalse(
-            any(e.startswith("output.elasticsearch.pipelines") for e in apm_server["command"]),
-            "output.elasticsearch.pipelines set while apm_server_enable_pipeline=False"
-        )
-
-        apm_server = ApmServer(version="6.5.10", apm_server_output="logstash").render()["apm-server"]
-        self.assertFalse(
-            any(e.startswith("output.elasticsearch.pipelines") for e in apm_server["command"]),
-            "output.elasticsearch.pipelines set while output is not elasticsearch"
-        )
-
-        apm_server = ApmServer(version="6.4.10", apm_server_enable_pipeline=True).render()["apm-server"]
-        self.assertFalse(
-            any(e.startswith("output.elasticsearch.pipelines") for e in apm_server["command"]),
-            "output.elasticsearch.pipelines set while apm_server_enable_pipeline=False in version < 6.5"
-        )
-
     def test_queue_file(self):
         cases = [
             (
@@ -766,25 +712,25 @@ class ApmServerServiceTest(ServiceTest):
     def test_self_instrument(self):
         # self instrumentation comes with profiling by default
         apm_server = ApmServer(version="8.0.0").render()["apm-server"]
-        self.assertIn("apm-server.instrumentation.enabled=true", apm_server["command"])
-        self.assertIn("apm-server.instrumentation.profiling.cpu.enabled=true", apm_server["command"])
-        self.assertIn("apm-server.instrumentation.profiling.heap.enabled=true", apm_server["command"])
+        self.assertIn("instrumentation.enabled=true", apm_server["command"])
+        self.assertIn("instrumentation.profiling.cpu.enabled=true", apm_server["command"])
+        self.assertIn("instrumentation.profiling.heap.enabled=true", apm_server["command"])
 
         # self instrumentation comes with profiling by default but can be disabled
         apm_server = ApmServer(
             version="8.0.0", apm_server_self_instrument=True, apm_server_profile=False).render()["apm-server"]
-        self.assertIn("apm-server.instrumentation.enabled=true", apm_server["command"])
+        self.assertIn("instrumentation.enabled=true", apm_server["command"])
         self.assertFalse(
-            any(e.startswith("apm-server.instrumentation.profiling") for e in apm_server["command"]),
+            any(e.startswith("instrumentation.profiling") for e in apm_server["command"]),
             "no self profiling settings expected"
         )
 
         # need self instrumentation enabled to get profiling
         apm_server = ApmServer(
             version="8.0.0", apm_server_self_instrument=False, apm_server_profile=True).render()["apm-server"]
-        self.assertNotIn("apm-server.instrumentation.enabled=true", apm_server["command"])
-        self.assertNotIn("apm-server.instrumentation.profiling.cpu.enabled=true", apm_server["command"])
-        self.assertNotIn("apm-server.instrumentation.profiling.heap.enabled=true", apm_server["command"])
+        self.assertNotIn("instrumentation.enabled=true", apm_server["command"])
+        self.assertNotIn("instrumentation.profiling.cpu.enabled=true", apm_server["command"])
+        self.assertNotIn("instrumentation.profiling.heap.enabled=true", apm_server["command"])
 
     def test_apm_server_build_branch(self):
         apm_server = ApmServer(version="6.3.100", apm_server_build="foo.git@bar", release=True).render()["apm-server"]
@@ -886,42 +832,6 @@ class ApmServerServiceTest(ServiceTest):
         self.assertFalse(
             any(e.startswith("setup.dashboards.enabled=") for e in apm_server["command"]),
             "setup.dashboards.enabled while enable_kibana=False"
-        )
-
-    def test_apm_server_acm(self):
-        apm_server = ApmServer(version="7.3").render()["apm-server"]
-        self.assertTrue("apm-server.kibana.enabled=true" in apm_server["command"],
-                        "APM Server Kibana enabled by default")
-
-        apm_server = ApmServer(version="7.3", apm_server_acm_disable=True).render()["apm-server"]
-        self.assertTrue("apm-server.kibana.enabled=false" in apm_server["command"],
-                        "APM Server Kibana disabled when apm_server_disable_kibana=True")
-
-        apm_server = ApmServer(version="7.3", xpack_secure=True).render()["apm-server"]
-        self.assertTrue("apm-server.kibana.username=apm_server_user" in apm_server["command"],
-                        "APM Server Kibana username set by default")
-        self.assertTrue("apm-server.kibana.password=changeme" in apm_server["command"],
-                        "APM Server Kibana password set by default")
-
-        apm_server = ApmServer(version="7.3", xpack_secure=True,
-                               apm_server_elasticsearch_username="another_apm_server_user",
-                               apm_server_elasticsearch_password="notchangeme").render()["apm-server"]
-        self.assertTrue("apm-server.kibana.username=another_apm_server_user" in apm_server["command"],
-                        "APM Server Kibana username overridden")
-        self.assertTrue("apm-server.kibana.password=notchangeme" in apm_server["command"],
-                        "APM Server Kibana password overridden")
-
-    def test_apm_server_custom_pipeline(self):
-        apm_server = ApmServer(version="8.0", apm_server_pipeline_path="foo").render()["apm-server"]
-        self.assertIn("foo:/usr/share/apm-server/ingest/pipeline/definition.json", apm_server["volumes"])
-        self.assertIn("apm-server.register.ingest.pipeline.overwrite=true", apm_server["command"])
-
-    def test_data_streams(self):
-        apm_server = ApmServer(version="7.16.0", apm_server_enable_data_streams=True).render()["apm-server"]
-        self.assertIn("apm-server.data_streams.enabled=true", apm_server["command"])
-        self.assertFalse(
-            any(a.startswith("output.elasticsearch.pipelines=") for a in apm_server["command"]),
-            "output.elasticsearch.pipelines with data streams enabled",
         )
 
     def test_debug(self):
@@ -1318,10 +1228,9 @@ class KibanaServiceTest(ServiceTest):
                             max-size: '2m'
                             max-file: '5'
                     healthcheck:
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://kibana:5601/api/status"]
+                        test: ["CMD-SHELL", "curl -s -k http://kibana:5601/api/status | grep -q 'Looking good'"]
                         interval: 10s
                         retries: 30
-                        timeout: 5s
                         start_period: 10s
                     depends_on:
                         elasticsearch:
@@ -1352,8 +1261,7 @@ class KibanaServiceTest(ServiceTest):
                             max-size: '2m'
                             max-file: '5'
                     healthcheck:
-                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://kibana:5601/api/status"]
-                        timeout: 5s
+                        test: ["CMD-SHELL", "curl -s -k http://kibana:5601/api/status | grep -q 'Looking good'"]
                         interval: 10s
                         retries: 30
                         start_period: 10s

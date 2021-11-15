@@ -7,12 +7,10 @@ test -z "$srcdir" && srcdir=.
 
 export COMPOSE_ARGS="7.2 --force-build --no-xpack-secure \
   --build-parallel \
-  --no-apm-server-dashboards \
   --no-apm-server-self-instrument \
   --apm-server-count 2 \
   --apm-server-tee \
   --elasticsearch-data-dir '' \
-  --no-apm-server-pipeline \
   --all \
   --no-kibana"
 make start-env docker-compose-wait
