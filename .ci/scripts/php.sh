@@ -14,12 +14,9 @@ if [ -n "${APM_AGENT_PHP_VERSION}" ]; then
 fi
 
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
-  --no-apm-server-dashboards \
   --no-apm-server-self-instrument \
   --with-agent-php-apache \
   --apm-server-agent-config-poll=1s \
-  --force-build \
-  --no-kibana \
-  --no-xpack-secure"
+  --force-build"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
 runTests env-agent-php docker-test-agent-php

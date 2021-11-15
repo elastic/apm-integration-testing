@@ -58,7 +58,7 @@ class Concurrent:
         def count(self, name):
             return self.no_per_event.get(name, 0) * self.events_no
 
-    def __init__(self, elasticsearch, endpoints, iters=1, index="apm-*"):
+    def __init__(self, elasticsearch, endpoints, iters=1, index="apm-*,traces-apm*,metrics-apm*,logs-apm*"):
         self.num_reqs = 0
         self.index = index
         # TODO: improve ES handling

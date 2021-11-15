@@ -13,10 +13,8 @@ OPBEANS_APP=$3
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
   --with-agent-${APP} \
   --with-opbeans-${OPBEANS_APP} \
-  --no-apm-server-dashboards \
   --no-apm-server-self-instrument \
-  --no-kibana \
   --apm-server-agent-config-poll=1s \
-  --force-build --no-xpack-secure"
+  --force-build"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
 runTests "env-agent-${AGENT}"

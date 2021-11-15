@@ -32,7 +32,6 @@ function prepareAndRunAll() {
   export APM_SERVER_URL=${APM_SERVER_URL:-"https://apm-server:8200"}
   export PYTHONHTTPSVERIFY=0
   DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS}\
-    --no-apm-server-dashboards \
     --no-apm-server-self-instrument \
     --with-agent-rumjs \
     --with-agent-dotnet \
@@ -43,7 +42,6 @@ function prepareAndRunAll() {
     --with-agent-java-spring \
     --with-agent-python-django \
     --with-agent-python-flask \
-    --no-xpack-secure \
     --apm-server-enable-tls \
     --no-verify-server-cert  \
     --apm-server-secret-token=${ELASTIC_APM_SECRET_TOKEN} \
@@ -56,10 +54,7 @@ function prepareAndRunAll() {
 
 function prepareAndRunGoals() {
   DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} \
-    --no-apm-server-dashboards \
-    --no-apm-server-self-instrument \
-    --no-kibana \
-    --no-xpack-secure"
+    --no-apm-server-self-instrument"
   export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
   runTests "$@"
 }
