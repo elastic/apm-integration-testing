@@ -67,7 +67,7 @@ pull_request_rules:
       - -closed
       - author=mergify[bot]
       - "#check-success>0"
-      - schedule=Mon-Fri 06:00-10:00[Europe/Paris]
+      - schedule=Mon-Mon 06:00-10:00[Europe/Paris]
       #- created-at<3 days ago
     actions:
       comment:
