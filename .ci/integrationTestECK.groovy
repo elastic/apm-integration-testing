@@ -31,7 +31,6 @@ pipeline {
   }
   parameters {
     string(name: 'BUILD_OPTS', defaultValue: "--no-elasticsearch --no-apm-server --no-kibana --no-apm-server-self-instrument", description: "Addicional build options to passing compose.py")
-    booleanParam(name: 'update_docker_images', defaultValue: true, description: 'Enable/Disable the Docker images update.')
     booleanParam(name: 'destroy_mode', defaultValue: false, description: 'Run the script in destroy mode to destroy any cluster provisioned and delete vault secrets.')
     string(name: 'build_num_to_destroy', defaultValue: "", description: "Build number to destroy, it is needed on destroy_mode")
   }
@@ -77,21 +76,6 @@ pipeline {
               expression { return ! params.destroy_mode }
             }
             stages {
-              stage('Prepare Docker images'){
-                when {
-                  expression { return params.update_docker_images }
-                }
-                steps {
-                  dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
-                  sh(label: 'Get Docker images', script: "${EC_DIR}/.ci/scripts/getDockerImages.sh ${getElasticStackVersion()}")
-                  sh(label: 'Push Docker images', script: "${EC_DIR}/.ci/scripts/pushDockerImages.sh ${getElasticStackVersion()} 'observability-ci' ${getElasticStackVersion()} ${DOCKER_REGISTRY}")
-                }
-                post {
-                  always {
-                    archiveArtifacts(allowEmptyArchive: false, artifacts: 'metadata.txt')
-                  }
-                }
-              }
               stage('Provision ECK environment'){
                 steps {
                   dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
