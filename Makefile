@@ -162,7 +162,7 @@ dockerized-test: ## Run all the dockerized tests
 		-e ELASTIC_APM_SECRET_TOKEN=$${ELASTIC_APM_SECRET_TOKEN} \
 		-e OTEL_EXPORTER_OTLP_ENDPOINT \
 		-e OTEL_EXPORTER_OTLP_HEADERS \
-		-e OTEL_SERVICE_NAME \
+		-e OTEL_SERVICE_NAME="apm-integration-testing" \
 		-e TRACEPARENT \
 		-e OTEL_EXPORTER_OTLP_INSECURE \
 		-v "$(PWD)/$(JUNIT_RESULTS_DIR)":"/app/$(JUNIT_RESULTS_DIR)" \
