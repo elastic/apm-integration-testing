@@ -205,7 +205,9 @@ def runTest(test){
       catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
         filebeat(output: "docker-${getElasticStackVersion()}-${test}.log", archiveOnlyOnFail: true){
           dir("${BASE_DIR}"){
-            sh ".ci/scripts/${test}.sh"
+            withOtelEnv() {
+              sh ".ci/scripts/${test}.sh"
+            }
           }
         }
       }
@@ -226,7 +228,9 @@ def withTestEnv(Closure body){
       "BUILD_NUMBER=${ params.destroy_mode ? params.build_num_to_destroy : env.BUILD_NUMBER}"
     ]){
       withVaultEnv(){
-        body()
+        withOtelEnv() {
+          body()
+        }
       }
     }
   }
