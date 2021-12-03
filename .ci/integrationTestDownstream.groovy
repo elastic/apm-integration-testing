@@ -221,15 +221,10 @@ def runScript(Map params = [:]){
       sh 'docker ps -a'
       dir("${BASE_DIR}"){
         withEnv(env){
-<<<<<<< HEAD
-          sh(label: "Testing ${agentType}", script: ".ci/scripts/${agentType}.sh")
-          sh 'docker ps -a'
-=======
           withOtelEnv() {
             sh(label: "Testing ${agentType}", script: ".ci/scripts/${agentType}.sh")
           }
           sh 'docker ps -a && docker images -a && docker volume ls && docker network ls'
->>>>>>> 7c0f7a8 (feat: enable pytest_otel plugin (#1331))
         }
       }
     }
