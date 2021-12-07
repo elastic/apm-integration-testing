@@ -152,7 +152,7 @@ def runJob(testName, buildOpts = ''){
       string(name: 'MERGE_TARGET', value: "${mergeTarget}"),
       string(name: 'BUILD_OPTS', value: "${params.BUILD_OPTS} ${buildOpts}"),
       string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
-      booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: '')],
+      booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: true)],
       propagate: true,
       quietPeriod: 10,
       wait: true)
