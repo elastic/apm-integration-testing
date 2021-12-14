@@ -41,3 +41,7 @@ virtualenv==16.7.9
 waiting==1.4.1
 webium==1.2.1
 websocket-client==0.54.0
+<<<<<<< HEAD
+=======
+pytest-otel>=0.0.4
+>>>>>>> e89d5c8 (fix: update the pytest-otel version to the minimum that support auth (#1336))
