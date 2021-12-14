@@ -41,4 +41,4 @@ virtualenv==16.7.9
 waiting==1.4.1
 webium==1.2.1
 websocket-client==0.54.0
-pytest-otel==0.0.2
+pytest-otel>=0.0.4
