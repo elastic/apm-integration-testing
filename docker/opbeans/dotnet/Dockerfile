@@ -10,7 +10,7 @@ ARG DOTNET_AGENT_REPO=elastic/apm-agent-dotnet
 ARG DOTNET_AGENT_BRANCH=master
 ARG DOTNET_AGENT_VERSION=
 ARG OPBEANS_DOTNET_REPO=elastic/opbeans-dotnet
-ARG OPBEANS_DOTNET_BRANCH=master
+ARG OPBEANS_DOTNET_BRANCH=main
 # Workaround for https://github.com/dotnet/sdk/issues/14497
 ARG DOTNET_HOST_PATH=/usr/share/dotnet/dotnet
 WORKDIR /src
