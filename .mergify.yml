@@ -22,7 +22,7 @@ pull_request_rules:
   - name: automate backport creation to 7.x branch
     conditions:
       - merged
-      - base=master
+      - base=main
     actions:
       backport:
         assignees:

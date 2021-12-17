@@ -2,7 +2,7 @@
 set -e
 
 OWNER=${1:-elastic}
-BRANCH=${2:-master}
+BRANCH=${2:-main}
 
 echo "Cloning Kibana: ${OWNER}:${BRANCH}"
 

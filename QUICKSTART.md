@@ -4,7 +4,7 @@ In addition to the end to end (eg agent -> apm server -> elasticsearch <- kibana
 
 Note that by "local environment", this can be on your actual local machine, or running on a cloud instance with port forwards set up.
 
-[![Build Status](https://apm-ci.elastic.co/view/All/job/elastic+apm-integration-testing+master+push/badge/icon?style=plastic)](https://apm-ci.elastic.co/job/elastic+apm-integration-testing+master+push/)
+[![Build Status](https://apm-ci.elastic.co/view/All/job/elastic+apm-integration-testing+main+push/badge/icon?style=plastic)](https://apm-ci.elastic.co/job/elastic+apm-integration-testing+main+push/)
 
 ## Prerequisites
 
