@@ -5,7 +5,7 @@
 FROM golang:stretch
 ENV GO111MODULE=on
 ARG OPBEANS_GO_REPO=elastic/opbeans-go
-ARG OPBEANS_GO_BRANCH=master
+ARG OPBEANS_GO_BRANCH=main
 WORKDIR /src/opbeans-go
 
 RUN git clone https://github.com/${OPBEANS_GO_REPO}.git . \
