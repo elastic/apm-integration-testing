@@ -7,7 +7,10 @@ queue_rules:
 pull_request_rules:
   - name: ask to resolve conflict
     conditions:
+      - -merged
+      - -closed
       - conflict
+      - -author=apmmachine
     actions:
         comment:
           message: |
