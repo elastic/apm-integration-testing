@@ -43,7 +43,8 @@ pipeline {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
         dir("${EC_DIR}"){
-          git(branch: 'main',
+          // TODO: replace when migrating obs-test-env
+          git(branch: 'master',
             credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba',
             url: 'git@github.com:elastic/observability-test-environments.git'
           )
