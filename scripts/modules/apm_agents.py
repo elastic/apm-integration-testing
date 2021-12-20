@@ -36,7 +36,7 @@ class AgentRUMJS(Service):
     def _content(self):
         default_environment = {
             "ELASTIC_APM_SERVICE_NAME": "rum",
-            "ELASTIC_APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
+            "APM_SERVER_URL": self.options.get("apm_server_url", DEFAULT_APM_SERVER_URL),
             "ELASTIC_APM_VERIFY_SERVER_CERT": str(not self.options.get("no_verify_server_cert")).lower(),
             "ELASTIC_APM_LOG_LEVEL": self.options.get("apm_log_level") or DEFAULT_APM_LOG_LEVEL
         }
