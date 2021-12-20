@@ -88,7 +88,7 @@ class OpbeansDotnet(OpbeansService):
     DEFAULT_AGENT_REPO = "elastic/apm-agent-dotnet"
     DEFAULT_SERVICE_NAME = "opbeans-dotnet"
     DEFAULT_AGENT_VERSION = ""
-    DEFAULT_OPBEANS_BRANCH = "master"
+    DEFAULT_OPBEANS_BRANCH = "main"
     DEFAULT_OPBEANS_REPO = "elastic/opbeans-dotnet"
     DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
     DEFAULT_SAMPLE_RATE = 10
@@ -173,7 +173,7 @@ class OpbeansGo(OpbeansService):
     SERVICE_PORT = 3003
     DEFAULT_AGENT_BRANCH = "master"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-go"
-    DEFAULT_OPBEANS_BRANCH = "master"
+    DEFAULT_OPBEANS_BRANCH = "main"
     DEFAULT_OPBEANS_REPO = "elastic/opbeans-go"
     DEFAULT_SERVICE_NAME = "opbeans-go"
     DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
