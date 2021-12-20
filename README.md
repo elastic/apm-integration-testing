@@ -2,7 +2,7 @@
 
 This repo contains tools for end-to-end (eg agent -> apm server -> elasticsearch <- kibana) development and testing of Elastic APM.
 
-[![Build Status](https://apm-ci.elastic.co/buildStatus/icon?job=apm-integration-tests%2Fmaster)](https://apm-ci.elastic.co/job/apm-integration-tests/job/master/)
+[![Build Status](https://apm-ci.elastic.co/buildStatus/icon?job=apm-integration-tests%2Fmain)](https://apm-ci.elastic.co/job/apm-integration-tests/job/main/)
 
 ## Prerequisites
 
@@ -39,9 +39,9 @@ Every time there is a new Elastic Stack release we have to update the configurat
 * Update `ELASTIC_STACK_VERSION` param on Jenkinsfiles (.ci/\*.groovy and .ci/Jenkinsfile files).
 * Update `.ci/scripts/7.0-upgrade.sh` Elastic stack used for the update (on branch 7.x)
 * Update `SUPPORTED_VERSIONS`
-  * Master branch [cli.py](https://github.com/elastic/apm-integration-testing/blob/master/scripts/modules/cli.py#L58-L76)
+  * Main branch [cli.py](https://github.com/elastic/apm-integration-testing/blob/main/scripts/modules/cli.py#L58-L76)
   * 7.x branch [compose.py](https://github.com/elastic/apm-integration-testing/blob/7.x/scripts/compose.py#L2115-L2131)
-* Update [APM server versions](https://github.com/elastic/apm-integration-testing/blob/master/tests/versions/apm_server.yml)
+* Update [APM server versions](https://github.com/elastic/apm-integration-testing/blob/main/tests/versions/apm_server.yml)
 
 ## Running Local Enviroments
 
@@ -453,11 +453,11 @@ e.g.
 
 Various combinations of versions of agents and the Elastic Stack are tested together to ensure compatibility.
 
-The matrix is defined using [apm_server.yml](https://github.com/elastic/apm-integration-testing/blob/master/tests/versions/apm_server.yml) for one axis and then a per-agent specification for the other axis.
+The matrix is defined using [apm_server.yml](https://github.com/elastic/apm-integration-testing/blob/main/tests/versions/apm_server.yml) for one axis and then a per-agent specification for the other axis.
 
 Certain exclusions are defined on a per agent basis.
 
-For example, [the nodejs matrix](https://apm-ci.elastic.co/view/All/job/elastic+apm-integration-testing+master+multijob-nodejs-agent-versions/) is defined in [nodejs.yml](https://github.com/elastic/apm-integration-testing/blob/master/tests/versions/nodejs.yml).
+For example, [the nodejs matrix](https://apm-ci.elastic.co/view/All/job/elastic+apm-integration-testing+main+multijob-nodejs-agent-versions/) is defined in [nodejs.yml](https://github.com/elastic/apm-integration-testing/blob/main/tests/versions/nodejs.yml).
 
 When those tests run, `scripts/ci/versions_nodejs.sh` is invoked with the product of those files, eg `scripts/ci/versions_nodejs.sh 'github;master' '6.3'`.
 
@@ -483,7 +483,7 @@ make test-agent-python
 
 Testing unrelease code for other agents follows a simliar pattern.
 
-See `version*` in https://github.com/elastic/apm-integration-testing/tree/master/.ci/scripts for details on how CI tests specific agent/elastic stack version combinations.
+See `version*` in https://github.com/elastic/apm-integration-testing/tree/main/.ci/scripts for details on how CI tests specific agent/elastic stack version combinations.
 
 ### Testing docker images
 
