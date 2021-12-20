@@ -45,8 +45,7 @@ pipeline {
       steps {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}",
-                    reference: "${GIT_REFERENCE_REPO}",
-                    branch: 'main')
+                    reference: "${GIT_REFERENCE_REPO}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
