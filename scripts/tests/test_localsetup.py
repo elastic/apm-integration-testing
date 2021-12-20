@@ -57,7 +57,7 @@ class OpbeansServiceTest(ServiceTest):
                         - DOTNET_AGENT_BRANCH=master
                         - DOTNET_AGENT_REPO=elastic/apm-agent-dotnet
                         - DOTNET_AGENT_VERSION=
-                        - OPBEANS_DOTNET_BRANCH=master
+                        - OPBEANS_DOTNET_BRANCH=main
                         - OPBEANS_DOTNET_REPO=elastic/opbeans-dotnet
                     container_name: localtesting_6.3.10_opbeans-dotnet
                     ports:
@@ -119,7 +119,7 @@ class OpbeansServiceTest(ServiceTest):
                       args:
                         - GO_AGENT_BRANCH=master
                         - GO_AGENT_REPO=elastic/apm-agent-go
-                        - OPBEANS_GO_BRANCH=master
+                        - OPBEANS_GO_BRANCH=main
                         - OPBEANS_GO_REPO=elastic/opbeans-go
                     container_name: localtesting_6.3.10_opbeans-go
                     ports:
@@ -397,9 +397,9 @@ class OpbeansServiceTest(ServiceTest):
         branch = [e for e in opbeans_python_6_1["environment"] if e.startswith("PYTHON_AGENT_BRANCH")]
         self.assertEqual(branch, ["PYTHON_AGENT_BRANCH=1.x"])
 
-        opbeans_python_master = OpbeansPython(
+        opbeans_python_main = OpbeansPython(
             version="7.0.0-alpha1", opbeans_python_agent_branch="2.x").render()["opbeans-python"]
-        branch = [e for e in opbeans_python_master["environment"] if e.startswith("PYTHON_AGENT_BRANCH")]
+        branch = [e for e in opbeans_python_main["environment"] if e.startswith("PYTHON_AGENT_BRANCH")]
         self.assertEqual(branch, ["PYTHON_AGENT_BRANCH=2.x"])
 
     def test_opbeans_python_agent_repo(self):
