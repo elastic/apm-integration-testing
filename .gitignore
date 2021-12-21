@@ -36,5 +36,3 @@ target/
 
 # For the cache java dependencies
 docker/java/spring/.m2
-
-docker/opbeans-loadgen
