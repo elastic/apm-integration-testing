@@ -14,12 +14,12 @@ function dummyFuncToAddDepthToStacktrace(int $depthLeft): void
     global $span;
 
     // It's 2 because current dummyFuncToAddDepthToStacktrace frame
-    // and $span->end() frame are counted
+    // and frame for call to $span->end() below are included in span's stacktrace
     if ($depthLeft > 2) {
         dummyFuncToAddDepthToStacktrace($depthLeft - 1);
+    } else {
+        $span->end();
     }
-
-    $span->end();
 }
 
 dummyFuncToAddDepthToStacktrace(16);
