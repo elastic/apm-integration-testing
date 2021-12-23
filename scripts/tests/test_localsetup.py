@@ -1940,7 +1940,6 @@ class LocalTest(unittest.TestCase):
         self.assertIn("NODE_VERSION=14.17.3", kibana["build"]["args"])
         self.assertIn("UID={}".format(os.getuid()), kibana["build"]["args"])
         self.assertIn("GID={}".format(os.getgid()), kibana["build"]["args"])
-<<<<<<< HEAD:scripts/tests/test_localsetup.py
 
     def test_elasticsearch_snapshot_repo(self):
         docker_compose_yml = stringIO()
@@ -1957,5 +1956,3 @@ class LocalTest(unittest.TestCase):
         self.assertIn("repo1", services)
         repo0 = got["services"]["repo0"]
         self.assertIn('{"type": "url", "settings": {"url": "https://example.com/1/"}}', repo0["command"])
-=======
->>>>>>> 442b523 (feat: build kibana container from sources (#970)):scripts/tests/localsetup_tests.py
