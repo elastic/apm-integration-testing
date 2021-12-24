@@ -101,7 +101,9 @@ pipeline {
             unstash "source"
             filebeat(output: "docker-${OPBEANS_APP}.log", archiveOnlyOnFail: true){
               dir("${BASE_DIR}"){
-                sh(label: "Testing ${NAME} ${OPBEANS_APP}", script: ".ci/scripts/opbeans-app.sh ${NAME} ${APP} ${OPBEANS_APP}")
+                withOtelEnv() {
+                  sh(label: "Testing ${NAME} ${OPBEANS_APP}", script: ".ci/scripts/opbeans-app.sh ${NAME} ${APP} ${OPBEANS_APP}")
+                }
               }
             }
           }
@@ -122,13 +124,15 @@ pipeline {
             deleteDir()
             unstash "source"
             dir('opbeans-frontend') {
-              git url: 'https://github.com/elastic/opbeans-frontend.git'
+              git(url: 'https://github.com/elastic/opbeans-frontend.git', branch: 'main')
               sh script: ".ci/bump-version.sh ${env.BUILD_OPTS.replaceAll('--rum-agent-branch ', '')} false", label: 'Bump version'
               sh script: 'make build', label: 'Build docker image with the new rum agent'
             }
             filebeat(output: "docker-opbeans-rum.log", archiveOnlyOnFail: true){
               dir("${BASE_DIR}"){
-                sh(label: 'Testing RUM', script: '.ci/scripts/opbeans-rum.sh')
+                withOtelEnv() {
+                  sh(label: 'Testing RUM', script: '.ci/scripts/opbeans-rum.sh')
+                }
               }
             }
           }
@@ -155,7 +159,9 @@ pipeline {
         unstash "source"
         filebeat(output: "docker-all.log", archiveOnlyOnFail: true){
           dir("${BASE_DIR}"){
-            sh ".ci/scripts/all.sh"
+            withOtelEnv() {
+              sh ".ci/scripts/all.sh"
+            }
           }
         }
       }
@@ -207,7 +213,9 @@ pipeline {
         unstash "source"
         filebeat(output: "docker-opbeans.log", archiveOnlyOnFail: true){
           dir("${BASE_DIR}"){
-            sh ".ci/scripts/opbeans.sh"
+            withOtelEnv() {
+              sh ".ci/scripts/opbeans.sh"
+            }
           }
         }
       }
