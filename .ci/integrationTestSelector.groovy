@@ -101,7 +101,9 @@ pipeline {
             unstash "source"
             filebeat(output: "docker-${OPBEANS_APP}.log", archiveOnlyOnFail: true){
               dir("${BASE_DIR}"){
-                sh(label: "Testing ${NAME} ${OPBEANS_APP}", script: ".ci/scripts/opbeans-app.sh ${NAME} ${APP} ${OPBEANS_APP}")
+                withOtelEnv() {
+                  sh(label: "Testing ${NAME} ${OPBEANS_APP}", script: ".ci/scripts/opbeans-app.sh ${NAME} ${APP} ${OPBEANS_APP}")
+                }
               }
             }
           }
@@ -128,7 +130,9 @@ pipeline {
             }
             filebeat(output: "docker-opbeans-rum.log", archiveOnlyOnFail: true){
               dir("${BASE_DIR}"){
-                sh(label: 'Testing RUM', script: '.ci/scripts/opbeans-rum.sh')
+                withOtelEnv() {
+                  sh(label: 'Testing RUM', script: '.ci/scripts/opbeans-rum.sh')
+                }
               }
             }
           }
@@ -155,7 +159,9 @@ pipeline {
         unstash "source"
         filebeat(output: "docker-all.log", archiveOnlyOnFail: true){
           dir("${BASE_DIR}"){
-            sh ".ci/scripts/all.sh"
+            withOtelEnv() {
+              sh ".ci/scripts/all.sh"
+            }
           }
         }
       }
@@ -207,7 +213,9 @@ pipeline {
         unstash "source"
         filebeat(output: "docker-opbeans.log", archiveOnlyOnFail: true){
           dir("${BASE_DIR}"){
-            sh ".ci/scripts/opbeans.sh"
+            withOtelEnv() {
+              sh ".ci/scripts/opbeans.sh"
+            }
           }
         }
       }

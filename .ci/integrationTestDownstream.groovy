@@ -119,7 +119,9 @@ pipeline {
               retryWithSleep(retries: 3, seconds: 5, backoff: true) {
                 sh(label: 'Prepare docker images', script: '.ci/scripts/build-docker-all.sh')
               }
-              sh(label: 'Run all', script: '.ci/scripts/all.sh')
+              withOtelEnv() {
+                sh(label: 'Run all', script: '.ci/scripts/all.sh')
+              }
             }
           }
         }
@@ -219,8 +221,10 @@ def runScript(Map params = [:]){
       sh 'docker ps -a'
       dir("${BASE_DIR}"){
         withEnv(env){
-          sh(label: "Testing ${agentType}", script: ".ci/scripts/${agentType}.sh")
-          sh 'docker ps -a'
+          withOtelEnv() {
+            sh(label: "Testing ${agentType}", script: ".ci/scripts/${agentType}.sh")
+          }
+          sh 'docker ps -a && docker images -a && docker volume ls && docker network ls'
         }
       }
     }
