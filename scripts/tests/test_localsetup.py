@@ -1046,13 +1046,7 @@ class LocalTest(unittest.TestCase):
                     XPACK_REPORTING_ROLES_ENABLED: 'false',
                     XPACK_SECURITY_ENCRYPTIONKEY: 'fhjskloppd678ehkdfdlliverpoolfcr',
                     XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: 'fhjskloppd678ehkdfdlliverpoolfcr',
-<<<<<<< HEAD
-                    XPACK_FLEET_AGENTS_ELASTICSEARCH_HOST: 'http://elasticsearch:9200',
-                    XPACK_FLEET_AGENTS_KIBANA_HOST: 'http://kibana:5601',
-=======
                     XPACK_FLEET_AGENTS_ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]',
-                    XPACK_FLEET_PACKAGES: '[{"name":"apm","version":"latest"}]',
->>>>>>> eb48eb1 (Resolve Kibana 8.0 deprecations (#1355))
                     XPACK_FLEET_REGISTRYURL: 'https://epr-snapshot.elastic.co',
                     XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false',
                     XPACK_SECURITY_LOGINASSISTANCEMESSAGE: 'Login&#32;details:&#32;`admin/changeme`.&#32;Further&#32;details&#32;[here](https://github.com/elastic/apm-integration-testing#logging-in).',
