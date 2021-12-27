@@ -1053,6 +1053,10 @@ class Kibana(StackService, Service):
             if self.at_least_version("7.6"):
                 if not options.get("no_kibana_apm_servicemaps"):
                     self.environment["XPACK_APM_SERVICEMAPENABLED"] = "true"
+            if self.at_least_version("7.16"):
+                self.environment["XPACK_REPORTING_ROLES_ENABLED"] = "false"
+                self.environment["XPACK_SECURITY_SESSION_IDLETIMEOUT"] = "1M"
+                self.environment["XPACK_SECURITY_SESSION_LIFESPAN"] = "3M"
             if self.kibana_tls:
                 certs = "/usr/share/kibana/config/certs/tls.crt"
                 certsKey = "/usr/share/kibana/config/certs/tls.key"
