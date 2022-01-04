@@ -243,7 +243,7 @@ class AgentServiceTest(ServiceTest):
                         args:
                             RUBY_AGENT_VERSION: latest
                             RUBY_AGENT_REPO: elastic/apm-agent-ruby
-                            RUBY_VERSION: latest
+                            RUBY_VERSION: '3.0'
                         dockerfile: Dockerfile
                         context: docker/ruby/rails
                     container_name: railsapp
