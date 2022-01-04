@@ -351,7 +351,7 @@ class AgentRubyRails(Service):
     DEFAULT_AGENT_REPO = "elastic/apm-agent-ruby"
     DEFAULT_AGENT_VERSION = "latest"
     DEFAULT_AGENT_VERSION_STATE = "release"
-    DEFAULT_RUBY_VERSION = "latest"
+    DEFAULT_RUBY_VERSION = "3.0"
     SERVICE_PORT = 8020
 
     @classmethod
