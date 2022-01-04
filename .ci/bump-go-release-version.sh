@@ -16,7 +16,7 @@ else
 fi
 
 ### Queries to the 7.x branch
-GO_VERSION=$(curl -s https://raw.githubusercontent.com/elastic/apm-server/7.x/.go-version)
+GO_VERSION=$(curl -s https://raw.githubusercontent.com/elastic/apm-server/7.17/.go-version)
 
 echo "Update go version ${GO_VERSION}"
 ${SED} -E -e "s#go_version=.*#go_version=${GO_VERSION}#g" docker/apm-server/Dockerfile
