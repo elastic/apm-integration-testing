@@ -138,7 +138,7 @@ class AgentServiceTest(ServiceTest):
                         dockerfile: Dockerfile
                         context: docker/ruby/rails
                         args:
-                            RUBY_VERSION: latest
+                            RUBY_VERSION: '3.0'
                     container_name: railsapp
                     command: bash -c "bundle install && RAILS_ENV=production bundle exec rails s -b 0.0.0.0 -p 8020"
                     depends_on:
