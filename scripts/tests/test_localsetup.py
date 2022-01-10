@@ -117,9 +117,13 @@ class OpbeansServiceTest(ServiceTest):
                       dockerfile: Dockerfile
                       context: docker/opbeans/go
                       args:
+<<<<<<< HEAD
                         - GO_AGENT_BRANCH=main
+=======
+                        - GO_AGENT_BRANCH=1.x
+>>>>>>> 7c09cdd ([7.x] Default to opbeans-go and apm-agent-go 1.x (#1367))
                         - GO_AGENT_REPO=elastic/apm-agent-go
-                        - OPBEANS_GO_BRANCH=main
+                        - OPBEANS_GO_BRANCH=1.x
                         - OPBEANS_GO_REPO=elastic/opbeans-go
                     container_name: localtesting_6.3.10_opbeans-go
                     ports:
