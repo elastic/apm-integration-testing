@@ -5,7 +5,7 @@
 FROM golang:1.15
 ENV GO111MODULE=on
 ARG OPBEANS_GO_REPO=elastic/opbeans-go
-ARG OPBEANS_GO_BRANCH=main
+ARG OPBEANS_GO_BRANCH=1.x
 WORKDIR /src/opbeans-go
 
 RUN git clone https://github.com/${OPBEANS_GO_REPO}.git . \
@@ -14,7 +14,7 @@ RUN git clone https://github.com/${OPBEANS_GO_REPO}.git . \
 RUN rm -fr vendor/go.elastic.co/apm
 
 ARG GO_AGENT_REPO=elastic/apm-agent-go
-ARG GO_AGENT_BRANCH=master
+ARG GO_AGENT_BRANCH=1.x
 
 RUN git clone https://github.com/${GO_AGENT_REPO}.git /src/go.elastic.co/apm
 RUN (cd /src/go.elastic.co/apm \
