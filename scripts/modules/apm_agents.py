@@ -8,7 +8,7 @@ from .service import Service, DEFAULT_APM_SERVER_URL, DEFAULT_APM_LOG_LEVEL
 
 class AgentRUMJS(Service):
     SERVICE_PORT = 8000
-    DEFAULT_AGENT_BRANCH = "master"
+    DEFAULT_AGENT_BRANCH = "main"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-rum-js"
 
     def __init__(self, **options):
