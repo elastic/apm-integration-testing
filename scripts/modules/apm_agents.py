@@ -360,7 +360,7 @@ class AgentRubyRails(Service):
         parser.add_argument(
             "--ruby-agent-version",
             default=cls.DEFAULT_AGENT_VERSION,
-            help='Use Ruby agent version (master, 1.x, latest, ...)',
+            help='Use Ruby agent version (main, 1.x, latest, ...)',
         )
         parser.add_argument(
             "--ruby-agent-version-state",
