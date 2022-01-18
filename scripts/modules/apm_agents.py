@@ -460,7 +460,7 @@ class AgentRubyRails(Service):
 
 class AgentJavaSpring(Service):
     SERVICE_PORT = 8090
-    DEFAULT_AGENT_VERSION = "master"
+    DEFAULT_AGENT_VERSION = "main"
     DEFAULT_AGENT_RELEASE = ""
     DEFAULT_AGENT_REPO = "elastic/apm-agent-java"
 
@@ -470,7 +470,7 @@ class AgentJavaSpring(Service):
         parser.add_argument(
             "--java-agent-version",
             default=cls.DEFAULT_AGENT_VERSION,
-            help='Use Java agent version (master, 0.5, v.0.7.1, ...)',
+            help='Use Java agent version (main, 0.5, v.0.7.1, ...)',
         )
         parser.add_argument(
             "--java-agent-release",
