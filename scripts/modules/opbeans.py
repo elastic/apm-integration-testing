@@ -171,7 +171,7 @@ class OpbeansDotnet01(OpbeansDotnet):
 
 class OpbeansGo(OpbeansService):
     SERVICE_PORT = 3003
-    DEFAULT_AGENT_BRANCH = "master"
+    DEFAULT_AGENT_BRANCH = "main"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-go"
     DEFAULT_OPBEANS_BRANCH = "main"
     DEFAULT_OPBEANS_REPO = "elastic/opbeans-go"
