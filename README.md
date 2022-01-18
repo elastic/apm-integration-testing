@@ -420,7 +420,7 @@ It is possible to configure some options and versions to run by defining environ
 
 * `APM_AGENT_JAVA_VERSION`: selects the agent Java version to use. By default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
 
-* `APM_AGENT_NODEJS_VERSION`: selects the agent Nodejs version to use. By default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
+* `APM_AGENT_NODEJS_VERSION`: selects the agent Nodejs version to use. By default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
 
 * `APM_AGENT_PHP_VERSION`: selects the agent PHP version to use. By default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
 
@@ -441,7 +441,7 @@ You can choose any release, branch, or tag from the Github repo. To do so, you m
 e.g.
 * `APM_AGENT_NODEJS_VERSION=github;v1.0.0` It will try to get v1.0.0 branch or tag from Github.
 
-* `APM_AGENT_NODEJS_VERSION=github;master` It will try to get master branch or tag from Github.
+* `APM_AGENT_NODEJS_VERSION=github;main` It will try to get main branch or tag from Github.
 
 * `APM_AGENT_NODEJS_VERSION=release;v1.0.0` It will try to get v1.0.0 from releases repo.
 
