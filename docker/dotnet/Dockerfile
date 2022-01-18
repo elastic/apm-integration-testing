@@ -6,7 +6,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 ENV DOTNET_ROOT=/usr/share/dotnet
 ARG DOTNET_AGENT_REPO=elastic/apm-agent-dotnet
-ARG DOTNET_AGENT_BRANCH=master
+ARG DOTNET_AGENT_BRANCH=main
 ARG DOTNET_AGENT_VERSION=
 # Workaround for https://github.com/dotnet/sdk/issues/14497
 ARG DOTNET_HOST_PATH=/usr/share/dotnet/dotnet
