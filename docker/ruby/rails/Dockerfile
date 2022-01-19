@@ -8,7 +8,7 @@ RUN apt-get -qq update && \
 
 ## Whether the reference is a branch or a git commit to be used within the Gemfile
 ARG RUBY_AGENT_REPO=elastic/apm-agent-ruby
-ARG RUBY_AGENT_VERSION=master
+ARG RUBY_AGENT_VERSION=main
 ENV RUBY_AGENT_REPO=$RUBY_AGENT_REPO
 ENV RUBY_AGENT_VERSION=$RUBY_AGENT_VERSION
 
