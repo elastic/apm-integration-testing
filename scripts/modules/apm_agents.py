@@ -266,7 +266,7 @@ class AgentPython(Service):
         parser.add_argument(
             '--python-agent-package',
             default=cls.DEFAULT_AGENT_PACKAGE,
-            help='Use Python agent version (github;master, github;1.x, github;v3.0.0, release;latest, ...)',
+            help='Use Python agent version (github;main, github;1.x, github;v3.0.0, release;latest, ...)',
         )
         # prevent calling again
         cls._agent_python_arguments_added = True
