@@ -1,3 +1,7 @@
 GO_AGENT:
+<<<<<<< HEAD
   - 'github;master'
   - 'release;v1.9.0'
+=======
+  - 'github;main'
+>>>>>>> 5cd12d7 (apm: Neutral naming for apm-agent-go (#1379))

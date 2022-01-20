@@ -14,7 +14,11 @@ RUN git clone https://github.com/${OPBEANS_GO_REPO}.git . \
 RUN rm -fr vendor/go.elastic.co/apm
 
 ARG GO_AGENT_REPO=elastic/apm-agent-go
+<<<<<<< HEAD
 ARG GO_AGENT_BRANCH=1.x
+=======
+ARG GO_AGENT_BRANCH=main
+>>>>>>> 5cd12d7 (apm: Neutral naming for apm-agent-go (#1379))
 
 RUN git clone https://github.com/${GO_AGENT_REPO}.git /src/go.elastic.co/apm
 RUN (cd /src/go.elastic.co/apm \
