@@ -282,7 +282,7 @@ It is possible to configure some options and versions to run by defining environ
 * `APM_AGENT_JAVA_VERSION`: selects the agent Java version to use, by default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
 * `APM_AGENT_NODEJS_VERSION`: selects the agent Nodejs version to use, by default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
 * `APM_AGENT_PYTHON_VERSION`: selects the agent Python version to use, by default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
-* `APM_AGENT_RUBY_VERSION`: selects the agent Ruby version to use, by default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
+* `APM_AGENT_RUBY_VERSION`: selects the agent Ruby version to use, by default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
 
 #### Specify an Agent Version
 
