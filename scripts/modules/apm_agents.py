@@ -67,7 +67,7 @@ class AgentRUMJS(Service):
 
 class AgentGoNetHttp(Service):
     SERVICE_PORT = 8080
-    DEFAULT_AGENT_VERSION = "master"
+    DEFAULT_AGENT_VERSION = "main"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-go"
 
     @classmethod
@@ -76,7 +76,7 @@ class AgentGoNetHttp(Service):
         parser.add_argument(
             "--go-agent-version",
             default=cls.DEFAULT_AGENT_VERSION,
-            help='Use Go agent version (master, 0.5, v0.5.2, ...)',
+            help='Use Go agent version (main, 0.5, v0.5.2, ...)',
         )
         parser.add_argument(
             '--go-agent-repo',
