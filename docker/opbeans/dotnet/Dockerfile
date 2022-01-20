@@ -7,7 +7,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS opbeans-dotnet
 ENV DOTNET_ROOT=/usr/share/dotnet
 ARG DOTNET_AGENT_REPO=elastic/apm-agent-dotnet
-ARG DOTNET_AGENT_BRANCH=master
+ARG DOTNET_AGENT_BRANCH=main
 ARG DOTNET_AGENT_VERSION=
 ARG OPBEANS_DOTNET_REPO=elastic/opbeans-dotnet
 ARG OPBEANS_DOTNET_BRANCH=main

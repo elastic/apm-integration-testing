@@ -67,7 +67,7 @@ class AgentRUMJS(Service):
 
 class AgentGoNetHttp(Service):
     SERVICE_PORT = 8080
-    DEFAULT_AGENT_VERSION = "master"
+    DEFAULT_AGENT_VERSION = "main"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-go"
 
     @classmethod
@@ -76,7 +76,7 @@ class AgentGoNetHttp(Service):
         parser.add_argument(
             "--go-agent-version",
             default=cls.DEFAULT_AGENT_VERSION,
-            help='Use Go agent version (master, 0.5, v0.5.2, ...)',
+            help='Use Go agent version (main, 0.5, v0.5.2, ...)',
         )
         parser.add_argument(
             '--go-agent-repo',
@@ -183,7 +183,7 @@ class AgentNodejsExpress(Service):
 
 class AgentPhpApache(Service):
     SERVICE_PORT = 8030
-    DEFAULT_AGENT_VERSION = "master"
+    DEFAULT_AGENT_VERSION = "main"
     DEFAULT_AGENT_RELEASE = ""
     DEFAULT_AGENT_REPO = "elastic/apm-agent-php"
 
@@ -193,7 +193,7 @@ class AgentPhpApache(Service):
         parser.add_argument(
             "--php-agent-version",
             default=cls.DEFAULT_AGENT_VERSION,
-            help='Use PHP agent version (master, 0.1, 0.2, ...)',
+            help='Use PHP agent version (main, 0.1, 0.2, ...)',
         )
         parser.add_argument(
             "--php-agent-release",
@@ -360,7 +360,7 @@ class AgentRubyRails(Service):
         parser.add_argument(
             "--ruby-agent-version",
             default=cls.DEFAULT_AGENT_VERSION,
-            help='Use Ruby agent version (master, 1.x, latest, ...)',
+            help='Use Ruby agent version (main, 1.x, latest, ...)',
         )
         parser.add_argument(
             "--ruby-agent-version-state",
@@ -542,7 +542,7 @@ class AgentJavaSpring(Service):
 
 class AgentDotnet(Service):
     SERVICE_PORT = 8100
-    DEFAULT_AGENT_VERSION = "master"
+    DEFAULT_AGENT_VERSION = "main"
     DEFAULT_AGENT_RELEASE = ""
     DEFAULT_AGENT_REPO = "elastic/apm-agent-dotnet"
 
@@ -552,7 +552,7 @@ class AgentDotnet(Service):
         parser.add_argument(
             "--dotnet-agent-version",
             default=cls.DEFAULT_AGENT_VERSION,
-            help='Use .NET agent version (master, 0.0.0.2, 0.0.0.1, ...)',
+            help='Use .NET agent version (main, 0.0.0.2, 0.0.0.1, ...)',
         )
         parser.add_argument(
             "--dotnet-agent-release",
