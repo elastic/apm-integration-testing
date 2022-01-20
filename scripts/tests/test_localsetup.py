@@ -117,11 +117,7 @@ class OpbeansServiceTest(ServiceTest):
                       dockerfile: Dockerfile
                       context: docker/opbeans/go
                       args:
-<<<<<<< HEAD
                         - GO_AGENT_BRANCH=1.x
-=======
-                        - GO_AGENT_BRANCH=main
->>>>>>> 5cd12d7 (apm: Neutral naming for apm-agent-go (#1379))
                         - GO_AGENT_REPO=elastic/apm-agent-go
                         - OPBEANS_GO_BRANCH=1.x
                         - OPBEANS_GO_REPO=elastic/opbeans-go
