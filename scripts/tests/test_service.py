@@ -456,7 +456,7 @@ class AgentServiceTest(ServiceTest):
                 agent-php-apache:
                     build:
                         args:
-                            PHP_AGENT_BRANCH: master
+                            PHP_AGENT_BRANCH: main
                             PHP_AGENT_VERSION: ""
                             PHP_AGENT_REPO: elastic/apm-agent-php
                         dockerfile: Dockerfile

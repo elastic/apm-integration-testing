@@ -11,7 +11,7 @@ RUN apt-get -qq update \
  && rm -rf /var/lib/apt/lists/*
 
 ARG PHP_AGENT_REPO=elastic/apm-agent-php
-ARG PHP_AGENT_BRANCH=master
+ARG PHP_AGENT_BRANCH=main
 ARG PHP_AGENT_VERSION=
 WORKDIR /src
 COPY . /src

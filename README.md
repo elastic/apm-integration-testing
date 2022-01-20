@@ -422,7 +422,7 @@ It is possible to configure some options and versions to run by defining environ
 
 * `APM_AGENT_NODEJS_VERSION`: selects the agent Nodejs version to use. By default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
 
-* `APM_AGENT_PHP_VERSION`: selects the agent PHP version to use. By default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
+* `APM_AGENT_PHP_VERSION`: selects the agent PHP version to use. By default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
 
 * `APM_AGENT_PYTHON_VERSION`: selects the agent Python version to use. By default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
 
