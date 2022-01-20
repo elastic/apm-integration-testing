@@ -389,7 +389,7 @@ class AgentServiceTest(ServiceTest):
                 agent-dotnet:
                     build:
                         args:
-                            DOTNET_AGENT_BRANCH: master
+                            DOTNET_AGENT_BRANCH: main
                             DOTNET_AGENT_VERSION: ""
                             DOTNET_AGENT_REPO: elastic/apm-agent-dotnet
                         dockerfile: Dockerfile

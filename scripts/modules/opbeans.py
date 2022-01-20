@@ -84,7 +84,7 @@ class OpbeansService(Service):
 
 class OpbeansDotnet(OpbeansService):
     SERVICE_PORT = 3004
-    DEFAULT_AGENT_BRANCH = "master"
+    DEFAULT_AGENT_BRANCH = "main"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-dotnet"
     DEFAULT_SERVICE_NAME = "opbeans-dotnet"
     DEFAULT_AGENT_VERSION = ""
