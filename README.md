@@ -143,11 +143,11 @@ Example which builds the https://github.com/elastic/apm-agent-java/pull/588 bran
 Note that it may take a while to build the agent from source.
 
 Another example, which installs the [APM Python
-Agent](https://github.com/elastic/apm-agent-python) from the `master` branch
+Agent](https://github.com/elastic/apm-agent-python) from the `main` branch
 for testing against [opbeans-python](https://github.com/elastic/opbeans-python)
 (for example, for end to end log correlation testing):
 
-    ./scripts/compose.py start master --with-opbeans-python --with-filebeat --opbeans-python-agent-branch=master --force-build
+    ./scripts/compose.py start master --with-opbeans-python --with-filebeat --opbeans-python-agent-branch=main --force-build
 
 Note that we use `--opbeans-python-agent-branch` to define the Python agent
 branch for opbeans-python, rather than `--python-agent-package`, which only
@@ -459,7 +459,7 @@ Certain exclusions are defined on a per agent basis.
 
 For example, [the nodejs matrix](https://apm-ci.elastic.co/view/All/job/elastic+apm-integration-testing+main+multijob-nodejs-agent-versions/) is defined in [nodejs.yml](https://github.com/elastic/apm-integration-testing/blob/main/tests/versions/nodejs.yml).
 
-When those tests run, `scripts/ci/versions_nodejs.sh` is invoked with the product of those files, eg `scripts/ci/versions_nodejs.sh 'github;master' '6.3'`.
+When those tests run, `scripts/ci/versions_nodejs.sh` is invoked with the product of those files, eg `scripts/ci/versions_nodejs.sh 'github;main' '6.3'`.
 
 The Elastic Stack version argument accepts an optional list of semi-colon separated arguments that will be passed to `scripts/compose.py` when building the test stack.
 
