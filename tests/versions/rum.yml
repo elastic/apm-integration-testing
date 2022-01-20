@@ -1,3 +1,9 @@
 RUM_AGENT:
+<<<<<<< HEAD
   - 'github;master'
   - 'release;@elastic/apm-rum@5.6.2'
+=======
+  - 'github;main'
+
+exclude:
+>>>>>>> a999085 (apm: Neutral naming for apm-agent-rum-js (#1382))
