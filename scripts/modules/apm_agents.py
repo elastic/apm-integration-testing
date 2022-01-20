@@ -542,7 +542,7 @@ class AgentJavaSpring(Service):
 
 class AgentDotnet(Service):
     SERVICE_PORT = 8100
-    DEFAULT_AGENT_VERSION = "master"
+    DEFAULT_AGENT_VERSION = "main"
     DEFAULT_AGENT_RELEASE = ""
     DEFAULT_AGENT_REPO = "elastic/apm-agent-dotnet"
 
@@ -552,7 +552,7 @@ class AgentDotnet(Service):
         parser.add_argument(
             "--dotnet-agent-version",
             default=cls.DEFAULT_AGENT_VERSION,
-            help='Use .NET agent version (master, 0.0.0.2, 0.0.0.1, ...)',
+            help='Use .NET agent version (main, 0.0.0.2, 0.0.0.1, ...)',
         )
         parser.add_argument(
             "--dotnet-agent-release",
