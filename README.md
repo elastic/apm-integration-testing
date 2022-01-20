@@ -294,7 +294,6 @@ You can choose any release, branch, or tag from the Github repo, to do that you 
 
 e.g.
 * `APM_AGENT_NODEJS_VERSION=github;v1.0.0` It will try to get v1.0.0 branch or tag from Github.
-<<<<<<< HEAD
 * `APM_AGENT_NODEJS_VERSION=github;main` It will try to get main branch or tag from Github.
 * `APM_AGENT_NODEJS_VERSION=release;v1.0.0` It will try to get v1.0.0 from releases repo.
 * `APM_AGENT_RUBY_VERSION=release;latest` It will try to get latest from releases repo.
