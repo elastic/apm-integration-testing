@@ -280,9 +280,9 @@ It is possible to configure some options and versions to run by defining environ
 * `APM_AGENT_DOTNET_VERSION`: selects the agent .NET version to use, by default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
 * `APM_AGENT_GO_VERSION`: selects the agent Go version to use, by default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
 * `APM_AGENT_JAVA_VERSION`: selects the agent Java version to use, by default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
-* `APM_AGENT_NODEJS_VERSION`: selects the agent Nodejs version to use, by default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
+* `APM_AGENT_NODEJS_VERSION`: selects the agent Nodejs version to use, by default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
 * `APM_AGENT_PYTHON_VERSION`: selects the agent Python version to use, by default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
-* `APM_AGENT_RUBY_VERSION`: selects the agent Ruby version to use, by default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
+* `APM_AGENT_RUBY_VERSION`: selects the agent Ruby version to use, by default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
 
 #### Specify an Agent Version
 
@@ -294,7 +294,7 @@ You can choose any release, branch, or tag from the Github repo, to do that you 
 
 e.g.
 * `APM_AGENT_NODEJS_VERSION=github;v1.0.0` It will try to get v1.0.0 branch or tag from Github.
-* `APM_AGENT_NODEJS_VERSION=github;master` It will try to get master branch or tag from Github.
+* `APM_AGENT_NODEJS_VERSION=github;main` It will try to get main branch or tag from Github.
 * `APM_AGENT_NODEJS_VERSION=release;v1.0.0` It will try to get v1.0.0 from releases repo.
 * `APM_AGENT_RUBY_VERSION=release;latest` It will try to get latest from releases repo.
 * `APM_AGENT_JAVA_VERSION=commit;539f1725483804d32beb4f780eac72c238329cb1` It will try to get `539f1725483804d32beb4f780eac72c238329cb1` from repo commits.

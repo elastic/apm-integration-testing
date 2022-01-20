@@ -27,7 +27,7 @@ class AgentServiceTest(ServiceTest):
                 agent-go-net-http:
                     build:
                         args:
-                            GO_AGENT_BRANCH: master
+                            GO_AGENT_BRANCH: main
                             GO_AGENT_REPO: elastic/apm-agent-go
                         dockerfile: Dockerfile
                         context: docker/go/nethttp
@@ -456,7 +456,7 @@ class AgentServiceTest(ServiceTest):
                 agent-php-apache:
                     build:
                         args:
-                            PHP_AGENT_BRANCH: master
+                            PHP_AGENT_BRANCH: main
                             PHP_AGENT_VERSION: ""
                             PHP_AGENT_REPO: elastic/apm-agent-php
                         dockerfile: Dockerfile
