@@ -8,7 +8,7 @@ from .service import Service, DEFAULT_APM_SERVER_URL, DEFAULT_APM_LOG_LEVEL
 
 class AgentRUMJS(Service):
     SERVICE_PORT = 8000
-    DEFAULT_AGENT_BRANCH = "master"
+    DEFAULT_AGENT_BRANCH = "main"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-rum-js"
 
     def __init__(self, **options):
@@ -266,7 +266,7 @@ class AgentPython(Service):
         parser.add_argument(
             '--python-agent-package',
             default=cls.DEFAULT_AGENT_PACKAGE,
-            help='Use Python agent version (github;master, github;1.x, github;v3.0.0, release;latest, ...)',
+            help='Use Python agent version (github;main, github;1.x, github;v3.0.0, release;latest, ...)',
         )
         # prevent calling again
         cls._agent_python_arguments_added = True
