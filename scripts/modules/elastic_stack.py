@@ -226,7 +226,7 @@ class ApmServer(StackService, Service):
                 self.apm_server_tee_build = {
                     "args": {
                         "apm_server_base_image": "docker.elastic.co/apm/apm-server:8.0.0-SNAPSHOT",
-                        "apm_server_branch": "master",
+                        "apm_server_branch": "main",
                         "apm_server_repo": "https://github.com/elastic/apm-server.git"
                     },
                     "context": "docker/apm-server"
@@ -445,7 +445,7 @@ class ApmServer(StackService, Service):
         if self.build:
             build_spec_parts = self.build.split("@", 1)
             repo = build_spec_parts[0]
-            branch = build_spec_parts[1] if len(build_spec_parts) > 1 else "master"
+            branch = build_spec_parts[1] if len(build_spec_parts) > 1 else "main"
             binary = "apm-server-oss" if self.oss else "apm-server"
             content.update({
                 "build": {

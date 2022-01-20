@@ -748,7 +748,7 @@ class ApmServerServiceTest(ServiceTest):
         self.assertDictEqual(apm_server["build"], {
             'args': {'apm_server_base_image': 'docker.elastic.co/apm/apm-server:6.3.100',
                      'apm_server_binary': 'apm-server',
-                     'apm_server_branch_or_commit': 'master',
+                     'apm_server_branch_or_commit': 'main',
                      'apm_server_repo': 'foo.git'},
             'context': 'docker/apm-server'})
 
@@ -759,7 +759,7 @@ class ApmServerServiceTest(ServiceTest):
         self.assertDictEqual(apm_server["build"], {
             'args': {'apm_server_base_image': 'docker.elastic.co/apm/apm-server-oss:6.3.100',
                      'apm_server_binary': 'apm-server-oss',
-                     'apm_server_branch_or_commit': 'master',
+                     'apm_server_branch_or_commit': 'main',
                      'apm_server_repo': 'foo.git'},
             'context': 'docker/apm-server'})
 

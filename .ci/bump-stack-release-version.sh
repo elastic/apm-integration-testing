@@ -30,14 +30,14 @@ if grep -q "${MINOR_MAJOR_RELEASE_VERSION}" ${CLI_FILE} ; then
 	echo "No required changes in the ${CLI_FILE}"
 else
 	TEMP_FILE=$(mktemp)
-	${SED} -E -e "s#(.*'master'.*)#        '${MINOR_MAJOR_RELEASE_VERSION}': '${RELEASE_VERSION}',£\1#g" ${CLI_FILE}
+	${SED} -E -e "s#(.*'main'.*)#        '${MINOR_MAJOR_RELEASE_VERSION}': '${RELEASE_VERSION}',£\1#g" ${CLI_FILE}
 	tr '£' '\n' < ${CLI_FILE} > "$TEMP_FILE" && mv "$TEMP_FILE" ${CLI_FILE}
 fi
 git add "${CLI_FILE}"
 
 APM_SERVER_FILE=tests/versions/apm_server.yml
 echo "Update stack with versions ${RELEASE_VERSION} in ${APM_SERVER_FILE}"
-if grep -q 'master' ${APM_SERVER_FILE} ; then
+if grep -q 'main' ${APM_SERVER_FILE} ; then
 	echo "No required changes in the ${APM_SERVER_FILE}"
 else
 	if grep -q "${MINOR_MAJOR_RELEASE_VERSION}" ${APM_SERVER_FILE} ; then

@@ -131,7 +131,7 @@ class AgentGoNetHttp(Service):
 
 
 class AgentNodejsExpress(Service):
-    # elastic/apm-agent-nodejs#master
+    # elastic/apm-agent-nodejs#main
     DEFAULT_AGENT_PACKAGE = "elastic-apm-node"
     SERVICE_PORT = 8010
 
@@ -149,7 +149,7 @@ class AgentNodejsExpress(Service):
         parser.add_argument(
             '--nodejs-agent-package',
             default=cls.DEFAULT_AGENT_PACKAGE,
-            help='Use Node.js agent version (github;master, github;1.x, github;v3.0.0, release;latest, ...)',
+            help='Use Node.js agent version (github;main, github;1.x, github;v3.0.0, release;latest, ...)',
         )
 
     @add_agent_environment([
