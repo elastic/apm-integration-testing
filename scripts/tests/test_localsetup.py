@@ -54,7 +54,7 @@ class OpbeansServiceTest(ServiceTest):
                       dockerfile: Dockerfile
                       context: docker/opbeans/dotnet
                       args:
-                        - DOTNET_AGENT_BRANCH=master
+                        - DOTNET_AGENT_BRANCH=main
                         - DOTNET_AGENT_REPO=elastic/apm-agent-dotnet
                         - DOTNET_AGENT_VERSION=
                         - OPBEANS_DOTNET_BRANCH=main
