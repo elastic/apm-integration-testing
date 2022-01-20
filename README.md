@@ -113,22 +113,6 @@ Example which builds the https://github.com/elastic/apm-agent-java/pull/588 bran
 
 Note that it may take a while to build the agent from source.
 
-<<<<<<< HEAD
-=======
-Another example, which installs the [APM Python
-Agent](https://github.com/elastic/apm-agent-python) from the `main` branch
-for testing against [opbeans-python](https://github.com/elastic/opbeans-python)
-(for example, for end to end log correlation testing):
-
-    ./scripts/compose.py start master --with-opbeans-python --with-filebeat --opbeans-python-agent-branch=main --force-build
-
-Note that we use `--opbeans-python-agent-branch` to define the Python agent
-branch for opbeans-python, rather than `--python-agent-package`, which only
-applies to the `--with-python-agent-*` flags for the small integration test
-apps.
-
-
->>>>>>> ff84068 (main: leftovers (#1395))
 ### Uploading Sourcemaps
 
 The frontend app packaged with opbeans-node runs in a production build, which means the source code is minified. The APM server needs the corresponding sourcemap to unminify the code.
@@ -320,16 +304,11 @@ e.g.
 Various combinations of versions of agents and the Elastic Stack are tested together to ensure compatibility.
 The matrix is defined using [apm_server.yml](https://github.com/elastic/apm-integration-testing/blob/master/tests/versions/apm_server.yml) for one axis and then a per-agent specification for the other axis.
 Certain exclusions are defined on a per agent basis.
-<<<<<<< HEAD
-For example, [the nodejs matrix](https://apm-ci.elastic.co/view/All/job/elastic+apm-integration-testing+master+multijob-nodejs-agent-versions/) is defined in [nodejs.yml](https://github.com/elastic/apm-integration-testing/blob/master/tests/versions/nodejs.yml).
-When those tests run, `scripts/ci/versions_nodejs.sh` is invoked with the product of those files, eg `scripts/ci/versions_nodejs.sh 'github;master' '6.3'`.
-=======
 
 For example, [the nodejs matrix](https://apm-ci.elastic.co/view/All/job/elastic+apm-integration-testing+main+multijob-nodejs-agent-versions/) is defined in [nodejs.yml](https://github.com/elastic/apm-integration-testing/blob/main/tests/versions/nodejs.yml).
 
 When those tests run, `scripts/ci/versions_nodejs.sh` is invoked with the product of those files, eg `scripts/ci/versions_nodejs.sh 'github;main' '6.3'`.
 
->>>>>>> ff84068 (main: leftovers (#1395))
 The Elastic Stack version argument accepts an optional list of semi-colon separated arguments that will be passed to `scripts/compose.py` when building the test stack.
 
 ### Agent Development
