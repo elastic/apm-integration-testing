@@ -572,7 +572,7 @@ class OpbeansPython01(OpbeansPython):
 
 class OpbeansRuby(OpbeansService):
     SERVICE_PORT = 3001
-    DEFAULT_AGENT_BRANCH = "master"
+    DEFAULT_AGENT_BRANCH = "main"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-ruby"
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = "opbeans-ruby"
