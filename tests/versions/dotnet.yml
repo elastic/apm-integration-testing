@@ -1,2 +1,3 @@
 DOTNET_AGENT:
   - 'github;main'
+  - 'release;1.7.1'
