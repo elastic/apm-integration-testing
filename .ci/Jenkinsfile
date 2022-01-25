@@ -34,7 +34,7 @@ pipeline {
   parameters {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "--apm-log-level=debug", description: "Additional build options to pass to compose.py")
-    booleanParam(name: 'Run_As_Main_Branch', defaultValue: true, description: 'Allow to run any steps on a PR, some steps normally only run on main branch.')
+    booleanParam(name: 'Run_As_Main_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on main branch.')
   }
   stages{
     /**
