@@ -13,9 +13,6 @@ if [ -n "${APM_AGENT_PHP_VERSION}" ]; then
   BUILD_OPTS="${BUILD_OPTS} ${EXTRA_OPTS}"
 fi
 
-# shellcheck disable=SC1090
-. "${srcdir}/common.sh"
-
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
   --no-apm-server-dashboards \
   --no-apm-server-self-instrument \
