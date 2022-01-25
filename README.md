@@ -263,7 +263,8 @@ These are the scripts available to execute:
 * `nodejs.sh:` runs Nodejs agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `opbeans.sh:` runs the unit tests for the apm-integration-testing app and validates the linting. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `opbeans-app.sh:` runs the apm-integration-testing app and validates the stack can be started. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
-* `python.sh:` runs Python agent tests, you can choose the versions to run see the [environment variables](environment-variables) configuration.
+* `php.sh:` runs PHP agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
+* `python.sh:` runs Python agent tests. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `ruby.sh:` runs Ruby agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `server.sh:` runs APM Server tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 * `unit-tests.sh:` runs the unit tests for the apm-integration-testing app and validate the linting, you can choose the versions to run see the [environment variables](#environment-variables) configuration.

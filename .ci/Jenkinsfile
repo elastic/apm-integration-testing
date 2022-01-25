@@ -122,6 +122,7 @@ pipeline {
             'Go': {runJob('Go')},
             'Java': {runJob('Java')},
             'Node.js': {runJob('Node.js')},
+            'PHP': {runJob('PHP')},
             'Python': {runJob('Python')},
             'Ruby': {runJob('Ruby')},
             'RUM': {runJob('RUM')},

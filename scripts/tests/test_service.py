@@ -503,7 +503,6 @@ class AgentServiceTest(ServiceTest):
         agent = AgentPhpApache(enable_apm_server=False).render()["agent-php-apache"]
         self.assertFalse("apm-server" in agent["depends_on"])
 
-
 class ApmServerServiceTest(ServiceTest):
     def test_default_snapshot(self):
         apm_server = ApmServer(version="6.3.100", snapshot=True).render()["apm-server"]
