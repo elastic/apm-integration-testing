@@ -16,9 +16,6 @@ pipeline {
     LANG = "C.UTF-8"
     LC_ALL = "C.UTF-8"
   }
-  triggers {
-    cron 'H H(5-7) * * 1-5'
-  }
   options {
     timeout(time: 3, unit: 'HOURS')
     timestamps()
