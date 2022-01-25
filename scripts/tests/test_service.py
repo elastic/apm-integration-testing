@@ -452,19 +452,11 @@ class AgentServiceTest(ServiceTest):
     def test_agent_php(self):
         agent = AgentPhpApache().render()
         self.assertDictEqual(
-<<<<<<< HEAD:scripts/tests/test_service.py
             agent, yaml.safe_load("""
                 agent-php-apache:
                     build:
                         args:
                             PHP_AGENT_BRANCH: main
-=======
-            agent, yaml.load("""
-                agent-php-apache:
-                    build:
-                        args:
-                            PHP_AGENT_BRANCH: master
->>>>>>> 4c63a2a (support PHP ITs (#946)):scripts/tests/service_tests.py
                             PHP_AGENT_VERSION: ""
                             PHP_AGENT_REPO: elastic/apm-agent-php
                         dockerfile: Dockerfile
@@ -472,12 +464,8 @@ class AgentServiceTest(ServiceTest):
                     container_name: phpapacheapp
                     depends_on:
                         apm-server:
-<<<<<<< HEAD:scripts/tests/test_service.py
                           condition:
                             service_healthy
-=======
-                            condition: 'service_healthy'
->>>>>>> 4c63a2a (support PHP ITs (#946)):scripts/tests/service_tests.py
                     environment:
                         ELASTIC_APM_SERVICE_NAME: 'phpapacheapp'
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
@@ -486,10 +474,7 @@ class AgentServiceTest(ServiceTest):
                         retries: 12
                         test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output",
                         "/dev/null", "http://phpapacheapp:80/healthcheck"]
-<<<<<<< HEAD:scripts/tests/test_service.py
                         timeout: 5s
-=======
->>>>>>> 4c63a2a (support PHP ITs (#946)):scripts/tests/service_tests.py
                     ports:
                         - 127.0.0.1:8030:80
             """)
@@ -517,10 +502,6 @@ class AgentServiceTest(ServiceTest):
 
         agent = AgentPhpApache(enable_apm_server=False).render()["agent-php-apache"]
         self.assertFalse("apm-server" in agent["depends_on"])
-<<<<<<< HEAD:scripts/tests/test_service.py
-
-=======
->>>>>>> 4c63a2a (support PHP ITs (#946)):scripts/tests/service_tests.py
 
 class ApmServerServiceTest(ServiceTest):
     def test_default_snapshot(self):
