@@ -24,9 +24,10 @@ fi
 
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
   --with-agent-${APP} \
+  --no-apm-server-dashboards \
   --no-apm-server-self-instrument \
   --apm-server-agent-config-poll=1s \
-  --force-build \
+  --force-build --no-xpack-secure \
   ${APM_DEBUG}"
 
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}

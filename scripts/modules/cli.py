@@ -405,6 +405,13 @@ class LocalSetup(object):
         )
 
         parser.add_argument(
+            "--apm-server-experimental-mode",
+            action="store_true",
+            help="start apm-server in experimental mode",
+            default=True,
+        )
+
+        parser.add_argument(
             '--opbeans-apm-js-server-url',
             action='store',
             help='server_url to use for Opbeans frontend service',
@@ -460,6 +467,13 @@ class LocalSetup(object):
             '--package-registry-url',
             action="store",
             help="Elastic Package Registry URL to use for fetching integration packages",
+        )
+
+        parser.add_argument(
+            '--drop-unsampled',
+            action='store_true',
+            help='Drop unsampled transactions',
+            default=None
         )
 
         self.store_options(parser)
@@ -649,13 +663,6 @@ class LocalSetup(object):
                 "http://admin:changeme@elasticsearch:9200/_snapshot/{:s}".format(repo_label),
             ]
             selections.add(CommandService(cmd, service=repo_label, image=curl_image, depends_on=["elasticsearch"]))
-
-        # Add a container to call the Fleet setup API. This is necessary for installing the APM integration.
-        if args.get("enable_kibana"):
-            kibana_scheme = "https" if args.get("kibana_enable_tls", False) else "http"
-            kibana_url = kibana_scheme + "://admin:changeme@kibana:5601"
-            cmd = ["curl", "-X", "POST", "-H", "kbn-xsrf: 1", kibana_url + "/api/fleet/setup"]
-            selections.add(CommandService(cmd, service="fleet_setup", image=curl_image, depends_on=["kibana"]))
 
         # `docker load` images if necessary, usually only for build candidates
         services_to_load = {}

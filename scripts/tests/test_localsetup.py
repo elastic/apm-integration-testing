@@ -703,6 +703,217 @@ class LocalTest(unittest.TestCase):
         registry = discover_services()
         self.assertIn(ApmServer, registry)
 
+    def test_start_6_2_default(self):
+        docker_compose_yml = stringIO()
+        image_cache_dir = "/foo"
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.2': '6.2.10'}):
+            setup = LocalSetup(argv=self.common_setup_args +
+                               ["6.2", "--image-cache-dir", image_cache_dir, "--no-xpack-secure"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.safe_load(docker_compose_yml)
+        want = yaml.safe_load("""
+        version: '2.4'
+        services:
+            apm-server:
+                cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
+                cap_drop: [ALL]
+                command: [apm-server, -e, --httpprof, ':6060', -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
+                    -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
+                    -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
+                    -E, setup.template.settings.index.number_of_replicas=0,
+                    -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
+                    -E, xpack.monitoring.elasticsearch=true,
+                    -E, xpack.monitoring.enabled=true,
+                    -E, 'apm-server.rum.allow_headers=["x-custom-header"]',
+                    -E, setup.dashboards.enabled=true,
+                    -E, 'output.elasticsearch.hosts=["http://elasticsearch:9200"]', -E, output.elasticsearch.enabled=true]
+                container_name: localtesting_6.2.10_apm-server
+                depends_on:
+                    elasticsearch:
+                        condition:
+                            service_healthy
+                    kibana:
+                        condition:
+                            service_healthy
+                environment: [
+                    BEAT_STRICT_PERMS=false
+                ]
+                healthcheck:
+                    interval: 10s
+                    retries: 12
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', -k, --fail, --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
+                    timeout: 5s
+                image: docker.elastic.co/apm/apm-server:6.2.10-SNAPSHOT
+                labels: [co.elastic.apm.stack-version=6.2.10]
+                logging:
+                    driver: json-file
+                    options: {max-file: '5', max-size: 2m}
+                ports: ['127.0.0.1:8200:8200', '127.0.0.1:6060:6060']
+
+            elasticsearch:
+                container_name: localtesting_6.2.10_elasticsearch
+                environment: [bootstrap.memory_lock=true, cluster.name=docker-cluster, cluster.routing.allocation.disk.threshold_enabled=false, discovery.type=single-node, path.repo=/usr/share/elasticsearch/data/backups, 'ES_JAVA_OPTS=-Xms1g -Xmx1g', path.data=/usr/share/elasticsearch/data/6.2.10, xpack.security.enabled=false, xpack.license.self_generated.type=trial]
+                healthcheck:
+                    interval: 20s
+                    retries: 10
+                    test: [CMD-SHELL, 'curl -s -k http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
+                image: docker.elastic.co/elasticsearch/elasticsearch-platinum:6.2.10-SNAPSHOT
+                labels: [co.elastic.apm.stack-version=6.2.10]
+                logging:
+                    driver: json-file
+                    options: {max-file: '5', max-size: 2m}
+                ports: ['127.0.0.1:9200:9200']
+                ulimits:
+                    memlock: {hard: -1, soft: -1}
+                volumes: ['esdata:/usr/share/elasticsearch/data']
+
+            kibana:
+                container_name: localtesting_6.2.10_kibana
+                depends_on:
+                    elasticsearch: {condition: service_healthy}
+                environment: {ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200', SERVER_HOST: 0.0.0.0, SERVER_NAME: kibana.example.org, XPACK_FLEET_REGISTRYURL: 'https://epr-snapshot.elastic.co', XPACK_MONITORING_ENABLED: 'true'}
+                healthcheck:
+                    interval: 10s
+                    retries: 30
+                    start_period: 10s
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', -k, --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
+                    timeout: 5s
+                image: docker.elastic.co/kibana/kibana-x-pack:6.2.10-SNAPSHOT
+                labels: [co.elastic.apm.stack-version=6.2.10]
+                logging:
+                    driver: json-file
+                    options: {max-file: '5', max-size: 2m}
+                ports: ['127.0.0.1:5601:5601']
+            wait-service:
+                container_name: wait
+                depends_on:
+                    apm-server:
+                        condition:
+                            service_healthy
+                    elasticsearch:
+                        condition:
+                            service_healthy
+                    kibana:
+                        condition:
+                            service_healthy
+                image: busybox
+        networks:
+            default: {name: apm-integration-testing}
+        volumes:
+            esdata: {driver: local}
+            pgdata: {driver: local}
+        """)  # noqa: 501
+        self.assertDictEqual(got, want)
+
+    def test_start_6_3_default(self):
+        docker_compose_yml = stringIO()
+        image_cache_dir = "/foo"
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'6.3': '6.3.10'}):
+            setup = LocalSetup(argv=self.common_setup_args +
+                               ["6.3", "--image-cache-dir", image_cache_dir, "--no-xpack-secure"])
+            setup.set_docker_compose_path(docker_compose_yml)
+            setup()
+        docker_compose_yml.seek(0)
+        got = yaml.safe_load(docker_compose_yml)
+        want = yaml.safe_load("""
+        version: '2.4'
+        services:
+            apm-server:
+                cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
+                cap_drop: [ALL]
+                command: [apm-server, -e, --httpprof, ':6060', -E, apm-server.frontend.enabled=true, -E, apm-server.frontend.rate_limit=100000,
+                    -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
+                    -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
+                    -E, setup.template.settings.index.number_of_replicas=0,
+                    -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
+                    -E, xpack.monitoring.elasticsearch=true, -E, xpack.monitoring.enabled=true,
+                    -E, 'apm-server.rum.allow_headers=["x-custom-header"]',
+                    -E, setup.dashboards.enabled=true,
+                    -E, 'output.elasticsearch.hosts=["http://elasticsearch:9200"]', -E, output.elasticsearch.enabled=true ]
+                container_name: localtesting_6.3.10_apm-server
+                depends_on:
+                    elasticsearch:
+                        condition:
+                            service_healthy
+                    kibana:
+                        condition:
+                            service_healthy
+                environment: [
+                    BEAT_STRICT_PERMS=false
+                ]
+                healthcheck:
+                    interval: 10s
+                    retries: 12
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', -k, --fail, --silent, --output, /dev/null, 'http://localhost:8200/healthcheck']
+                    timeout: 5s
+                image: docker.elastic.co/apm/apm-server:6.3.10-SNAPSHOT
+                labels: [co.elastic.apm.stack-version=6.3.10]
+                logging:
+                    driver: json-file
+                    options: {max-file: '5', max-size: 2m}
+                ports: ['127.0.0.1:8200:8200', '127.0.0.1:6060:6060']
+
+            elasticsearch:
+                container_name: localtesting_6.3.10_elasticsearch
+                environment: [bootstrap.memory_lock=true, cluster.name=docker-cluster, cluster.routing.allocation.disk.threshold_enabled=false, discovery.type=single-node, path.repo=/usr/share/elasticsearch/data/backups, 'ES_JAVA_OPTS=-Xms1g -Xmx1g', path.data=/usr/share/elasticsearch/data/6.3.10, xpack.security.enabled=false, xpack.license.self_generated.type=trial, xpack.monitoring.collection.enabled=true]
+                healthcheck:
+                    interval: 20s
+                    retries: 10
+                    test: [CMD-SHELL, 'curl -s -k http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
+                image: docker.elastic.co/elasticsearch/elasticsearch:6.3.10-SNAPSHOT
+                labels:
+                    - co.elastic.apm.stack-version=6.3.10
+                    - co.elastic.metrics/module=elasticsearch
+                    - co.elastic.metrics/metricsets=node,node_stats
+                    - co.elastic.metrics/hosts=http://$${data.host}:9200
+                logging:
+                    driver: json-file
+                    options: {max-file: '5', max-size: 2m}
+                ports: ['127.0.0.1:9200:9200']
+                ulimits:
+                    memlock: {hard: -1, soft: -1}
+                volumes: ['esdata:/usr/share/elasticsearch/data']
+
+            kibana:
+                container_name: localtesting_6.3.10_kibana
+                depends_on:
+                    elasticsearch: {condition: service_healthy}
+                environment: {ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200', SERVER_HOST: 0.0.0.0, SERVER_NAME: kibana.example.org, XPACK_FLEET_REGISTRYURL: 'https://epr-snapshot.elastic.co', XPACK_MONITORING_ENABLED: 'true', XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false'}
+                healthcheck:
+                    interval: 10s
+                    retries: 30
+                    start_period: 10s
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', -k, --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
+                    timeout: 5s
+                image: docker.elastic.co/kibana/kibana:6.3.10-SNAPSHOT
+                labels: [co.elastic.apm.stack-version=6.3.10]
+                logging:
+                    driver: json-file
+                    options: {max-file: '5', max-size: 2m}
+                ports: ['127.0.0.1:5601:5601']
+            wait-service:
+                container_name: wait
+                depends_on:
+                    apm-server:
+                        condition:
+                            service_healthy
+                    elasticsearch:
+                        condition:
+                            service_healthy
+                    kibana:
+                        condition:
+                            service_healthy
+                image: busybox
+        networks:
+            default: {name: apm-integration-testing}
+        volumes:
+            esdata: {driver: local}
+            pgdata: {driver: local}
+        """)  # noqa: 501
+        self.assertDictEqual(got, want)
+
     def test_version_options(self):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
@@ -733,14 +944,20 @@ class LocalTest(unittest.TestCase):
                 command: [apm-server, -e, --httpprof, ':6060', -E, apm-server.rum.enabled=true, -E, apm-server.rum.event_rate.limit=1000,
                     -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
                     -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
+                    -E, setup.template.settings.index.number_of_replicas=0,
+                    -E, setup.template.settings.index.number_of_shards=1, -E, setup.template.settings.index.refresh_interval=1ms,
                     -E, monitoring.elasticsearch=true, -E, monitoring.enabled=true,
                     -E, 'apm-server.rum.allow_headers=["x-custom-header"]',
-                    -E, 'apm-server.data_streams.enabled=true',
+                    -E, apm-server.mode=experimental,
                     -E, apm-server.kibana.enabled=true, -E, 'apm-server.kibana.host=kibana:5601', -E, apm-server.agent.config.cache.expiration=30s,
                     -E, apm-server.kibana.username=apm_server_user, -E, apm-server.kibana.password=changeme,
+                    -E, apm-server.jaeger.http.enabled=true, -E, "apm-server.jaeger.http.host=0.0.0.0:14268",
+                    -E, apm-server.jaeger.grpc.enabled=true, -E, "apm-server.jaeger.grpc.host=0.0.0.0:14250",
+                    -E, apm-server.sampling.keep_unsampled=true,
                     -E, 'output.elasticsearch.hosts=["http://elasticsearch:9200"]',
                     -E, output.elasticsearch.username=apm_server_user, -E, output.elasticsearch.password=changeme,
-                    -E, output.elasticsearch.enabled=true
+                    -E, output.elasticsearch.enabled=true,
+                    -E, "output.elasticsearch.pipelines=[{pipeline: 'apm'}]", -E, 'apm-server.register.ingest.pipeline.enabled=true'
                     ]
                 container_name: localtesting_8.0.0_apm-server
                 depends_on:
@@ -756,14 +973,14 @@ class LocalTest(unittest.TestCase):
                 healthcheck:
                     interval: 10s
                     retries: 12
-                    test: [CMD-SHELL, "curl -s http://localhost:8200/ | grep -q 'publish_ready.*true'"]
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', -k, --fail, --silent, --output, /dev/null, 'http://localhost:8200/']
                     timeout: 5s
                 image: docker.elastic.co/apm/apm-server:8.0.0-SNAPSHOT
                 labels: [co.elastic.apm.stack-version=8.0.0]
                 logging:
                     driver: json-file
                     options: {max-file: '5', max-size: 2m}
-                ports: ['127.0.0.1:8200:8200', '127.0.0.1:6060:6060']
+                ports: ['127.0.0.1:8200:8200', '127.0.0.1:6060:6060', '127.0.0.1:14268:14268', '127.0.0.1:14250:14250']
 
             elasticsearch:
                 container_name: localtesting_8.0.0_elasticsearch
@@ -809,13 +1026,6 @@ class LocalTest(unittest.TestCase):
                     './docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles'
                 ]
 
-            fleet_setup:
-                image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0-SNAPSHOT
-                command: ['curl', '-X', 'POST', '-H', 'kbn-xsrf: 1', 'http://admin:changeme@kibana:5601/api/fleet/setup']
-                depends_on:
-                    kibana:
-                        condition: service_healthy
-
             kibana:
                 container_name: localtesting_8.0.0_kibana
                 depends_on:
@@ -836,8 +1046,8 @@ class LocalTest(unittest.TestCase):
                     XPACK_REPORTING_ROLES_ENABLED: 'false',
                     XPACK_SECURITY_ENCRYPTIONKEY: 'fhjskloppd678ehkdfdlliverpoolfcr',
                     XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: 'fhjskloppd678ehkdfdlliverpoolfcr',
-                    XPACK_FLEET_AGENTS_ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]',
-                    XPACK_FLEET_PACKAGES: '[{"name":"apm","version":"latest"}]',
+                    XPACK_FLEET_AGENTS_ELASTICSEARCH_HOST: 'http://elasticsearch:9200',
+                    XPACK_FLEET_AGENTS_KIBANA_HOST: 'http://kibana:5601',
                     XPACK_FLEET_REGISTRYURL: 'https://epr-snapshot.elastic.co',
                     XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false',
                     XPACK_SECURITY_LOGINASSISTANCEMESSAGE: 'Login&#32;details:&#32;`admin/changeme`.&#32;Further&#32;details&#32;[here](https://github.com/elastic/apm-integration-testing#logging-in).',
@@ -848,7 +1058,8 @@ class LocalTest(unittest.TestCase):
                     interval: 10s
                     retries: 30
                     start_period: 10s
-                    test: ["CMD-SHELL", "curl -s -k http://kibana:5601/api/status | grep -q 'All services are available'"]
+                    test: [CMD, curl, --write-out, '''HTTP %{http_code}''', -k, --fail, --silent, --output, /dev/null, 'http://kibana:5601/api/status']
+                    timeout: 5s
                 image: docker.elastic.co/kibana/kibana:8.0.0-SNAPSHOT
                 labels: [co.elastic.apm.stack-version=8.0.0]
                 logging:
@@ -990,7 +1201,7 @@ class LocalTest(unittest.TestCase):
         got = yaml.safe_load(docker_compose_yml)
         services = set(got["services"])
         self.assertSetEqual(services, {
-            "apm-server", "elasticsearch", "kibana", "fleet_setup",
+            "apm-server", "elasticsearch", "kibana",
             "filebeat", "heartbeat", "metricbeat", "packetbeat",
             "opbeans-dotnet",
             "opbeans-go",
@@ -1641,6 +1852,10 @@ class LocalTest(unittest.TestCase):
     def test_apm_server_kibana_url(self):
         apmServer = ApmServer(apm_server_kibana_url="http://kibana.example.com:5601").render()["apm-server"]
         self.assertIn("apm-server.kibana.host=http://kibana.example.com:5601", apmServer["command"])
+
+    def test_apm_server_index_refresh_interval(self):
+        apmServer = ApmServer(apm_server_index_refresh_interval="10ms").render()["apm-server"]
+        self.assertIn("setup.template.settings.index.refresh_interval=10ms", apmServer["command"])
 
     def test_parse(self):
         cases = [

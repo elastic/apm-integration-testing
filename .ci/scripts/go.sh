@@ -14,9 +14,12 @@ if [ -n "${APM_AGENT_GO_VERSION}" ]; then
 fi
 
 DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS} \
+  --no-apm-server-dashboards \
   --no-apm-server-self-instrument \
+  --no-kibana \
   --with-agent-go-net-http \
   --force-build \
+  --no-xpack-secure \
   --apm-log-level=debug"
 export COMPOSE_ARGS=${COMPOSE_ARGS:-${DEFAULT_COMPOSE_ARGS}}
 

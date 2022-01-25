@@ -16,6 +16,8 @@ class ApmServer(StackService, Service):
 
     SERVICE_PORT = "8200"
     DEFAULT_MONITOR_PORT = "6060"
+    DEFAULT_JAEGER_HTTP_PORT = "14268"
+    DEFAULT_JAEGER_GRPC_PORT = "14250"
     DEFAULT_OUTPUT = "elasticsearch"
     OUTPUTS = {"elasticsearch", "file", "kafka", "logstash"}
     DEFAULT_KIBANA_HOST = "kibana:5601"
@@ -81,21 +83,26 @@ class ApmServer(StackService, Service):
             ("apm-server.write_timeout", "1m"),
             ("logging.json", "true"),
             ("logging.metrics.enabled", "false"),
+            ("setup.template.settings.index.number_of_replicas", "0"),
+            ("setup.template.settings.index.number_of_shards", "1"),
+            ("setup.template.settings.index.refresh_interval",
+                "{}".format(self.options.get("apm_server_index_refresh_interval"))),
             ("monitoring.elasticsearch" if self.at_least_version("7.2") else "xpack.monitoring.elasticsearch", "true"),
             ("monitoring.enabled" if self.at_least_version("7.2") else "xpack.monitoring.enabled", "true"),
-            ("apm-server.rum.allow_headers", "[\"x-custom-header\"]"),
+            ("apm-server.rum.allow_headers", "[\"x-custom-header\"]")
         ])
 
-        if self.at_least_version("8.0"):
-            # TODO(axw) remove this once data streams are always enabled in 8.0.
+        self.enable_data_streams = bool(self.options.get("apm_server_enable_data_streams"))
+        if self.enable_data_streams:
             self.apm_server_command_args.append(("apm-server.data_streams.enabled", "true"))
+            default_apm_server_kibana_creds = {"username": "admin", "password": "changeme"}
 
         if options.get("apm_server_self_instrument", True):
-            self.apm_server_command_args.append(("instrumentation.enabled", "true"))
+            self.apm_server_command_args.append(("apm-server.instrumentation.enabled", "true"))
             if self.at_least_version("7.6") and options.get("apm_server_profile", True):
                 self.apm_server_command_args.extend([
-                    ("instrumentation.profiling.cpu.enabled", "true"),
-                    ("instrumentation.profiling.heap.enabled", "true"),
+                    ("apm-server.instrumentation.profiling.cpu.enabled", "true"),
+                    ("apm-server.instrumentation.profiling.heap.enabled", "true"),
                 ])
         self.depends_on = {"elasticsearch": {"condition": "service_healthy"}} if options.get(
             "enable_elasticsearch", True) else {}
@@ -104,7 +111,25 @@ class ApmServer(StackService, Service):
         self.es_tls = self.options.get("elasticsearch_enable_tls", False)
         self.kibana_tls = self.options.get("kibana_enable_tls", False)
 
-        if self.at_least_version("7.3") and self.options.get("enable_kibana", True):
+        if self.options.get("apm_server_experimental_mode", True) and self.at_least_version("7.2"):
+            self.apm_server_command_args.append(("apm-server.mode", "experimental"))
+
+        index_suffix = self.options.get("index_suffix")
+        if index_suffix and self.at_least_version("7.9"):
+            mapping = []
+            for et in ["profile", "error", "transaction", "span", "metric"]:
+                mapping.append({"event_type": et, "index_suffix": index_suffix})
+            mapping_str = json.dumps(mapping)
+            self.apm_server_command_args.append(("apm-server.ilm.setup.mapping", mapping_str))
+
+        if self.options.get("apm_server_ilm_disable"):
+            self.apm_server_command_args.append(("apm-server.ilm.enabled", "false"))
+        elif self.at_least_version("7.2") and not self.at_least_version("7.3") and not self.oss:
+            self.apm_server_command_args.append(("apm-server.ilm.enabled", "true"))
+
+        if self.options.get("apm_server_acm_disable") or not self.options.get("enable_kibana", True):
+            self.apm_server_command_args.append(("apm-server.kibana.enabled", "false"))
+        elif self.at_least_version("7.3") and self.options.get("enable_kibana", True):
             self.apm_server_command_args.extend([
                 ("apm-server.kibana.enabled", "true"),
                 ("apm-server.kibana.host", self.options.get("apm_server_kibana_url", self.DEFAULT_KIBANA_HOST))])
@@ -127,13 +152,26 @@ class ApmServer(StackService, Service):
 
         if self.options.get("enable_kibana", True):
             self.depends_on["kibana"] = {"condition": "service_healthy"}
+            if options.get("apm_server_dashboards", True) and not self.at_least_version("7.0") \
+                    and not self.options.get("xpack_secure"):
+                self.apm_server_command_args.append(
+                    ("setup.dashboards.enabled", "true")
+                )
+
+        if self.at_least_version("7.6"):
+            if options.get("apm_server_jaeger"):
+                self.apm_server_command_args.extend([
+                    ("apm-server.jaeger.http.enabled", "true"),
+                    ("apm-server.jaeger.http.host", "0.0.0.0:" + self.DEFAULT_JAEGER_HTTP_PORT),
+                    ("apm-server.jaeger.grpc.enabled", "true"),
+                    ("apm-server.jaeger.grpc.host", "0.0.0.0:" + self.DEFAULT_JAEGER_GRPC_PORT)
+                ])
 
         # configure authentication
         if options.get("apm_server_api_key_auth", False):
-            self.apm_server_command_args.append(("apm-server.auth.api_key.enabled", "true"))
+            self.apm_server_command_args.append(("apm-server.api_key.enabled", "true"))
         if self.options.get("apm_server_secret_token"):
-            self.apm_server_command_args.append(
-                ("apm-server.auth.secret_token", self.options["apm_server_secret_token"]))
+            self.apm_server_command_args.append(("apm-server.secret_token", self.options["apm_server_secret_token"]))
 
         if self.options.get("apm_server_enable_tls"):
             self.apm_server_command_args.extend([
@@ -163,6 +201,11 @@ class ApmServer(StackService, Service):
                 q.pop("write")
             self.apm_server_command_args.append(("queue.spool", json.dumps(q)))
 
+        if options.get('drop_unsampled') or (options.get('drop_unsampled') is None and self.at_least_version("7.16")):
+            self.apm_server_command_args.extend([
+                ("apm-server.sampling.keep_unsampled", "true")
+            ])
+
         es_urls = []
 
         def add_es_config(args, prefix="output", tls=self.es_tls):
@@ -184,6 +227,25 @@ class ApmServer(StackService, Service):
             self.apm_server_command_args.extend([
                 ("output.elasticsearch.enabled", "true"),
             ])
+            # pipeline is defined in the data stream settings, don't set a pipeline in that case, no overrides
+            if options.get("apm_server_enable_pipeline", True) and self.at_least_version("6.5") and \
+                    not self.enable_data_streams:
+                if self.at_least_version("7.2"):
+                    pipeline_name = "apm"
+                else:
+                    pipeline_name = "apm_user_agent"
+
+                self.apm_server_command_args.append(
+                    ("output.elasticsearch.pipelines", "[{pipeline: '%s'}]" % pipeline_name)
+                )
+
+                self.apm_server_command_args.extend([
+                    ("apm-server.register.ingest.pipeline.enabled", "true"),
+                ])
+                if options.get("apm_server_pipeline_path"):
+                    self.apm_server_command_args.append(
+                        ("apm-server.register.ingest.pipeline.overwrite", "true"),
+                    )
         else:
             add_es_config(self.apm_server_command_args,
                           prefix="monitoring" if self.at_least_version("7.2") else "xpack.monitoring")
@@ -242,6 +304,12 @@ class ApmServer(StackService, Service):
             help='build apm-server from a git repo[@branch|sha], eg https://github.com/elastic/apm-server.git@v2'
         )
         parser.add_argument(
+            "--apm-server-ilm-disable",
+            "--no-apm-server-ilm",
+            action="store_true",
+            help='disable ILM (enabled by default in 7.2+)'
+        )
+        parser.add_argument(
             '--apm-server-output',
             choices=cls.OUTPUTS,
             default='elasticsearch',
@@ -251,6 +319,16 @@ class ApmServer(StackService, Service):
             '--apm-server-output-file',
             default=os.devnull,
             help='apm-server output path (when output=file)'
+        )
+        parser.add_argument(
+            "--apm-server-pipeline-path",
+            help='custom apm-server pipeline definition.'
+        )
+        parser.add_argument(
+            "--no-apm-server-pipeline",
+            action="store_false",
+            dest="apm_server_enable_pipeline",
+            help='disable apm-server pipelines.'
         )
         parser.add_argument(
             "--no-apm-server-self-instrument",
@@ -326,6 +404,17 @@ class ApmServer(StackService, Service):
             help="apm-server secret token.",
         )
         parser.add_argument(
+            '--no-apm-server-jaeger',
+            dest="apm_server_jaeger",
+            action="store_false",
+            help="make apm-server act as a Jaeger collector (HTTP and gRPC).",
+        )
+        parser.add_argument(
+            "--apm-server-enable-data-streams",
+            action="store_true",
+            help='enable writing to data streams'
+        )
+        parser.add_argument(
             '--apm-server-enable-tls',
             action="store_true",
             dest="apm_server_enable_tls",
@@ -336,6 +425,12 @@ class ApmServer(StackService, Service):
             default="30s",
             dest="agent_config_poll",
             help="agent config polling interval.",
+        )
+        parser.add_argument(
+            "--no-apm-server-dashboards",
+            action="store_false",
+            dest="apm_server_dashboards",
+            help="skip loading apm-server dashboards (setup.dashboards.enabled=false)",
         )
         parser.add_argument(
             '--apm-server-record',
@@ -358,9 +453,20 @@ class ApmServer(StackService, Service):
             help="arbitrary additional configuration to set for apm-server"
         )
         parser.add_argument(
+            "--apm-server-acm-disable",
+            "--no-apm-server-acm",
+            action="store_true",
+            help="disable Agent Config Management",
+        )
+        parser.add_argument(
             "--apm-server-kibana-url",
             default=cls.DEFAULT_KIBANA_HOST,
             help="Change the default kibana URL (kibana:5601)"
+        )
+        parser.add_argument(
+            "--apm-server-index-refresh-interval",
+            default="1ms",
+            help="change the index refresh interval (default 1ms)",
         )
         parser.add_argument(
             '--elastic-apm-api-key',
@@ -414,20 +520,21 @@ class ApmServer(StackService, Service):
         for param, value in self.apm_server_command_args:
             command_args.extend(["-E", param + "=" + value])
 
+        healthcheck_path = "/" if self.at_least_version("6.5") else "/healthcheck"
+
         ports = [
             self.publish_port(self.port, self.SERVICE_PORT),
             self.publish_port(self.apm_server_monitor_port, self.DEFAULT_MONITOR_PORT),
         ]
+        if ("apm-server.jaeger.http.enabled", "true") in self.apm_server_command_args:
+            ports.append(self.publish_port(self.DEFAULT_JAEGER_HTTP_PORT))
+
+        if ("apm-server.jaeger.grpc.enabled", "true") in self.apm_server_command_args:
+            ports.append(self.publish_port(self.DEFAULT_JAEGER_GRPC_PORT))
 
         command = ["apm-server", "-e", "--httpprof", ":{}".format(self.apm_server_monitor_port)] + command_args
         if self.options.get("apm_server_enable_debug"):
             command = command + ["-d", "*"]
-
-        healthcheck_path = "/" if self.at_least_version("6.5") else "/healthcheck"
-        healthcheck = curl_healthcheck(self.SERVICE_PORT, path=healthcheck_path)
-        if self.at_least_version("8.0"):
-            curl_command = "curl -s http://localhost:{}/ | grep -q 'publish_ready.*true'".format(self.SERVICE_PORT)
-            healthcheck["test"] = ["CMD-SHELL", curl_command]
 
         content = dict(
             cap_add=["CHOWN", "DAC_OVERRIDE", "SETGID", "SETUID"],
@@ -437,7 +544,7 @@ class ApmServer(StackService, Service):
             environment=[
                 "BEAT_STRICT_PERMS=false"  # Workaround https://github.com/elastic/beats/issues/18858
             ],
-            healthcheck=healthcheck,
+            healthcheck=curl_healthcheck(self.SERVICE_PORT, path=healthcheck_path),
             labels=["co.elastic.apm.stack-version=" + self.version],
             ports=ports
         )
@@ -1075,8 +1182,6 @@ class Kibana(StackService, Service):
                 self.environment["XPACK_FLEET_REGISTRYURL"] = url
             if use_local_package_registry:
                 self.depends_on["package-registry"] = {"condition": "service_healthy"}
-            if self.at_least_version("8.0"):
-                self.environment["XPACK_FLEET_PACKAGES"] = '[{"name":"apm","version":"latest"}]'
         if self.at_least_version("8.0"):
             self.environment["ENTERPRISESEARCH_HOST"] = "http://enterprise-search:" + str(EnterpriseSearch.SERVICE_PORT)
 
@@ -1154,19 +1259,9 @@ class Kibana(StackService, Service):
         if self.kibana_yml:
             volumes.append("{}:/usr/share/kibana/config/kibana.yml".format(self.kibana_yml))
 
-        scheme = 'https' if self.kibana_tls else 'http'
-        kibana_healthy_string = "All services are available" if self.at_least_version("8.0") else "Looking good"
         content = dict(
-            healthcheck={
-                "interval": "10s",
-                "retries": 30,
-                "start_period": "10s",
-                "test": [
-                    "CMD-SHELL",
-                    "curl -s -k {}://kibana:{}/api/status | grep -q '{}'".format(
-                        scheme, self.SERVICE_PORT, kibana_healthy_string),
-                ]
-            },
+            healthcheck=curl_healthcheck(
+                self.SERVICE_PORT, "kibana", path="/api/status", retries=30, https=self.kibana_tls, start_period="10s"),
             depends_on=self.depends_on,
             environment=self.environment,
             ports=[self.publish_port(self.port, self.SERVICE_PORT)],
@@ -1192,9 +1287,8 @@ class Kibana(StackService, Service):
             self.environment["NODE_OPTIONS"] = "--max-old-space-size=4096"
             self.environment["BABEL_DISABLE_CACHE"] = "true"
             self.environment["HOME"] = "/usr/share/kibana"
-            content["healthcheck"]["retries"] = 300
-            del content["healthcheck"]["start_period"]
-
+            content["healthcheck"] = curl_healthcheck(
+                self.SERVICE_PORT, "kibana", path="/api/status", retries=300, https=self.kibana_tls)
         return content
 
     @staticmethod
