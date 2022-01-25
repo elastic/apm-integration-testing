@@ -318,7 +318,7 @@ class AgentServiceTest(ServiceTest):
                 agent-java-spring:
                     build:
                         args:
-                            JAVA_AGENT_BRANCH: master
+                            JAVA_AGENT_BRANCH: main
                             JAVA_AGENT_BUILT_VERSION: ""
                             JAVA_AGENT_REPO: elastic/apm-agent-java
                             JAVA_M2_CACHE: "false"
