@@ -15,7 +15,7 @@ pipeline {
     BUILD_OPTS = "${params.BUILD_OPTS}"
     DETAILS_ARTIFACT = 'docs.txt'
     DETAILS_ARTIFACT_URL = "${env.BUILD_URL}artifact/${env.DETAILS_ARTIFACT}"
-    ELASTIC_STACK_VERSION = "${ params?.ELASTIC_STACK_VERSION?.trim() ? params.ELASTIC_STACK_VERSION.trim() : stackVersions.edge() }"
+    ELASTIC_STACK_VERSION = "${ params?.ELASTIC_STACK_VERSION?.trim() ? params.ELASTIC_STACK_VERSION.trim() : stackVersions.release() }"
   }
   options {
     timeout(time: 1, unit: 'HOURS')

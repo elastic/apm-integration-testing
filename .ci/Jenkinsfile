@@ -16,7 +16,7 @@ pipeline {
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     PIPELINE_LOG_LEVEL='INFO'
     GIT_REFERENCE_REPO = '/var/lib/jenkins/.git-references/apm-integration-testing.git'
-    ELASTIC_STACK_VERSION = "${ params?.ELASTIC_STACK_VERSION?.trim() ? params.ELASTIC_STACK_VERSION.trim() : stackVersions.edge() }"
+    ELASTIC_STACK_VERSION = "${ params?.ELASTIC_STACK_VERSION?.trim() ? params.ELASTIC_STACK_VERSION.trim() : stackVersions.release() }"
   }
   triggers {
     cron(env.CHANGE_ID?.trim() ? '' : 'H H(3-4) * * 1-5')

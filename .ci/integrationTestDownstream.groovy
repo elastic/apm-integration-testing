@@ -23,7 +23,7 @@ pipeline {
     ENABLE_ES_DUMP = "true"
     NAME = agentMapping.id(params.INTEGRATION_TEST)
     INTEGRATION_TEST = "${params.INTEGRATION_TEST}"
-    ELASTIC_STACK_VERSION = "${ params?.ELASTIC_STACK_VERSION?.trim() ? params.ELASTIC_STACK_VERSION.trim() : stackVersions.edge() }"
+    ELASTIC_STACK_VERSION = "${ params?.ELASTIC_STACK_VERSION?.trim() ? params.ELASTIC_STACK_VERSION.trim() : stackVersions.release() }"
     BUILD_OPTS = "${params.BUILD_OPTS}"
   }
   options {
