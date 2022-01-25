@@ -21,7 +21,7 @@ RUN (cd /src/go.elastic.co/apm \
     && git fetch -q origin '+refs/pull/*:refs/remotes/origin/pr/*' \
     && git checkout ${GO_AGENT_BRANCH})
 # Add "replace" stanzas to go.mod to use the local agent repo
-RUN go list -m all | grep apm | cut -d' ' -f1 | xargs -i go mod edit -replace {}=/src/{}
+RUN go list -m all | grep apm | cut -d' ' -f1 | sed -e 's_\(.*\)/v[0-9]\+$_\1_' | xargs -i go mod edit -replace {}=/src/{}
 RUN go build
 
 # Stage 1: copy static assets from opbeans/opbeans-frontend and
