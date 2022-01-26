@@ -3,7 +3,7 @@
 #   if unset then it uses the build generated above. (TODO: to be done)
 # DOTNET_AGENT_REPO and DOTNET_AGENT_BRANCH parameterise the DOTNET agent
 # repo and branch (or commit) to use.
-FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 ENV DOTNET_ROOT=/usr/share/dotnet
 ARG DOTNET_AGENT_REPO=elastic/apm-agent-dotnet
 ARG DOTNET_AGENT_BRANCH=main
@@ -15,6 +15,9 @@ COPY . /src
 # install SDK version in global.json of elastic/apm-agent-dotnet
 # Needed when building branches that specify 3.1.100 SDK in global.json
 RUN curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --install-dir ${DOTNET_ROOT} -version 3.1.100
+
+# SDK 5.x is also needed
+RUN curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --install-dir ${DOTNET_ROOT} -version 5.0.100
 RUN ./run.sh
 
 # Stage 2: Run the TestAspNetCoreApp app
