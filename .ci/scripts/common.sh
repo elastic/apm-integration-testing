@@ -72,7 +72,7 @@ if [ -n "${APM_SERVER_BRANCH}" ]; then
  if [ "${APM_SERVER_BRANCH_TYPE}" != "--release" ]; then
   BUILD_OPTS="${BUILD_OPTS} --apm-server-build https://github.com/elastic/apm-server.git@${APM_SERVER_BRANCH_VERSION}"
  else
-   ELASTIC_STACK_VERSION="${APM_SERVER_BRANCH_VERSION} --release --apm-server-managed --with-elastic-agent"
+   ELASTIC_STACK_VERSION="${APM_SERVER_BRANCH_VERSION} --release"
  fi
 fi
 
