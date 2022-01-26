@@ -43,6 +43,8 @@ class Concurrent:
                 self.agent = "python"
             elif app_name in ("expressapp",):
                 self.agent = "nodejs"
+            elif self.app_name in ("phpapacheapp",):
+                self.agent = "php"
             elif self.app_name in ("railsapp",):
                 self.agent = "ruby"
             elif self.app_name in ("gonethttpapp",):
@@ -196,59 +198,13 @@ class Concurrent:
                 "transaction time {} outside of expected range {} - {}".format(timestamp, first_req, last_req)
             assert transaction['result'] == 'HTTP 2xx', transaction['result']
 
-            http = lookup(source, 'http')
-            url = lookup(source, 'url')
-            request = http["request"]
-            assert request['method'].upper() == "GET", request['method']
-            exp_p = os.path.basename(os.path.normpath(ep.url.split('?')[0]))
-            p = url['path'].strip("/")
-            assert p == exp_p, url
-
-            if 'labels' in source:
-                labels = lookup(source, 'labels')
-                assert labels == {}, labels
-
-            service = lookup(source, 'service')
-            service_name = service['name']
-            assert service_name == ep.app_name, service_name
-
-            agent = lookup(source, 'agent')
-            agent_name = agent['name']
-            assert agent_name == ep.agent, agent_name
+            check_agent(source, ep.agent)
+            check_labels(source)
+            check_service(source, ep.app_name)
             assert transaction['type'] == 'request'
 
-            search = url['query']
-            try:
-                framework = lookup(service, 'framework', 'name')
-            except KeyError:
-                # The Go agent doesn't support reporting framework:
-                #   https://github.com/elastic/apm-agent-go/issues/69
-                assert agent_name in ('go', 'java'), agent_name + ' agent did not report framework name'
-            lang = lookup(service, 'language', 'name')
-
-            if agent_name == 'nodejs':
-                assert lang == "javascript", service
-                assert framework in ("express",), service
-                assert search == '?q=1', service
-            elif agent_name == 'python':
-                assert lang == "python", service
-                assert framework in ("django", "flask"), service
-                assert search == '?q=1', service
-            elif agent_name == 'ruby':
-                assert lang == "ruby", service
-                assert framework in ("Ruby on Rails",), service
-            elif agent_name == 'go':
-                assert lang == "go", service
-                assert search == 'q=1', service
-            elif agent_name == 'java':
-                assert lang == "Java", service
-                assert search == 'q=1', service
-            elif agent_name == 'dotnet':
-                assert lang == "C#", service
-                assert framework in ("ASP.NET Core",), service
-                assert search == 'q=1', service
-            else:
-                raise Exception("Undefined agent {}".format(agent))
+            if ep.agent != "php":
+                check_http(source, ep.agent, ep.url)
 
             span_q = self.elasticsearch.term_q([
                 ("processor.event", "span"),
@@ -302,3 +258,65 @@ class Concurrent:
             self.check_content(it, start_load, end_load)
             self.logger.debug("So far so good...")
         self.logger.debug("All done")
+
+
+def check_agent(source, expected_agent_name):
+    agent = lookup(source, 'agent')
+    agent_name = agent['name']
+    assert agent_name == expected_agent_name, agent_name
+
+
+def check_http(source, agent_name, endpoint_url):
+    service = lookup(source, 'service')
+    http = lookup(source, 'http')
+    url = lookup(source, 'url')
+    request = http["request"]
+    assert request['method'].upper() == "GET", request['method']
+    exp_p = os.path.basename(os.path.normpath(endpoint_url.split('?')[0]))
+    p = url['path'].strip("/")
+    assert p == exp_p, url
+
+    search = url['query']
+    try:
+        framework = lookup(service, 'framework', 'name')
+    except KeyError:
+        # The Go agent doesn't support reporting framework:
+        #   https://github.com/elastic/apm-agent-go/issues/69
+        assert agent_name in ('go', 'java'), agent_name + ' agent did not report framework name'
+    lang = lookup(service, 'language', 'name')
+
+    if agent_name == 'nodejs':
+        assert lang == "javascript", service
+        assert framework in ("express",), service
+        assert search == '?q=1', service
+    elif agent_name == 'python':
+        assert lang == "python", service
+        assert framework in ("django", "flask"), service
+        assert search == '?q=1', service
+    elif agent_name == 'ruby':
+        assert lang == "ruby", service
+        assert framework in ("Ruby on Rails",), service
+    elif agent_name == 'go':
+        assert lang == "go", service
+        assert search == 'q=1', service
+    elif agent_name == 'java':
+        assert lang == "Java", service
+        assert search == 'q=1', service
+    elif agent_name == 'dotnet':
+        assert lang == "C#", service
+        assert framework in ("ASP.NET Core",), service
+        assert search == 'q=1', service
+    else:
+        raise Exception("Undefined agent {}".format(agent_name))
+
+
+def check_labels(source):
+    if 'labels' in source:
+        labels = lookup(source, 'labels')
+        assert labels == {}, labels
+
+
+def check_service(source, expected_service_name):
+    service = lookup(source, 'service')
+    service_name = service['name']
+    assert service_name == expected_service_name, service_name
