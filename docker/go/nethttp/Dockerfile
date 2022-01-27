@@ -3,7 +3,7 @@ ENV GO111MODULE=on
 WORKDIR /src/testapp
 COPY . /src/testapp
 ARG GO_AGENT_REPO=elastic/apm-agent-go
-ARG GO_AGENT_BRANCH=main
+ARG GO_AGENT_BRANCH=1.x
 RUN git clone https://github.com/${GO_AGENT_REPO}.git /src/apm-agent-go
 RUN (cd /src/apm-agent-go \
   && git fetch -q origin '+refs/pull/*:refs/remotes/origin/pr/*' \
