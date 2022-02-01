@@ -74,7 +74,7 @@ We have a list with the most common flags combination that we internally use whe
 | Developer | `./scripts/compose.py start master --no-kibana` | Use newest ES/master, with custom kibana on host, for developing new features in kibana | APM |  |
 | Developer | `./scripts/compose.py start 6.3 --with-kafka --with-zookeeper --apm-server-output=kafka --with-logstash --with-agent-python-flask` | Testing with kafka and logstash ingestion methods | APM |  |
 | Developer | `./scripts/compose.py start master --no-kibana --with-opbeans-node --with-opbeans-rum --with-opbeans-x` | Developing UI features locally | APM UI | |
-| Developer | `./scripts/compose.py start master --docker-compose-path - --skip-download --no-kibana --with-opbeans-ruby --opbeans-ruby-agent-branch=master > docker-compose.yml` | Developing UI features againt specific configuration | APM UI | We sometimes explicity write a `docker-compose.yml` file and tinker with it until we get the desired configuration becore running `docker-compose up` |
+| Developer | `./scripts/compose.py start master --docker-compose-path - --skip-download --no-kibana --with-opbeans-ruby --opbeans-ruby-agent-branch=main > docker-compose.yml` | Developing UI features againt specific configuration | APM UI | We sometimes explicity write a `docker-compose.yml` file and tinker with it until we get the desired configuration becore running `docker-compose up` |
 | Developer | `scripts/compose.py start ${version}` | Manual testing of agent features | APM Agents | |
 | Developer | `./scripts/compose.py start master --with-opbeans-java --opbeans-java-agent-branch=pr/588/head --apm-server-build https://github.com/elastic/apm-server.git@master` | Test with in-progress agent/server features | APM UI |  |
 | Developer | `./scripts/compose.py start 7.0 --release --apm-server-version=6.8.0` | Upgrade/mixed version testing | APM | Then, without losing es data, upgrade/downgrade various components |
@@ -171,7 +171,7 @@ For each service, different classes of network failure can be introduced and adj
 |:--------:|:---------:|:----------|
 | **L**    | Latency   | Adds latency to all data. The overall delay is equal to `latency` +/- `jitter`. |
 | **J**    | Jitter    | Adds jitter to all data. The overall delay is equal to `latency` +/- `jitter`. |
-| **B**    | Bandwidth | The overall amount of bandwidth available to the connection | 
+| **B**    | Bandwidth | The overall amount of bandwidth available to the connection |
 | **T**    | Timeout   | Stops all data from getting through, and closes the connection after timeout. If timeout is 0, the connection won't close, and data will be delayed until the timeout is increased.|
 | **Sas**  | Packet slice average size | Slice TCP packets into this average size |
 | **Ssd**  | Packet slice average delay | Introduce delay between the transmission of each packet |
@@ -278,9 +278,9 @@ It is possible to configure some options and versions to run by defining environ
 * `BUILD_OPTS`: aggregates arguments to default arguments passing to compose.py see the compose.py help to know which ones you can use.
 * `ELASTIC_STACK_VERSION`: selects the Elastic Stack version to use on tests, by default is is used the master branch. You can choose any branch or tag from the Github repo.
 * `APM_SERVER_BRANCH`: selects the APM Server version to use on tests, by default it uses the master branch. You can choose any branch or tag from the Github repo.
-* `APM_AGENT_DOTNET_VERSION`: selects the agent .NET version to use, by default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
-* `APM_AGENT_GO_VERSION`: selects the agent Go version to use, by default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
-* `APM_AGENT_JAVA_VERSION`: selects the agent Java version to use, by default it uses the master branch. See [specify an agent version](#specify-an-agent-version)
+* `APM_AGENT_DOTNET_VERSION`: selects the agent .NET version to use, by default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
+* `APM_AGENT_GO_VERSION`: selects the agent Go version to use, by default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
+* `APM_AGENT_JAVA_VERSION`: selects the agent Java version to use, by default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
 * `APM_AGENT_NODEJS_VERSION`: selects the agent Nodejs version to use, by default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
 * `APM_AGENT_PYTHON_VERSION`: selects the agent Python version to use, by default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
 * `APM_AGENT_RUBY_VERSION`: selects the agent Ruby version to use, by default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
@@ -332,7 +332,7 @@ make test-agent-python
 
 Testing unrelease code for other agents follows a simliar pattern.
 
-See `version*` in https://github.com/elastic/apm-integration-testing/tree/master/scripts/ci for details on how CI tests specific agent/elastic stack version combinations.
+See `version*` in https://github.com/elastic/apm-integration-testing/tree/main/scripts/ci for details on how CI tests specific agent/elastic stack version combinations.
 
 ### Testing docker images
 
