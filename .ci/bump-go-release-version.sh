@@ -15,8 +15,12 @@ else
 	SED="sed -i"
 fi
 
+<<<<<<< HEAD
 ### Queries to the 7.x branch
 GO_VERSION=$(curl -s https://raw.githubusercontent.com/elastic/apm-server/7.17/.go-version)
+=======
+GO_VERSION=$(curl -s https://raw.githubusercontent.com/elastic/apm-server/main/.go-version)
+>>>>>>> 53053bd (apm-server: main (#1397))
 
 echo "Update go version ${GO_VERSION}"
 ${SED} -E -e "s#go_version=.*#go_version=${GO_VERSION}#g" docker/apm-server/Dockerfile

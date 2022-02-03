@@ -5,7 +5,7 @@ import fs from 'fs';
 const writeFile = promisify(fs.writeFile);
 import prettierRc from '../.prettierrc.json';
 
-const [owner = 'elastic', branch = 'master'] = process.argv.slice(2);
+const [owner = 'elastic', branch = 'main'] = process.argv.slice(2);
 console.log(`Downloading sample docs: ${owner}:${branch}`);
 
 interface DocType {
