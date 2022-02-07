@@ -11,6 +11,10 @@
         discover-pr-forks-strategy: merge-current
         discover-pr-forks-trust: permission
         discover-pr-origin: merge-current
+<<<<<<< HEAD
+=======
+        head-filter-regex: '(main|PR-.*|[78]\.x)'
+>>>>>>> c73a7b0 (chore: EOL of 6.x (#1432))
         discover-tags: true
         repo: apm-integration-testing
         repo-owner: elastic

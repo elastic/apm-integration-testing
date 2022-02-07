@@ -12,6 +12,14 @@
         discover-pr-forks-trust: permission
         discover-pr-origin: merge-current
         discover-tags: true
+<<<<<<< HEAD
+=======
+        head-filter-regex: '(main|PR-.*|[78]\.x)'
+        notification-context: 'apm-ci/selector'
+        property-strategies:
+          all-branches:
+          - suppress-scm-triggering: true
+>>>>>>> c73a7b0 (chore: EOL of 6.x (#1432))
         repo: apm-integration-testing
         repo-owner: elastic
         credentials-id: 2a9602aa-ab9f-4e52-baf3-b71ca88469c7-UserAndToken
