@@ -41,11 +41,7 @@ pipeline {
         deleteDir()
         gitCheckout(basedir: "${BASE_DIR}")
         dir("${EC_DIR}"){
-<<<<<<< HEAD
-          git(branch: 'master',
-=======
           git(branch: 'main',
->>>>>>> 8817109 (obs-test-env: main branch (#1396))
             credentialsId: 'f6c7695a-671e-4f4f-a331-acdce44ff9ba',
             url: 'git@github.com:elastic/observability-test-environments.git'
           )
