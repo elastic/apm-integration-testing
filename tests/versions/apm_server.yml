@@ -1,5 +1,4 @@
 APM_SERVER:
-<<<<<<< HEAD
   - '7.15;--release'
   - '7.14;--release'
   - '7.13;--release'
@@ -7,7 +6,3 @@ APM_SERVER:
   - '7.11;--release'
   - '7.10;--release'
   - '7.9;--release'
-=======
-  - main
-  - main --ubi8
->>>>>>> 53053bd (apm-server: main (#1397))

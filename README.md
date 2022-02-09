@@ -118,8 +118,6 @@ Example which builds the https://github.com/elastic/apm-agent-java/pull/588 bran
 
 Note that it may take a while to build the agent from source.
 
-<<<<<<< HEAD
-=======
 Another example, which installs the [APM Python
 Agent](https://github.com/elastic/apm-agent-python) from the `main` branch
 for testing against [opbeans-python](https://github.com/elastic/opbeans-python)
@@ -133,7 +131,6 @@ applies to the `--with-python-agent-*` flags for the small integration test
 apps.
 
 
->>>>>>> 53053bd (apm-server: main (#1397))
 ### Uploading Sourcemaps
 
 The frontend app packaged with opbeans-node runs in a production build, which means the source code is minified. The APM server needs the corresponding sourcemap to unminify the code.
@@ -295,7 +292,6 @@ These are the scripts available to execute:
 It is possible to configure some options and versions to run by defining environment variables before to launch the scripts
 
 * `COMPOSE_ARGS`: replaces completely the default arguments compose.py used by scripts, see the compose.py help to know which ones you can use.
-<<<<<<< HEAD
 * `DISABLE_BUILD_PARALLEL`: by default Docker images are built in parallel, if you set `DISABLE_BUILD_PARALLEL=true` the Docker images will build in serie. It helps to make the logs more readable.
 * `BUILD_OPTS`: aggregates arguments to default arguments passing to compose.py see the compose.py help to know which ones you can use.
 * `ELASTIC_STACK_VERSION`: selects the Elastic Stack version to use on tests, by default is is used the master branch. You can choose any branch or tag from the Github repo.
@@ -306,30 +302,6 @@ It is possible to configure some options and versions to run by defining environ
 * `APM_AGENT_NODEJS_VERSION`: selects the agent Nodejs version to use, by default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
 * `APM_AGENT_PYTHON_VERSION`: selects the agent Python version to use, by default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
 * `APM_AGENT_RUBY_VERSION`: selects the agent Ruby version to use, by default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
-=======
-
-* `DISABLE_BUILD_PARALLEL`: by default Docker images are built in parallel. If you set `DISABLE_BUILD_PARALLEL=true` then the Docker images will build in series, which helps to make the logs more readable.
-
-* `BUILD_OPTS`: aggregates arguments to default arguments passing to compose.py. See `compose.py` help to know which ones you can use.
-
-* `ELASTIC_STACK_VERSION`: selects the Elastic Stack version to use on tests. By default is is used the main branch. You can choose any branch or tag from the Github repo.
-
-* `APM_SERVER_BRANCH`: selects the APM Server version to use on tests. By default it uses the main branch. You can choose any branch or tag from the Github repo.
-
-* `APM_AGENT_DOTNET_VERSION`: selects the agent .NET version to use. By default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
-
-* `APM_AGENT_GO_VERSION`: selects the agent Go version to use. By default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
-
-* `APM_AGENT_JAVA_VERSION`: selects the agent Java version to use. By default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
-
-* `APM_AGENT_NODEJS_VERSION`: selects the agent Nodejs version to use. By default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
-
-* `APM_AGENT_PHP_VERSION`: selects the agent PHP version to use. By default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
-
-* `APM_AGENT_PYTHON_VERSION`: selects the agent Python version to use. By default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
-
-* `APM_AGENT_RUBY_VERSION`: selects the agent Ruby version to use. By default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
->>>>>>> 53053bd (apm-server: main (#1397))
 
 #### Specify an Agent Version
 
@@ -367,11 +339,7 @@ For example, to test an update to the python agent from user `elasticcontributor
 ```bash
 # start test deps: apm-server, elasticsearch, and the two python test applications
 # the test applications will use elasticcontributor's newfeature1 apm agent
-<<<<<<< HEAD
-./scripts/compose.py start master --no-kibana --with-agent-python-django --with-agent-python-flask --python-agent-package=git+https://github.com/elasticcontributor/apm-agent-python.git@newfeature1 --force-build
-=======
 ./scripts/compose.py start main --with-agent-python-django --with-agent-python-flask --python-agent-package=git+https://github.com/elasticcontributor/apm-agent-python.git@newfeature1 --force-build
->>>>>>> 53053bd (apm-server: main (#1397))
 
 # wait for healthiness
 docker-compose ps
