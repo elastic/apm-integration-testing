@@ -67,7 +67,7 @@ class AgentRUMJS(Service):
 
 class AgentGoNetHttp(Service):
     SERVICE_PORT = 8080
-    DEFAULT_AGENT_VERSION = "main"
+    DEFAULT_AGENT_VERSION = "1.x"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-go"
 
     @classmethod
