@@ -596,6 +596,9 @@ class LocalSetup(object):
         if(parse_version(args["version"]) >= parse_version("8.0")):
             args["enable_apm_managed"] = True
 
+        if args.get("enable_apm_server") is False:
+            args["enable_apm_managed"] = False
+
         if args.get("enable_apm_managed", False):
             args["enable_apm_server"] = False
 

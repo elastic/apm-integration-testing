@@ -1,0 +1,34 @@
+apm-server:
+  container_name: localtesting_8.0.0_apm-managed
+  depends_on:
+    kibana:
+      condition: service_healthy
+  environment:
+    FLEET_ELASTICSEARCH_HOST: http://elasticsearch:9200
+    FLEET_SERVER_ELASTICSEARCH_INSECURE: "1"
+    FLEET_SERVER_ENABLE: "1"
+    FLEET_SERVER_HOST: 0.0.0.0
+    FLEET_SERVER_INSECURE_HTTP: "1"
+    FLEET_SERVER_POLICY_ID: fleet-server-apm-policy
+    FLEET_SERVER_PORT: "8220"
+    FLEET_SERVER_SERVICE_TOKEN: AAEAAWVsYXN0aWMvZmxlZXQtc2VydmVyL2VsYXN0aWMtcGFja2FnZS1mbGVldC1zZXJ2ZXItdG9rZW46bmgtcFhoQzRRQ2FXbms2U0JySGlWQQ
+    KIBANA_FLEET_HOST: http://kibana:5601
+    KIBANA_FLEET_SERVICE_TOKEN: AAEAAWVsYXN0aWMvZmxlZXQtc2VydmVyL2VsYXN0aWMtcGFja2FnZS1mbGVldC1zZXJ2ZXItdG9rZW46bmgtcFhoQzRRQ2FXbms2U0JySGlWQQ
+    KIBANA_FLEET_SETUP: "1"
+  healthcheck:
+    test:
+      - CMD
+      - /bin/true
+  image: docker.elastic.co/beats/elastic-agent:8.0.0-SNAPSHOT
+  labels:
+    - co.elastic.apm.stack-version=8.0.0
+  logging:
+    driver: json-file
+    options:
+      max-file: "5"
+      max-size: 2m
+  ports:
+    - 127.0.0.1:8220:8220
+    - 127.0.0.1:8200:8200
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock

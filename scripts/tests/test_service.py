@@ -10,9 +10,10 @@ from ..modules.apm_agents import (
     AgentGoNetHttp, AgentNodejsExpress, AgentPythonDjango, AgentPythonFlask, AgentRubyRails,
     AgentJavaSpring, AgentDotnet, AgentPhpApache
 )
+from ..modules.service import Service
 from ..modules.aux_services import Logstash, Kafka, Zookeeper
 from ..modules.beats import Filebeat, Heartbeat, Metricbeat, Packetbeat
-from ..modules.elastic_stack import ApmServer, ElasticAgent, Elasticsearch, EnterpriseSearch, Kibana, PackageRegistry
+from ..modules.elastic_stack import ApmManaged, ApmServer, ElasticAgent, Elasticsearch, EnterpriseSearch, Kibana, PackageRegistry
 
 
 class ServiceTest(unittest.TestCase):
@@ -1636,3 +1637,12 @@ class ZookeeperServiceTest(ServiceTest):
                     ports:
                         - 127.0.0.1:2181:2181""")
         )
+
+
+class ApmManagedTest(ServiceTest):
+    def test_apm_managed(self):
+        apm_managed = ApmManaged(version="8.0.0",
+                                 apm_managed_server_token=Service.SERVICE_TOKEN,
+                                 apm_managed_kibana_token=Service.SERVICE_TOKEN
+                                 ).render()
+        self.assertEqual(apm_managed, yaml.safe_load(open('scripts/tests/config/test_apm_managed.yml', 'r')))
