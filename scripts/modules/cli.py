@@ -11,7 +11,7 @@ import sys
 import re
 
 from .beats import BeatMixin
-from .helpers import load_images
+from .helpers import load_images, parse_version
 from .opbeans import OpbeansService, OpbeansRum
 from .service import Service, DEFAULT_APM_SERVER_URL
 from .proxy import Toxi, Dyno
@@ -23,7 +23,7 @@ from .beats import (  # noqa: F401
     Packetbeat, Metricbeat, Heartbeat, Filebeat
 )
 from .elastic_stack import (  # noqa: F401
-    ApmServer, ElasticAgent, Elasticsearch, EnterpriseSearch, Kibana, PackageRegistry
+    ApmManaged, ApmServer, ElasticAgent, Elasticsearch, EnterpriseSearch, Kibana, PackageRegistry
 )
 from .aux_services import (  # noqa: F401
     CommandService, Kafka, Logstash, Postgres, Redis, StatsD, Zookeeper, WaitService
@@ -592,6 +592,12 @@ class LocalSetup(object):
         if "version" not in args:
             # use stack-version directly if not supported, to allow use of specific releases, eg 6.2.3
             args["version"] = self.SUPPORTED_VERSIONS.get(args["stack-version"], args["stack-version"])
+
+        if(parse_version(args["version"]) >= parse_version("8.0")):
+            args["enable_apm_managed"] = True
+
+        if args.get("enable_apm_managed", False):
+            args["enable_apm_server"] = False
 
         if args.get("apm_server_enable_tls"):
             args["apm_server_url"] = args.get("apm_server_url", DEFAULT_APM_SERVER_URL).replace("http:", "https:")

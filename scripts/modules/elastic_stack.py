@@ -730,6 +730,98 @@ class ElasticAgent(StackService, Service):
             raise
 
 
+class ApmManaged(StackService, Service):
+    docker_path = "beats"
+    docker_name = "elastic-agent"
+
+    def __init__(self, **options):
+        super(ApmManaged, self).__init__(**options)
+        if not self.at_least_version("8.0"):
+            raise Exception("Apm managed is the default configuration in 8.0+")
+
+        # build deps
+        self.depends_on = {"kibana": {"condition": "service_healthy"}} if options.get("enable_kibana", True) else {}
+
+        self.environment = {
+            "FLEET_ELASTICSEARCH_HOST": self.options.get("apm_managed_elasticsearch_url",
+                                                         self.default_elasticsearch_hosts(tls=self._es_tls)),
+            "FLEET_SERVER_ENABLE": "1",
+            "FLEET_SERVER_HOST": "0.0.0.0",
+            "FLEET_SERVER_POLICY_ID": "fleet-server-apm-policy",
+            "FLEET_SERVER_PORT": "8220",
+            "KIBANA_FLEET_HOST": self.options.get("apm_managed_kibana_url",
+                                                  self.default_kibana_hosts(tls=self._kibana_tls)),
+            "KIBANA_FLEET_SETUP": "1",
+            "FLEET_SERVER_INSECURE_HTTP": "1",
+            "FLEET_SERVER_ELASTICSEARCH_INSECURE": "1",
+            "FLEET_SERVER_SERVICE_TOKEN": self.options.get("apm_managed_server_token"),
+            "KIBANA_FLEET_SERVICE_TOKEN": self.options.get("apm_managed_kibana_token")
+        }
+
+        # set ports for defined integrations
+        self.ports = [self.publish_port("8220")]
+        self.ports.append(self.publish_port(self.options.get(
+            "apm_managed_port", ApmServer.SERVICE_PORT), ApmServer.SERVICE_PORT))
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(ApmManaged, cls).add_arguments(parser)
+        parser.add_argument(
+            "--apm-managet-kibana-url",
+            default=None,
+            help="Elastic Agent's Kibana URL"
+        )
+        parser.add_argument(
+            "--apm-managet-elasticsearch-url",
+            default=None,
+            help="Elastic Agent's Elasticsearch URL"
+        )
+        parser.add_argument(
+            "--apm-managed-server-token",
+            default=Service.SERVICE_TOKEN,
+            help="Fleet server service token"
+        )
+        parser.add_argument(
+            "--apm-managed-kibana-token",
+            default=Service.SERVICE_TOKEN,
+            help="Fleet Kibana service token"
+        )
+
+    def docker_service_name(self):
+        return "apm-server"
+
+    def _content(self):
+        return dict(
+            depends_on=self.depends_on,
+            environment=self.environment,
+            healthcheck={
+                "test": ["CMD", "/bin/true"],
+            },
+            ports=self.ports,
+            volumes=[
+                "/var/run/docker.sock:/var/run/docker.sock",
+            ]
+        )
+
+    def build_candidate_manifest(self):
+        version = self.version
+        image = self.docker_name
+        if self.oss:
+            image += "-oss"
+        if self.ubi8:
+            image += "-ubi8"
+
+        key = "{image}-{version}-docker-image-linux-amd64.tar.gz".format(
+            image=image,
+            version=version,
+        )
+        try:
+            return self.bc["projects"]["beats"]["packages"][key]
+        except KeyError:
+            # help debug manifest issues
+            print(json.dumps(self.bc))
+            raise
+
 class Elasticsearch(StackService, Service):
     default_environment = [
         "bootstrap.memory_lock=true",
@@ -892,6 +984,7 @@ class Elasticsearch(StackService, Service):
                 "./docker/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml",
                 "./docker/elasticsearch/users:/usr/share/elasticsearch/config/users",
                 "./docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles",
+                "./docker/elasticsearch/service_tokens:/usr/share/elasticsearch/config/service_tokens",
             ])
         if self.es_tls:
             volumes.extend([
@@ -1075,8 +1168,6 @@ class Kibana(StackService, Service):
                 self.environment["XPACK_FLEET_REGISTRYURL"] = url
             if use_local_package_registry:
                 self.depends_on["package-registry"] = {"condition": "service_healthy"}
-            if self.at_least_version("8.0"):
-                self.environment["XPACK_FLEET_PACKAGES"] = '[{"name":"apm","version":"latest"}]'
         if self.at_least_version("8.0"):
             self.environment["ENTERPRISESEARCH_HOST"] = "http://enterprise-search:" + str(EnterpriseSearch.SERVICE_PORT)
 
@@ -1153,6 +1244,8 @@ class Kibana(StackService, Service):
 
         if self.kibana_yml:
             volumes.append("{}:/usr/share/kibana/config/kibana.yml".format(self.kibana_yml))
+        elif self.at_least_version("8.0"):
+            volumes.append("./docker/kibana/kibana-8.yml:/usr/share/kibana/config/kibana.yml")
 
         scheme = 'https' if self.kibana_tls else 'http'
         kibana_healthy_string = "All services are available" if self.at_least_version("8.0") else "Looking good"
