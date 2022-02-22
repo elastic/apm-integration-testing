@@ -35,7 +35,7 @@ xpack.fleet.agentPolicies:
                       value: 0.0.0.0:8200
                       frozen: true
                     - name: url
-                      value: http://fleet-server:8200
+                      value: http://apm-server:8200
                       frozen: true
           - name: Fleet Server
             package:
