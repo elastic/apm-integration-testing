@@ -760,6 +760,6 @@ class OpbeansLoadGenerator(Service):
         )
 
         if not self.non_interactive:
-            content["environment"].append("WS=1")
+            content["environment"].insert(0, "WS=1")
 
         return content
