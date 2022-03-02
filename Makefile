@@ -91,6 +91,10 @@ build-env-%: venv
 env-%: venv
 	$(MAKE) start-env
 
+.PHONY: copy-traces
+copy-traces:
+	docker cp $(shell docker-compose ps | grep intake-receiver | awk '{print $$1}'):/traces .
+
 test: test-all test-helps ## Run all the tests
 
 test-agent-%-version: venv

@@ -219,7 +219,7 @@ class ApmServer(StackService, Service):
                 self.apm_server_count = 2
             if apm_server_record:
                 self.apm_server_tee_build = {
-                    "context": "docker/apm-server/recorder",
+                    "context": "docker/intake-receiver",
                 }
             else:
                 # always build 8.0
