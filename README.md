@@ -69,30 +69,30 @@ We have a list with the most common flags combination that we internally use whe
 | Demos & Screenshots	| `./scripts/compose.py start --release --with-opbeans-dotnet --with-opbeans-go --with-opbeans-java --opbeans-java-agent-branch=pr/588/head --force-build --with-opbeans-node --with-opbeans-python --with-opbeans-ruby --with-opbeans-rum --with-filebeat --with-metricbeat 7.3.0`	| demos, screenshots, ad hoc QA. It's also used to send heartbeat data to the cluster for Uptime | PMM	| Used for snapshots when close to a release, without the `--release` flag |
 | Development | `./scripts/compose.py start 7.3 --bc --with-opbeans-python --opbeans-python-agent-local-repo=~/elastic/apm-agent-python` | Use current state of local agent repo with opbeans | APM Agents | This works perfectly for Python, but has problems with Node.js. We are not mounting the local folder as a volume, but copy it. This is to avoid any side effects to the local repo. The node local dev folder can get very large due to node_modules, which takes some time to copy. |
 | | `./scripts/compose.py start 7.3 --bc --start-opbeans-deps` | This flag would start all opbeans dependencies (postgres, redis, apm-server, ...), but not any opbeans instances | APM Agents | This would help when developing with a locally running opbeans. Currently, we start the environment with a `--with-opbeans-python` flag, then stop the opbeans-python container manually |
-| Developer | `./scripts/compose.py start master --no-apm-server` | Only use Kibana + ES in desired version for testing | APM Server |  |
+| Developer | `./scripts/compose.py start main --no-apm-server` | Only use Kibana + ES in desired version for testing | APM Server |  |
 | Developer | `./scripts/compose.py start --release 7.3 --no-apm-server` | Use released Kibana + ES, with custom agent and server running on host, for developing new features that span agent and server. | APM Agents | If `--opbeans-go-agent-local-repo` worked, we might be inclined to use that instead of running custom apps on the host. Would have been handy while developing support for breakdown graphs. Even then, it's probably still faster to iterate on the agent without involving Docker. |
-| Developer | `./scripts/compose.py start master --no-kibana` | Use newest ES/master, with custom kibana on host, for developing new features in kibana | APM |  |
+| Developer | `./scripts/compose.py start main --no-kibana` | Use newest ES/main, with custom kibana on host, for developing new features in kibana | APM |  |
 | Developer | `./scripts/compose.py start 6.3 --with-kafka --with-zookeeper --apm-server-output=kafka --with-logstash --with-agent-python-flask` | Testing with kafka and logstash ingestion methods | APM |  |
-| Developer | `./scripts/compose.py start master --no-kibana --with-opbeans-node --with-opbeans-rum --with-opbeans-x` | Developing UI features locally | APM UI | |
-| Developer | `./scripts/compose.py start master --docker-compose-path - --skip-download --no-kibana --with-opbeans-ruby --opbeans-ruby-agent-branch=main > docker-compose.yml` | Developing UI features againt specific configuration | APM UI | We sometimes explicity write a `docker-compose.yml` file and tinker with it until we get the desired configuration becore running `docker-compose up` |
+| Developer | `./scripts/compose.py start main --no-kibana --with-opbeans-node --with-opbeans-rum --with-opbeans-x` | Developing UI features locally | APM UI | |
+| Developer | `./scripts/compose.py start main --docker-compose-path - --skip-download --no-kibana --with-opbeans-ruby --opbeans-ruby-agent-branch=main > docker-compose.yml` | Developing UI features againt specific configuration | APM UI | We sometimes explicity write a `docker-compose.yml` file and tinker with it until we get the desired configuration becore running `docker-compose up` |
 | Developer | `scripts/compose.py start ${version}` | Manual testing of agent features | APM Agents | |
-| Developer | `./scripts/compose.py start master --with-opbeans-java --opbeans-java-agent-branch=pr/588/head --apm-server-build https://github.com/elastic/apm-server.git@master` | Test with in-progress agent/server features | APM UI |  |
+| Developer | `./scripts/compose.py start main --with-opbeans-java --opbeans-java-agent-branch=pr/588/head --apm-server-build https://github.com/elastic/apm-server.git@main` | Test with in-progress agent/server features | APM UI |  |
 | Developer | `./scripts/compose.py start 7.0 --release --apm-server-version=6.8.0` | Upgrade/mixed version testing | APM | Then, without losing es data, upgrade/downgrade various components |
-| Developer | `./scripts/compose.py start --with-opbeans-python --with-opbeans-python01 --dyno master` | Spin up a scenario for testing load-generation.  | APM | The management interface will be available at http://localhost:9000 |
+| Developer | `./scripts/compose.py start --with-opbeans-python --with-opbeans-python01 --dyno main` | Spin up a scenario for testing load-generation.  | APM | The management interface will be available at http://localhost:9000 |
 
 
 ### Change default ports
 
 Expose Kibana on http://localhost:1234:
 
-    ./scripts/compose.py start master --kibana-port 1234
+    ./scripts/compose.py start main --kibana-port 1234
 
 ### Opbeans
 
 Opbeans are demo web applications that are instrumented with Elastic APM.
 Start `opbeans-*` services and their dependencies along with apm-server, elasticsearch, and kibana:
 
-    ./scripts/compose.py start --all master
+    ./scripts/compose.py start --all main
 
 
 This will also start the `opbeans-load-generator` service which, by default,
@@ -107,11 +107,24 @@ as it is itself generating load using a headless chrome instance.
 You can start Opbeans with an agent which is built from source from a specific branch or PR.
 This is currently only supported with the go and the Java agent.
 
-Example which builds the https://github.com/elastic/apm-agent-java/pull/588 branch from source and uses an APM server built from master:
+Example which builds the https://github.com/elastic/apm-agent-java/pull/588 branch from source and uses an APM server built from main:
 
-    ./scripts/compose.py start master --with-opbeans-java --opbeans-java-agent-branch=pr/588/head --apm-server-build https://github.com/elastic/apm-server.git@master
+    ./scripts/compose.py start main --with-opbeans-java --opbeans-java-agent-branch=pr/588/head --apm-server-build https://github.com/elastic/apm-server.git@main
 
 Note that it may take a while to build the agent from source.
+
+Another example, which installs the [APM Python
+Agent](https://github.com/elastic/apm-agent-python) from the `main` branch
+for testing against [opbeans-python](https://github.com/elastic/opbeans-python)
+(for example, for end to end log correlation testing):
+
+    ./scripts/compose.py start main --with-opbeans-python --with-filebeat --opbeans-python-agent-branch=main --force-build
+
+Note that we use `--opbeans-python-agent-branch` to define the Python agent
+branch for opbeans-python, rather than `--python-agent-package`, which only
+applies to the `--with-python-agent-*` flags for the small integration test
+apps.
+
 
 ### Uploading Sourcemaps
 
@@ -127,7 +140,7 @@ In the standard setup, it will find the config options itself, but they can be o
 
 ### Kafka output
 
-    ./scripts/compose.py start --with-kafka --with-zookeeper --apm-server-output=kafka --with-logstash master
+    ./scripts/compose.py start --with-kafka --with-zookeeper --apm-server-output=kafka --with-logstash main
 
 Logstash will be configured to ingest events from kafka.
 
@@ -194,7 +207,7 @@ it is possibly that the network proxy has crashed. To quickly restore it, run `d
 
 ### Dumping docker-compose.yml
 
-`./scripts/compose.py start master --docker-compose-path - --skip-download` will dump the generated `docker-compose.yml` to standard out (`-`) without starting any containers or downloading images.
+`./scripts/compose.py start main --docker-compose-path - --skip-download` will dump the generated `docker-compose.yml` to standard out (`-`) without starting any containers or downloading images.
 
 Omit `--skip-download` to just download images.
 
@@ -321,7 +334,7 @@ For example, to test an update to the python agent from user `elasticcontributor
 ```bash
 # start test deps: apm-server, elasticsearch, and the two python test applications
 # the test applications will use elasticcontributor's newfeature1 apm agent
-./scripts/compose.py start master --no-kibana --with-agent-python-django --with-agent-python-flask --python-agent-package=git+https://github.com/elasticcontributor/apm-agent-python.git@newfeature1 --force-build
+./scripts/compose.py start main --with-agent-python-django --with-agent-python-flask --python-agent-package=git+https://github.com/elasticcontributor/apm-agent-python.git@newfeature1 --force-build
 
 # wait for healthiness
 docker-compose ps

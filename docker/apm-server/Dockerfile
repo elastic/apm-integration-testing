@@ -15,7 +15,7 @@ RUN apt-get -qq update \
 
 RUN pip3 install --upgrade pip
 
-ARG apm_server_branch_or_commit=master
+ARG apm_server_branch_or_commit=main
 ARG apm_server_repo=https://github.com/elastic/apm-server.git
 ENV SRC=/go/src/github.com/elastic/apm-server
 
