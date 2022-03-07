@@ -37,4 +37,4 @@ target/
 # For the cache java dependencies
 docker/java/spring/.m2
 
-traces/
+events/
