@@ -822,6 +822,7 @@ class ApmManaged(StackService, Service):
             print(json.dumps(self.bc))
             raise
 
+
 class Elasticsearch(StackService, Service):
     default_environment = [
         "bootstrap.memory_lock=true",
