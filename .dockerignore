@@ -17,4 +17,4 @@ docker-compose.yml
 docker/
 htmlcov/
 venv/
-traces/
+events/
