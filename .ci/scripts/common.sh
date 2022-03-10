@@ -79,7 +79,11 @@ if [ -z "${DISABLE_BUILD_PARALLEL}" ] || [ "${DISABLE_BUILD_PARALLEL}" = "false"
  BUILD_OPTS="${BUILD_OPTS} --build-parallel"
 fi
 
+<<<<<<< HEAD
 ELASTIC_STACK_VERSION=${ELASTIC_STACK_VERSION:-'7.17.1'}
+=======
+ELASTIC_STACK_VERSION=${ELASTIC_STACK_VERSION:-'8.1.0'}
+>>>>>>> d0b0a3a ([Automation] Update elastic stack release version to 8.1.0 (#1450))
 
 echo "ELASTIC_STACK_VERSION=${ELASTIC_STACK_VERSION}"
 echo "APM_SERVER_BRANCH_VERSION=${APM_SERVER_BRANCH_VERSION}"
