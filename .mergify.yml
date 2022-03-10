@@ -26,6 +26,7 @@ pull_request_rules:
     conditions:
       - merged
       - base=main
+      - label=backport
     actions:
       backport:
         assignees:
