@@ -27,7 +27,7 @@ class AgentServiceTest(ServiceTest):
                 agent-go-net-http:
                     build:
                         args:
-                            GO_AGENT_BRANCH: main
+                            GO_AGENT_BRANCH: 1.x
                             GO_AGENT_REPO: elastic/apm-agent-go
                         dockerfile: Dockerfile
                         context: docker/go/nethttp
@@ -318,7 +318,7 @@ class AgentServiceTest(ServiceTest):
                 agent-java-spring:
                     build:
                         args:
-                            JAVA_AGENT_BRANCH: master
+                            JAVA_AGENT_BRANCH: main
                             JAVA_AGENT_BUILT_VERSION: ""
                             JAVA_AGENT_REPO: elastic/apm-agent-java
                             JAVA_M2_CACHE: "false"
@@ -502,7 +502,6 @@ class AgentServiceTest(ServiceTest):
 
         agent = AgentPhpApache(enable_apm_server=False).render()["agent-php-apache"]
         self.assertFalse("apm-server" in agent["depends_on"])
-
 
 class ApmServerServiceTest(ServiceTest):
     def test_default_snapshot(self):
@@ -802,7 +801,7 @@ class ApmServerServiceTest(ServiceTest):
         self.assertDictEqual(apm_server["build"], {
             'args': {'apm_server_base_image': 'docker.elastic.co/apm/apm-server:6.3.100',
                      'apm_server_binary': 'apm-server',
-                     'apm_server_branch_or_commit': 'master',
+                     'apm_server_branch_or_commit': 'main',
                      'apm_server_repo': 'foo.git'},
             'context': 'docker/apm-server'})
 
@@ -813,7 +812,7 @@ class ApmServerServiceTest(ServiceTest):
         self.assertDictEqual(apm_server["build"], {
             'args': {'apm_server_base_image': 'docker.elastic.co/apm/apm-server-oss:6.3.100',
                      'apm_server_binary': 'apm-server-oss',
-                     'apm_server_branch_or_commit': 'master',
+                     'apm_server_branch_or_commit': 'main',
                      'apm_server_repo': 'foo.git'},
             'context': 'docker/apm-server'})
 
@@ -824,7 +823,7 @@ class ApmServerServiceTest(ServiceTest):
         self.assertDictEqual(apm_server["build"], {
             'args': {'apm_server_base_image': 'docker.elastic.co/apm/apm-server-ubi8:7.9.2',
                      'apm_server_binary': 'apm-server',
-                     'apm_server_branch_or_commit': 'master',
+                     'apm_server_branch_or_commit': 'main',
                      'apm_server_repo': 'foo.git'},
             'context': 'docker/apm-server'})
 

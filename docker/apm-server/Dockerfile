@@ -1,5 +1,5 @@
 ARG apm_server_base_image=docker.elastic.co/apm/apm-server:8.0.0-SNAPSHOT
-ARG go_version=1.17.5
+ARG go_version=1.17.6
 ARG apm_server_binary=apm-server
 
 ###############################################################################
@@ -15,7 +15,7 @@ RUN apt-get -qq update \
 
 RUN pip3 install --upgrade pip
 
-ARG apm_server_branch_or_commit=master
+ARG apm_server_branch_or_commit=main
 ARG apm_server_repo=https://github.com/elastic/apm-server.git
 ENV SRC=/go/src/github.com/elastic/apm-server
 

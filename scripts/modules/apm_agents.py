@@ -8,7 +8,7 @@ from .service import Service, DEFAULT_APM_SERVER_URL, DEFAULT_APM_LOG_LEVEL
 
 class AgentRUMJS(Service):
     SERVICE_PORT = 8000
-    DEFAULT_AGENT_BRANCH = "master"
+    DEFAULT_AGENT_BRANCH = "main"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-rum-js"
 
     def __init__(self, **options):
@@ -67,7 +67,7 @@ class AgentRUMJS(Service):
 
 class AgentGoNetHttp(Service):
     SERVICE_PORT = 8080
-    DEFAULT_AGENT_VERSION = "main"
+    DEFAULT_AGENT_VERSION = "1.x"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-go"
 
     @classmethod
@@ -131,7 +131,7 @@ class AgentGoNetHttp(Service):
 
 
 class AgentNodejsExpress(Service):
-    # elastic/apm-agent-nodejs#master
+    # elastic/apm-agent-nodejs#main
     DEFAULT_AGENT_PACKAGE = "elastic-apm-node"
     SERVICE_PORT = 8010
 
@@ -149,7 +149,7 @@ class AgentNodejsExpress(Service):
         parser.add_argument(
             '--nodejs-agent-package',
             default=cls.DEFAULT_AGENT_PACKAGE,
-            help='Use Node.js agent version (github;master, github;1.x, github;v3.0.0, release;latest, ...)',
+            help='Use Node.js agent version (github;main, github;1.x, github;v3.0.0, release;latest, ...)',
         )
 
     @add_agent_environment([
@@ -266,7 +266,7 @@ class AgentPython(Service):
         parser.add_argument(
             '--python-agent-package',
             default=cls.DEFAULT_AGENT_PACKAGE,
-            help='Use Python agent version (github;master, github;1.x, github;v3.0.0, release;latest, ...)',
+            help='Use Python agent version (github;main, github;1.x, github;v3.0.0, release;latest, ...)',
         )
         # prevent calling again
         cls._agent_python_arguments_added = True
@@ -460,7 +460,7 @@ class AgentRubyRails(Service):
 
 class AgentJavaSpring(Service):
     SERVICE_PORT = 8090
-    DEFAULT_AGENT_VERSION = "master"
+    DEFAULT_AGENT_VERSION = "main"
     DEFAULT_AGENT_RELEASE = ""
     DEFAULT_AGENT_REPO = "elastic/apm-agent-java"
 
@@ -470,7 +470,7 @@ class AgentJavaSpring(Service):
         parser.add_argument(
             "--java-agent-version",
             default=cls.DEFAULT_AGENT_VERSION,
-            help='Use Java agent version (master, 0.5, v.0.7.1, ...)',
+            help='Use Java agent version (main, 0.5, v.0.7.1, ...)',
         )
         parser.add_argument(
             "--java-agent-release",

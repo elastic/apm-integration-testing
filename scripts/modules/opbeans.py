@@ -572,7 +572,7 @@ class OpbeansPython01(OpbeansPython):
 
 class OpbeansRuby(OpbeansService):
     SERVICE_PORT = 3001
-    DEFAULT_AGENT_BRANCH = "master"
+    DEFAULT_AGENT_BRANCH = "main"
     DEFAULT_AGENT_REPO = "elastic/apm-agent-ruby"
     DEFAULT_LOCAL_REPO = "."
     DEFAULT_SERVICE_NAME = "opbeans-ruby"
@@ -709,6 +709,12 @@ class OpbeansLoadGenerator(Service):
     @classmethod
     def add_arguments(cls, parser):
         super(OpbeansLoadGenerator, cls).add_arguments(parser)
+        parser.add_argument(
+            '--loadgen-no-ws',
+            action='store_true',
+            default=False,
+            help='Disable the webserver mode and just run the load generator'
+        )
         for service_class in OpbeansService.__subclasses__():
             parser.add_argument(
                 '--no-%s-loadgen' % service_class.name(),
@@ -727,6 +733,7 @@ class OpbeansLoadGenerator(Service):
         super(OpbeansLoadGenerator, self).__init__(**options)
         self.loadgen_services = []
         self.loadgen_rpms = OrderedDict()
+        self.non_interactive = options.get("loadgen_no_ws")
         # create load for opbeans services
         run_all_opbeans = options.get('run_all_opbeans') or options.get('run_all')
         excluded = ('opbeans_load_generator', 'opbeans_rum', 'opbeans_node', 'opbeans_dotnet01', 'opbeans_go01',
@@ -746,10 +753,13 @@ class OpbeansLoadGenerator(Service):
             ports=["8999:8000"],
             depends_on={service: {'condition': 'service_healthy'} for service in self.loadgen_services},
             environment=[
-                "WS=1",
                 "OPBEANS_URLS={}".format(','.join('{0}:http://{0}:{1}'.format(s, OpbeansService.APPLICATION_PORT) for s in sorted(self.loadgen_services))),  # noqa: E501
                 "OPBEANS_RPMS={}".format(','.join('{}:{}'.format(k, v) for k, v in sorted(self.loadgen_rpms.items())))
             ],
             labels=None,
         )
+
+        if not self.non_interactive:
+            content["environment"].insert(0, "WS=1")
+
         return content

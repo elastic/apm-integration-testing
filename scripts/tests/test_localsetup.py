@@ -917,8 +917,8 @@ class LocalTest(unittest.TestCase):
     def test_version_options(self):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-java",
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--with-opbeans-java",
                                                               "--image-cache-dir", image_cache_dir, "--opbeans-java-service-version", "1.2.3"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
@@ -926,11 +926,11 @@ class LocalTest(unittest.TestCase):
         got = yaml.safe_load(docker_compose_yml)
         self.assertIn('ELASTIC_APM_SERVICE_VERSION=1.2.3', got['services']['opbeans-java']['environment'])
 
-    def test_start_master_default(self):
+    def test_start_main_default(self):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--image-cache-dir", image_cache_dir])
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--image-cache-dir", image_cache_dir])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -1086,22 +1086,22 @@ class LocalTest(unittest.TestCase):
         """)  # noqa: 501
         self.assertDictEqual(got, want)
 
-    def test_start_master_with_oss(self):
+    def test_start_main_with_oss(self):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
             with self.assertRaises(SystemExit) as cm:
                 setup = LocalSetup(argv=self.common_setup_args +
-                                   ["master", "--image-cache-dir", image_cache_dir, "--oss"])
+                                   ["main", "--image-cache-dir", image_cache_dir, "--oss"])
                 setup.set_docker_compose_path(docker_compose_yml)
                 setup()
             self.assertEqual(cm.exception.code, 1)
 
-    def test_start_master_with_apm_oss(self):
+    def test_start_main_with_apm_oss(self):
         docker_compose_yml = stringIO()
         version = "8.0.0"
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': version}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--apm-server-oss"])
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': version}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--apm-server-oss"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -1149,8 +1149,8 @@ class LocalTest(unittest.TestCase):
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_7_0_xpack_secure(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master"])
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -1179,8 +1179,8 @@ class LocalTest(unittest.TestCase):
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_no_elasticesarch(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--no-elasticsearch"])
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--no-elasticsearch"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -1192,8 +1192,8 @@ class LocalTest(unittest.TestCase):
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_all(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all"])
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--all"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -1218,8 +1218,8 @@ class LocalTest(unittest.TestCase):
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_one_opbeans(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-python"])
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--with-opbeans-python"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -1232,8 +1232,8 @@ class LocalTest(unittest.TestCase):
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_one_opbeans_without_loadgen(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-python",
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--with-opbeans-python",
                                                               "--no-opbeans-python-loadgen"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
@@ -1247,8 +1247,8 @@ class LocalTest(unittest.TestCase):
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_one_opbeans_without_loadgen_global_arg(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-python",
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--with-opbeans-python",
                                                               "--no-opbeans-load-generator"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
@@ -1262,8 +1262,8 @@ class LocalTest(unittest.TestCase):
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_opbeans_2nd(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-dotnet01", "--with-opbeans-node01",
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--with-opbeans-dotnet01", "--with-opbeans-node01",
                                                               "--with-opbeans-java01", "--with-opbeans-go01",
                                                               "--with-opbeans-python01", "--with-opbeans-ruby01"])
             setup.set_docker_compose_path(docker_compose_yml)
@@ -1281,8 +1281,8 @@ class LocalTest(unittest.TestCase):
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_all_opbeans_no_apm_server(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all-opbeans", "--no-apm-server"])
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--all-opbeans", "--no-apm-server"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -1339,8 +1339,8 @@ class LocalTest(unittest.TestCase):
         THEN the generated Docker Compose file contains a configuration block for the Dyno container
         """
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--all", "--dyno"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -1356,8 +1356,8 @@ class LocalTest(unittest.TestCase):
         THEN the generated Docker Compose file contains the defaults for Dyno
         """
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--all", "--dyno"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -1403,8 +1403,8 @@ class LocalTest(unittest.TestCase):
         THEN the generated Docker Compose file contains a configuration block for the Toxi container
         """
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--all", "--dyno"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -1420,8 +1420,8 @@ class LocalTest(unittest.TestCase):
         THEN the generated Docker Compose file contains a configuration block for the Toxi container
         """
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--all", "--dyno"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -1481,8 +1481,8 @@ class LocalTest(unittest.TestCase):
         THEN the generated Docker Compose file contains a configuration block for the StatsD container
         """
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--all", "--dyno"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -1498,8 +1498,8 @@ class LocalTest(unittest.TestCase):
         THEN the generated Docker Compose file contains the correct configuration for StatsD
         """
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--all", "--dyno"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -1535,9 +1535,9 @@ class LocalTest(unittest.TestCase):
         """
         docker_compose_yml = stringIO()
         toxi_open = mock.mock_open()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
             with mock.patch('scripts.modules.cli.open', toxi_open):
-                setup = LocalSetup(argv=self.common_setup_args + ["master", "--all", "--dyno"])
+                setup = LocalSetup(argv=self.common_setup_args + ["main", "--all", "--dyno"])
                 setup.set_docker_compose_path(docker_compose_yml)
                 setup()
         want = '[\n    {\n        "enabled": true,\n        "listen": "[::]:3004",\n        "name": "opbeans-dotnet",\n        "upstream": "opbeans-dotnet:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3003",\n        "name": "opbeans-go",\n        "upstream": "opbeans-go:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3002",\n        "name": "opbeans-java",\n        "upstream": "opbeans-java:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3000",\n        "name": "opbeans-node",\n        "upstream": "opbeans-node:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:8000",\n        "name": "opbeans-python",\n        "upstream": "opbeans-python:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3001",\n        "name": "opbeans-ruby",\n        "upstream": "opbeans-ruby:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:5432",\n        "name": "postgres",\n        "upstream": "postgres:5432"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:6379",\n        "name": "redis",\n        "upstream": "redis:6379"\n    }\n]'
@@ -1827,8 +1827,8 @@ class LocalTest(unittest.TestCase):
     @mock.patch(cli.__name__ + ".load_images")
     def test_apm_server_tls(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--with-opbeans-python",
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--with-opbeans-python",
                                                               "--apm-server-enable-tls"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
@@ -1871,8 +1871,8 @@ class LocalTest(unittest.TestCase):
     @mock.patch(cli.__name__ + ".load_images")
     def test_elasticsearch_tls(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--elasticsearch-enable-tls"])
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--elasticsearch-enable-tls"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -1900,8 +1900,8 @@ class LocalTest(unittest.TestCase):
     @mock.patch(cli.__name__ + ".load_images")
     def test_kibana_tls(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
-            setup = LocalSetup(argv=self.common_setup_args + ["master", "--kibana-enable-tls"])
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
+            setup = LocalSetup(argv=self.common_setup_args + ["main", "--kibana-enable-tls"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
@@ -1921,10 +1921,10 @@ class LocalTest(unittest.TestCase):
     @mock.patch(cli.__name__ + ".load_images")
     def test_kibana_src(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'master': '8.0.0'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
             with mock.patch('builtins.open', mock.mock_open(read_data='14.17.3\n')):
                 setup = LocalSetup(argv=self.common_setup_args + [
-                    "master", "--kibana-src=/foo", "--kibana-src-start-cmd=bar"])
+                    "main", "--kibana-src=/foo", "--kibana-src-start-cmd=bar"])
                 setup.set_docker_compose_path(docker_compose_yml)
                 setup()
         docker_compose_yml.seek(0)
