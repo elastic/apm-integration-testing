@@ -763,9 +763,18 @@ class ApmManaged(StackService, Service):
         self.ports.append(self.publish_port(self.options.get(
             "apm_managed_port", ApmServer.SERVICE_PORT), ApmServer.SERVICE_PORT))
 
+        self.build = self.options.get("apm_managed_build")
+#        self.release = self.options.get("release")
+
     @classmethod
     def add_arguments(cls, parser):
         super(ApmManaged, cls).add_arguments(parser)
+        parser.add_argument(
+            '--apm-managed-build',
+            const="https://github.com/elastic/apm-server.git",
+            nargs="?",
+            help='build apm-server from a git repo[@branch|sha], eg https://github.com/elastic/apm-server.git@v2'
+        )
         parser.add_argument(
             "--apm-managet-kibana-url",
             default=None,
@@ -791,7 +800,7 @@ class ApmManaged(StackService, Service):
         return "apm-server"
 
     def _content(self):
-        return dict(
+        content = dict(
             depends_on=self.depends_on,
             environment=self.environment,
             healthcheck={
@@ -803,11 +812,28 @@ class ApmManaged(StackService, Service):
             ]
         )
 
+        if self.build:
+            build_spec_parts = self.build.split("@", 1)
+            repo = build_spec_parts[0]
+            branch = build_spec_parts[1] if len(build_spec_parts) > 1 else "main"
+            version = "{}{}".format(self.version, ('-SNAPSHOT' if not self.release else ""))
+            content.update({
+                "build": {
+                    "context": "docker/elastic-agent",
+                    "args": {
+                        "ELASTIC_AGENT_BRANCH_OR_COMMIT": branch,
+                        "ELASTIC_AGENT_REPO": repo,
+                        "STACK_VERSION": version,
+                    }
+                },
+                "image": None,
+            })
+
+        return content
+
     def build_candidate_manifest(self):
         version = self.version
         image = self.docker_name
-        if self.oss:
-            image += "-oss"
         if self.ubi8:
             image += "-ubi8"
 

@@ -20,11 +20,9 @@ xpack.fleet.agentPolicies:
       - metrics
     package_policies:
       - name: system-1
-        id: default-system
         package:
           name: system
       - name: apm-1
-        id: default-apm
         package:
           name: apm
         inputs:
@@ -41,18 +39,21 @@ xpack.fleet.agentPolicies:
                 value: true
                 frozen: true
               - name: read_timeout
-                value: "1m"
+                value: 1m
                 frozen: true
               - name: shutdown_timeout
-                value: "2m"
+                value: 2m
                 frozen: true
               - name: write_timeout
-                value: "1m"
+                value: 1m
                 frozen: true
               - name: rum_allow_headers
-                value: "x-custom-header"
+                value:
+                  - x-custom-header
                 frozen: true
-
+              - name: secret_token
+                value: ${APM_TOKEN}
+                frozen: true
       - name: Fleet Server
         package:
           name: fleet_server
