@@ -51,9 +51,9 @@ xpack.fleet.agentPolicies:
                 value:
                   - x-custom-header
                 frozen: true
-              - name: secret_token
-                value: ${APM_TOKEN}
-                frozen: true
+              # - name: secret_token
+              #   value: changeme
+              #   frozen: true
       - name: Fleet Server
         package:
           name: fleet_server
