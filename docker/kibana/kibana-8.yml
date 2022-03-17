@@ -33,7 +33,7 @@ xpack.fleet.agentPolicies:
                 value: 0.0.0.0:8200
                 frozen: true
               - name: url
-                value: http://apm-server:8200
+                value: "${ELASTIC_APM_SERVER_URL}"
                 frozen: true
               - name: enable_rum
                 value: true
@@ -51,9 +51,18 @@ xpack.fleet.agentPolicies:
                 value:
                   - x-custom-header
                 frozen: true
-              # - name: secret_token
-              #   value: changeme
-              #   frozen: true
+              - name: secret_token
+                value: "${ELASTIC_APM_SECRET_TOKEN}"
+                frozen: true
+              - name: tls_enabled
+                value: ${ELASTIC_APM_TLS}
+                frozen: true
+              - name: tls_certificate
+                value: /usr/share/apm-server/config/certs/tls.crt
+                frozen: true
+              - name: tls_key
+                value: /usr/share/apm-server/config/certs/tls.key
+                frozen: true
       - name: Fleet Server
         package:
           name: fleet_server

@@ -323,6 +323,7 @@ class ApmServer(StackService, Service):
         parser.add_argument(
             '--apm-server-secret-token',
             dest="apm_server_secret_token",
+            default=None,
             help="apm-server secret token.",
         )
         parser.add_argument(
@@ -764,7 +765,7 @@ class ApmManaged(StackService, Service):
             "apm_managed_port", ApmServer.SERVICE_PORT), ApmServer.SERVICE_PORT))
 
         self.build = self.options.get("apm_managed_build")
-#        self.release = self.options.get("release")
+
 
     @classmethod
     def add_arguments(cls, parser):
@@ -795,7 +796,18 @@ class ApmManaged(StackService, Service):
             default=Service.SERVICE_TOKEN,
             help="Fleet Kibana service token"
         )
-
+        parser.add_argument(
+            '--apm-managed-secret-token',
+            dest="apm_server_secret_token",
+            default=None,
+            help="apm-server secret token.",
+        )
+        parser.add_argument(
+            '--apm-managedr-enable-tls',
+            action="store_true",
+            dest="apm_server_enable_tls",
+            help="apm-server enable TLS with pre-configured selfsigned certificates.",
+        )
     def docker_service_name(self):
         return "apm-server"
 
@@ -809,6 +821,8 @@ class ApmManaged(StackService, Service):
             ports=self.ports,
             volumes=[
                 "/var/run/docker.sock:/var/run/docker.sock",
+                "./scripts/tls/apm-server/cert.crt:/usr/share/apm-server/config/certs/tls.crt",
+                "./scripts/tls/apm-server/key.pem:/usr/share/apm-server/config/certs/tls.key"
             ]
         )
 
@@ -1195,6 +1209,12 @@ class Kibana(StackService, Service):
                 self.environment["XPACK_FLEET_REGISTRYURL"] = url
             if use_local_package_registry:
                 self.depends_on["package-registry"] = {"condition": "service_healthy"}
+            if self.at_least_version("8.0"):
+                token = self.options.get("apm_server_secret_token")
+                self.environment["ELASTIC_APM_SECRET_TOKEN"] = token if token is not None else ""
+                self.environment["ELASTIC_APM_TLS"] = str(self.options.get("apm_server_enable_tls", False)).lower()
+                self.environment["ELASTIC_APM_SERVER_URL"] = self.options.get("apm_server_url")
+
         if self.at_least_version("8.0"):
             self.environment["ENTERPRISESEARCH_HOST"] = "http://enterprise-search:" + str(EnterpriseSearch.SERVICE_PORT)
 
