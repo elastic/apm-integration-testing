@@ -1641,8 +1641,34 @@ class ZookeeperServiceTest(ServiceTest):
 
 class ApmManagedTest(ServiceTest):
     def test_apm_managed(self):
-        apm_managed = ApmManaged(version="8.0.0",
-                                 apm_managed_server_token=Service.SERVICE_TOKEN,
-                                 apm_managed_kibana_token=Service.SERVICE_TOKEN
+        apm_managed = ApmManaged(version="8.2.0",
+                                 release=False,
+                                 apm_managed_server_token="foo_token_server",
+                                 apm_managed_kibana_token="foo_token_kibana",
+                                 apm_managed_elasticsearch_url="http://elasticsearch.example.com:9200",
+                                 apm_managed_kibana_url="http://kibana.example.com:5601",
+                                 apm_managed_port=8201
                                  ).render()
         self.assertEqual(apm_managed, yaml.safe_load(open('scripts/tests/config/test_apm_managed.yml', 'r')))
+
+    def test_apm_managed_build(self):
+        apm_managed = ApmManaged(version="8.2.0",
+                                 apm_managed_build="https://github.com/elastic/apm-server.git@foo"
+                                 ).render()
+        self.assertEqual(apm_managed["apm-server"]["build"], yaml.safe_load(open('scripts/tests/config/test_apm_managed_build.yml', 'r')))
+
+    def test_apm_managed_build(self):
+        apm_managed = ApmManaged(version="8.2.0",
+                                 apm_managed_build="https://github.com/elastic/apm-server.git@foo"
+                                 ).render()
+        self.assertEqual(apm_managed["apm-server"]["build"], yaml.safe_load(open('scripts/tests/config/test_apm_managed_build.yml', 'r')))
+
+    def test_apm_managed_security(self):
+        kibana = Kibana(version="8.2.0",
+                            apm_server_secret_token="foo",
+                            apm_server_enable_tls=True,
+                            apm_server_url="https://apm-serve.example.comr:8200"
+                            ).render()
+        self.assertEqual(kibana["kibana"]["environment"]["ELASTIC_APM_SECRET_TOKEN"], "foo")
+        self.assertEqual(kibana["kibana"]["environment"]["ELASTIC_APM_TLS"], "true")
+        self.assertEqual(kibana["kibana"]["environment"]["ELASTIC_APM_SERVER_URL"], "https://apm-serve.example.comr:8200")
