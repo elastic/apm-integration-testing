@@ -91,6 +91,10 @@ build-env-%: venv
 env-%: venv
 	$(MAKE) start-env
 
+.PHONY: copy-events
+copy-events:
+	docker cp $(shell docker-compose ps | grep intake-receiver | awk '{print $$1}'):/events .
+
 test: test-all test-helps ## Run all the tests
 
 test-agent-%-version: venv
