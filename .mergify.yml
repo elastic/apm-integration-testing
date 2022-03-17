@@ -4,6 +4,7 @@ queue_rules:
       - check-success=apm-ci/pr-merge
       - label=automation
 
+
 pull_request_rules:
   - name: ask to resolve conflict
     conditions:
