@@ -776,12 +776,12 @@ class ApmManaged(StackService, Service):
             help='build apm-server from a git repo[@branch|sha], eg https://github.com/elastic/apm-server.git@v2'
         )
         parser.add_argument(
-            "--apm-managet-kibana-url",
+            "--apm-managed-kibana-url",
             default=None,
             help="Elastic Agent's Kibana URL"
         )
         parser.add_argument(
-            "--apm-managet-elasticsearch-url",
+            "--apm-managed-elasticsearch-url",
             default=None,
             help="Elastic Agent's Elasticsearch URL"
         )
