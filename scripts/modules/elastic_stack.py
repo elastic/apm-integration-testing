@@ -766,7 +766,6 @@ class ApmManaged(StackService, Service):
 
         self.build = self.options.get("apm_managed_build")
 
-
     @classmethod
     def add_arguments(cls, parser):
         super(ApmManaged, cls).add_arguments(parser)
@@ -808,6 +807,7 @@ class ApmManaged(StackService, Service):
             dest="apm_server_enable_tls",
             help="apm-server enable TLS with pre-configured selfsigned certificates.",
         )
+
     def docker_service_name(self):
         return "apm-server"
 
