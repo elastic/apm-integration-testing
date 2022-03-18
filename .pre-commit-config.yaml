@@ -1,5 +1,5 @@
 repos:
--   repo: git@github.com:pre-commit/pre-commit-hooks
+-   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.2.3
     hooks:
     -   id: check-case-conflict
@@ -15,7 +15,7 @@ repos:
     -   id: end-of-file-fixer
         exclude: ^target/
 
--   repo: git@github.com:detailyang/pre-commit-shell.git
+-   repo: https://github.com/detailyang/pre-commit-shell.git
     rev: master
     hooks:
     -   id: shell-lint
@@ -24,7 +24,7 @@ repos:
         types: [shell]
         exclude: (^mvnw$|^target/)
 
--   repo: git@github.com:adrienverge/yamllint.git
+-   repo: https://github.com/adrienverge/yamllint.git
     rev: v1.25.0
     hooks:
     -   id: yamllint
