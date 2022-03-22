@@ -718,15 +718,162 @@ class LocalTest(unittest.TestCase):
     def test_start_main_default(self):
         docker_compose_yml = stringIO()
         image_cache_dir = "/foo"
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '7.17.0'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
             setup = LocalSetup(argv=self.common_setup_args + ["main", "--image-cache-dir", image_cache_dir])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
         docker_compose_yml.seek(0)
         got = yaml.safe_load(docker_compose_yml)
-        # On APM Server 8+ the configuration is made in the Fleet policy
-        # docker/kibana/kibana-8.yml
-        want = yaml.safe_load(open('scripts/tests/config/test_start_main_default.yml', 'r'))
+        want = yaml.safe_load("""
+        version: '2.4'
+        services:
+            apm-server:
+                cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
+                cap_drop: [ALL]
+                command: [apm-server, -e, --httpprof, ':6060', -E, apm-server.rum.enabled=true, -E, apm-server.rum.event_rate.limit=1000,
+                    -E, 'apm-server.host=0.0.0.0:8200', -E, apm-server.read_timeout=1m, -E, apm-server.shutdown_timeout=2m,
+                    -E, apm-server.write_timeout=1m, -E, logging.json=true, -E, logging.metrics.enabled=false,
+                    -E, monitoring.elasticsearch=true, -E, monitoring.enabled=true,
+                    -E, 'apm-server.rum.allow_headers=["x-custom-header"]',
+                    -E, 'apm-server.data_streams.enabled=true',
+                    -E, apm-server.kibana.enabled=true, -E, 'apm-server.kibana.host=kibana:5601', -E, apm-server.agent.config.cache.expiration=30s,
+                    -E, apm-server.kibana.username=apm_server_user, -E, apm-server.kibana.password=changeme,
+                    -E, 'output.elasticsearch.hosts=["http://elasticsearch:9200"]',
+                    -E, output.elasticsearch.username=apm_server_user, -E, output.elasticsearch.password=changeme,
+                    -E, output.elasticsearch.enabled=true
+                    ]
+                container_name: localtesting_8.0.0_apm-server
+                depends_on:
+                    elasticsearch:
+                        condition:
+                            service_healthy
+                    kibana:
+                        condition:
+                            service_healthy
+                environment: [
+                    BEAT_STRICT_PERMS=false
+                ]
+                healthcheck:
+                    interval: 10s
+                    retries: 12
+                    test: [CMD-SHELL, "curl -s http://localhost:8200/ | grep -q 'publish_ready.*true'"]
+                    timeout: 5s
+                image: docker.elastic.co/apm/apm-server:8.0.0-SNAPSHOT
+                labels: [co.elastic.apm.stack-version=8.0.0]
+                logging:
+                    driver: json-file
+                    options: {max-file: '5', max-size: 2m}
+                ports: ['127.0.0.1:8200:8200', '127.0.0.1:6060:6060']
+
+            elasticsearch:
+                container_name: localtesting_8.0.0_elasticsearch
+                environment: [
+                    bootstrap.memory_lock=true,
+                    cluster.name=docker-cluster,
+                    cluster.routing.allocation.disk.threshold_enabled=false,
+                    discovery.type=single-node,
+                    path.repo=/usr/share/elasticsearch/data/backups,
+                    'ES_JAVA_OPTS=-XX:UseAVX=2 -Xms1g -Xmx1g',
+                    path.data=/usr/share/elasticsearch/data/8.0.0,
+                    indices.id_field_data.enabled=true,
+                    action.destructive_requires_name=false,
+                    xpack.security.authc.anonymous.roles=remote_monitoring_collector,
+                    xpack.security.authc.realms.file.file1.order=0,
+                    xpack.security.authc.realms.native.native1.order=1,
+                    xpack.security.authc.token.enabled=true,
+                    xpack.security.authc.api_key.enabled=true,
+                    xpack.security.enabled=true,
+                    xpack.license.self_generated.type=trial,
+                    xpack.monitoring.collection.enabled=true
+                ]
+                healthcheck:
+                    interval: 20s
+                    retries: 10
+                    test: [CMD-SHELL, 'curl -s -k http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''']
+                image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0-SNAPSHOT
+                labels:
+                    - co.elastic.apm.stack-version=8.0.0
+                    - co.elastic.metrics/module=elasticsearch
+                    - co.elastic.metrics/metricsets=node,node_stats
+                    - co.elastic.metrics/hosts=http://$${data.host}:9200
+                logging:
+                    driver: json-file
+                    options: {max-file: '5', max-size: 2m}
+                ports: ['127.0.0.1:9200:9200']
+                ulimits:
+                    memlock: {hard: -1, soft: -1}
+                volumes: [
+                    'esdata:/usr/share/elasticsearch/data',
+                    './docker/elasticsearch/roles.yml:/usr/share/elasticsearch/config/roles.yml',
+                    './docker/elasticsearch/users:/usr/share/elasticsearch/config/users',
+                    './docker/elasticsearch/users_roles:/usr/share/elasticsearch/config/users_roles'
+                ]
+
+            fleet_setup:
+                image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0-SNAPSHOT
+                command: ['curl', '-X', 'POST', '-H', 'kbn-xsrf: 1', 'http://admin:changeme@kibana:5601/api/fleet/setup']
+                depends_on:
+                    kibana:
+                        condition: service_healthy
+
+            kibana:
+                container_name: localtesting_8.0.0_kibana
+                depends_on:
+                    elasticsearch:
+                        condition:
+                            service_healthy
+                environment: {
+                    ELASTICSEARCH_PASSWORD: changeme,
+                    ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200',
+                    ELASTICSEARCH_USERNAME: kibana_system_user,
+                    ENTERPRISESEARCH_HOST: 'http://enterprise-search:3002',
+                    SERVER_HOST: 0.0.0.0,
+                    SERVER_NAME: kibana.example.org,
+                    STATUS_ALLOWANONYMOUS: 'true',
+                    TELEMETRY_ENABLED: 'false',
+                    XPACK_APM_SERVICEMAPENABLED: 'true',
+                    XPACK_MONITORING_ENABLED: 'true',
+                    XPACK_REPORTING_ROLES_ENABLED: 'false',
+                    XPACK_SECURITY_ENCRYPTIONKEY: 'fhjskloppd678ehkdfdlliverpoolfcr',
+                    XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: 'fhjskloppd678ehkdfdlliverpoolfcr',
+                    XPACK_FLEET_AGENTS_ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]',
+                    XPACK_FLEET_PACKAGES: '[{"name":"apm","version":"latest"}]',
+                    XPACK_FLEET_REGISTRYURL: 'https://epr-snapshot.elastic.co',
+                    XPACK_XPACK_MAIN_TELEMETRY_ENABLED: 'false',
+                    XPACK_SECURITY_LOGINASSISTANCEMESSAGE: 'Login&#32;details:&#32;`admin/changeme`.&#32;Further&#32;details&#32;[here](https://github.com/elastic/apm-integration-testing#logging-in).',
+                    XPACK_SECURITY_SESSION_IDLETIMEOUT: '1M',
+                    XPACK_SECURITY_SESSION_LIFESPAN: '3M',
+                }
+                healthcheck:
+                    interval: 10s
+                    retries: 30
+                    start_period: 10s
+                    test: ["CMD-SHELL", "curl -s -k http://kibana:5601/api/status | grep -q 'All services are available'"]
+                image: docker.elastic.co/kibana/kibana:8.0.0-SNAPSHOT
+                labels: [co.elastic.apm.stack-version=8.0.0]
+                logging:
+                    driver: json-file
+                    options: {max-file: '5', max-size: 2m}
+                ports: ['127.0.0.1:5601:5601']
+            wait-service:
+                container_name: wait
+                depends_on:
+                    apm-server:
+                        condition:
+                            service_healthy
+                    elasticsearch:
+                        condition:
+                            service_healthy
+                    kibana:
+                        condition:
+                            service_healthy
+                image: busybox
+        networks:
+            default: {name: apm-integration-testing}
+        volumes:
+            esdata: {driver: local}
+            pgdata: {driver: local}
+        """)  # noqa: 501
         self.assertDictEqual(got, want)
 
     def test_start_main_with_oss(self):
@@ -742,7 +889,7 @@ class LocalTest(unittest.TestCase):
 
     def test_start_main_with_apm_oss(self):
         docker_compose_yml = stringIO()
-        version = "7.17.0"
+        version = "8.0.0"
         with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': version}):
             setup = LocalSetup(argv=self.common_setup_args + ["main", "--apm-server-oss"])
             setup.set_docker_compose_path(docker_compose_yml)
@@ -792,7 +939,7 @@ class LocalTest(unittest.TestCase):
     @mock.patch(cli.__name__ + ".load_images")
     def test_start_7_0_xpack_secure(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '7.17.0'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
             setup = LocalSetup(argv=self.common_setup_args + ["main"])
             setup.set_docker_compose_path(docker_compose_yml)
             setup()
@@ -1470,7 +1617,7 @@ class LocalTest(unittest.TestCase):
     @mock.patch(cli.__name__ + ".load_images")
     def test_apm_server_tls(self, _ignore_load_images):
         docker_compose_yml = stringIO()
-        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '7.17.0'}):
+        with mock.patch.dict(LocalSetup.SUPPORTED_VERSIONS, {'main': '8.0.0'}):
             setup = LocalSetup(argv=self.common_setup_args + ["main", "--with-opbeans-python",
                                                               "--apm-server-enable-tls"])
             setup.set_docker_compose_path(docker_compose_yml)
