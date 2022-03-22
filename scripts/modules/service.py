@@ -20,10 +20,6 @@ class Service(object):
     DEFAULT_ELASTICSEARCH_HOST = "elasticsearch:9200"
     DEFAULT_ELASTICSEARCH_HOSTS_NO_TLS = "http://" + DEFAULT_ELASTICSEARCH_HOST
     DEFAULT_ELASTICSEARCH_HOSTS_TLS = "https://" + DEFAULT_ELASTICSEARCH_HOST
-    DEFAULT_KIBANA_HOST_TLS = "https://" + DEFAULT_KIBANA_HOST
-    DEFAULT_KIBANA_HOST_NO_TLS = "http://" + DEFAULT_KIBANA_HOST
-    SERVICE_TOKEN = "AAEAAWVsYXN0aWMvZmxlZXQtc2VydmVyL2VsYXN0aWMtcGFja2FnZS1mbGVldC1zZXJ2ZXItdG9rZW46bmgtcFhoQzRRQ2FXbms2U0JySGlWQQ"  # noqa
-
     # is this a side car service for opbeans. If yes, it will automatically
     # start if any opbeans service starts
     opbeans_side_car = False
@@ -91,9 +87,6 @@ class Service(object):
         if self.snapshot or not (any((self.bc, self.release))):
             image += "-SNAPSHOT"
         return image
-
-    def docker_service_name(self):
-        return self.name()
 
     def default_labels(self):
         return ["co.elastic.apm.stack-version=" + self.version]
@@ -168,7 +161,7 @@ class Service(object):
             else:
                 # it's a list of strings
                 content["environment"].extend(self._env_vars)
-        return {self.docker_service_name(): content}
+        return {self.name(): content}
 
     @property
     def version(self):
@@ -201,12 +194,6 @@ class Service(object):
             return self.DEFAULT_ELASTICSEARCH_HOSTS_TLS
         else:
             return self.DEFAULT_ELASTICSEARCH_HOSTS_NO_TLS
-
-    def default_kibana_hosts(self, tls=False):
-        if tls:
-            return self.DEFAULT_KIBANA_HOST_TLS
-        else:
-            return self.DEFAULT_KIBANA_HOST_NO_TLS
 
     @abstractmethod
     def _content(self):
