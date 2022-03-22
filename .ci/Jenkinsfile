@@ -23,7 +23,6 @@ pipeline {
   }
   options {
     timeout(time: 3, unit: 'HOURS')
-    buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '100'))
     timestamps()
     ansiColor('xterm')
     disableResume()
@@ -81,10 +80,6 @@ pipeline {
         stage('Sanity checks') {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
-          environment {
-            PATH = "${env.WORKSPACE}/${env.BASE_DIR}/.ci/scripts:${env.WORKSPACE}/bin:${env.PATH}"
-            HOME = "${env.WORKSPACE}"
-          }
           steps {
             withGithubNotify(context: 'Sanity checks', tab: 'tests') {
               deleteDir()
