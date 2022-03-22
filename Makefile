@@ -146,9 +146,9 @@ dockerized-test: ## Run all the dockerized tests
 		--name=apm-integration-testing \
 		--network=apm-integration-testing \
 		--security-opt seccomp=unconfined \
-		-e APM_SERVER_URL=$${APM_SERVER_URL} \
-		-e ES_URL=$${ES_URL} \
-		-e KIBANA_URL=$${KIBANA_URL} \
+		-e APM_SERVER_URL \
+		-e ES_URL \
+		-e KIBANA_URL \
 		-e DJANGO_URL=$(DJANGO_URL) \
 		-e DOTNET_URL=$(DOTNET_URL) \
 		-e EXPRESS_URL=$(EXPRESS_URL) \
@@ -161,9 +161,9 @@ dockerized-test: ## Run all the dockerized tests
 		-e PYTHONDONTWRITEBYTECODE=1 \
 		-e PYTHONHTTPSVERIFY=$(PYTHONHTTPSVERIFY) \
 		-e ENABLE_ES_DUMP=$(ENABLE_ES_DUMP) \
-		-e ES_USER=$${ES_USER} \
-		-e ES_PASS=$${ES_PASS} \
-		-e ELASTIC_APM_SECRET_TOKEN=$${ELASTIC_APM_SECRET_TOKEN} \
+		-e ES_USER \
+		-e ES_PASS \
+		-e ELASTIC_APM_SECRET_TOKEN \
 		-e OTEL_EXPORTER_OTLP_ENDPOINT \
 		-e OTEL_EXPORTER_OTLP_HEADERS \
 		-e OTEL_SERVICE_NAME="apm-integration-testing" \
