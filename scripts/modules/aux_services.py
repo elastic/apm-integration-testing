@@ -174,7 +174,7 @@ class WaitService(Service):
         # to allow the tests to check for a consistently-ordered list
         for s in sorted(self.services, key=lambda x: x.name()):
             if s.name() != self.name() and s.name() != "opbeans-load-generator":
-                self.depends_on[s.name()] = {"condition": "service_healthy"}
+                self.depends_on[s.docker_service_name()] = {"condition": "service_healthy"}
         return dict(
             container_name="wait",
             image="busybox",
