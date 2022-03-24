@@ -2,7 +2,7 @@
 @Library('apm@current') _
 
 pipeline {
-  agent { label 'linux && immutable' }
+  agent { label 'ubuntu-20 && immutable' }
   environment {
     BASE_DIR="src/github.com/elastic/apm-integration-testing"
     EC_DIR="src/github.com/elastic/observability-test-environments"
@@ -50,147 +50,28 @@ pipeline {
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
-    stage('Tests On Elastic Cloud'){
-      matrix {
-        agent { label 'linux && immutable' }
-        axes {
-          axis {
-            name 'STACK_VERSION'
-            // The below line is part of the bump release automation
-            // if you change anything please modifies the file
-            // .ci/bump-stack-release-version.sh
-            values '8.0.0-SNAPSHOT', '7.16.0', '7.15.2'
-          }
+    stage('Run ESS ITs'){
+      when {
+        expression { return ! params.destroy_mode }
+      }
+      steps{
+        matrix(
+          agent: 'ubuntu-20 && immutable',
+          axes:[
+            axis('STACK_VERSION', [stackVersions.release(), stackVersions.dev(snapshot: true), stackVersions.edge(snapshot: true)])
+          ]
+        ){
+          log(level: "INFO", text: "Running tests - ${getElasticStackVersion()}")
+          deleteDir()
+          unstash 'source'
+          provisionEnvironment()
+          sleep 300
+          runAllTests()
         }
-        stages {
-          stage('Prepare Test'){
-            steps {
-              log(level: "INFO", text: "Running tests - ${getElasticStackVersion()}")
-              deleteDir()
-              unstash 'source'
-            }
-          }
-          stage('Run ITs'){
-            when {
-              expression { return ! params.destroy_mode }
-            }
-            stages {
-              stage('Provision Elastic Cloud environment'){
-                steps {
-                  dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
-                  dir("${EC_DIR}/ansible"){
-                    withTestEnv(){
-                      sh(label: "Deploy Cluster", script: "make create-cluster")
-                      sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${getElasticStackVersion()}.html")
-                      archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
-                    }
-                  }
-                  stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: "secrets-${getElasticStackVersion()}"
-                }
-              }
-              stage("Waiting for services to settle") {
-                  steps {
-                      sleep 300
-                  }
-              }
-              stage("Test Go") {
-                steps {
-                  runTest('go')
-                }
-                post {
-                  cleanup {
-                    grabResultsAndLogs("${getElasticStackVersion()}-go")
-                  }
-                }
-              }
-              stage("Test .NET") {
-                steps {
-                  runTest('dotnet')
-                }
-                post {
-                  cleanup {
-                    grabResultsAndLogs("${getElasticStackVersion()}-dotnet")
-                  }
-                }
-              }
-              stage("Test Java") {
-                steps {
-                  runTest('java')
-                }
-                post {
-                  cleanup {
-                    grabResultsAndLogs("${getElasticStackVersion()}-java")
-                  }
-                }
-              }
-              stage("Test Node.js") {
-                steps {
-                  runTest('nodejs')
-                }
-                post {
-                  cleanup {
-                    grabResultsAndLogs("${getElasticStackVersion()}-nodejs")
-                  }
-                }
-              }
-              stage("Test PHP") {
-                steps {
-                  runTest('php')
-                }
-                post {
-                  cleanup {
-                    grabResultsAndLogs("${getElasticStackVersion()}-php")
-                  }
-                }
-              }
-              stage("Test Python") {
-                steps {
-                  runTest('python')
-                }
-                post {
-                  cleanup {
-                    grabResultsAndLogs("${getElasticStackVersion()}-python")
-                  }
-                }
-              }
-              stage("Test Ruby") {
-                steps {
-                  runTest('ruby')
-                }
-                post {
-                  cleanup {
-                    grabResultsAndLogs("${getElasticStackVersion()}-ruby")
-                  }
-                }
-              }
-              stage("Test RUM") {
-                steps {
-                  runTest('rum')
-                }
-                post {
-                  cleanup {
-                    grabResultsAndLogs("${getElasticStackVersion()}-rum")
-                  }
-                }
-              }
-              stage("Test All") {
-                steps {
-                  runTest('all')
-                }
-                post {
-                  cleanup {
-                    grabResultsAndLogs("${getElasticStackVersion()}-all")
-                  }
-                }
-              }
-
-            }
-          }
-        }
-        post {
-          cleanup {
-            destroyClusters()
-          }
+      }
+      post {
+        cleanup {
+          destroyClusters()
         }
       }
     }
@@ -202,7 +83,43 @@ pipeline {
   }
 }
 
+def runAllTests(){
+  def tests = [
+    'go',
+    'dotnet',
+    'java',
+    'nodejs',
+    'php',
+    'python',
+    'ruby',
+    'rum',
+    'all'
+  ]
+
+  tests.each{ item ->
+    try {
+      runTest(item)
+    }
+    finally {
+      grabResultsAndLogs("${getElasticStackVersion()}-${item}")
+    }
+  }
+}
+
+def provisionEnvironment(){
+  dockerLogin(secret: "${DOCKERELASTIC_SECRET}", registry: "${DOCKER_REGISTRY}")
+  dir("${EC_DIR}/ansible"){
+    withTestEnv(){
+      sh(label: "Deploy Cluster", script: "make create-cluster")
+      sh(label: "Rename cluster-info folder", script: "mv build/cluster-info.html cluster-info-${getElasticStackVersion()}.html")
+      archiveArtifacts(allowEmptyArchive: true, artifacts: 'cluster-info-*')
+    }
+  }
+  stash allowEmpty: true, includes: "${EC_DIR}/ansible/build/config_secrets.yml", name: "secrets-${getElasticStackVersion()}"
+}
+
 def runTest(test){
+  log(level: "INFO", text: "Running tests - ${test}")
   deleteDir()
   unstash 'source'
   withElasticStackVersion(){
