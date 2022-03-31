@@ -47,6 +47,7 @@ pipeline {
             url: 'git@github.com:elastic/observability-test-environments.git'
           )
         }
+        sh(label: 'Select versions', script: "./${EC_DIR}/.ci/scripts/stack-versions.sh")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
@@ -58,14 +59,14 @@ pipeline {
         matrix(
           agent: 'ubuntu-20 && immutable',
           axes:[
-            axis('STACK_VERSION', [stackVersions.release(), stackVersions.dev(snapshot: true), stackVersions.edge(snapshot: true)])
+            axis('STACK_VERSION', readJSON(file: "versions.json"))
           ]
         ){
           log(level: "INFO", text: "Running tests - ${getElasticStackVersion()}")
           deleteDir()
           unstash 'source'
           provisionEnvironment()
-          sleep 300
+          sleep 60
           runAllTests()
         }
       }
@@ -211,11 +212,13 @@ def grabResultsAndLogs(label){
 }
 
 def destroyClusters(){
-  stage('Destroy Cluster'){
+  readJSON(file: "versions.json").each { stack ->
     dir("${EC_DIR}/ansible"){
-      withTestEnv(){
-        catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-          sh(label: 'Destroy k8s cluster', script: 'make destroy-cluster')
+      withEnv(["STACK_VERSION=${stack}"]){
+        withTestEnv(){
+          catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+            sh(label: 'Destroy k8s cluster', script: 'make destroy-cluster')
+          }
         }
       }
     }
