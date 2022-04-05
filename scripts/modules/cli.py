@@ -777,7 +777,7 @@ class LocalSetup(object):
                 up_params.extend(["--quiet-pull"])
             self.run_docker_compose_process(docker_compose_cmd + up_params)
             if args.get("shutdown_kibana", False):
-                print("Stoping Kibana after configuring APM integration.")
+                print("Stopping Kibana after configuring APM integration.")
                 self.run_docker_compose_process(docker_compose_cmd + ["stop", "kibana"])
 
     @staticmethod
