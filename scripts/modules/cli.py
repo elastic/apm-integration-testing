@@ -600,6 +600,10 @@ class LocalSetup(object):
 
         if args.get("enable_apm_managed", False):
             args["enable_apm_server"] = False
+            if not args.get("enable_kibana", True):
+                print("Kibana will be launched to configure APM integration and stopped after that.")
+                args["enable_kibana"] = True
+                args["shutdown_kibana"] = True
 
         if args.get("apm_server_enable_tls"):
             args["apm_server_url"] = args.get("apm_server_url", DEFAULT_APM_SERVER_URL).replace("http:", "https:")
@@ -772,6 +776,9 @@ class LocalSetup(object):
             if not sys.stdin.isatty() and action not in ["build"]:
                 up_params.extend(["--quiet-pull"])
             self.run_docker_compose_process(docker_compose_cmd + up_params)
+            if args.get("shutdown_kibana", False):
+                print("Stoping Kibana after configuring APM integration.")
+                self.run_docker_compose_process(docker_compose_cmd + ["stop", "kibana"])
 
     @staticmethod
     def reset_enterprise_search_password_handler():
