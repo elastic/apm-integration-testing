@@ -753,6 +753,9 @@ class LocalSetup(object):
             # pull any images
             image_services = [name for name, service in compose["services"].items() if
                               'image' in service and name not in services_to_load]
+            if args.get("kibana_src"):
+                image_services.remove('kibana')
+
             if image_services and not args["skip_download"]:
                 pull_params = ["pull"]
                 if not sys.stdin.isatty():
