@@ -661,7 +661,7 @@ class LocalSetup(object):
             selections.add(CommandService(cmd, service=repo_label, image=curl_image, depends_on=["elasticsearch"]))
 
         # Add a container to call the Fleet setup API. This is necessary for installing the APM integration.
-        if args.get("enable_kibana"):
+        if args.get("enable_kibana") and not args.get("enable_apm_managed", False):
             kibana_scheme = "https" if args.get("kibana_enable_tls", False) else "http"
             kibana_url = kibana_scheme + "://admin:changeme@kibana:5601"
             cmd = ["curl", "-X", "POST", "-H", "kbn-xsrf: 1", kibana_url + "/api/fleet/setup"]
