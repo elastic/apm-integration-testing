@@ -600,6 +600,10 @@ class LocalSetup(object):
 
         if args.get("enable_apm_managed", False):
             args["enable_apm_server"] = False
+            if not args.get("enable_kibana", True):
+                print("Kibana will be launched to configure APM integration and stopped after that.")
+                args["enable_kibana"] = True
+                args["shutdown_kibana"] = True
 
         if args.get("apm_server_enable_tls"):
             args["apm_server_url"] = args.get("apm_server_url", DEFAULT_APM_SERVER_URL).replace("http:", "https:")
@@ -661,7 +665,7 @@ class LocalSetup(object):
             selections.add(CommandService(cmd, service=repo_label, image=curl_image, depends_on=["elasticsearch"]))
 
         # Add a container to call the Fleet setup API. This is necessary for installing the APM integration.
-        if args.get("enable_kibana"):
+        if args.get("enable_kibana") and not args.get("enable_apm_managed", False):
             kibana_scheme = "https" if args.get("kibana_enable_tls", False) else "http"
             kibana_url = kibana_scheme + "://admin:changeme@kibana:5601"
             cmd = ["curl", "-X", "POST", "-H", "kbn-xsrf: 1", kibana_url + "/api/fleet/setup"]
@@ -753,6 +757,9 @@ class LocalSetup(object):
             # pull any images
             image_services = [name for name, service in compose["services"].items() if
                               'image' in service and name not in services_to_load]
+            if args.get("kibana_src"):
+                image_services.remove('kibana')
+
             if image_services and not args["skip_download"]:
                 pull_params = ["pull"]
                 if not sys.stdin.isatty():
@@ -769,6 +776,9 @@ class LocalSetup(object):
             if not sys.stdin.isatty() and action not in ["build"]:
                 up_params.extend(["--quiet-pull"])
             self.run_docker_compose_process(docker_compose_cmd + up_params)
+            if args.get("shutdown_kibana", False):
+                print("Stopping Kibana after configuring APM integration.")
+                self.run_docker_compose_process(docker_compose_cmd + ["stop", "kibana"])
 
     @staticmethod
     def reset_enterprise_search_password_handler():
