@@ -843,7 +843,7 @@ class LocalTest(unittest.TestCase):
         got = yaml.safe_load(docker_compose_yml)
         services = set(got["services"])
         self.assertSetEqual(services, {
-            "apm-server", "elasticsearch", "kibana", "fleet_setup",
+            "apm-server", "elasticsearch", "kibana",
             "filebeat", "heartbeat", "metricbeat", "packetbeat",
             "opbeans-dotnet",
             "opbeans-go",
