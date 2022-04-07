@@ -744,14 +744,10 @@ class ApmManaged(StackService, Service):
         self.depends_on = {"kibana": {"condition": "service_healthy"}} if options.get("enable_kibana", True) else {}
 
         self.environment = {
-            "FLEET_ELASTICSEARCH_HOST": self.options.get("apm_managed_elasticsearch_url",
-                                                         self.default_elasticsearch_hosts(tls=self._es_tls)),
             "FLEET_SERVER_ENABLE": "1",
             "FLEET_SERVER_HOST": "0.0.0.0",
             "FLEET_SERVER_POLICY_ID": "fleet-server-apm-policy",
             "FLEET_SERVER_PORT": "8220",
-            "KIBANA_FLEET_HOST": self.options.get("apm_managed_kibana_url",
-                                                  self.default_kibana_hosts(tls=self._kibana_tls)),
             "KIBANA_FLEET_SETUP": "1",
             "FLEET_SERVER_INSECURE_HTTP": "1",
             "FLEET_SERVER_ELASTICSEARCH_INSECURE": "1",
@@ -759,6 +755,22 @@ class ApmManaged(StackService, Service):
             "KIBANA_FLEET_SERVICE_TOKEN": self.options.get("apm_managed_kibana_token")
         }
 
+        self.kibana_tls = self.options.get("kibana_enable_tls", False)
+        self.es_tls = options.get("elasticsearch_enable_tls", False)
+        es_host = self.options.get("apm_managed_elasticsearch_url", None)
+        if es_host:
+            self.environment["FLEET_ELASTICSEARCH_HOST"] = es_host
+        else:
+             self.environment["FLEET_ELASTICSEARCH_HOST"] = self.default_elasticsearch_hosts(tls=self._es_tls)
+        es_host = self.options.get("apm_managed_kibana_url", None)
+        if es_host:
+            self.environment["KIBANA_FLEET_HOST"] = es_host
+        else:
+             self.environment["KIBANA_FLEET_HOST"] = self.default_kibana_hosts(tls=self._kibana_tls)
+        if self._es_tls:
+            self.environment["ELASTICSEARCH_CA"] = "/usr/share/elasticsearch/config/certs/ca.crt"
+        if self._kibana_tls:
+            self.environment["KIBANA_CA"] = "/usr/share/kibana/config/certs/ca.crt"
         # set ports for defined integrations
         self.ports = [self.publish_port("8220")]
         self.ports.append(self.publish_port(self.options.get(
@@ -822,7 +834,9 @@ class ApmManaged(StackService, Service):
             volumes=[
                 "/var/run/docker.sock:/var/run/docker.sock",
                 "./scripts/tls/apm-server/cert.crt:/usr/share/apm-server/config/certs/tls.crt",
-                "./scripts/tls/apm-server/key.pem:/usr/share/apm-server/config/certs/tls.key"
+                "./scripts/tls/apm-server/key.pem:/usr/share/apm-server/config/certs/tls.key",
+                "./scripts/tls/ca/ca.crt:/usr/share/elasticsearch/config/certs/ca.crt",
+                "./scripts/tls/ca/ca.crt:/usr/share/kibana/config/certs/ca.crt"
             ]
         )
 
