@@ -29,7 +29,7 @@ ${SED} -E -e "s#('${MINOR_MAJOR_RELEASE_VERSION}'): '[0-9]+\.[0-9]+\.[0-9]'#\1: 
 ${SED} -E -e "s#('main'): '[0-9]+\.[0-9]+\.[0-9]'#\1: '${RELEASE_VERSION}'#g" ${CLI_FILE}
 ${SED} -E -e "s#('master'): '[0-9]+\.[0-9]+\.[0-9]'#\1: '${RELEASE_VERSION}'#g" ${CLI_FILE}
 # Create a new minor release entry
-if grep -q "${MINOR_MAJOR_RELEASE_VERSION}" ${CLI_FILE} ; then
+if grep -q "'${MINOR_MAJOR_RELEASE_VERSION}'" ${CLI_FILE} ; then
 	echo "No required changes in the ${CLI_FILE}"
 else
 	TEMP_FILE=$(mktemp)
