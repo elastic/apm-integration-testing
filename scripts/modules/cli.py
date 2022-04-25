@@ -84,10 +84,10 @@ class LocalSetup(object):
         '7.14': '7.14.2',
         '7.15': '7.15.2',
         '7.16': '7.16.3',
-        '7.17': '7.17.2',
+        '7.17': '7.17.3',
         '8.1': '8.1.2',
-        'main': '7.17.2',
-        'master': '7.17.2',  # keep master alias for backward compatibility. Upgrade the main alias only
+        'main': '7.17.3',
+        'master': '7.17.3',  # keep master alias for backward compatibility. Upgrade the main alias only
     }
 
     def __init__(self, argv=None, services=None):
