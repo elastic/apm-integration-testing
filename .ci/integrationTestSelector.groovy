@@ -236,6 +236,9 @@ pipeline {
 def wrappingup(Map params = [:]){
   def isJunit = params.containsKey('isJunit') ? params.get('isJunit') : true
   dir("${BASE_DIR}"){
+    if(currentBuild.result == 'FAILURE' || currentBuild.result == 'UNSTABLE'){
+      sh(label: 'docker-summary.sh', script: './scripts/docker-summary.sh')
+    }
     sh('make stop-env || echo 0')
     def testResultsPattern = 'tests/results/*-junit*.xml'
     archiveArtifacts(
