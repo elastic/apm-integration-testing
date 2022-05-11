@@ -15,7 +15,10 @@ do
   docker logs "${id}" | tail -n 10 || echo "It is not possible to grab the logs of ${id}"
   docker inspect "${id}" > docker-info/"${id}"-docker-inspect.json
 done
-
+  echo "***********************************************************"
+  echo "***************Docker Stats***************"
+  echo "***********************************************************"
+  docker stats --no-trunc --no-stream
 echo "*******************************************************"
 echo "***************Docker Containers Summary***************"
 echo "*******************************************************"
