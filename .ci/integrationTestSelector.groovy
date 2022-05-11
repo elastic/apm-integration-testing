@@ -243,7 +243,7 @@ def wrappingup(Map params = [:]){
     def testResultsPattern = 'tests/results/*-junit*.xml'
     archiveArtifacts(
         allowEmptyArchive: true,
-        artifacts: "docker-summary.txt,tests/results/data-*.json,tests/results/packetbeat-*.json,${testResultsPattern}",
+        artifacts: "docker-compose.yml,docker-summary.txt,tests/results/data-*.json,tests/results/packetbeat-*.json,${testResultsPattern}",
         defaultExcludes: false)
     if (isJunit) {
       junit(allowEmptyResults: true, keepLongStdio: true, testResults: testResultsPattern)
