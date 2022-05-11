@@ -237,13 +237,13 @@ def wrappingup(Map params = [:]){
   def isJunit = params.containsKey('isJunit') ? params.get('isJunit') : true
   dir("${BASE_DIR}"){
     if(currentBuild.result == 'FAILURE' || currentBuild.result == 'UNSTABLE'){
-      sh(label: 'docker-summary.sh', script: './scripts/docker-summary.sh')
+      sh(label: 'docker-summary.sh', script: './scripts/docker-summary.sh | tee docker-summary.txt')
     }
     sh('make stop-env || echo 0')
     def testResultsPattern = 'tests/results/*-junit*.xml'
     archiveArtifacts(
         allowEmptyArchive: true,
-        artifacts: "tests/results/data-*.json,tests/results/packetbeat-*.json,${testResultsPattern}",
+        artifacts: "docker-summary.txt,tests/results/data-*.json,tests/results/packetbeat-*.json,${testResultsPattern}",
         defaultExcludes: false)
     if (isJunit) {
       junit(allowEmptyResults: true, keepLongStdio: true, testResults: testResultsPattern)
