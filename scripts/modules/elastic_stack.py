@@ -462,7 +462,7 @@ class ApmServer(StackService, Service):
             })
 
         volumes = []
-        # don't unconditionally add this ca so quick start can be depenedency free
+        # don't unconditionally add this ca so quick start can be dependency free
         if self.es_tls or self.kibana_tls:
             volumes.extend([
                 "./scripts/tls/ca/ca.crt:" + self.STACK_CA_PATH,
@@ -500,7 +500,7 @@ class ApmServer(StackService, Service):
                 ren = self.render_managed()
                 return ren
             else:
-                # return starndard apm-server
+                # return standard apm-server
                 return ren
 
         # save a single server for use as backend template

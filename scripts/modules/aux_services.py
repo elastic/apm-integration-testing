@@ -170,7 +170,7 @@ class WaitService(Service):
         self.services = services
 
     def _content(self):
-        # Sorting is not relavant to docker-compose but is included here
+        # Sorting is not relevant to docker-compose but is included here
         # to allow the tests to check for a consistently-ordered list
         for s in sorted(self.services, key=lambda x: x.name()):
             if s.name() != self.name() and s.name() != "opbeans-load-generator":

@@ -665,7 +665,7 @@ class OpbeansRuby01(OpbeansRuby):
 
 
 class OpbeansRum(Service):
-    # FIXME this might not work with dyno because we are inherting from Service
+    # FIXME this might not work with dyno because we are inheriting from Service
     # OpbeansRum is not really an Opbeans service, so we inherit from Service
     SERVICE_PORT = 9222
 
