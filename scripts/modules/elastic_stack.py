@@ -330,7 +330,7 @@ class ApmServer(StackService, Service):
             '--apm-server-enable-tls',
             action="store_true",
             dest="apm_server_enable_tls",
-            help="apm-server enable TLS with pre-configured selfsigned certificates.",
+            help="apm-server enable TLS with pre-configured self-signed certificates.",
         )
         parser.add_argument(
             '--apm-server-agent-config-poll',
@@ -805,7 +805,7 @@ class ApmManaged(StackService, Service):
             '--apm-managedr-enable-tls',
             action="store_true",
             dest="apm_server_enable_tls",
-            help="apm-server enable TLS with pre-configured selfsigned certificates.",
+            help="apm-server enable TLS with pre-configured self-signed certificates.",
         )
 
     def docker_service_name(self):
@@ -958,7 +958,7 @@ class Elasticsearch(StackService, Service):
             '--elasticsearch-enable-tls',
             action="store_true",
             dest="elasticsearch_enable_tls",
-            help="elasticsearch enable TLS with pre-configured selfsigned certificates.",
+            help="elasticsearch enable TLS with pre-configured self-signed certificates.",
         )
 
         parser.add_argument(
