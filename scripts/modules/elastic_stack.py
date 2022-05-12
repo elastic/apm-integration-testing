@@ -802,7 +802,7 @@ class ApmManaged(StackService, Service):
             help="apm-server secret token.",
         )
         parser.add_argument(
-            '--apm-managedr-enable-tls',
+            '--apm-managed-enable-tls',
             action="store_true",
             dest="apm_server_enable_tls",
             help="apm-server enable TLS with pre-configured self-signed certificates.",
