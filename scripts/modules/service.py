@@ -190,7 +190,7 @@ class Service(object):
             '--' + cls.name() + '-env-var',
             action="append",
             dest=cls.option_name() + "_env_vars",
-            help="arbitrary enviornment variables to set"
+            help="arbitrary environment variables to set"
         )
 
     def image_download_url(self):

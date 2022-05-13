@@ -330,7 +330,7 @@ class ApmServer(StackService, Service):
             '--apm-server-enable-tls',
             action="store_true",
             dest="apm_server_enable_tls",
-            help="apm-server enable TLS with pre-configured selfsigned certificates.",
+            help="apm-server enable TLS with pre-configured self-signed certificates.",
         )
         parser.add_argument(
             '--apm-server-agent-config-poll',
@@ -462,7 +462,7 @@ class ApmServer(StackService, Service):
             })
 
         volumes = []
-        # don't unconditionally add this ca so quick start can be depenedency free
+        # don't unconditionally add this ca so quick start can be dependency free
         if self.es_tls or self.kibana_tls:
             volumes.extend([
                 "./scripts/tls/ca/ca.crt:" + self.STACK_CA_PATH,
@@ -500,7 +500,7 @@ class ApmServer(StackService, Service):
                 ren = self.render_managed()
                 return ren
             else:
-                # return starndard apm-server
+                # return standard apm-server
                 return ren
 
         # save a single server for use as backend template
@@ -802,10 +802,10 @@ class ApmManaged(StackService, Service):
             help="apm-server secret token.",
         )
         parser.add_argument(
-            '--apm-managedr-enable-tls',
+            '--apm-managed-enable-tls',
             action="store_true",
             dest="apm_server_enable_tls",
-            help="apm-server enable TLS with pre-configured selfsigned certificates.",
+            help="apm-server enable TLS with pre-configured self-signed certificates.",
         )
 
     def docker_service_name(self):
@@ -958,7 +958,7 @@ class Elasticsearch(StackService, Service):
             '--elasticsearch-enable-tls',
             action="store_true",
             dest="elasticsearch_enable_tls",
-            help="elasticsearch enable TLS with pre-configured selfsigned certificates.",
+            help="elasticsearch enable TLS with pre-configured self-signed certificates.",
         )
 
         parser.add_argument(
