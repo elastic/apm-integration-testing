@@ -5,4 +5,3 @@ COPY package.json .npmrc app.js /app/
 
 WORKDIR /app
 RUN npm install
-
