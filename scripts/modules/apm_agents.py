@@ -168,8 +168,14 @@ class AgentNodejsExpress(Service):
             environment.update(self.apm_api_key)
 
         return dict(
-            build={"context": "docker/nodejs/express", "dockerfile": "Dockerfile"},
-            command="bash -c \"npm install {} && node app.js\"".format(self.agent_package),
+            build={
+                "context": "docker/nodejs/express",
+                "dockerfile": "Dockerfile",
+                "args": {
+                    "NODE_AGENT_PACKAGE": self.agent_package,
+                },
+            },
+            command="bash -c \"node app.js\"",
             container_name="expressapp",
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "expressapp"),
             depends_on=self.depends_on,
