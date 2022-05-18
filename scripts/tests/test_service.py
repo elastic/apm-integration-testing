@@ -89,6 +89,8 @@ class AgentServiceTest(ServiceTest):
             agent, yaml.safe_load("""
                 agent-nodejs-express:
                     build:
+                        args:
+                            NODE_AGENT_PACKAGE: elastic-apm-node
                         dockerfile: Dockerfile
                         context: docker/nodejs/express
                     container_name: expressapp
@@ -96,7 +98,7 @@ class AgentServiceTest(ServiceTest):
                         apm-server:
                           condition:
                             service_healthy
-                    command: bash -c "npm install elastic-apm-node && node app.js"
+                    command: bash -c "node app.js"
                     environment:
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
                         ELASTIC_APM_LOG_LEVEL: 'info'
@@ -113,8 +115,8 @@ class AgentServiceTest(ServiceTest):
         )
 
         vagent = AgentNodejsExpress(nodejs_agent_package="elastic/apm-agent-nodejs#test").render()
-        self.assertEqual('bash -c "npm install elastic/apm-agent-nodejs#test && node app.js"',
-                         vagent["agent-nodejs-express"]["command"])
+        self.assertEqual('elastic/apm-agent-nodejs#test',
+                         vagent["agent-nodejs-express"]["build"]["args"]["NODE_AGENT_PACKAGE"])
 
         # test overrides
         agent = AgentNodejsExpress(apm_server_url="http://foo").render()["agent-nodejs-express"]
