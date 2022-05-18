@@ -175,7 +175,7 @@ class AgentNodejsExpress(Service):
                     "NODE_AGENT_PACKAGE": self.agent_package,
                 },
             },
-            command="bash -c \"node app.js\"",
+            command="node app.js",
             container_name="expressapp",
             healthcheck=curl_healthcheck(self.SERVICE_PORT, "expressapp"),
             depends_on=self.depends_on,

@@ -98,7 +98,7 @@ class AgentServiceTest(ServiceTest):
                         apm-server:
                           condition:
                             service_healthy
-                    command: bash -c "node app.js"
+                    command: node app.js
                     environment:
                         ELASTIC_APM_VERIFY_SERVER_CERT: 'true'
                         ELASTIC_APM_LOG_LEVEL: 'info'
