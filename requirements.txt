@@ -61,7 +61,7 @@ six==1.11.0
 texttable==0.9.1
 timeout-decorator==0.4.0
 tornado==5.1
-typing_extensions==4.2.0
+typing_extensions==4.1.1
 urllib3==1.26.8
 virtualenv==16.7.9
 waiting==1.4.1
