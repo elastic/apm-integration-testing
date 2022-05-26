@@ -1,4 +1,3 @@
-PyYAML==5.4
 attrs==17.4.0
 backoff==1.10.0
 backports-abc==0.5
@@ -47,12 +46,13 @@ pytest==5.4.3
 pytest-base-url==1.4.2
 pytest-html==2.1.1
 pytest-metadata==1.10.0
-pytest-otel==1.0.1
+pytest-otel==1.0.3
 pytest-random-order==1.0.4
 pytest-rerunfailures==9.0
 pytest-selenium==1.17.0
 pytest-variables==1.9.0
 python-dotenv==0.19.2
+PyYAML==5.4
 requests==2.26.0
 selenium==3.8.0
 singledispatch==3.4.0.3
