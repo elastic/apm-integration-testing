@@ -1,21 +1,27 @@
-FROM node:12-slim
+FROM node:16-slim
 
 # Install latest chrome dev package and fonts to support major charsets (Chinese, Japanese, Arabic, Hebrew, Thai and a few others)
 # Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer
-# installs, work.
+# installs, work
+ARG TARGETARCH=amd64
 RUN apt update -qq \
-    && apt install -qq -y curl git gnupg libgconf-2-4 libxss1 libxtst6 python g++ build-essential --no-install-recommends \
-    && curl -sSfkL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && apt update -qq \
-    && apt install -qq -y google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst ttf-freefont \
-      --no-install-recommends \
+    && apt install -qq -y --no-install-recommends \
+      curl \
+      git \
+      gnupg \
+      libgconf-2-4 \
+      libxss1 \
+      libxtst6 \
+      python \
+      g++ \
+      build-essential \
+      chromium \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /src/*.deb
 
 # If running Docker >= 1.13.0 use docker run's --init arg to reap zombie processes, otherwise
 # uncomment the following lines to have `dumb-init` as PID 1
-ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
+ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_${TARGETARCH} /usr/local/bin/dumb-init
 RUN chmod +x /usr/local/bin/dumb-init
 ENTRYPOINT ["dumb-init", "--"]
 
@@ -58,7 +64,7 @@ RUN for i in 1 2 3; \
       ([ $i -eq 3 ] && exit 1) || true; \
     done;
 
-#ENV CHROME_PATH=/usr/bin/chromium-browser
+ENV CHROME_PATH=/usr/bin/chromium-browser
 
 COPY tasks.js /home/pptruser/
 COPY processes.config.js /home/pptruser/

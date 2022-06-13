@@ -1,17 +1,18 @@
-FROM node:8-slim
+FROM node:16-slim
 
-RUN apt-get -qq update && apt-get -qq install -y \
-	libgconf-2-4 \
-	apt-transport-https \
-	ca-certificates \
-	curl \
-	gnupg \
-	--no-install-recommends \
-	&& curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
-	&& echo "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
-	&& apt-get -qq update && apt-get -qq install -y \
-	google-chrome-unstable \
-	--no-install-recommends \
+ARG TARGETARCH=amd64
+RUN apt-get -qq update \
+  && apt install -qq -y --no-install-recommends \
+    curl \
+    git \
+    gnupg \
+    libgconf-2-4 \
+    python \
+    chromium \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg \
 	&& rm -rf /var/lib/apt/lists/*
 
 # Add Chrome as a user
