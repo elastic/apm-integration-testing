@@ -9,6 +9,7 @@ RUN apt-get -qq update \
     libgconf-2-4 \
     python \
     chromium \
+    chromium-sandbox \
     apt-transport-https \
     ca-certificates \
     curl \
@@ -31,7 +32,7 @@ COPY package*.json /home/chrome/
 
 RUN npm install
 
-ENV CHROME_PATH=/usr/bin/chromium-browser
+ENV CHROME_PATH=/usr/bin/chromium
 
 COPY tasks.js /home/chrome/
 COPY processes.config.js /home/chrome/

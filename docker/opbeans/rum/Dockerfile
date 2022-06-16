@@ -16,6 +16,7 @@ RUN apt update -qq \
       g++ \
       build-essential \
       chromium \
+      chromium-sandbox \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /src/*.deb
 
@@ -28,7 +29,9 @@ ENTRYPOINT ["dumb-init", "--"]
 # Uncomment to skip the chromium download when installing puppeteer. If you do,
 # you'll need to launch puppeteer with:
 #     browser.launch({executablePath: 'google-chrome-unstable'})
-# ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV CHROME_PATH=/usr/bin/chromium
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 WORKDIR /home/pptruser
 
@@ -51,9 +54,6 @@ RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
 # Run everything after as non-privileged user.
 USER pptruser
 
-
-#CMD ["google-chrome-unstable"]
-
 COPY package*.json /home/pptruser/
 
 # the install is retry threee times with a pause of 10 seconds
@@ -63,8 +63,6 @@ RUN for i in 1 2 3; \
       sleep 10; \
       ([ $i -eq 3 ] && exit 1) || true; \
     done;
-
-ENV CHROME_PATH=/usr/bin/chromium-browser
 
 COPY tasks.js /home/pptruser/
 COPY processes.config.js /home/pptruser/
