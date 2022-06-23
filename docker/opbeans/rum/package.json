@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Load generator for opbeans frontend app",
   "dependencies": {
-    "pm2": "^4.5.6",
-    "puppeteer": "^2.0.0"
+    "pm2": "^5.2.0",
+    "puppeteer": "^15.0.0"
   }
 }
