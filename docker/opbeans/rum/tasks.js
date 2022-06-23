@@ -14,9 +14,9 @@ async function run() {
     pipe: true,
     headless: true,
     dumpio: true,
-    //waitForInitialPage: false,
-    //devtools: false,
-    //ignoreDefaultArgs: false,
+    // waitForInitialPage: false,
+    // devtools: false,
+    // ignoreDefaultArgs: false,
     args: [
       '--disable-dev-shm-usage',
       // debug port is exported
@@ -39,7 +39,7 @@ async function run() {
     ] // see https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#tips
     // https://peter.sh/experiments/chromium-command-line-switches/
   })
-  debugger;
+  // debugger;
   const page = await browser.newPage()
   page.on('console', msg => console.log(
     'PAGE LOG:', msg.type() + "\t" + msg.text() + "\t" + msg.location().url + " (" + msg.location().lineNumber + ":" + msg.location().columnNumber + ")")
