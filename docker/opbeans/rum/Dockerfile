@@ -23,10 +23,6 @@ RUN apt update -qq \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /src/*.deb
 
-# If running Docker >= 1.13.0 use docker run's --init arg to reap zombie processes, otherwise
-# uncomment the following lines to have `dumb-init` as PID 1
-ENTRYPOINT ["dumb-init", "--"]
-
 # Uncomment to skip the chromium download when installing puppeteer. If you do,
 # you'll need to launch puppeteer with:
 #     browser.launch({executablePath: 'google-chrome-unstable'})
@@ -40,8 +36,6 @@ WORKDIR /home/pptruser
 RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
       && mkdir -p /home/pptruser/Downloads \
       && chown -R pptruser:pptruser /home/pptruser
-
-#RUN echo kernel.unprivileged_userns_clone=1 > /etc/sysctl.d/00-local-userns.conf
 
 COPY package*.json /home/pptruser/
 COPY tasks.js /home/pptruser/
@@ -59,4 +53,7 @@ RUN for i in 1 2 3; \
       ([ $i -eq 3 ] && exit 1) || true; \
     done;
 
+# If running Docker >= 1.13.0 use docker run's --init arg to reap zombie processes, otherwise
+# uncomment the following lines to have `dumb-init` as PID 1
+ENTRYPOINT ["dumb-init", "--"]
 CMD ["node_modules/.bin/pm2-docker", "processes.config.js"]
