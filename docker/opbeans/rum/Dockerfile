@@ -17,6 +17,7 @@ RUN apt update -qq \
       build-essential \
       chromium \
       chromium-sandbox \
+      fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /src/*.deb
 
@@ -30,8 +31,8 @@ ENTRYPOINT ["dumb-init", "--"]
 # you'll need to launch puppeteer with:
 #     browser.launch({executablePath: 'google-chrome-unstable'})
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV CHROME_PATH=/usr/bin/chromium
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV CHROME_PATH=/home/pptruser/chromium-no-sandbox.sh
+ENV PUPPETEER_EXECUTABLE_PATH=/home/pptruser/chromium-no-sandbox.sh
 
 WORKDIR /home/pptruser
 
@@ -51,6 +52,8 @@ RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
       && chown -R pptruser:pptruser /home/pptruser
 #    && chown -R pptruser:pptruser /node_modules;
 
+RUN echo kernel.unprivileged_userns_clone=1 > /etc/sysctl.d/00-local-userns.conf
+
 # Run everything after as non-privileged user.
 USER pptruser
 
@@ -66,5 +69,8 @@ RUN for i in 1 2 3; \
 
 COPY tasks.js /home/pptruser/
 COPY processes.config.js /home/pptruser/
+
+RUN echo '/usr/bin/chromium --disable-gpu-sandbox --disable-namespace-sandbox --disable-setuid-sandbox --no-sandbox --single-process $*' > ${CHROME_PATH} \
+  && chmod ugo+rx ${CHROME_PATH}
 
 CMD ["node_modules/.bin/pm2-docker", "processes.config.js"]
