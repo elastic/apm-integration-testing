@@ -11,8 +11,35 @@ function sleep(ms) {
 
 async function run() {
   const browser = await puppeteer.launch({
-    args: ['--disable-dev-shm-usage', '--remote-debugging-port=9222'] // see https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#tips
+    pipe: true,
+    headless: true,
+    dumpio: true,
+    // waitForInitialPage: false,
+    // devtools: false,
+    // ignoreDefaultArgs: false,
+    args: [
+      '--disable-dev-shm-usage',
+      // debug port is exported
+      //'--remote-debugging-address=0.0.0.0',
+      //'--remote-debugging-port=9222',
+      // chromium need to use --no-sandbox on linux/arm64
+      // '--disable-gpu-sandbox',
+      // '--disable-namespace-sandbox',
+      '--disable-setuid-sandbox',
+      '--no-sandbox',
+      '--no-zygote',
+      '--disable-gpu',
+      '--disable-audio-output',
+      // '--disable-gpu-rasterization',
+      //'--no-first-run',
+      //'--safe-mode',
+      // the pipe is broken sometimes with a single process does not happen
+      '--headless',
+      '--single-process'
+    ] // see https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#tips
+    // https://peter.sh/experiments/chromium-command-line-switches/
   })
+  // debugger;
   const page = await browser.newPage()
   page.on('console', msg => console.log(
     'PAGE LOG:', msg.type() + "\t" + msg.text() + "\t" + msg.location().url + " (" + msg.location().lineNumber + ":" + msg.location().columnNumber + ")")
@@ -20,7 +47,7 @@ async function run() {
   for (; ;) {
     try {
       await page.goto(url)
-
+      console.log('Checking URL:' + url);
       url = await page.evaluate(defaultUrl => {
           // activateLoadGeneration is defined in opbeans-frontend
           if (typeof window.activateLoadGeneration === 'function') {
