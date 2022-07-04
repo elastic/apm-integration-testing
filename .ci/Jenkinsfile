@@ -137,33 +137,48 @@ pipeline {
 }
 
 def runJob(testName, buildOpts = ''){
+<<<<<<< HEAD
   def branch = env.CHANGE_ID?.trim() ? env.CHANGE_TARGET : env.BRANCH_NAME
   def jobName = "apm-integration-test-downstream/${branch}"
   def buildObject
   try {
     buildObject = build(job: jobName,
       parameters: [
+=======
+  def mergeTarget = env.CHANGE_ID?.trim() ? env.CHANGE_TARGET : env.BRANCH_NAME
+  def jobName = "apm-integration-test-downstream/${env.BRANCH_NAME}"
+  def buildObject = build(job: jobName,
+    parameters: [
+>>>>>>> b30d5fb (ci: fail at the end if downstream job failed (#1498))
       string(name: 'INTEGRATION_TEST', value: testName),
       string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
       string(name: 'INTEGRATION_TESTING_VERSION', value: "${env.GIT_BASE_COMMIT}"),
       string(name: 'MERGE_TARGET', value: "${branch}"),
       string(name: 'BUILD_OPTS', value: "${params.BUILD_OPTS} ${buildOpts}"),
       string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
-      booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: '')],
-      propagate: true,
-      quietPeriod: 10,
-      wait: true)
-  } catch(e) {
-    buildObject = e
-    error("Downstream job for '${testName}' failed")
-  } finally {
-    itsDownstreamJobs["${testName}"] = buildObject
+      booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: '')
+    ],
+    propagate: false,
+    quietPeriod: 10,
+    wait: true)
 
+<<<<<<< HEAD
     catchError(buildResult: 'SUCCESS', message: "Aggregate test results from dowsntream job has failed failed. Let's keep moving.") {
       dir(testName) {
         copyArtifacts(projectName: jobName, selector: specific(buildNumber: buildObject.number.toString()))
         junit(testResults: 'tests/results/*-junit*.xml', allowEmptyResults: true, keepLongStdio: true)
       }
+=======
+  itsDownstreamJobs["${testName}"] = buildObject
+
+  catchError(buildResult: 'SUCCESS', message: "Aggregate test results from dowsntream job has failed failed. Let's keep moving.") {
+    dir(testName) {
+      copyArtifacts(projectName: jobName, selector: specific(buildNumber: buildObject.number.toString()))
+      junit(testResults: '**/tests/results/*-junit*.xml', allowEmptyResults: true, keepLongStdio: true)
+>>>>>>> b30d5fb (ci: fail at the end if downstream job failed (#1498))
     }
+  }
+  if (buildObject.resultIsWorseOrEqualTo('UNSTABLE')) {
+    error("Downstream job for '${testName}' failed")
   }
 }
