@@ -164,5 +164,7 @@ def runJob(testName, buildOpts = ''){
       junit(testResults: '**/tests/results/*-junit*.xml', allowEmptyResults: true, keepLongStdio: true)
     }
   }
-  error("Downstream job for '${testName}' failed")
+  if (buildObject.resultIsWorseOrEqualTo('UNSTABLE')) {
+    error("Downstream job for '${testName}' failed")
+  }
 }
