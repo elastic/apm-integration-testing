@@ -24,6 +24,7 @@ RUN ./maven-package.sh "${JAVA_AGENT_BUILT_VERSION}"
 FROM adoptopenjdk:11-jre-hotspot
 COPY --from=0 /app /app
 COPY --from=0 /agent/apm-agent.jar /app
+RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries
 RUN apt-get -qq update \
   && apt-get -qq install -y --no-install-recommends curl \
   && apt-get -qq clean \

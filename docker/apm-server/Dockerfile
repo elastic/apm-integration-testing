@@ -10,6 +10,7 @@ FROM golang:${go_version} AS build
 ARG apm_server_binary
 
 # install make update prerequisites
+RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries
 RUN apt-get -qq update \
     && apt-get -qq install -y python3 python3-pip python3-venv rsync
 

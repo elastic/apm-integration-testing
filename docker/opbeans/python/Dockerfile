@@ -4,6 +4,7 @@ FROM ${OPBEANS_PYTHON_IMAGE}:${OPBEANS_PYTHON_VERSION}
 ENV ELASTIC_APM_ENABLE_LOG_CORRELATION=true
 
 # postgresql-client is used for the dbshell command in the entrypoint
+RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries
 RUN apt-get -qq update \
  && apt-get -qq install -y \
     postgresql-client \

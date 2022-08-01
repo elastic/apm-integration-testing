@@ -4,6 +4,7 @@ ARG RUM_AGENT_BRANCH=main
 ARG RUM_AGENT_REPO=elastic/apm-agent-rum-js
 ARG APM_SERVER_URL
 
+RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries
 RUN apt update -qq \
     && apt install -qq -y \
       curl \

@@ -1,5 +1,6 @@
 FROM php:7.4-apache
 
+RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries
 RUN apt-get -qq update \
  && apt-get -qq install -y --no-install-recommends \
     autoconf \
