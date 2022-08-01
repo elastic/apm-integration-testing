@@ -14,10 +14,10 @@ WORKDIR /src
 COPY . /src
 # install SDK version in global.json of elastic/apm-agent-dotnet
 # Needed when building branches that specify 3.1.100 SDK in global.json
-RUN curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --install-dir ${DOTNET_ROOT} -version 3.1.100
+RUN curl --retry 5 -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --install-dir ${DOTNET_ROOT} -version 3.1.100
 
 # SDK 5.x is also needed
-RUN curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --install-dir ${DOTNET_ROOT} -version 5.0.100
+RUN curl --retry 5 -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --install-dir ${DOTNET_ROOT} -version 5.0.100
 RUN ./run.sh
 
 # Stage 2: Run the TestAspNetCoreApp app

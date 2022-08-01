@@ -1,6 +1,7 @@
 ARG RUBY_VERSION=3.0
 FROM ruby:${RUBY_VERSION}
 
+RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries
 RUN apt-get -qq update && \
     apt-get -qq install -y --no-install-recommends \
     build-essential \
