@@ -1,4 +1,5 @@
-import collections, collections.abc
+import collections
+import collections.abc
 import json
 import sys
 
