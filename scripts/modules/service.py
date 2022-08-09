@@ -1,4 +1,4 @@
-import collections
+import collections, collections.abc
 import json
 import sys
 
@@ -161,7 +161,7 @@ class Service(object):
             if content[prune] is None:
                 del (content[prune])
         if self._env_vars:
-            if isinstance(content["environment"], collections.Mapping):
+            if isinstance(content["environment"], collections.abc.Mapping):
                 for ev in self._env_vars:
                     k, v = ev.split("=", 1)
                     content["environment"][k] = v
