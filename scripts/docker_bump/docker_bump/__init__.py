@@ -20,8 +20,14 @@ logger = logging.getLogger(__name__)
 
 PROJECTS = [
     'apm-server',
+    'apm-server/haproxy',
+    'apm-server/managed',
+    'apm-server/recorder',
+    'apm-server/teeproxy',
     'dotnet',
-   'intake-receiver',
+    'dyno',
+    'elastic-agent',
+    'intake-receiver',
     'java/spring',
     'nodejs/express',
     'opbeans/dotnet',
@@ -186,7 +192,12 @@ def dockerhub_tags_for_image(image: str) -> str:
         # We have a specific repo to search. 
         repo_url = image_parts[0]
         if repo_url == 'docker.elastic.co':
-            tags = dockerhub.get_tags_elastic(image_parts[2])
+            if image_parts[2] == 'golang-crossbuild':
+                tags = dockerhub.get_tags_elastic(image_parts[2], namespace='beats-dev')
+            elif image_parts[2] == 'elastic-agent':
+                tags = dockerhub.get_tags_elastic(image_parts[2], namespace='beats', snapshots=True)
+            else:
+                tags = dockerhub.get_tags_elastic(image_parts[2])
         else:
             logger.warning(f"Found alternative repo [{repo_url}]. Non-standard repo support not yet implemented.")
             tags = []
@@ -230,7 +241,20 @@ def _filter_node_tags(tags: list, version: str):
         return matching_tags
     else:
         return _filter_version_number(tags)
-    
+
+def _filter_agent_tags(tags: list, version: str):
+    matching_tags = []
+    if re.match(r'\d+(\.\d+)+(-\w+)+$', version):
+        _, distro_name = version.split('-', maxsplit=1)
+        for tag in tags:
+            if re.match(r'\d+(\.\d+)+(-\w+)+$', tag):
+                _, tag_distro_name = tag.split('-', maxsplit=1)
+                if tag_distro_name == distro_name:
+                    matching_tags.append(tag)
+        return matching_tags
+    else:
+        return _filter_version_number(tags)
+
 
 def _filter_golang_tags(tags: list, version: str):
     matching_tags = []
@@ -295,10 +319,14 @@ def filter_tags(repo: str, tags: list, version: str):
         return _filter_statsd_tags(tags)
     if repo == 'apm-server':
         return _filter_stack_tags(tags)
+    if repo == 'elastic-agent':
+        return _filter_agent_tags(tags, version)
     if repo in ['node', 'opbeans-node']:
         return _filter_node_tags(tags, version)
-    if repo in ['golang', 'alpine', 'nginx', 'opbeans-python', 'opbeans-ruby', 'python', 'ruby']:
+    if repo in ['golang', 'alpine', 'nginx', 'opbeans-python', 'opbeans-ruby', 'python', 'ruby', 'haproxy']:
         return _filter_version_number(tags)
+    if repo == 'golang-crossbuild':
+        return tags
 
 
     raise Exception(f"No tag filter defined for repo: {repo}")
@@ -336,10 +364,11 @@ def bump(debug):
                     merged_image = merge_env_to_directive(stack_env, image, docker_lines=docker_lines)
                     tmp_image_list.append(merged_image)
                 images = tmp_image_list
-        elif project == 'ruby/rails':
+        elif project in ['ruby/rails', 'elastic-agent']:
             tmp_image_list = []
             for image in images:
-                merge_env_to_directive({}, image, docker_lines=docker_lines )
+                merged_image = merge_env_to_directive({}, image, docker_lines=docker_lines )
+                tmp_image_list.append(merged_image)
             images = tmp_image_list
 
         for image in images:

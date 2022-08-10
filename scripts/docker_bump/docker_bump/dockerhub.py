@@ -18,12 +18,15 @@ def get_filter_string(repo):
     if repo == 'adoptopenjdk':
         return 'jre-hotspot'
 
-def get_tags_elastic(repo, namespace='apm'):
+#@cached(pc)
+def get_tags_elastic(repo, namespace='apm', snapshots=False):
     """
     Get tags from the Elastic Docker repo using the internal API
     """
     ret = []
-    request_url = f"https://docker-api.elastic.co/v1/r/{namespace}/{repo}/?show_snapshots=false"
+    request_url = f"https://docker-api.elastic.co/v1/r/{namespace}/{repo}/"
+    if not snapshots:
+        request_url += "?show_snapshots=false"
     resp = requests.get(request_url)
     decoded_response = resp.json()
     for result in decoded_response['results']:
