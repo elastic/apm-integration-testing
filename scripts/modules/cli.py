@@ -915,7 +915,7 @@ class LocalSetup(object):
                     command, stderr=open(os.devnull, 'w'), shell=True).decode('utf8').strip()
             except subprocess.CalledProcessError:
                 # Handle errors
-                print('\tContainer "{}" is not running or an error occurred'.format(name))
+                print('\tContainer "{}" is not running or an error occurred running: {}'.format(name, command))
                 return False
 
             return output
@@ -934,6 +934,14 @@ class LocalSetup(object):
             print("\nAPM Server (image built: %s UTC):" % container.created)
 
             version = run_container_command('apm-server', 'apm-server version')
+
+            if version:
+                print("\t{0}".format(version))
+
+        def print_apm_managed_version(container):
+            print("\nElastic Agent managed APM Server (image built: %s UTC):" % container.created)
+
+            version = run_container_command('apm-server', '/usr/share/elastic-agent/elastic-agent version --binary-only')
 
             if version:
                 print("\t{0}".format(version))
@@ -992,6 +1000,7 @@ class LocalSetup(object):
 
         dispatch = {
             'apm-server': print_apm_server_version,
+            'apm-managed': print_apm_managed_version,
             'elasticsearch': print_elasticsearch_version,
             'kibana': print_kibana_version,
             'opbeans-node': print_opbeans_node_version,
