@@ -8,9 +8,12 @@ authors = ["Michael Place <mike.place@elastic.co>"]
 python = "^3.9"
 click = "^8.0.4"
 requests = "^2.28.1"
+shelved-cache = "^0.2.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
+elasticsearch = "^8.3.3"
+timeout-decorator = "^0.5.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
