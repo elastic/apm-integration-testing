@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 PROJECTS = [
     'apm-server',
     'dotnet',
-    'intake-receiver', ## Possible special case
+    'intake-receiver',
     'java/spring',
     'nodejs/express',
     'opbeans/dotnet',
@@ -183,9 +183,13 @@ def dockerhub_tags_for_image(image: str) -> str:
     """
     image_parts = image.split('/')
     if len(image_parts) == 3:
-        # We have a specific repo to search. Probably Microsoft.
-        logger.warning("Found alternative repo. Non-standard repo support not yet implemented.")
-        tags = []
+        # We have a specific repo to search. 
+        repo_url = image_parts[0]
+        if repo_url == 'docker.elastic.co':
+            tags = dockerhub.get_tags_elastic(image_parts[2])
+        else:
+            logger.warning(f"Found alternative repo [{repo_url}]. Non-standard repo support not yet implemented.")
+            tags = []
     elif len(image_parts) == 2:
         # We have a repo and a namespace
         tags = dockerhub.get_tags(image_parts[1], image_parts[0])
@@ -214,6 +218,19 @@ def _filter_adoptopenjdk_tags(tags: list):
             matching_tags.append(tag)
     return matching_tags
 
+def _filter_node_tags(tags: list, version: str):
+    matching_tags = []
+    if re.match(r'\d+-[A-Za-z]+$', version):
+        _, distro_name = version.split('-')
+        for tag in tags:
+            if re.match(r'\d+-[A-Za-z]+$', tag):
+                _, tag_distro_name = tag.split('-')
+                if tag_distro_name == distro_name:
+                    matching_tags.append(tag)
+        return matching_tags
+    else:
+        return _filter_version_number(tags)
+    
 
 def _filter_golang_tags(tags: list, version: str):
     matching_tags = []
@@ -228,7 +245,7 @@ def _filter_golang_tags(tags: list, version: str):
 def _filter_php_tags(tags: list):
     matching_tags = []
     for tag in tags:
-        if re.match(r'\d+(\.\d+)+\-apache', tag):
+        if re.match(r'\d+(\.\d+)+\-apache$', tag):
             matching_tags.append(tag)
     return matching_tags
 
@@ -236,6 +253,13 @@ def _filter_statsd_tags(tags: list):
     matching_tags = []
     for tag in tags:
         if re.match(r'v\d+(\.\d+)+$', tag):
+            matching_tags.append(tag)
+    return matching_tags
+
+def _filter_stack_tags(tags: list):
+    matching_tags = []
+    for tag in tags:
+        if re.match(r'\d+(\.\d+)+\-SNAPSHOT$', tag):
             matching_tags.append(tag)
     return matching_tags
 
@@ -269,13 +293,13 @@ def filter_tags(repo: str, tags: list, version: str):
         return _filter_php_tags(tags)
     if repo == 'statsd':
         return _filter_statsd_tags(tags)
-
-    if repo in ['golang', 'alpine', 'node', 'nginx', 'node', 'opbeans-node', 'opbeans-python', 'opbeans-ruby', 'python', 'ruby']:
+    if repo == 'apm-server':
+        return _filter_stack_tags(tags)
+    if repo in ['node', 'opbeans-node']:
+        return _filter_node_tags(tags, version)
+    if repo in ['golang', 'alpine', 'nginx', 'opbeans-python', 'opbeans-ruby', 'python', 'ruby']:
         return _filter_version_number(tags)
 
-    # repos which don't need tag filtering
-    if repo in ['apm-server']:
-        return tags
 
     raise Exception(f"No tag filter defined for repo: {repo}")
 
