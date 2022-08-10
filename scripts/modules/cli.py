@@ -941,7 +941,8 @@ class LocalSetup(object):
         def print_apm_managed_version(container):
             print("\nElastic Agent managed APM Server (image built: %s UTC):" % container.created)
 
-            version = run_container_command('apm-server', '/usr/share/elastic-agent/elastic-agent version --binary-only')
+            version = run_container_command('apm-server',
+                                            '/usr/share/elastic-agent/elastic-agent version --binary-only')
 
             if version:
                 print("\t{0}".format(version))
