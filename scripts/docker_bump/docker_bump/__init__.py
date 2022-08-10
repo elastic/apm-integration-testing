@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 PROJECTS = [
     'apm-server',
     'dotnet',
-    'intake-receiver',
+   'intake-receiver',
     'java/spring',
     'nodejs/express',
     'opbeans/dotnet',
@@ -220,11 +220,11 @@ def _filter_adoptopenjdk_tags(tags: list):
 
 def _filter_node_tags(tags: list, version: str):
     matching_tags = []
-    if re.match(r'\d+-[A-Za-z]+$', version):
-        _, distro_name = version.split('-')
+    if re.match(r'\d+(-[A-Za-z]+)+$', version):
+        _, distro_name = version.split('-', maxsplit=1)
         for tag in tags:
-            if re.match(r'\d+-[A-Za-z]+$', tag):
-                _, tag_distro_name = tag.split('-')
+            if re.match(r'\d+(-[A-Za-z]+)+$', tag):
+                _, tag_distro_name = tag.split('-', maxsplit=1)
                 if tag_distro_name == distro_name:
                     matching_tags.append(tag)
         return matching_tags
@@ -303,13 +303,9 @@ def filter_tags(repo: str, tags: list, version: str):
 
     raise Exception(f"No tag filter defined for repo: {repo}")
 
-
-
-
 @click.command()
 @click.option('--debug', is_flag=True)
-@click.option('--dev', is_flag=True)
-def bump(debug, dev):
+def bump(debug):
     """
     Program entrypoint
     """
@@ -318,7 +314,7 @@ def bump(debug, dev):
     for project in PROJECTS:
         docker_lines = get_docker_file(project)
         images = docker_extract_image(docker_lines)
-        if project.startswith('opbeans'):
+        if project.startswith('opbeans') and 'frontend_nginx' not in project:
             _, opbean_name = project.split('/')
             opbean_env = None
             try:
@@ -340,6 +336,11 @@ def bump(debug, dev):
                     merged_image = merge_env_to_directive(stack_env, image, docker_lines=docker_lines)
                     tmp_image_list.append(merged_image)
                 images = tmp_image_list
+        elif project == 'ruby/rails':
+            tmp_image_list = []
+            for image in images:
+                merge_env_to_directive({}, image, docker_lines=docker_lines )
+            images = tmp_image_list
 
         for image in images:
             logger.debug(f"Processing image {image}")
