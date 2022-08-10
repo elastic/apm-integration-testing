@@ -1,8 +1,9 @@
 __version__ = '0.1.0'
 import os
 import re
-from tkinter import W
 import click
+import pprint
+import json
 
 import logging
 
@@ -19,24 +20,24 @@ logger = logging.getLogger(__name__)
 
 PROJECTS = [
     'apm-server',
-#    'dotnet',
+    'dotnet',
     'intake-receiver', ## Possible special case
     'java/spring',
     'nodejs/express',
-#    'opbeans/dotnet',
+    'opbeans/dotnet',
     'opbeans/frontend_nginx',
     'opbeans/go',
-#    'opbeans/java',
-#    'opbeans/node',
-#    'opbeans/python',
-#    'opbeans/ruby',
-#    'opbeans/rum',
-#    'php/apache',
-#    'python/django',
-#    'python/flask',
-#    'ruby/rails',
-#    'rum',
-#    'statsd',
+    'opbeans/java',
+    'opbeans/node',
+    'opbeans/python',
+    'opbeans/ruby',
+    'opbeans/rum',
+    'php/apache',
+    'python/django',
+    'python/flask',
+    'ruby/rails',
+    'rum',
+    'statsd',
     ]
 
 def setup_logging(is_debug: bool) -> None:
@@ -214,6 +215,30 @@ def _filter_adoptopenjdk_tags(tags: list):
     return matching_tags
 
 
+def _filter_golang_tags(tags: list, version: str):
+    matching_tags = []
+    if re.match(r'^[A-Za-z]+$', version):
+        for tag in tags:
+            if re.match(r'^[a-zA-Z]+$', tag):
+                matching_tags.append(tag)
+        return matching_tags
+    else:
+        return _filter_version_number(tags)
+
+def _filter_php_tags(tags: list):
+    matching_tags = []
+    for tag in tags:
+        if re.match(r'\d+(\.\d+)+\-apache', tag):
+            matching_tags.append(tag)
+    return matching_tags
+
+def _filter_statsd_tags(tags: list):
+    matching_tags = []
+    for tag in tags:
+        if re.match(r'v\d+(\.\d+)+$', tag):
+            matching_tags.append(tag)
+    return matching_tags
+
 def _filter_version_number(tags: list):
     matching_tags = []
     for tag in tags:
@@ -224,7 +249,7 @@ def _filter_version_number(tags: list):
 
 
 
-def filter_tags(repo: str, tags: list):
+def filter_tags(repo: str, tags: list, version: str):
     """
     Dispatcher for tag filtering based on image type
 
@@ -236,10 +261,16 @@ def filter_tags(repo: str, tags: list):
 
     if repo == 'maven':
         return _filter_maven_tags(tags)
-    if repo == 'adoptopenjdk':
+    if repo in ['adoptopenjdk', 'opbeans-java']:
         return _filter_adoptopenjdk_tags(tags)
+    if repo == 'golang':
+        return _filter_golang_tags(tags, version)
+    if repo == 'php':
+        return _filter_php_tags(tags)
+    if repo == 'statsd':
+        return _filter_statsd_tags(tags)
 
-    if repo in ['golang', 'alpine', 'node', 'nginx']:
+    if repo in ['golang', 'alpine', 'node', 'nginx', 'node', 'opbeans-node', 'opbeans-python', 'opbeans-ruby', 'python', 'ruby']:
         return _filter_version_number(tags)
 
     # repos which don't need tag filtering
@@ -292,8 +323,13 @@ def bump(debug, dev):
                 image_name, version = image.split(':')
                 repo = image_name.split('/').pop()
                 tags = dockerhub_tags_for_image(image_name)
-                filtered_tags = filter_tags(repo, tags)
+                if tags:
+                    filtered_tags = filter_tags(repo, tags, version)
+                else:
+                    logger.warning(f"Unable to resolve tags for repo [{repo}] in project [{project}]. Skipping repo.")
+                    continue
                 if version != 'latest' and filtered_tags and version != filtered_tags[0]:
+                    logger.debug(f'Found outdated image for image {image} in project {project}')
                     if project not in outdated_images:
                         outdated_images[project] = {}
                     outdated_images[project][image] = {'current_version': version, 'new_version': filtered_tags[0]}
@@ -301,7 +337,8 @@ def bump(debug, dev):
             except ValueError:
                 logger.critical("Probable bug on image [%s]" % image)
     if outdated_images:
-        print('Found outdated images: %s' % outdated_images)
+        print('\n\nFound outdated images:\n')
+        print(json.dumps(outdated_images, indent=4))
         sys.exit(1)
     
 
