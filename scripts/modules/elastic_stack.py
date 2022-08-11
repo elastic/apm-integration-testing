@@ -724,7 +724,7 @@ class ElasticAgent(StackService, Service):
             version=version,
         )
         try:
-            return self.bc["projects"]["beats"]["packages"][key]
+            return self.bc["projects"]["elastic-agent"]["packages"][key]
         except KeyError:
             # help debug manifest issues
             print(json.dumps(self.bc))
@@ -856,7 +856,7 @@ class ApmManaged(StackService, Service):
             version=version,
         )
         try:
-            return self.bc["projects"]["beats"]["packages"][key]
+            return self.bc["projects"]["elastic-agent"]["packages"][key]
         except KeyError:
             # help debug manifest issues
             print(json.dumps(self.bc))
