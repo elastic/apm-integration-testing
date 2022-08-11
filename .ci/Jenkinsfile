@@ -80,6 +80,18 @@ pipeline {
             }
           }
         }
+        stage('Docker Image Tests'){
+          options { skipDefaultCheckout() }
+          steps {
+            withGithubNotify(context: 'Docker Image Tests', tab: 'tests') {
+              deleteDir()
+              unstash 'source'
+              dir("${BASE_DIR}"){
+                sh(label: 'docker image tests', script: '.ci/scripts/docker-bump.sh')
+              }
+            }
+          }
+        }
         stage('Sanity checks') {
           agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }

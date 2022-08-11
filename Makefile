@@ -122,6 +122,11 @@ test-server: venv  ## Run server tests
 	source $(VENV)/bin/activate; \
 	pytest $(PYTEST_ARGS) tests/server/ --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/server-junit.xml
 
+test-docker-bump: venv  ## Run Docker bump tests
+	source $(VENV)/bin/activate; \
+	pip install -r scripts/docker_bump/requirements.txt; \
+	python -m scripts.docker_bump.bumper;
+
 SUBCOMMANDS = list-options load-dashboards start status stop upload-sourcemap versions
 
 test-helps:

@@ -2,22 +2,15 @@ __version__ = "0.1.0"
 import os
 import re
 import click
-import pprint
 import json
-
+import sys
 import logging
 
-# Hack in a path to modules
-import sys
-
-sys.path.append("..")
-from modules import opbeans, elastic_stack  # type: ignore
+from scripts.modules import opbeans, elastic_stack  # type: ignore
 
 from . import dockerhub
 
 logger = logging.getLogger(__name__)
-
-# TODO cover special cases where the version is note defined like `FROM alpine` in docker/intake-receiver
 
 PROJECTS = [
     "apm-server",
@@ -51,6 +44,8 @@ PROJECTS = [
 def setup_logging(is_debug: bool) -> None:
     """
     Initialize logging
+
+    is_debug: Will set the logger to DEBUG logging level. Otherwise, defaults to INFO.
     """
     if is_debug:
         logging.basicConfig(level=logging.DEBUG)
@@ -67,14 +62,18 @@ def _get_script_path():
 
 def get_docker_file(project: str) -> list:
     """
-    Get Dockefile for a project and return a list
-    line-by-line
+    Get Dockefile for a project and return a list line-by-line
+
+    project: The project to get the Dockerfile for. This corresponds to the name of the directory on the file system inside apm-integration-testing/docker
     """
     logger.debug("Search for Docker file for %s" % project)
     docker_file_target_location = os.path.join(
         _get_script_path(), "..", "..", "..", "docker", project, "Dockerfile"
     )
-    logger.debug("Found Docker file for project %s in %s" % (project, docker_file_target_location))
+    logger.debug(
+        "Found Docker file for project %s in %s"
+        % (project, docker_file_target_location)
+    )
     if not os.path.exists(docker_file_target_location):
         logger.debug("Not found")
     else:
@@ -87,6 +86,9 @@ def get_docker_file(project: str) -> list:
 def docker_extract_image(docker_lines: list, filter_to="FROM") -> list:
     """
     Given a line in a Dockerfile, return the image if found
+
+    docker_lines: A list of lines in the Dockerfile
+    filter_to: The Docker directive to consider as the keyword for a line containing a reference to an image
     """
     ret = []
     for line in docker_lines:
@@ -101,6 +103,8 @@ def collect_opbean_env(opbean: str) -> dict:
     """
     Given an Opbean, determine the environment variables which are set
     by default.
+
+    opbean: The name of the opbean. These correspond to directory names in apm-integration-testing/docker/opbeans
     """
     cls = getattr(opbeans, "Opbeans" + opbean.capitalize())
     inst = cls()
@@ -140,7 +144,15 @@ def collect_stack_env(stack: str) -> dict:
 
 def merge_env_to_directive(cls_env: dict, image_str: str, docker_lines=None):
     """
-    Take an env and a image and try to substitute
+    Take an env which is generated from the class definition and merge the values
+    into the name of an image. If `docker_lines` are passed in, this function will
+    merge variables discovered in the Dockerfile as well.
+
+    cls_env: A dictionary which contains all the values which are in a class definition for a particular opbean or stack component
+
+    image_str: The image and tag to substitute into. Ex: `my_great_image:${my_version}`
+
+    docker_lines: The content of a Dockefile, split into lines
     """
     if ":" in image_str:
         image_name, version = image_str.split(":")
@@ -186,6 +198,15 @@ def merge_env_to_directive(cls_env: dict, image_str: str, docker_lines=None):
 def dockerhub_tags_for_image(image: str) -> str:
     """
     Get the latest version for a image
+
+    Go out to the container registry and fetch all the tags for a given image.
+
+    image: The full URI of the image. Ex: 'docker.elastic.co/apm/apm-server'
+
+    Supported repos:
+
+    * docker.elastic.co
+    * registry.hub.docker.com
     """
     image_parts = image.split("/")
     if len(image_parts) == 3:
@@ -218,8 +239,13 @@ def dockerhub_tags_for_image(image: str) -> str:
 
 def _filter_maven_tags(tags: list):
     """
+    Take a list of Maven tags and filter out tags which could potentially be an upgrade target.
+    Order of tags is preserved, so the tag at position 0 is the most recent.
+
     We're looking for the most recent version of adoptopenjdk-11
     A sample version is something like `3.6.3-adoptopenjdk-11`
+
+    tags: A list of tags which the registry has indicated are available for a given image
     """
     matching_tags = []
     for tag in tags:
@@ -232,6 +258,12 @@ _filter_adoptopenjdk_tags = _filter_maven_tags
 
 
 def _filter_node_tags(tags: list, version: str):
+    """
+    Take a list of Node tags and filter out tags which could potentially be an upgrade target.
+    Order of tags is preserved, so the tag at position 0 is the most recent.
+
+    tags: A list of tags which the registry has indicated are available for a given image
+    """
     matching_tags = []
     if re.match(r"\d+(-[A-Za-z]+)+$", version):
         _, distro_name = version.split("-", maxsplit=1)
@@ -246,6 +278,12 @@ def _filter_node_tags(tags: list, version: str):
 
 
 def _filter_agent_tags(tags: list, version: str):
+    """
+    Take a list of Elastic Agent tags and filter out tags which could potentially be an upgrade target.
+    Order of tags is preserved, so the tag at position 0 is the most recent.
+
+    tags: A list of tags which the registry has indicated are available for a given image
+    """
     matching_tags = []
     if re.match(r"\d+(\.\d+)+(-\w+)+$", version):
         _, distro_name = version.split("-", maxsplit=1)
@@ -260,6 +298,12 @@ def _filter_agent_tags(tags: list, version: str):
 
 
 def _filter_golang_tags(tags: list, version: str):
+    """
+    Take a list of Golang tags and filter out tags which could potentially be an upgrade target.
+    Order of tags is preserved, so the tag at position 0 is the most recent.
+
+    tags: A list of tags which the registry has indicated are available for a given image
+    """
     matching_tags = []
     if re.match(r"^[A-Za-z]+$", version):
         for tag in tags:
@@ -271,6 +315,12 @@ def _filter_golang_tags(tags: list, version: str):
 
 
 def _filter_php_tags(tags: list):
+    """
+    Take a list of PHP tags and filter out tags which could potentially be an upgrade target.
+    Order of tags is preserved, so the tag at position 0 is the most recent.
+
+    tags: A list of tags which the registry has indicated are available for a given image
+    """
     matching_tags = []
     for tag in tags:
         if re.match(r"\d+(\.\d+)+\-apache$", tag):
@@ -279,6 +329,12 @@ def _filter_php_tags(tags: list):
 
 
 def _filter_statsd_tags(tags: list):
+    """
+    Take a list of Statsd tags and filter out tags which could potentially be an upgrade target.
+    Order of tags is preserved, so the tag at position 0 is the most recent.
+
+    tags: A list of tags which the registry has indicated are available for a given image
+    """
     matching_tags = []
     for tag in tags:
         if re.match(r"v\d+(\.\d+)+$", tag):
@@ -287,6 +343,12 @@ def _filter_statsd_tags(tags: list):
 
 
 def _filter_stack_tags(tags: list):
+    """
+    Take a list of tags found for components in the Elastic Stack and filter out tags which could potentially be an upgrade target.
+    Order of tags is preserved, so the tag at position 0 is the most recent.
+
+    tags: A list of tags which the registry has indicated are available for a given image
+    """
     matching_tags = []
     for tag in tags:
         if re.match(r"\d+(\.\d+)+\-SNAPSHOT$", tag):
@@ -295,6 +357,11 @@ def _filter_stack_tags(tags: list):
 
 
 def _filter_version_number(tags: list):
+    """
+    Generic filter which simply filters out tags which correspond just to a version number
+
+    tags: A list of tags which the registry has indicated are available for a given image
+    """
     matching_tags = []
     for tag in tags:
         if re.match(r"\d+(\.\d+)+$", tag):
@@ -423,3 +490,5 @@ def bump(debug):
         print("\n\nFound outdated images:\n")
         print(json.dumps(outdated_images, indent=4))
         sys.exit(1)
+    else:
+        print("No outdated images detected. Have a nice day!")
