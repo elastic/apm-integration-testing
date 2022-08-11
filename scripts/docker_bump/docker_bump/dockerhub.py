@@ -20,7 +20,7 @@ def get_filter_string(repo):
         return "jre-hotspot"
 
 
-# @cached(pc)
+@cached(pc)
 def get_tags_elastic(repo, namespace="apm", snapshots=False):
     """
     Get tags from the Elastic Docker repo using the internal API

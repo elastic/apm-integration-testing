@@ -71,11 +71,10 @@ def get_docker_file(project: str) -> list:
     line-by-line
     """
     logger.debug("Search for Docker file for %s" % project)
-    # FIXME look recursively for files as well
     docker_file_target_location = os.path.join(
         _get_script_path(), "..", "..", "..", "docker", project, "Dockerfile"
     )
-    logger.debug(docker_file_target_location)
+    logger.debug("Found Docker file for project %s in %s" % (project, docker_file_target_location))
     if not os.path.exists(docker_file_target_location):
         logger.debug("Not found")
     else:
