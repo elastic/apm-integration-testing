@@ -228,12 +228,7 @@ def _filter_maven_tags(tags: list):
     return matching_tags
 
 
-def _filter_adoptopenjdk_tags(tags: list):
-    matching_tags = []
-    for tag in tags:
-        if re.match(r"\d+(\.\d+)+\-adoptopenjdk-11", tag):
-            matching_tags.append(tag)
-    return matching_tags
+_filter_adoptopenjdk_tags = _filter_maven_tags
 
 
 def _filter_node_tags(tags: list, version: str):
