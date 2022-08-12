@@ -1,7 +1,6 @@
 __version__ = "0.1.0"
 import os
 import re
-from unittest import SkipTest
 import click
 import json
 import sys
