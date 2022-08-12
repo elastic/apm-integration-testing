@@ -89,7 +89,6 @@ pipeline {
               deleteDir()
               unstash 'source'
               dir("${BASE_DIR}"){
-                sh(label: 'wtf', script: 'pwd && ls -larth')
                 sh(label: 'docker image tests', script: '.ci/scripts/docker-bump.sh')
               }
             }
