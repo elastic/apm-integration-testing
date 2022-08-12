@@ -413,7 +413,7 @@ def filter_tags(repo: str, tags: list, version: str):
 
     raise Exception(f"No tag filter defined for repo: {repo}")
 
-def process_junit(results: dict) -> list[junit_xml.TestSuite]:
+def process_junit(results: dict) -> list:
     """
     Produces a junit-xml test suite for consumption by Jenkins
     """
