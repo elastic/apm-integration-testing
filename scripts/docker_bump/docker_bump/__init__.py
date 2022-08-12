@@ -530,7 +530,6 @@ def bump(debug, junit):
     if outdated_images:
         print("\n\nFound outdated images:\n")
         print(json.dumps(outdated_images, indent=4))
-        if not junit:
-            sys.exit(1)
+        sys.exit(1)
     else:
         print("No outdated images detected. Have a nice day!")
