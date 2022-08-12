@@ -91,6 +91,13 @@ pipeline {
               }
             }
           }
+          post {
+            always {
+              junit(allowEmptyResults: true,
+                keepLongStdio: true,
+                testResults: "${BASE_DIR}/tests/results/docker-bump.xml")
+            }
+          }
         }
         stage('Sanity checks') {
           agent { label 'linux && immutable' }

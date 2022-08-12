@@ -125,7 +125,7 @@ test-server: venv  ## Run server tests
 test-docker-bump: venv  ## Run Docker bump tests
 	source $(VENV)/bin/activate; \
 	pip install -r scripts/docker_bump/requirements.txt; \
-	python -m scripts.docker_bump.bumper;
+	python -m scripts.docker_bump.bumper --junit;
 
 SUBCOMMANDS = list-options load-dashboards start status stop upload-sourcemap versions
 

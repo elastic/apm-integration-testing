@@ -521,13 +521,17 @@ def bump(debug, junit):
                 logger.critical("Probable bug on image [%s]" % image)
     if junit:
         junit_results = process_junit(results)
-        print(junit_xml.to_xml_report_string(junit_results))
-#    print(json.dumps(results, indent=4))
-#    if outdated_images:
-#        print("\n\nFound outdated images:\n")
-#        print(json.dumps(outdated_images, indent=4))
-#        if not junit:
-#            sys.exit(1)
-#    else:
-#        print("No outdated images detected. Have a nice day!")
-#
+        if debug:
+            logger.debug(junit_xml.to_xml_report_string(junit_results))
+        junit_target_file = os.path.join(_get_script_path(), '..', '..', '..', 'tests', 'results', 'docker-bump.xml')
+        if not os.path.exists(junit_target_file):
+            os.makedirs(os.path.dirname(junit_target_file))
+        with open(junit_target_file, 'w') as fh_:
+            junit_xml.to_xml_report_file(fh_, junit_results)
+    if outdated_images:
+        print("\n\nFound outdated images:\n")
+        print(json.dumps(outdated_images, indent=4))
+        if not junit:
+            sys.exit(1)
+    else:
+        print("No outdated images detected. Have a nice day!")
