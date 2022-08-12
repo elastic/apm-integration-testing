@@ -1,4 +1,4 @@
-ARG RUBY_VERSION=3.0
+ARG RUBY_VERSION=3.1.2
 FROM ruby:${RUBY_VERSION}
 
 RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries

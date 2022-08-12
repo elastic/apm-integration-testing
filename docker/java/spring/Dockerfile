@@ -1,4 +1,4 @@
-FROM maven:3.6.3-adoptopenjdk-11
+FROM maven:3.8.3-adoptopenjdk-11
 
 ARG JAVA_AGENT_REPO=elastic/apm-agent-java
 ARG JAVA_AGENT_BRANCH=main

@@ -1,4 +1,4 @@
-ARG go_version=1.17.7
+ARG go_version=1.19.0
 FROM golang:${go_version} AS build
 ENV CGO_ENABLED=0
 # TODO(marclop) After https://github.com/elastic/apm-server/pull/7416 is merged, replace git clone
@@ -6,7 +6,7 @@ ENV CGO_ENABLED=0
 RUN git clone --single-branch --branch f-add-intake-receiver https://github.com/marclop/apm-server /apm-server
 RUN cd /apm-server/cmd/intake-receiver && go build .
 
-FROM alpine
+FROM alpine:3.16.2
 COPY --from=build /apm-server/cmd/intake-receiver/intake-receiver /intake-receiver
 RUN apk update && apk add curl jq
 ENTRYPOINT [ "/intake-receiver" ]

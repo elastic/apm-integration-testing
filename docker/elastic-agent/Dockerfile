@@ -1,8 +1,8 @@
-ARG STACK_VERSION=8.2.0-SNAPSHOT
+ARG STACK_VERSION=8.5.0-SNAPSHOT
 FROM docker.elastic.co/beats-dev/golang-crossbuild:1.17.8-main-debian10 as build
 ARG ELASTIC_AGENT_BRANCH_OR_COMMIT="main"
 ARG ELASTIC_AGENT_REPO=https://github.com/elastic/apm-server.git
-ARG STACK_VERSION=8.2.0-SNAPSHOT
+ARG STACK_VERSION=8.5.0-SNAPSHOT
 
 ENV SRC=/go/src/github.com/elastic/apm-server
 ENV GOOS=linux
@@ -25,7 +25,7 @@ RUN cd ${SRC} \
   && cd build/distributions \
   && tar -czf /apm-server.tgz ${apmdir}
 
-ARG STACK_VERSION=8.2.0-SNAPSHOT
+ARG STACK_VERSION=8.5.0-SNAPSHOT
 FROM docker.elastic.co/beats/elastic-agent:${STACK_VERSION}
 
 USER root

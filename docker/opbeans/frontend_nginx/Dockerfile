@@ -1,4 +1,4 @@
-FROM nginx:1.17.3
+FROM nginx:1.23.1
 
 COPY --from=opbeans/opbeans-frontend:latest /app/build /usr/share/nginx/html
 

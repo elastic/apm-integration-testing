@@ -1,4 +1,4 @@
-FROM node:16-bullseye-slim
+FROM node:18-bullseye-slim
 
 ENV DEBIAN_FRONTEND noninteractive
 # Install latest chrome dev package and fonts to support major charsets (Chinese, Japanese, Arabic, Hebrew, Thai and a few others)

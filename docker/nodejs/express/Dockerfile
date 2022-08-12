@@ -1,4 +1,4 @@
-FROM node:16.15.0
+FROM node:18.7.0
 
 RUN mkdir -p /app
 COPY package.json .npmrc app.js /app/

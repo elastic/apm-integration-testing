@@ -1,4 +1,4 @@
-FROM node:12-slim
+FROM node:18-slim
 
 ARG RUM_AGENT_BRANCH=main
 ARG RUM_AGENT_REPO=elastic/apm-agent-rum-js

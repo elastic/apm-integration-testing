@@ -1,4 +1,4 @@
-FROM python:3
+FROM python:3.9.13
 
 LABEL maintainer="mike.place@elastic.co"
 WORKDIR /

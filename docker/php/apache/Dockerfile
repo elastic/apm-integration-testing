@@ -1,4 +1,4 @@
-FROM php:7.4-apache
+FROM php:8.1.9-apache
 
 RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries
 RUN apt-get -qq update \
