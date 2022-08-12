@@ -62,6 +62,7 @@ pipeline {
     stage('Tests'){
       parallel {
         stage('Unit Tests'){
+          agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           steps {
             withGithubNotify(context: 'Unit Tests', tab: 'tests') {
@@ -81,6 +82,7 @@ pipeline {
           }
         }
         stage('Docker Image Tests'){
+          agent { label 'linux && immutable' }
           options { skipDefaultCheckout() }
           steps {
             withGithubNotify(context: 'Docker Image Tests', tab: 'tests') {
