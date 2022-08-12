@@ -1,10 +1,12 @@
 __version__ = "0.1.0"
 import os
 import re
+from unittest import SkipTest
 import click
 import json
 import sys
 import logging
+import junit_xml
 
 from scripts.modules import opbeans, elastic_stack  # type: ignore
 
@@ -411,16 +413,37 @@ def filter_tags(repo: str, tags: list, version: str):
 
     raise Exception(f"No tag filter defined for repo: {repo}")
 
+def process_junit(results: dict) -> list[junit_xml.TestSuite]:
+    """
+    Produces a junit-xml test suite for consumption by Jenkins
+    """
+    suites = []
+    for project_name, project_data in results.items():
+        suite = junit_xml.TestSuite(project_name)
+        for image_name, image_data in project_data.items():
+            image_case = junit_xml.TestCase(image_name)
+            if image_data:
+                if image_data["current"] != image_data["upstream"]:
+                    image_case.add_failure_info(f"Current image is '{image_data['current']}' and the upstream image is '{image_data['upstream']}'")
+            else:  # We have an image name but no contents, possibly because we couldn't support the repo type
+                image_case.add_skipped_info("No upstream information was retreivable")
+            suite.test_cases.append(image_case)
+        suites.append(suite)
+    return suites
+
 
 @click.command()
+@click.option("--junit", is_flag=True)
 @click.option("--debug", is_flag=True)
-def bump(debug):
+def bump(debug, junit):
     """
     Program entrypoint
     """
     setup_logging(debug)
-    outdated_images = {}
+    outdated_images = {} # TODO remove
+    results = {}
     for project in PROJECTS:
+        results[project] = {}
         docker_lines = get_docker_file(project)
         images = docker_extract_image(docker_lines)
         if project.startswith("opbeans") and "frontend_nginx" not in project:
@@ -458,6 +481,7 @@ def bump(debug):
 
         for image in images:
             logger.debug(f"Processing image {image}")
+            results[project][image] = {}
             try:
                 image_name, version = image.split(":")
                 repo = image_name.split("/").pop()
@@ -477,18 +501,33 @@ def bump(debug):
                     logger.debug(
                         f"Found outdated image for image {image} in project {project}"
                     )
+                    results[project][image] = {
+                        "current": version,
+                        "upstream": filtered_tags[0]
+                    }
                     if project not in outdated_images:
                         outdated_images[project] = {}
                     outdated_images[project][image] = {
                         "current_version": version,
                         "new_version": filtered_tags[0],
                     }
+                else:
+                    results[project][image] = {
+                        "current": version,
+                        "upstream": version
+                    }
 
             except ValueError:
                 logger.critical("Probable bug on image [%s]" % image)
-    if outdated_images:
-        print("\n\nFound outdated images:\n")
-        print(json.dumps(outdated_images, indent=4))
-        sys.exit(1)
-    else:
-        print("No outdated images detected. Have a nice day!")
+    if junit:
+        junit_results = process_junit(results)
+        print(junit_xml.to_xml_report_string(junit_results))
+#    print(json.dumps(results, indent=4))
+#    if outdated_images:
+#        print("\n\nFound outdated images:\n")
+#        print(json.dumps(outdated_images, indent=4))
+#        if not junit:
+#            sys.exit(1)
+#    else:
+#        print("No outdated images detected. Have a nice day!")
+#
