@@ -348,7 +348,7 @@ class OpbeansServiceTest(ServiceTest):
                             max-size: '2m'
                             max-file: '5'
                     environment:
-                        - DATABASE_URL=pURLostgres://postgres:verysecure@postgres/opbeans
+                        - DATABASE_URL=postgres://postgres:verysecure@postgres/opbeans
                         - ELASTIC_APM_SERVICE_NAME=opbeans-python
                         - ELASTIC_APM_SERVICE_VERSION=9c2e41c8-fb2f-4b75-a89d-5089fb55fc64
                         - ELASTIC_APM_SERVER_URL=http://apm-server:8200
