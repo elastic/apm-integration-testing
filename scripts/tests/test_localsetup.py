@@ -649,7 +649,7 @@ class PostgresServiceTest(ServiceTest):
         self.assertEqual(
             postgres, yaml.safe_load("""
                 postgres:
-                    image: postgres:10
+                    image: postgres:14
                     container_name: localtesting_6.2.4_postgres
                     environment:
                         - POSTGRES_DB=opbeans
