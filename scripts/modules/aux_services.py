@@ -83,7 +83,7 @@ class Postgres(Service):
         return dict(
             environment=["POSTGRES_DB=opbeans", "POSTGRES_PASSWORD=verysecure"],
             healthcheck={"interval": "10s", "test": ["CMD", "pg_isready", "-h", "postgres", "-U", "postgres"]},
-            image="postgres:10",
+            image="postgres:14",
             labels=None,
             ports=[self.publish_port(self.port, self.SERVICE_PORT, expose=True)],
             volumes=["./docker/opbeans/sql:/docker-entrypoint-initdb.d", "pgdata:/var/lib/postgresql/data"],
