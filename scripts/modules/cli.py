@@ -680,7 +680,7 @@ class LocalSetup(object):
         for service in selections:
             download_url = service.image_download_url()
             if download_url:
-                services_to_load[service.name()] = download_url
+                services_to_load[list(service.render().keys())[0]] = download_url
         if not args["skip_download"] and services_to_load:
             load_images(set(services_to_load.values()), args["image_cache_dir"])
 
