@@ -88,7 +88,7 @@ class LocalSetup(object):
         '8.1': '8.1.3',
         '8.2': '8.2.3',
         '8.3': '8.3.3',
-        '8.4': '8.4.0',
+        '8.4': '8.4.1',
         'main': '8.5.0',
         'master': '8.5.0',  # keep master alias for backward compatibility. Upgrade the main alias only
     }
