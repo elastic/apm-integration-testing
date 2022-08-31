@@ -464,6 +464,93 @@ class OpbeansNode01(OpbeansNode):
         super(OpbeansNode01, self).__init__(**options)
 
 
+class OpbeansPhp(OpbeansService):
+    SERVICE_PORT = 3105
+    DEFAULT_AGENT_BRANCH = "main"
+    DEFAULT_AGENT_REPO = "elastic/apm-agent-php"
+    DEFAULT_OPBEANS_BRANCH = "main"
+    DEFAULT_OPBEANS_REPO = "elastic/opbeans-php"
+    DEFAULT_SERVICE_NAME = "opbeans-php"
+    DEFAULT_ELASTIC_APM_ENVIRONMENT = "production"
+    DEFAULT_SAMPLE_RATE = 10
+
+    @classmethod
+    def add_arguments(cls, parser):
+        super(OpbeansPhp, cls).add_arguments(parser)
+        parser.add_argument(
+            '--' + cls.name() + '-branch',
+            default=cls.DEFAULT_OPBEANS_BRANCH,
+            dest=cls.option_name() + '_branch',
+            help=cls.name() + " branch for the opbeans php"
+        )
+        parser.add_argument(
+            '--' + cls.name() + '-repo',
+            default=cls.DEFAULT_OPBEANS_REPO,
+            dest=cls.option_name() + '_repo',
+            help=cls.name() + " github repo for the opbeans php (in form org/repo)"
+        )
+
+    @add_agent_environment([
+        ("apm_server_secret_token", "ELASTIC_APM_SECRET_TOKEN")
+    ])
+    def _content(self):
+        depends_on = {
+            "postgres": {"condition": "service_healthy"},
+            "redis": {"condition": "service_healthy"},
+        }
+
+        if self.options.get("enable_apm_server", True):
+            depends_on["apm-server"] = {"condition": "service_healthy"}
+        if self.options.get("enable_elasticsearch", True):
+            depends_on["elasticsearch"] = {"condition": "service_healthy"}
+
+        content = dict(
+            build=dict(
+                context="docker/opbeans/php",
+                dockerfile="Dockerfile",
+                args=[
+                    "PHP_AGENT_BRANCH=" + (self.agent_branch or self.DEFAULT_AGENT_BRANCH),
+                    "PHP_AGENT_REPO=" + (self.agent_repo or self.DEFAULT_AGENT_REPO),
+                    "OPBEANS_PHP_BRANCH=" + (self.opbeans_branch or self.DEFAULT_OPBEANS_BRANCH),
+                    "OPBEANS_PHP_REPO=" + (self.opbeans_repo or self.DEFAULT_OPBEANS_REPO),
+                ]
+            ),
+            environment=[
+                "ELASTIC_APM_SERVICE_NAME={}".format(self.service_name),
+                "ELASTIC_APM_SERVICE_VERSION={}".format(self.service_version),
+                "ELASTIC_APM_SERVER_URL={}".format(self.apm_server_url),
+                "ELASTIC_APM_JS_SERVER_URL={}".format(self.apm_js_server_url),
+                "ELASTIC_APM_VERIFY_SERVER_CERT={}".format(str(not self.options.get("no_verify_server_cert")).lower()),
+                "ELASTIC_APM_FLUSH_INTERVAL=5",
+                "ELASTIC_APM_TRANSACTION_MAX_SPANS=50",
+                "ELASTICSEARCH_URL={}".format(self.es_urls),
+                "OPBEANS_CACHE=redis://redis:6379",
+                "OPBEANS_PHP_HOST=0.0.0.0",
+                "OPBEANS_PHP_PORT={}".format(self.APPLICATION_PORT),
+                "DB_HOST=postgres",
+                "DB_PORT=5432",
+                "DB_CONNECTION=pgsql",
+                "DB_DATABASE=opbeans",
+                "DB_USERNAME=postgres",
+                "DB_PASSWORD=verysecure",
+                "POSTGRES_DB=opbeans"
+                "POSTGRES_USER=postgres",
+                "POSTGRES_PASSWORD=verysecure",
+                "WEB_DOCUMENT_ROOT=/app/public/",
+                "PGSSLMODE=disable",
+                "OPBEANS_DT_PROBABILITY={:.2f}".format(self.opbeans_dt_probability),
+                "ELASTIC_APM_ENVIRONMENT={}".format(self.service_environment),
+                "ELASTIC_APM_TRANSACTION_SAMPLE_RATE={:.2f}".format(self.sample_rate),
+            ],
+            depends_on=depends_on,
+            healthcheck=curl_healthcheck(self.APPLICATION_PORT, "opbeans-php", path="/"),
+            image=None,
+            labels=None,
+            ports=[self.publish_port(self.port, self.APPLICATION_PORT)],
+        )
+        return content
+
+
 class OpbeansPython(OpbeansService):
     SERVICE_PORT = 8000
     DEFAULT_AGENT_REPO = "elastic/apm-agent-python"
