@@ -13,8 +13,8 @@ from ..modules.aux_services import Postgres, Redis
 from ..modules.elastic_stack import ApmServer, Elasticsearch
 from ..modules.helpers import parse_version
 from ..modules.opbeans import (
-    OpbeansService, OpbeansDotnet, OpbeansGo, OpbeansJava, OpbeansNode, OpbeansPython,
-    OpbeansRuby, OpbeansRum, OpbeansLoadGenerator
+    OpbeansService, OpbeansDotnet, OpbeansGo, OpbeansJava, OpbeansNode, OpbeansPhp,
+    OpbeansPython, OpbeansRuby, OpbeansRum, OpbeansLoadGenerator
 )
 
 from ..modules.cli import discover_services, LocalSetup
@@ -245,7 +245,6 @@ class OpbeansServiceTest(ServiceTest):
         opbeans = OpbeansJava().render()["opbeans-java"]
         self.assertTrue("ELASTIC_APM_PROFILING_INFERRED_SPANS_ENABLED=true" in opbeans['environment'])
 
-
     def test_opbeans_java_version(self):
         opbeans = OpbeansJava(opbeans_java_version="bar").render()["opbeans-java"]
         version = [e for e in opbeans["build"]["args"] if e.startswith("OPBEANS_JAVA_VERSION")]
@@ -327,6 +326,74 @@ class OpbeansServiceTest(ServiceTest):
         opbeans_node = OpbeansNode(no_opbeans_node_loadgen=True).render()["opbeans-node"]
         value = [e for e in opbeans_node["environment"] if e.startswith("WORKLOAD_DISABLED")]
         self.assertEqual(value, ["WORKLOAD_DISABLED=True"])
+
+    def test_opbeans_php(self):
+        opbeans_php = OpbeansPhp(version="8.3.10").render()
+        self.assertEqual(
+            opbeans_php, yaml.safe_load("""
+                opbeans-php:
+                    build:
+                      dockerfile: Dockerfile
+                      context: docker/opbeans/php
+                      args:
+                        - PHP_AGENT_BRANCH=main
+                        - PHP_AGENT_REPO=elastic/apm-agent-php
+                        - OPBEANS_PHP_BRANCH=main
+                        - OPBEANS_PHP_REPO=elastic/opbeans-php
+                    container_name: localtesting_8.3.10_opbeans-php
+                    ports:
+                      - "127.0.0.1:3105:3000"
+                    environment:
+                      - ELASTIC_APM_SERVICE_NAME=opbeans-php
+                      - ELASTIC_APM_SERVICE_VERSION=9c2e41c8-fb2f-4b75-a89d-5089fb55fc64
+                      - ELASTIC_APM_SERVER_URL=http://apm-server:8200
+                      - ELASTIC_APM_JS_SERVER_URL=http://localhost:8200
+                      - ELASTIC_APM_VERIFY_SERVER_CERT=true
+                      - ELASTIC_APM_FLUSH_INTERVAL=5
+                      - ELASTIC_APM_TRANSACTION_MAX_SPANS=50
+                      - ELASTICSEARCH_URL=http://elasticsearch:9200
+                      - OPBEANS_CACHE=redis://redis:6379
+                      - OPBEANS_PHP_HOST=0.0.0.0
+                      - OPBEANS_PHP_PORT=3000
+                      - DB_HOST=postgres
+                      - DB_PORT=5432
+                      - DB_CONNECTION=pgsql
+                      - DB_DATABASE=opbeans
+                      - DB_USERNAME=postgres
+                      - DB_PASSWORD=verysecure
+                      - POSTGRES_DB=opbeansPOSTGRES_USER=postgres
+                      - POSTGRES_PASSWORD=verysecure
+                      - WEB_DOCUMENT_ROOT=/app/public/
+                      - PGSSLMODE=disable
+                      - OPBEANS_DT_PROBABILITY=0.50
+                      - ELASTIC_APM_ENVIRONMENT=production
+                      - ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.10
+                    logging:
+                      driver: 'json-file'
+                      options:
+                          max-size: '2m'
+                          max-file: '5'
+                    depends_on:
+                      postgres:
+                        condition:
+                          service_healthy
+                      redis:
+                        condition:
+                          service_healthy
+                      apm-server:
+                        condition:
+                          service_healthy
+                      elasticsearch:
+                        condition:
+                          service_healthy
+                    healthcheck:
+                        test: ["CMD", "curl", "--write-out", "'HTTP %{http_code}'", "-k", "--fail", "--silent", "--output", "/dev/null", "http://opbeans-php:3000/"]
+                        timeout: 5s
+                        interval: 10s
+                        retries: 12
+
+ """)  # noqa: 501
+        )
 
     def test_opbeans_python(self):
         opbeans_python = OpbeansPython(version="6.2.4").render()
@@ -850,6 +917,7 @@ class LocalTest(unittest.TestCase):
             "opbeans-java",
             "opbeans-load-generator",
             "opbeans-node",
+            "opbeans-php",
             "opbeans-python",
             "opbeans-ruby",
             "opbeans-rum",
@@ -1105,6 +1173,7 @@ class LocalTest(unittest.TestCase):
                 '3003:3003',
                 '3002:3002',
                 '3000:3000',
+                '3105:3105',
                 '8000:8000',
                 '3001:3001'
             ],
@@ -1183,7 +1252,7 @@ class LocalTest(unittest.TestCase):
                 setup = LocalSetup(argv=self.common_setup_args + ["main", "--all", "--dyno"])
                 setup.set_docker_compose_path(docker_compose_yml)
                 setup()
-        want = '[\n    {\n        "enabled": true,\n        "listen": "[::]:3004",\n        "name": "opbeans-dotnet",\n        "upstream": "opbeans-dotnet:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3003",\n        "name": "opbeans-go",\n        "upstream": "opbeans-go:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3002",\n        "name": "opbeans-java",\n        "upstream": "opbeans-java:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3000",\n        "name": "opbeans-node",\n        "upstream": "opbeans-node:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:8000",\n        "name": "opbeans-python",\n        "upstream": "opbeans-python:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3001",\n        "name": "opbeans-ruby",\n        "upstream": "opbeans-ruby:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:5432",\n        "name": "postgres",\n        "upstream": "postgres:5432"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:6379",\n        "name": "redis",\n        "upstream": "redis:6379"\n    }\n]'
+        want = '[\n    {\n        "enabled": true,\n        "listen": "[::]:3004",\n        "name": "opbeans-dotnet",\n        "upstream": "opbeans-dotnet:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3003",\n        "name": "opbeans-go",\n        "upstream": "opbeans-go:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3002",\n        "name": "opbeans-java",\n        "upstream": "opbeans-java:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3000",\n        "name": "opbeans-node",\n        "upstream": "opbeans-node:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3105",\n        "name": "opbeans-php",\n        "upstream": "opbeans-php:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:8000",\n        "name": "opbeans-python",\n        "upstream": "opbeans-python:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:3001",\n        "name": "opbeans-ruby",\n        "upstream": "opbeans-ruby:3000"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:5432",\n        "name": "postgres",\n        "upstream": "postgres:5432"\n    },\n    {\n        "enabled": true,\n        "listen": "[::]:6379",\n        "name": "redis",\n        "upstream": "redis:6379"\n    }\n]'
         toxi_open().write.assert_called_once_with(want)
 
     @mock.patch(service.__name__ + ".resolve_bc")

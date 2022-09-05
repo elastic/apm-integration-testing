@@ -29,7 +29,7 @@ from .aux_services import (  # noqa: F401
     CommandService, Kafka, Logstash, Postgres, Redis, StatsD, Zookeeper, WaitService
 )
 from .opbeans import (  # noqa: F401
-    OpbeansNode, OpbeansRuby, OpbeansPython, OpbeansDotnet,
+    OpbeansNode, OpbeansRuby, OpbeansPhp, OpbeansPython, OpbeansDotnet,
     OpbeansGo, OpbeansJava, OpbeansLoadGenerator, OpbeansGo01, OpbeansDotnet01,
     OpbeansJava01, OpbeansNode01, OpbeansPython01, OpbeansRuby01
 )
