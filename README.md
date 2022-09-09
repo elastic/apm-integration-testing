@@ -32,17 +32,6 @@ This repo is tested with Python 3 but starting/stopping environments work with P
   ```sh
   sudo apt-get install python3
   ```
-## Update Elastic Stack on new releases
-
-Every time there is a new Elastic Stack release we have to update the configuration files to test the new release. These are the changes we have to make:
-
-* Update `ELASTIC_STACK_VERSION` param on Jenkinsfiles (.ci/\*.groovy and .ci/Jenkinsfile files).
-* Update `.ci/scripts/7.0-upgrade.sh` Elastic stack used for the update (on branch 7.x)
-* Update `SUPPORTED_VERSIONS`
-  * Main branch [cli.py](https://github.com/elastic/apm-integration-testing/blob/main/scripts/modules/cli.py#L58-L76)
-  * 7.x branch [compose.py](https://github.com/elastic/apm-integration-testing/blob/7.x/scripts/compose.py#L2115-L2131)
-* Update [APM server versions](https://github.com/elastic/apm-integration-testing/blob/main/tests/versions/apm_server.yml)
-
 ## Running Local Enviroments
 
 ### Starting an Environment
@@ -93,15 +82,13 @@ We have a list with the most common flags combination that we internally use whe
 
 |Persona | Flags | Motivation / Use Case | Team | Comments |
 |--------|-------|-----------------------|------|----------|
-| CI Server | `python scripts/compose.py start 8.0.0 --java-agent-version ${COMMIT_SHA} --build-parallel --with-agent-java-spring --no-apm-server-self-instrument --force-build` | Prepare environment for running tests for APM Java agent | APM Agents |
-| CI Server	| `python scripts/compose.py start 8.0.0 --apm-server-build https://github.com/elastic/apm-server@${COMMIT_HASH} --build-parallel --no-apm-server-self-instrument --with-agent-rumjs --with-agent-dotnet --with-agent-go-net-http --with-agent-nodejs-express --with-agent-ruby-rails --with-agent-java-spring --with-agent-python-django --with-agent-python-flask --force-build`	| Prepare environment for running tests for APM Server	| APM Server | |
 | Demos & Screenshots	| `./scripts/compose.py start --release --with-opbeans-dotnet --with-opbeans-go --with-opbeans-java --opbeans-java-agent-branch=pr/588/head --force-build --with-opbeans-node --with-opbeans-python --with-opbeans-ruby --with-opbeans-rum --with-filebeat --with-metricbeat 7.3.0`	| demos, screenshots, ad hoc QA. It's also used to send heartbeat data to the cluster for Uptime | PMM	| Used for snapshots when close to a release, without the `--release` flag |
 | Development | `./scripts/compose.py start 7.3 --bc --with-opbeans-python --opbeans-python-agent-local-repo=~/elastic/apm-agent-python` | Use current state of local agent repo with opbeans | APM Agents | |
 | | `./scripts/compose.py start 7.3 --bc --start-opbeans-deps` | This flag would start all opbeans dependencies (postgres, redis, apm-server, ...), but not any opbeans instances | APM Agents | This would help when developing with a locally running opbeans. Currently, we start the environment with a `--with-opbeans-python` flag, then stop the opbeans-python container manually |
 | Developer | `./scripts/compose.py start main --no-apm-server` | Only use Kibana + ES in desired version for testing | APM Server |  |
 | Developer | `./scripts/compose.py start --release 7.3 --no-apm-server` | Use released Kibana + ES, with custom agent and server running on host, for developing new features that span agent and server. | APM Agents | If `--opbeans-go-agent-local-repo` worked, we might be inclined to use that instead of running custom apps on the host. Would have been handy while developing support for breakdown graphs. Even then, it's probably still faster to iterate on the agent without involving Docker. |
 | Developer | `./scripts/compose.py start main --no-kibana` | Use newest ES/main, with custom kibana on host, for developing new features in kibana | APM |  |
-| Developer | `./scripts/compose.py start 6.3 --with-kafka --with-zookeeper --apm-server-output=kafka --with-logstash --with-agent-python-flask` | Testing with kafka and logstash ingestion methods | APM |  |
+| Developer | `./scripts/compose.py start 6.3 --with-kafka --with-zookeeper --apm-server-output=kafka --with-logstash --with-opbeans-python` | Testing with kafka and logstash ingestion methods | APM |  |
 | Developer | `./scripts/compose.py start main --no-kibana --with-opbeans-node --with-opbeans-rum --with-opbeans-x` | Developing UI features locally | APM UI | |
 | Developer | `./scripts/compose.py start main --docker-compose-path - --skip-download --no-kibana --with-opbeans-ruby --opbeans-ruby-agent-branch=main > docker-compose.yml` | Developing UI features againt specific configuration | APM UI | We sometimes explicity write a `docker-compose.yml` file and tinker with it until we get the desired configuration becore running `docker-compose up` |
 | Developer | `scripts/compose.py start ${version}` | Manual testing of agent features | APM Agents | |
@@ -334,7 +321,6 @@ Several `make` targets exist to make their execution simpler:
 
 - test-server
 - test-kibana
-- test-agent-{go,node,python,ruby,...}
 
 These targets will create a python virtual environment in `venv` with all of the dependencies need to run the suite.
 
@@ -370,33 +356,7 @@ Those scripts shut down any existing testing containers and start a fresh new en
 
 These are the scripts available to execute:
 
-* `agent.sh:` runs the tests for the given agent. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
-
-* `all.sh:` runs all tests on apm-server and every agent type.
-
 * `common.sh:` common scripts variables and functions. It does not execute anything.
-
-* `dotnet.sh:` runs .NET tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
-
-* `go.sh:` runs Go tests. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
-
-* `java.sh:` runs Java tests. Uou can choose the versions to run see the [environment variables](#environment-variables) configuration.
-
-* `kibana.sh:` runs Kibana agent tests. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
-
-* `nodejs.sh:` runs Nodejs agent tests. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
-
-* `opbeans.sh:` runs the unit tests for the apm-integration-testing app and validates the linting. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
-
-* `opbeans-app.sh:` runs the apm-integration-testing app and validates the stack can be started. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
-
-* `php.sh:` runs PHP agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
-
-* `python.sh:` runs Python agent tests. You can choose the versions to run see the [environment variables](#environment-variables) configuration.
-
-* `ruby.sh:` runs Ruby agent tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
-
-* `server.sh:` runs APM Server tests, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 
 * `unit-tests.sh:` runs the unit tests for the apm-integration-testing app and validate the linting, you can choose the versions to run see the [environment variables](#environment-variables) configuration.
 
@@ -414,115 +374,13 @@ It is possible to configure some options and versions to run by defining environ
 
 * `APM_SERVER_BRANCH`: selects the APM Server version to use on tests. By default it uses the main branch. You can choose any branch or tag from the Github repo.
 
-* `APM_AGENT_DOTNET_VERSION`: selects the agent .NET version to use. By default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
-
-* `APM_AGENT_GO_VERSION`: selects the agent Go version to use. By default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
-
-* `APM_AGENT_JAVA_VERSION`: selects the agent Java version to use. By default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
-
-* `APM_AGENT_NODEJS_VERSION`: selects the agent Nodejs version to use. By default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
-
-* `APM_AGENT_PHP_VERSION`: selects the agent PHP version to use. By default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
-
-* `APM_AGENT_PYTHON_VERSION`: selects the agent Python version to use. By default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
-
-* `APM_AGENT_RUBY_VERSION`: selects the agent Ruby version to use. By default it uses the main branch. See [specify an agent version](#specify-an-agent-version)
-
-#### Specify an Agent Version
-
-You can choose any release, branch, or tag from the Github repo. To do so, you must set the PKG environment variable to `MODE;VERSION`, where `MODE` can be:
-
-* `github`: to get VERSION from branches and tags.
-
-* `release`: to get VERSION from releases.
-
-* `commit`: to get VERSION from commits (only Java and Go agents).
-
-e.g.
-* `APM_AGENT_NODEJS_VERSION=github;v1.0.0` It will try to get v1.0.0 branch or tag from Github.
-
-* `APM_AGENT_NODEJS_VERSION=github;main` It will try to get main branch or tag from Github.
-
-* `APM_AGENT_NODEJS_VERSION=release;v1.0.0` It will try to get v1.0.0 from releases repo.
-
-* `APM_AGENT_RUBY_VERSION=release;latest` It will try to get latest from releases repo.
-
-* `APM_AGENT_JAVA_VERSION=commit;539f1725483804d32beb4f780eac72c238329cb1` It will try to get `539f1725483804d32beb4f780eac72c238329cb1` from repo commits.
-
-#### Version Tests
-
-Various combinations of versions of agents and the Elastic Stack are tested together to ensure compatibility.
-
-The matrix is defined using [apm_server.yml](https://github.com/elastic/apm-integration-testing/blob/main/tests/versions/apm_server.yml) for one axis and then a per-agent specification for the other axis.
-
-Certain exclusions are defined on a per agent basis.
-
-For example, [the nodejs matrix](https://apm-ci.elastic.co/view/All/job/elastic+apm-integration-testing+main+multijob-nodejs-agent-versions/) is defined in [nodejs.yml](https://github.com/elastic/apm-integration-testing/blob/main/tests/versions/nodejs.yml).
-
-When those tests run, `scripts/ci/versions_nodejs.sh` is invoked with the product of those files, eg `scripts/ci/versions_nodejs.sh 'github;main' '6.3'`.
-
-The Elastic Stack version argument accepts an optional list of semi-colon separated arguments that will be passed to `scripts/compose.py` when building the test stack.
-
-### Agent Development
-
-To run integration tests against unreleased agent code, start an environment where that agent code is used by the test application.
-
-For example, to test an update to the Python agent from user `elasticcontributor` on their `newfeature1` branch:
-
-```bash
-# start test deps: apm-server, elasticsearch, and the two python test applications
-# the test applications will use elasticcontributor's newfeature1 apm agent
-./scripts/compose.py start main --with-agent-python-django --with-agent-python-flask --python-agent-package=git+https://github.com/elasticcontributor/apm-agent-python.git@newfeature1 --force-build
-
-# wait for healthiness
-docker-compose ps
-
-# run tests
-make test-agent-python
-```
-
-Testing unrelease code for other agents follows a simliar pattern.
-
-See `version*` in https://github.com/elastic/apm-integration-testing/tree/main/.ci/scripts for details on how CI tests specific agent/elastic stack version combinations.
-
 ### Testing docker images
 
 Tests are written using [bats](https://github.com/sstephenson/bats) under the docker/tests dir
 
     make -C docker test-<app>
     make -C docker test-opbeans-<agent>
-    make -C docker test-<agent>
 
 Test all the docker images for the Opbeans
 
     make -C docker all-opbeans-tests
-
-Test all the docker images for the agents
-
-    make -C docker all-agents-tests
-
-
-### Use Cases
-
-Some of the uses cases that are not fully automated and required some manual actions.
-
-#### To run Agents using an ApiKey
-
-Run the script to start only Elasticsearch:
-
-```bash
-python scripts/compose.py start 8.0.0 --no-apm-server --no-kibana
-```
-
-Then, run the script to generate the API key:
-
-```bash
-apiKey=$(scripts/create-api-key.sh)
-echo $apiKey
-```
-
-Finally, run the apm-its with the required services and the flag `--elastic-apm-api-key ${apiKey}`, for instance:
-
-```bash
-python scripts/compose.py start 8.0.0 --with-agent-dotnet --elastic-apm-api-key ${apiKey}
-```

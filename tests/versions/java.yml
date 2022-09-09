@@ -1,4 +1,0 @@
-JAVA_AGENT:
-  - 'github;main'
-  - 'release;1.19.0'
-  - 'release;1.18.1'

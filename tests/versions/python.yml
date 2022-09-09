@@ -1,7 +1,0 @@
-PYTHON_AGENT:
-  # github;version -> pip install elastic-apm==git+https://github.com/elastic/apm-agent-python.git@version
-  # release;latest -> pip install elastic-apm
-  # release;release -> pip install elastic-apm==version
-  - 'github;main'
-  - 'release;latest'
-  - 'release;4.2.2'
