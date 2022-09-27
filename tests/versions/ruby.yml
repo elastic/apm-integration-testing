@@ -1,7 +1,0 @@
-RUBY_AGENT:
-  # github;version -> gem 'elastic-apm', git: 'https://github.com/elastic/apm-agent-ruby.git', branch: version
-  # release;latest -> gem elastic-apm
-  # release;version -> gem elastic-apm, version
-  - 'github;main'
-  - 'release;latest'
-  - 'github;2.x'

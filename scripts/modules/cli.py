@@ -33,10 +33,6 @@ from .opbeans import (  # noqa: F401
     OpbeansGo, OpbeansJava, OpbeansLoadGenerator, OpbeansGo01, OpbeansDotnet01,
     OpbeansJava01, OpbeansNode01, OpbeansPython01, OpbeansRuby01
 )
-from .apm_agents import (  # noqa: F401
-    AgentDotnet, AgentGoNetHttp, AgentJavaSpring, AgentNodejsExpress, AgentPhpApache,
-    AgentPython, AgentPythonDjango, AgentPythonFlask, AgentRubyRails, AgentRUMJS
-)
 
 
 PACKAGE_NAME = 'localmanager'

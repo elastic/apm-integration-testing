@@ -38,21 +38,6 @@ else
 fi
 git add "${CLI_FILE}"
 
-APM_SERVER_FILE=tests/versions/apm_server.yml
-echo "Update stack with versions ${RELEASE_VERSION} in ${APM_SERVER_FILE}"
-if grep -q 'main' ${APM_SERVER_FILE} ; then
-	echo "No required changes in the ${APM_SERVER_FILE}"
-else
-	if grep -q "${MINOR_MAJOR_RELEASE_VERSION}" ${APM_SERVER_FILE} ; then
-		echo "${MINOR_MAJOR_RELEASE_VERSION} already exists."
-	else
-		TEMP_FILE=$(mktemp)
-		${SED} -E -e "s#(  - '7.x')#\1|  - '${MINOR_MAJOR_RELEASE_VERSION};--release'#g" ${APM_SERVER_FILE}
-		tr '|' '\n' < ${APM_SERVER_FILE} > "$TEMP_FILE" && mv "$TEMP_FILE" ${APM_SERVER_FILE}
-	fi
-fi
-git add "${APM_SERVER_FILE}"
-
 SCRIPT_COMMON=.ci/scripts/common.sh
 echo "Update stack with versions ${RELEASE_VERSION} in ${SCRIPT_COMMON}"
 # Update patch.

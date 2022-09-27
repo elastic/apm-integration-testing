@@ -13,15 +13,6 @@ CERT_VALID_DAYS ?= 3650
 APM_SERVER_URL ?= http://apm-server:8200
 ES_URL ?= http://elasticsearch:9200
 KIBANA_URL ?= http://kibana:5601
-DJANGO_URL ?= http://djangoapp:8003
-DOTNET_URL ?= http://dotnetapp:8100
-EXPRESS_URL ?= http://expressapp:8010
-FLASK_URL ?= http://flaskapp:8001
-GO_NETHTTP_URL ?= http://gonethttpapp:8080
-JAVA_SPRING_URL ?= http://javaspring:8090
-PHP_APACHE_URL ?= http://phpapacheapp
-RAILS_URL ?= http://railsapp:8020
-RUM_URL ?= http://rum:8000
 
 ES_USER ?= admin
 ES_PASS ?= changeme
@@ -58,7 +49,7 @@ venv: requirements.txt ## Prepare the virtual environment
 
 lint: venv  ## Lint the project
 	source $(VENV)/bin/activate; \
-	flake8 --ignore=D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403,W504  tests/ scripts/compose.py scripts/modules
+	flake8 --ignore=D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403,W504 scripts/compose.py scripts/modules
 
 .PHONY: create-x509-cert
 create-x509-cert:  ## Create an x509 certificate for use with the test suite
@@ -97,14 +88,6 @@ copy-events:
 
 test: test-all test-helps ## Run all the tests
 
-test-agent-%-version: venv
-	source $(VENV)/bin/activate; \
-	pytest $(PYTEST_ARGS) tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s -m version $(JUNIT_OPT)/agent-$*-version-junit.xml
-
-test-agent-%: venv ## Test a specific agent. ex: make test-agent-java
-	source $(VENV)/bin/activate; \
-	pytest $(PYTEST_ARGS) tests/agent/test_$*.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/agent-$*-junit.xml
-
 test-compose: venv ## Test compose.py
 	source $(VENV)/bin/activate; \
 	pytest $(PYTEST_ARGS) scripts/tests/test_*.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/compose-junit.xml
@@ -113,14 +96,6 @@ test-compose-2:
 	virtualenv --python=python2.7 venv2
 	./venv2/bin/pip2 install mock pytest pyyaml
 	./venv2/bin/pytest $(PYTEST_ARGS) --noconftest scripts/tests/test_*.py
-
-test-kibana: venv ## Run the Kibana integration tests
-	source $(VENV)/bin/activate; \
-	pytest $(PYTEST_ARGS) tests/kibana/test_integration.py --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/kibana-junit.xml
-
-test-server: venv  ## Run server tests
-	source $(VENV)/bin/activate; \
-	pytest $(PYTEST_ARGS) tests/server/ --reruns 3 --reruns-delay 5 -v -s $(JUNIT_OPT)/server-junit.xml
 
 SUBCOMMANDS = list-options load-dashboards start status stop upload-sourcemap versions
 
@@ -131,7 +106,7 @@ test-all: venv test-compose lint  ## Run all the tests
 	source $(VENV)/bin/activate; \
 	pytest -v -s $(PYTEST_ARGS) $(JUNIT_OPT)/all-junit.xml
 
-docker-test-%: ## Run a specific dockerized test. Ex: make docker-test-java
+docker-test-%: ## Run a specific dockerized test. Ex: make docker-test-server
 	TARGET=test-$* $(MAKE) dockerized-test
 
 dockerized-test: ## Run all the dockerized tests
@@ -149,18 +124,8 @@ dockerized-test: ## Run all the dockerized tests
 		-e APM_SERVER_URL \
 		-e ES_URL \
 		-e KIBANA_URL \
-		-e DJANGO_URL=$(DJANGO_URL) \
-		-e DOTNET_URL=$(DOTNET_URL) \
-		-e EXPRESS_URL=$(EXPRESS_URL) \
-		-e FLASK_URL=$(FLASK_URL) \
-		-e GO_NETHTTP_URL=$(GO_NETHTTP_URL) \
-		-e JAVA_SPRING_URL=$(JAVA_SPRING_URL) \
-		-e RAILS_URL=$(RAILS_URL) \
-		-e RUM_URL=$(RUM_URL) \
-		-e PHP_APACHE_URL=$(PHP_APACHE_URL) \
 		-e PYTHONDONTWRITEBYTECODE=1 \
 		-e PYTHONHTTPSVERIFY=$(PYTHONHTTPSVERIFY) \
-		-e ENABLE_ES_DUMP=$(ENABLE_ES_DUMP) \
 		-e ES_USER \
 		-e ES_PASS \
 		-e ELASTIC_APM_SECRET_TOKEN \

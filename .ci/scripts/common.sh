@@ -33,15 +33,6 @@ function prepareAndRunAll() {
   export PYTHONHTTPSVERIFY=0
   DEFAULT_COMPOSE_ARGS="${ELASTIC_STACK_VERSION} ${BUILD_OPTS}\
     --no-apm-server-self-instrument \
-    --with-agent-rumjs \
-    --with-agent-dotnet \
-    --with-agent-go-net-http \
-    --with-agent-nodejs-express \
-    --with-agent-php-apache \
-    --with-agent-ruby-rails \
-    --with-agent-java-spring \
-    --with-agent-python-django \
-    --with-agent-python-flask \
     --apm-server-enable-tls \
     --no-verify-server-cert  \
     --apm-server-secret-token=${ELASTIC_APM_SECRET_TOKEN} \

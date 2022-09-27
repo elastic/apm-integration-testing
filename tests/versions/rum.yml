@@ -1,4 +1,0 @@
-RUM_AGENT:
-  - 'github;main'
-
-exclude:
