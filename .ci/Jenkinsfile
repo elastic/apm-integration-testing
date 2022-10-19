@@ -19,7 +19,6 @@ pipeline {
     ELASTIC_STACK_VERSION = "${ params?.ELASTIC_STACK_VERSION?.trim() ? params.ELASTIC_STACK_VERSION.trim() : stackVersions.edge() }"
   }
   triggers {
-    cron(env.CHANGE_ID?.trim() ? '' : 'H H(3-4) * * 1-5')
     issueCommentTrigger("(${obltGitHubComments()}|^/testall)")
   }
   options {
