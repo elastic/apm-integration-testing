@@ -14,7 +14,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        # Fetch all the history so the pre-commit/action can compare changes between the target and the git commit
+        fetch-depth: 0
 
-    - uses: actions/setup-python@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
 
-    - uses: pre-commit/action@v3.0.0
+    - name: Run pre-commit on PRs
+      uses: pre-commit/action@v3.0.0
+      if: ${{ github.event.pull_request }}
+      with:
+        extra_args: --from-ref ${{ github.event.pull_request.base.sha }} --to-ref ${{ github.event.pull_request.head.sha }}
+
+    - name: Run pre-commit on branches
+      uses: pre-commit/action@v3.0.0
+      if: ${{ ! github.event.pull_request }}
