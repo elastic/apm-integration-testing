@@ -20,6 +20,9 @@ jobs:
       with:
         python-version: 3.9
 
+    - name: Tools
+      run: sudo apt-get install python-virtualenv
+
     - name: Lint
       run: .ci/scripts/lint.sh
 
