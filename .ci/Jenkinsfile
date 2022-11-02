@@ -1,13 +1,6 @@
 #!/usr/bin/env groovy
 @Library('apm@current') _
 
-import groovy.transform.Field
-
-/**
- This is required to store the build status for the downstream jobs.
-*/
-@Field def itsDownstreamJobs = [:]
-
 pipeline {
   agent { label 'linux && immutable' }
   environment {
@@ -15,14 +8,14 @@ pipeline {
     NOTIFY_TO = credentials('notify-to')
     JOB_GCS_BUCKET = credentials('gcs-bucket')
     PIPELINE_LOG_LEVEL='INFO'
-    ELASTIC_STACK_VERSION = "${ params?.ELASTIC_STACK_VERSION?.trim() ? params.ELASTIC_STACK_VERSION.trim() : stackVersions.release() }"
+    GIT_REFERENCE_REPO = '/var/lib/jenkins/.git-references/apm-integration-testing.git'
+    ELASTIC_STACK_VERSION = "${ params?.ELASTIC_STACK_VERSION?.trim() ? params.ELASTIC_STACK_VERSION.trim() : stackVersions.release7() }"
   }
   triggers {
-    cron(env.CHANGE_ID?.trim() ? '' : 'H H(3-4) * * 1-5')
     issueCommentTrigger("(${obltGitHubComments()}|^/testall)")
   }
   options {
-    timeout(time: 3, unit: 'HOURS')
+    timeout(time: 1, unit: 'HOURS')
     timestamps()
     ansiColor('xterm')
     disableResume()
@@ -33,6 +26,7 @@ pipeline {
   parameters {
     string(name: 'ELASTIC_STACK_VERSION', defaultValue: "", description: "Elastic Stack Git branch/tag to use")
     string(name: 'BUILD_OPTS', defaultValue: "--apm-log-level=debug", description: "Additional build options to pass to compose.py")
+    string(name: 'SLACK_CHANNEL', defaultValue: 'observablt-bots', description: 'The Slack channel where errors will be posted')
     booleanParam(name: 'Run_As_Main_Branch', defaultValue: false, description: 'Allow to run any steps on a PR, some steps normally only run on main branch.')
   }
   stages{
@@ -42,7 +36,8 @@ pipeline {
     stage('Checkout'){
       steps {
         deleteDir()
-        gitCheckout(basedir: "${BASE_DIR}")
+        gitCheckout(basedir: "${BASE_DIR}",
+                    reference: "${GIT_REFERENCE_REPO}")
         stash allowEmpty: true, name: 'source', useDefaultExcludes: false
       }
     }
@@ -92,77 +87,10 @@ pipeline {
         }
       }
     }
-    /**
-      launch integration tests.
-    */
-    stage("Integration Tests") {
-      steps {
-        log(level: 'INFO', text: "Launching Agent tests in parallel")
-        /*
-          Declarative pipeline's parallel stages lose the reference to the downstream job,
-          because of that, I use the parallel step. It is probably a bug.
-          https://issues.jenkins-ci.org/browse/JENKINS-56562
-        */
-        script {
-          def downstreamJobs = [:]
-          if(env?.CHANGE_ID != null
-              && !params.Run_As_Main_Branch
-              && !'/testall'.equalsIgnoreCase(env?.GITHUB_COMMENT)
-          ){
-            downstreamJobs = ['All': {runJob('All')}]
-          } else {
-            downstreamJobs = [
-            'All': {runJob('All')},
-            '.NET': {runJob('.NET')},
-            'Go': {runJob('Go')},
-            'Java': {runJob('Java')},
-            'Node.js': {runJob('Node.js')},
-            'PHP': {runJob('PHP')},
-            'Python': {runJob('Python')},
-            'Ruby': {runJob('Ruby')},
-            'RUM': {runJob('RUM')},
-            'UI': {runJob('UI')}
-            ]
-          }
-          parallel(downstreamJobs)
-        }
-      }
-    }
   }
   post {
     cleanup {
-      notifyBuildResult(downstreamJobs: itsDownstreamJobs)
+      notifyBuildResult(slackComment: true, slackChannel: "#${params.SLACK_CHANNEL}")
     }
-  }
-}
-
-def runJob(testName, buildOpts = ''){
-  def branch = env.CHANGE_ID?.trim() ? env.CHANGE_TARGET : env.BRANCH_NAME
-  def jobName = "apm-integration-test-downstream/${branch}"
-  def buildObject = build(job: jobName,
-      parameters: [
-        string(name: 'INTEGRATION_TEST', value: testName),
-        string(name: 'ELASTIC_STACK_VERSION', value: params.ELASTIC_STACK_VERSION),
-        string(name: 'INTEGRATION_TESTING_VERSION', value: "${env.GIT_BASE_COMMIT}"),
-        string(name: 'MERGE_TARGET', value: "${branch}"),
-        string(name: 'BUILD_OPTS', value: "${params.BUILD_OPTS} ${buildOpts}"),
-        string(name: 'UPSTREAM_BUILD', value: currentBuild.fullDisplayName),
-        booleanParam(name: 'DISABLE_BUILD_PARALLEL', value: '')
-      ],
-      propagate: false,
-      quietPeriod: 10,
-      wait: true)
-
-  itsDownstreamJobs["${testName}"] = buildObject
-
-  catchError(buildResult: 'SUCCESS', message: "Aggregate test results from dowsntream job has failed failed. Let's keep moving.") {
-    dir(testName) {
-      copyArtifacts(projectName: jobName, selector: specific(buildNumber: buildObject.number.toString()))
-      junit(testResults: 'tests/results/*-junit*.xml', allowEmptyResults: true, keepLongStdio: true)
-    }
-  }
-
-  if (buildObject.resultIsWorseOrEqualTo('UNSTABLE')) {
-    error("Downstream job for '${testName}' failed")
   }
 }
