@@ -1,13 +1,6 @@
 #!/usr/bin/env groovy
 @Library('apm@current') _
 
-import groovy.transform.Field
-
-/**
- This is required to store the build status for the downstream jobs.
-*/
-@Field def itsDownstreamJobs = [:]
-
 pipeline {
   agent { label 'linux && immutable' }
   environment {
@@ -97,7 +90,7 @@ pipeline {
   }
   post {
     cleanup {
-      notifyBuildResult(downstreamJobs: itsDownstreamJobs, slackComment: true, slackChannel: "#${params.SLACK_CHANNEL}")
+      notifyBuildResult(slackComment: true, slackChannel: "#${params.SLACK_CHANNEL}")
     }
   }
 }
