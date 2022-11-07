@@ -2,11 +2,7 @@
 
 This repo contains tools for end to end (eg agent -> apm server -> elasticsearch <- kibana) development and testing of Elastic APM.
 
-<<<<<<< HEAD
-[![Build Status](https://apm-ci.elastic.co/buildStatus/icon?job=apm-integration-tests%2F7.x)](https://apm-ci.elastic.co/job/apm-integration-tests/job/7.x/)
-=======
 [![Build Status](https://github.com/elastic/apm-integration-testing/actions/workflows/ci.yml/badge.svg)](https://github.com/elastic/apm-integration-testing/actions/workflows/ci.yml)
->>>>>>> 4a2efae (action: use GitHub actions (#1533))
 
 ## Prerequisites
 
