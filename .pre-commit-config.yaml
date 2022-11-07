@@ -40,9 +40,7 @@ repos:
     -   id: check-bash-syntax
     -   id: check-abstract-classes-and-trait
     -   id: check-jsonslurper-class
-    -   id: check-jenkins-pipelines
     -   id: check-unicode-non-breaking-spaces
     -   id: remove-unicode-non-breaking-spaces
     -   id: check-en-dashes
     -   id: remove-en-dashes
-    -   id: check-jjbb
