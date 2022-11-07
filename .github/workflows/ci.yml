@@ -23,6 +23,12 @@ jobs:
     - name: Lint
       run: .ci/scripts/lint.sh
 
+  pre-commit:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: elastic/apm-pipeline-library/.github/actions/pre-commit@gh_actions
+
   test:
     name: Run tests
     runs-on: ubuntu-latest
