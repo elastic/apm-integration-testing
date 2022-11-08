@@ -39,16 +39,16 @@ filebeat.autodiscover:
               include_lines: ['^{']
               tail_files: true
               processors:
-              - add_tags:
-                  tags: [json]
-                  target: "parser_type"
-              - decode_json_fields:
-                  fields:
-                    - message
-                  target: ""
-                  overwrite_keys: true
-                  add_error_key: true
-              - drop_fields:
+                - add_tags:
+                    tags: [json]
+                    target: "parser_type"
+                - decode_json_fields:
+                    fields:
+                      - message
+                    target: ""
+                    overwrite_keys: true
+                    add_error_key: true
+                - drop_fields:
                   fields:
                     - service
                     - event
