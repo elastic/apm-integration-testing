@@ -26,14 +26,9 @@ backend servers
     option httpchk HEAD / HTTP/1.0
 EOF
 
-<<<<<<< HEAD
+# shellcheck disable=SC2004
 for ((i=1; i<="${backends}"; i++)); do
 cat >> "${config}" <<EOF
-=======
-# shellcheck disable=SC2004
-for ((i=1; i<=$backends; i++)); do
-cat >> $config <<EOF
->>>>>>> ee86a8c (fix precommit linting (#1536))
     server apm-server-${i} apm-server-${i}:8200 check fall 3 rise 2
 EOF
 done
