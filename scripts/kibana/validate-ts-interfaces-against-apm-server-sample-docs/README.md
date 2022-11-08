@@ -7,4 +7,3 @@ yarn
 ```
 yarn setup && yarn lint
 ```
-
