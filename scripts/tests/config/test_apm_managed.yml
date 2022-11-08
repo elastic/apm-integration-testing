@@ -1,3 +1,4 @@
+---
 apm-server:
   container_name: localtesting_8.2.0_apm-managed
   image: docker.elastic.co/beats/elastic-agent:8.2.0-SNAPSHOT
