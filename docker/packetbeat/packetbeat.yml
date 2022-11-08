@@ -3,22 +3,22 @@ packetbeat.interfaces.snaplen: 1514
 packetbeat.interfaces.type: af_packet
 packetbeat.interfaces.buffer_size_mb: 250
 packetbeat.protocols:
-- type: dns
-  ports: [53]
-  include_authorities: true
-  include_additionals: true
-- type: http
-  ports: [8080, 80, 8000, 5000, 3000, 8200, 9200, 5601]
-  tags: ["http"]
-  send_headers: true
-  send_all_headers: true
-  split_cookie: true
-  send_request: true
-  send_response: true
-- type: mysql
-  ports: [3306]
-- type: icmp
-  enabled: true
+  - type: dns
+    ports: [53]
+    include_authorities: true
+    include_additionals: true
+  - type: http
+    ports: [8080, 80, 8000, 5000, 3000, 8200, 9200, 5601]
+    tags: ["http"]
+    send_headers: true
+    send_all_headers: true
+    split_cookie: true
+    send_request: true
+    send_response: true
+  - type: mysql
+    ports: [3306]
+  - type: icmp
+    enabled: true
 packetbeat.flows:
   timeout: 30s
   period: 10s

@@ -1,0 +1,6 @@
+---
+args:
+  ELASTIC_AGENT_BRANCH_OR_COMMIT: foo
+  ELASTIC_AGENT_REPO: https://github.com/elastic/apm-server.git
+  STACK_VERSION: 8.2.0-SNAPSHOT
+context: docker/elastic-agent

@@ -1383,4 +1383,3 @@ ALTER TABLE ONLY products
 --
 -- PostgreSQL database dump complete
 --
-
