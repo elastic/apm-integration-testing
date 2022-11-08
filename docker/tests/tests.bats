@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# shellcheck disable=SC2031,SC2030
 
 load 'test_helper/bats-support/load'
 load 'test_helper/bats-assert/load'

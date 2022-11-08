@@ -26,6 +26,7 @@ backend servers
     option httpchk HEAD / HTTP/1.0
 EOF
 
+# shellcheck disable=SC2004
 for ((i=1; i<=$backends; i++)); do
 cat >> $config <<EOF
     server apm-server-${i} apm-server-${i}:8200 check fall 3 rise 2
