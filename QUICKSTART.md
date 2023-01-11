@@ -94,7 +94,7 @@ Here is a tablular view, excluding non-essentials:
 |`localtesting_6.4.0_opbeans-python`         |[opbeans-python](http://localhost:8000) |
 |`localtesting_6.4.0_kibana`                 |[kibana](http://localhost:5601)         |
 |`localtesting_6.4.0_elasticsearch`          |[elasticsearch](http://localhost:9200)  |
-|`localtesting_6.4.0_apm-server`             |[APM Server](http://localhost:6060)     |
+|`localtesting_6.4.0_apm-server`             |[APM Server](http://localhost:8200)     |
 
 You can attach your own APM agent to the APM server if you wish`.`
 
