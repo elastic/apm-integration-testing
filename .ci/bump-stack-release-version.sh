@@ -44,13 +44,6 @@ echo "Update stack with versions ${RELEASE_VERSION} in ${SCRIPT_COMMON}"
 ${SED} -E -e 's#^(ELASTIC_STACK_VERSION=\$\{ELASTIC_STACK_VERSION:-)(.*)\}#\1'"'${RELEASE_VERSION}'"'\}#g' "${SCRIPT_COMMON}"
 git add "${SCRIPT_COMMON}"
 
-## Update EC and ECK pipelines accordingly
-for FILE in ".ci/integrationTestEC.groovy" ".ci/integrationTestECK.groovy" ; do
-  echo "Update stack with versions ${RELEASE_VERSION} in ${FILE}"
-  ${SED} -E -e "s#('7.x',) '[0-9]+\.[0-9]+\.[0-9]+'#\1 '${RELEASE_VERSION}'#g" "${FILE}"
-  git add "${FILE}"
-done
-
 git diff --staged --quiet || git commit -m "[Automation] Update elastic stack release version to ${RELEASE_VERSION}"
 git --no-pager log -1
 
