@@ -25,9 +25,6 @@ CLI_FILE=scripts/modules/cli.py
 echo "Update stack with versions ${RELEASE_VERSION} in ${CLI_FILE}"
 # Update patch for major.minor
 ${SED} -E -e "s#('${MINOR_MAJOR_RELEASE_VERSION}'): '[0-9]+\.[0-9]+\.[0-9]'#\1: '${RELEASE_VERSION}'#g" ${CLI_FILE}
-# Update patch for master and main
-${SED} -E -e "s#('main'): '[0-9]+\.[0-9]+\.[0-9]'#\1: '${RELEASE_VERSION}'#g" ${CLI_FILE}
-${SED} -E -e "s#('master'): '[0-9]+\.[0-9]+\.[0-9]'#\1: '${RELEASE_VERSION}'#g" ${CLI_FILE}
 # Create a new minor release entry
 if grep -q "'${MINOR_MAJOR_RELEASE_VERSION}'" ${CLI_FILE} ; then
 	echo "No required changes in the ${CLI_FILE}"
