@@ -20,6 +20,8 @@ COPY . /src
 RUN curl --retry 5 -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --install-dir ${DOTNET_ROOT} -version 3.1.100
 # SDK 5.x is also needed
 RUN curl --retry 5 -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --install-dir ${DOTNET_ROOT} -version 5.0.100
+# SDK 7.x is also needed
+RUN curl --retry 5 -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --install-dir ${DOTNET_ROOT} -version 7.0.100
 RUN ./run.sh
 
 # Stage 2: Run the opbeans-dotnet app
