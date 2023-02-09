@@ -17,9 +17,9 @@ MINOR_MAJOR_RELEASE_VERSION=${RELEASE_VERSION%.*}
 OS=$(uname -s| tr '[:upper:]' '[:lower:]')
 
 if [ "${OS}" == "darwin" ] ; then
-	SED="sed -i .bck"
+  SED="sed -i .bck"
 else
-	SED="sed -i"
+  SED="sed -i"
 fi
 
 if grep -q "'${RELEASE_VERSION}'" ${CLI_FILE} ; then
@@ -30,9 +30,23 @@ else
   if test "$DRY_RUN" == "false" ; then
     ## Value changed to $1" - NO dry run
     # do something such as writing a file here
-    ${SED} -E -e "s#('${MINOR_MAJOR_RELEASE_VERSION}'): '[0-9]+\.[0-9]+\.[0-9]'#\1: '${RELEASE_VERSION}'#g" ${CLI_FILE}
+
+    if grep -q "'${MINOR_MAJOR_RELEASE_VERSION}':" ${CLI_FILE} ; then
+      ## Update new major.minor.patch
+      ${SED} -E -e "s#('${MINOR_MAJOR_RELEASE_VERSION}'): '[0-9]+\.[0-9]+\.[0-9]'#\1: '${RELEASE_VERSION}'#g" ${CLI_FILE}
+    else
+      ## Add new major.minor
+      ${SED} -E -e "s&(# UPDATECLI_AUTOMATION.*)&'${MINOR_MAJOR_RELEASE_VERSION}': '${RELEASE_VERSION}',\n        \1&g" ${CLI_FILE}
+    fi
   fi
+
   # Report on stdout
-  sed -E -e "s#('${MINOR_MAJOR_RELEASE_VERSION}'): '[0-9]+\.[0-9]+\.[0-9]'#\1: '${RELEASE_VERSION}'#g" ${CLI_FILE}
+  if grep -q "'${MINOR_MAJOR_RELEASE_VERSION}':" ${CLI_FILE} ; then
+      ## Update new major.minor.patch
+    sed -E -e "s#('${MINOR_MAJOR_RELEASE_VERSION}'): '[0-9]+\.[0-9]+\.[0-9]'#\1: '${RELEASE_VERSION}'#g" ${CLI_FILE}
+  else
+    ## Add new major.minor
+    sed -E -e "s&(# UPDATECLI_AUTOMATION.*)&'${MINOR_MAJOR_RELEASE_VERSION}': '${RELEASE_VERSION}',\n        \1&g" ${CLI_FILE}
+  fi
   exit 0
 fi
