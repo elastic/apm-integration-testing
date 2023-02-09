@@ -37,19 +37,6 @@ sources:
         kind: regex
         pattern: ^v8\.(\d+)\.(\d+)$
 
-  major-minor:
-    name: Get major-minor version
-    kind: shell
-    dependson:
-      - latestRelease
-    transformers:
-      - findsubmatch:
-          pattern: '^(\d+.\d+)'
-          captureindex: 1
-    sourceid: latestGoVersion
-    spec:
-      command: echo {{ source "latestRelease" }}
-
 conditions:
   dockerTag:
     name: Is docker image elasticsearch:{{ source "latestRelease" }} published
@@ -60,7 +47,7 @@ conditions:
     sourceid: latestRelease
 
 targets:
-  update-common.sh:
+  update-common-sh:
     name: 'Update elastic stack version to {{ source "latestRelease" }}'
     sourceid: latestRelease
     scmid: default
@@ -69,3 +56,11 @@ targets:
       file: .ci/scripts/common.sh
       content: '"{{ source `latestRelease` }}"'
       matchpattern: '"[0-9]+\.[0-9]+\.[0-9]+"'
+
+  update-cli-py:
+    name: 'Update elastic stack version to {{ source "latestRelease" }}'
+    sourceid: latestRelease
+    scmid: default
+    kind: shell
+    spec:
+      command: bash .ci/bump-stack-release-version.sh

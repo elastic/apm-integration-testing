@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 #
-# Given the stack version this script will bump the release version.
-#
-# This script is executed by the automation we are putting in place
-# and it requires the git add/commit commands.
+# The script check the content of the file "scripts/modules/cli.py"
+# - if different than $1 and DRY_RUN is set to:
+#   - "false" then it updates it with the value of $1
+#   - "true" then it only reports the value of $1
+# - otherwise it exits without any value reported
 #
 # Parameters:
 #	$1 -> the release version to be bumped. Mandatory.
 #
-set -euo pipefail
-MSG="parameter missing."
+
+CLI_FILE=scripts/modules/cli.py
 RELEASE_VERSION=${1:?$MSG}
 MINOR_MAJOR_RELEASE_VERSION=${RELEASE_VERSION%.*}
 
@@ -21,27 +22,17 @@ else
 	SED="sed -i"
 fi
 
-CLI_FILE=scripts/modules/cli.py
-echo "Update stack with versions ${RELEASE_VERSION} in ${CLI_FILE}"
-# Update patch for major.minor
-${SED} -E -e "s#('${MINOR_MAJOR_RELEASE_VERSION}'): '[0-9]+\.[0-9]+\.[0-9]'#\1: '${RELEASE_VERSION}'#g" ${CLI_FILE}
-# Create a new minor release entry
-if grep -q "'${MINOR_MAJOR_RELEASE_VERSION}'" ${CLI_FILE} ; then
-	echo "No required changes in the ${CLI_FILE}"
+if grep -q "'${RELEASE_VERSION}'" ${CLI_FILE} ; then
+  ## No change
+  # early return with no output
+  exit 0
 else
-	TEMP_FILE=$(mktemp)
-	${SED} -E -e "s#(.*'main'.*)#        '${MINOR_MAJOR_RELEASE_VERSION}': '${RELEASE_VERSION}',£\1#g" ${CLI_FILE}
-	tr '£' '\n' < ${CLI_FILE} > "$TEMP_FILE" && mv "$TEMP_FILE" ${CLI_FILE}
+  if test "$DRY_RUN" == "false" ; then
+    ## Value changed to $1" - NO dry run
+    # do something such as writing a file here
+    ${SED} -E -e "s#('${MINOR_MAJOR_RELEASE_VERSION}'): '[0-9]+\.[0-9]+\.[0-9]'#\1: '${RELEASE_VERSION}'#g" ${CLI_FILE}
+  fi
+  # Report on stdout
+  sed -E -e "s#('${MINOR_MAJOR_RELEASE_VERSION}'): '[0-9]+\.[0-9]+\.[0-9]'#\1: '${RELEASE_VERSION}'#g" ${CLI_FILE}
+  exit 0
 fi
-git add "${CLI_FILE}"
-
-SCRIPT_COMMON=.ci/scripts/common.sh
-echo "Update stack with versions ${RELEASE_VERSION} in ${SCRIPT_COMMON}"
-# Update patch.
-${SED} -E -e 's#^(ELASTIC_STACK_VERSION=\$\{ELASTIC_STACK_VERSION:-)(.*)\}#\1'"'${RELEASE_VERSION}'"'\}#g' "${SCRIPT_COMMON}"
-git add "${SCRIPT_COMMON}"
-
-git diff --staged --quiet || git commit -m "[Automation] Update elastic stack release version to ${RELEASE_VERSION}"
-git --no-pager log -1
-
-echo "You can now push and create a Pull Request"
