@@ -16,11 +16,11 @@ scms:
     spec:
       user: '{{ requiredEnv "GIT_USER" }}'
       email: '{{ requiredEnv "GIT_EMAIL" }}'
-      owner: elastic
+      owner: v1v
       repository: apm-integration-testing
       token: '{{ requiredEnv "GITHUB_TOKEN" }}'
       username: '{{ requiredEnv "GIT_USER" }}'
-      branch: main
+      branch: feature/bump-stack-release
 
 sources:
   latestRelease:
