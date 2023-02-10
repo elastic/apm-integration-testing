@@ -5,6 +5,7 @@ on:
   workflow_run:
     workflows:
       - bump-elastic-stack
+      - bump-elastic-stack-snapshot
       - ci
       - test-reporter
     types: [completed]

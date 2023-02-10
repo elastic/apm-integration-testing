@@ -1,0 +1,56 @@
+---
+name: Bump elastic-stack to latest snapshot version
+
+actions:
+  default:
+    title: '[updatecli] update elastic stack version for testing {{ source "latestVersion" }}'
+    kind: github/pullrequest
+    spec:
+      labels:
+        - automation
+        - dependency
+        - backport-skip
+    scmid: default
+
+scms:
+  default:
+    kind: github
+    spec:
+      user: '{{ requiredEnv "GIT_USER" }}'
+      email: '{{ requiredEnv "GIT_EMAIL" }}'
+      owner: elastic
+      repository: apm-integration-testing
+      token: '{{ requiredEnv "GITHUB_TOKEN" }}'
+      username: '{{ requiredEnv "GIT_USER" }}'
+      branch: main
+
+sources:
+  latestVersion:
+    name: Get latest snapshot build for main
+    kind: json
+    spec:
+      file: https://storage.googleapis.com/artifacts-api/snapshots/main.json
+      key: .build_id
+
+  major-minor-patch:
+    name: Get major-minor-patch version
+    kind: shell
+    dependson:
+      - latestVersion
+    transformers:
+      - findsubmatch:
+          pattern: '^(\d+.\d+.\d+)-.+$'
+          captureindex: 1
+    spec:
+      command: echo {{ source "latestVersion" }}
+
+targets:
+  update-cli:
+    name: "Update cli.py - main"
+    kind: file
+    sourceid: major-minor-patch
+    scmid: default
+    spec:
+      file: scripts/modules/cli.py
+      matchpattern: '("main"|"master"): "[0-9]+.[0-9]+.[0-9]+"'
+      replacepattern: '$1: "{{ source "major-minor-patch" }}"'
