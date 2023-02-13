@@ -8,7 +8,7 @@ actions:
     spec:
       labels:
         - automation
-        - dependency
+        - dependencies
         - backport-skip
     scmid: default
 
