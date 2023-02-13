@@ -37,6 +37,25 @@ sources:
         kind: regex
         pattern: ^v8\.(\d+)\.(\d+)$
 
+  latestVersion:
+    name: Get latest snapshot build for main
+    kind: json
+    spec:
+      file: https://storage.googleapis.com/artifacts-api/snapshots/main.json
+      key: .version
+
+  major-minor-patch:
+    name: Get major-minor-patch version
+    kind: shell
+    dependson:
+      - latestVersion
+    transformers:
+      - findsubmatch:
+          pattern: '^(\d+.\d+.\d+)-.+$'
+          captureindex: 1
+    spec:
+      command: echo {{ source "latestVersion" }}
+
 conditions:
   dockerTag:
     name: Is docker image elasticsearch:{{ source "latestRelease" }} published
@@ -57,9 +76,17 @@ targets:
       content: '"{{ source `latestRelease` }}"'
       matchpattern: '"[0-9]+\.[0-9]+\.[0-9]+"'
 
-  update-cli-py:
-    name: 'Update elastic stack version to {{ source "latestRelease" }}'
+  update-release-cli-py:
+    name: 'Update elastic stack version to {{ source "latestRelease" }} (release)'
     sourceid: latestRelease
+    scmid: default
+    kind: shell
+    spec:
+      command: bash .ci/bump-stack-release-version.sh
+
+  update-bc-cli-py:
+    name: 'Update elastic stack version to {{ source "major-minor-patch" }} (bc)'
+    sourceid: major-minor-patch
     scmid: default
     kind: shell
     spec:
