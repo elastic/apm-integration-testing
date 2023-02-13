@@ -2,6 +2,7 @@
 name: bump-elastic-stack-snapshot
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 15 * * 1-5'
 
