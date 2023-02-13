@@ -3,11 +3,13 @@ name: Bump elastic stack to latest version
 
 actions:
   default:
-    title: '[updatecli] Bump elastic stack version to {{ source "latestRelease" }}'
+    title: '[updatecli] Bump elastic stack version to {{ source "latestRelease" }}/{{ source "major-minor-patch" }}'
     kind: github/pullrequest
     spec:
       labels:
+        - automation
         - dependencies
+        - backport-skip
     scmid: default
 
 scms:

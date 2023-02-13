@@ -62,14 +62,14 @@ pull_request_rules:
       queue:
         name: auto-merge
         method: squash
-  - name: delete upstream branch after merging changes on dev-tools/integration/.env or it's closed
+  - name: delete upstream branch after merging changes on scripts/modules/cli.py or it's closed
     conditions:
       - or:
         - merged
         - closed
       - and:
         - label=automation
-        - head~=^update-.*
+        - head~=^update.*
     actions:
       delete_head_branch:
   - name: notify the backport has not been merged yet
