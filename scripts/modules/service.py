@@ -229,6 +229,11 @@ class StackService(object):
             version=version,
         )
         try:
+            print(
+                '''WARNING: BCs for Elasticsearch require some manual steps as long as it is not using the same docker repo tags.
+                See https://github.com/elastic/apm-integration-testing/issues/1566
+                '''
+            )
             return self.bc["projects"][self.docker_name]["packages"][key]
         except KeyError:
             # help debug manifest issues
