@@ -89,6 +89,7 @@ class LocalSetup(object):
         '8.6': '8.6.2',
         '8.7': '8.7.0',
         '8.8': '8.8.0',
+        '8.9': '8.9.0',
         # UPDATECLI_AUTOMATION
         "main": "8.8.0",
         "master": "8.8.0",  # keep master alias for backward compatibility. Upgrade the main alias only
