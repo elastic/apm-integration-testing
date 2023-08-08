@@ -9,8 +9,7 @@ git checkout "${OPBEANS_DOTNET_BRANCH}"
 CSPROJ="opbeans-dotnet.csproj"
 
 PACKAGE=Elastic.Apm.NetCoreAll
-CSPROJ_VERSION_BACKWARDS="/src/dotnet-agent/src/Elastic.Apm.NetCoreAll/${PACKAGE}.csproj"
-CSPROJ_VERSION="/src/dotnet-agent/src/integrations/Elastic.Apm.NetCoreAll/${PACKAGE}.csproj"
+CSPROJ_VERSION="/src/dotnet-agent/src/Elastic.Apm.NetCoreAll/${PACKAGE}.csproj"
 BUILD_PROPS="/src/dotnet-agent/src/Directory.Build.props"
 
 if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
@@ -54,7 +53,8 @@ if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
     echo 'INFO: search version in the csproj. (only for agent version < 1.3)'
     DOTNET_AGENT_VERSION=$(grep 'PackageVersion' ${CSPROJ_VERSION} | sed 's#<.*>\(.*\)<.*>#\1#' | tr -d " ")
     if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
-      DOTNET_AGENT_VERSION=$(grep 'PackageVersion' ${CSPROJ_VERSION_BACKWARDS} | sed 's#<.*>\(.*\)<.*>#\1#' | tr -d " ")
+      ## From 1.22 onwards (see https://github.com/elastic/apm-agent-dotnet/pull/2063)
+      DOTNET_AGENT_VERSION=$(dotnet minver -t=v -p=canary.0 -v=e)
       if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
         echo 'ERROR: DOTNET_AGENT_VERSION could not be calculated.' && exit 1
       fi
