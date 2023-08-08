@@ -9,7 +9,8 @@ git checkout "${OPBEANS_DOTNET_BRANCH}"
 CSPROJ="opbeans-dotnet.csproj"
 
 PACKAGE=Elastic.Apm.NetCoreAll
-CSPROJ_VERSION="/src/dotnet-agent/src/Elastic.Apm.NetCoreAll/${PACKAGE}.csproj"
+CSPROJ_VERSION_BACKWARDS="/src/dotnet-agent/src/Elastic.Apm.NetCoreAll/${PACKAGE}.csproj"
+CSPROJ_VERSION="/src/dotnet-agent/src/integrations/Elastic.Apm.NetCoreAll/${PACKAGE}.csproj"
 BUILD_PROPS="/src/dotnet-agent/src/Directory.Build.props"
 
 if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
@@ -53,7 +54,10 @@ if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
     echo 'INFO: search version in the csproj. (only for agent version < 1.3)'
     DOTNET_AGENT_VERSION=$(grep 'PackageVersion' ${CSPROJ_VERSION} | sed 's#<.*>\(.*\)<.*>#\1#' | tr -d " ")
     if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
-      echo 'ERROR: DOTNET_AGENT_VERSION could not be calculated.' && exit 1
+      DOTNET_AGENT_VERSION=$(grep 'PackageVersion' ${CSPROJ_VERSION_BACKWARDS} | sed 's#<.*>\(.*\)<.*>#\1#' | tr -d " ")
+      if [ -z "${DOTNET_AGENT_VERSION}" ] ; then
+        echo 'ERROR: DOTNET_AGENT_VERSION could not be calculated.' && exit 1
+      fi
     fi
   fi
 
