@@ -14,8 +14,6 @@ RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries
 RUN apt-get -qq update \
     && apt-get -qq install -y python3 python3-pip python3-venv rsync
 
-RUN pip3 install --upgrade pip
-
 ARG apm_server_branch_or_commit=main
 ARG apm_server_repo=https://github.com/elastic/apm-server.git
 ENV SRC=/go/src/github.com/elastic/apm-server
