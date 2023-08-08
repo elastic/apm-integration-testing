@@ -1,5 +1,5 @@
-ARG apm_server_base_image=docker.elastic.co/apm/apm-server:8.7.0-SNAPSHOT
-ARG go_version=1.19.5
+ARG apm_server_base_image=docker.elastic.co/apm/apm-server:8.9.0-SNAPSHOT
+ARG go_version=1.20.7
 ARG apm_server_binary=apm-server
 
 ###############################################################################
@@ -13,8 +13,6 @@ ARG apm_server_binary
 RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries
 RUN apt-get -qq update \
     && apt-get -qq install -y python3 python3-pip python3-venv rsync
-
-RUN pip3 install --upgrade pip
 
 ARG apm_server_branch_or_commit=main
 ARG apm_server_repo=https://github.com/elastic/apm-server.git
