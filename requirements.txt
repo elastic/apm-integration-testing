@@ -54,7 +54,7 @@ pytest-rerunfailures==11.0
 pytest-selenium==3.0.0
 pytest-variables==1.9.0
 python-dotenv==0.21.0
-PyYAML==5.4
+PyYAML==5.3.1
 requests==2.26.0
 selenium==3.8.0
 singledispatch==3.4.0.3
