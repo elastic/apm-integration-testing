@@ -94,8 +94,8 @@ class LocalSetup(object):
         '8.11': '8.11.0',
         '8.12': '8.12.0',
         # UPDATECLI_AUTOMATION
-        "main": "8.11.0",
-        "master": "8.11.0",  # keep master alias for backward compatibility. Upgrade the main alias only
+        "main": "8.12.0",
+        "master": "8.12.0",  # keep master alias for backward compatibility. Upgrade the main alias only
     }
 
     def __init__(self, argv=None, services=None):
