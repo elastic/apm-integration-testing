@@ -58,6 +58,14 @@ sources:
     spec:
       command: echo {{ source "latestVersion" }}
 
+  apm-server-image:
+    name: Get apm-server-image
+    kind: shell
+    dependson:
+      - latestRelease
+    spec:
+      command: echo docker.elastic.co/apm/apm-server:{{ source "latestRelease" }}-SNAPSHOT
+
 conditions:
   dockerTag:
     name: Is docker image elasticsearch:{{ source "latestRelease" }} published
@@ -93,3 +101,13 @@ targets:
     kind: shell
     spec:
       command: bash .ci/bump-stack-release-version.sh
+
+  dockerfile.apmserver:
+    name: 'Update the value of ARG apm_server_base_image in the Dockerfile to {{ source "apm-server-image" }}'
+    sourceID: apm-server-image
+    kind: dockerfile
+    spec:
+      file: docker/apm-server/Dockerfile
+      instruction:
+        keyword: "ARG"
+        matcher: "apm_server_base_image"
