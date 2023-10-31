@@ -46,7 +46,7 @@ sources:
 
 targets:
   update-cli:
-    name: 'Update cli.py - main to {{ source "major-minor-patch" }} (bc)'
+    name: 'Update cli.py - main to {{ source "major-minor-patch" }}'
     kind: file
     sourceid: major-minor-patch
     scmid: default
